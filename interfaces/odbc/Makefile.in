@@ -1,0 +1,12 @@
+# Makefile.in
+# November 5, 2002
+
+include ../../make.common
+
+OBJS =				odbc_common.so odbc_delivery.so odbc_new_order.so \
+					odbc_order_status.so odbc_stock_level.so odbc_payment.so
+
+all: $(OBJS)
+
+clean: 
+	rm -f $(OBJS)
