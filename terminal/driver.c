@@ -315,7 +315,8 @@ void *terminal_worker(void *data)
 
 #ifdef STANDALONE
 	struct odbc_context_t odbcc;
-	struct transaction_queue_node_t *node = (struct transaction_queue_node_t *)
+	struct transaction_queue_node_t *node =
+		(struct transaction_queue_node_t *)
 		malloc(sizeof(struct transaction_queue_node_t));
 	extern char sname[32];
 	extern int exiting;
@@ -360,15 +361,20 @@ void *terminal_worker(void *data)
 	{
 		if (mode_altered == 1)
 		{
-			/* Determine w_id and d_id for the client per transaction. */
+			/*
+			 * Determine w_id and d_id for the client per
+			 * transaction.
+			 */
 
-			tc->w_id = w_id_min + get_random(w_id_max - w_id_min + 1);
-			tc->d_id = get_random(table_cardinality.districts);
+			tc->w_id = w_id_min +
+				get_random(w_id_max - w_id_min);
+			tc->d_id =
+				get_random(table_cardinality.districts - 1) + 1;
 		}
 
 		/*
-		 * Determine which transaction to execute, minimum keying time, and
-         * mean think time.
+		 * Determine which transaction to execute, minimum keying time,
+		 * and mean think time.
 		 */
 		threshold = get_percentage();
 		if (threshold < transaction_mix.new_order_threshold)
@@ -478,20 +484,20 @@ void *terminal_worker(void *data)
 		pthread_mutex_lock(&mutex_mix_log);
 		if (rc == OK)
 		{
-			fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
+			fprintf(log_mix, "%d,%c,%f,%d\n", (int) time(NULL),
 				transaction_short_name[client_data.transaction],
-				response_time, pthread_self());
+				response_time, (int) pthread_self());
 		}
 		else if (rc == STATUS_ROLLBACK)
 		{
-			fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
+			fprintf(log_mix, "%d,%c,%f,%d\n", (int) time(NULL),
 				toupper(transaction_short_name[client_data.transaction]),
-				response_time, pthread_self());
+				response_time, (int) pthread_self());
 		}
 		else if (rc == ERROR)
 		{
-			fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
-				'E', response_time, pthread_self());
+			fprintf(log_mix, "%d,%c,%f,%d\n", (int) time(NULL),
+				'E', response_time, (int) pthread_self());
 		}
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
@@ -536,7 +542,7 @@ void *terminal_worker(void *data)
 
 	/* Note when each thread has exited. */
 	pthread_mutex_lock(&mutex_mix_log);
-	fprintf(log_mix, "TERMINATED %d\n", pthread_self());
+	fprintf(log_mix, "TERMINATED %d\n", (int) pthread_self());
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);
 
