@@ -1,7 +1,7 @@
 # Makefile.in
 # 31 October 2002
 
-# $Id: Makefile.in 867 2003-03-31 17:16:07Z fimath $
+# $Id: Makefile.in 869 2003-03-31 19:47:37Z fimath $
 
 # Source directory is current directory
 srcdir=$(PWD)
@@ -28,7 +28,7 @@ $(COMMON_OBJ) $(SPECIAL_OBJ):
 	cd $(srcdir)/$(patsubst %_obj,%,$@) && $(MAKE)
 
 $(STANDALONE_OBJ):
-	cd $(srcdir)/($patsubst %_standalone_obj,%,$@) && $(MAKE) -f $(MAKE_STANDALONE)
+	cd $(srcdir)/$(patsubst %_standalone_obj,%,$@) && $(MAKE) -f $(MAKE_STANDALONE)
 
 db_obj:
 	cd $(srcdir)/interfaces && $(MAKE)
