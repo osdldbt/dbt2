@@ -9,6 +9,8 @@
 / July 12, 2002
 /     Not using c_d_id and c_w_id when searching for customers by last name
 /     since there are cases with 1 warehouse where no customers are found.
+/ August 13, 2002
+/     Not appending c_data to c_data when credit is bad.
 CREATE DBPROC payment(IN w_id FIXED(9), IN d_id FIXED(2),
 INOUT c_id FIXED(5), IN c_w_id FIXED(9), IN c_d_id FIXED(2),
 INOUT c_last VARCHAR(16), IN h_amount FIXED(12, 6),
@@ -71,7 +73,7 @@ SUBTRANS BEGIN;
   IF c_credit = 'BC' THEN
     BEGIN
       SET c_data = CHR(c_id) & CHR(c_d_id) & CHR(c_w_id) & CHR(d_id) &
-                   CHR(w_id) & CHR(h_amount) & c_data;
+                   CHR(w_id) & CHR(h_amount);
       UPDATE dbt.customer(c_balance, c_ytd_payment, c_data)
       VALUES (:c_balance, :c_ytd_payment, :c_data)
       WHERE c_id = :c_id
