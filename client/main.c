@@ -149,6 +149,7 @@ int parse_arguments(int argc, char *argv[])
 
 int parse_command(char *command)
 {
+	int i, j;
 	int count;
 
 	if (strcmp(command, "status") == 0)
@@ -159,6 +160,24 @@ int parse_command(char *command)
 		printf("db connections = %d\n", count);
 		sem_getvalue(&listener_worker_count, &count);
 		printf("terminal connections = %d\n", count);
+		for (i = 0; i < 2; i++)
+		{
+			if (i == 0)
+			{
+				printf("\nQueued transactions:\n");
+			}
+			else
+			{
+				printf("\nExecuting transactions:\n");
+			}
+			for (j = 0; j < TRANSACTION_MAX; j++)
+			{
+				pthread_mutex_lock(&mutex_transaction_counter[i][j]);
+				printf("%s %d\n", transaction_name[j],
+					transaction_counter[i][j]);
+				pthread_mutex_unlock(&mutex_transaction_counter[i][j]);
+			}
+		}
 	}
 	else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0)
 	{
