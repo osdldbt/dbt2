@@ -129,8 +129,9 @@ SUBTRANS BEGIN;
   WHERE d_w_id = :w_id
     AND d_id = :d_id;
   SET o_id = d_next_o_id;
+  SET d_next_o_id = o_id + 1;
   UPDATE dbt.district
-  SET d_next_o_id = :o_id + 1
+  SET d_next_o_id = :d_next_o_id
   WHERE d_id = :d_id
     AND d_w_id = :w_id;
   SELECT c_discount, c_last, c_credit
