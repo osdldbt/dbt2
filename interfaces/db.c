@@ -42,6 +42,10 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 		case STOCK_LEVEL:
 			execute_stock_level(odbcc, &odbct->stock_level);
 			break;
+		default:
+			LOG_ERROR_MESSAGE("unknown transaction type %d\n",
+				transaction);
+			return ERROR;
 	}
 
 	return OK;

@@ -10,8 +10,10 @@
  */
 
 #include <pthread.h>
-#include <semaphore.h>
 #include <common.h>
+#include <listener.h>
+#include <client_interface.h>
+#include <transaction_queue.h>
 
 void *listener_worker(void *data);
 
@@ -23,7 +25,7 @@ extern int exiting;
 void *init_listener(void *data)
 {
 	int *s = (int *) data; /* Listener socket. */
-	int sockfd;
+	int sockfd; /* Socket to terminal. */
 
 	if (sem_init(&listener_worker_count, 0, 0) != 0)
 	{
@@ -54,9 +56,19 @@ void *init_listener(void *data)
 
 void *listener_worker(void *data)
 {
-	int *s = (int *) data;
+	/* This thread should only handle one transaction at a time... */
+	struct transaction_queue_node_t node;
 
+	node.s = (int *) data;
 	while (!exiting)
 	{
+		if (receive_transaction_data(*node.s, &node.client_data) != OK)
+		{
+			LOG_ERROR_MESSAGE("receive_transaction_data() error");
+			continue;
+		}
+
+		/* Queue up the transaction data to be processed. */
+		enqueue_transaction(&node);
 	}
 }

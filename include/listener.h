@@ -9,4 +9,13 @@
  * 31 june 2002
  */
 
+#ifndef _LISTENER_H_
+#define _LISTERNE_H_
+
+#include <semaphore.h>
+
 void *init_listener(void *data);
+
+extern sem_t listener_worker_count;
+
+#endif /* _LISTENER_H_ */

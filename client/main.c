@@ -14,6 +14,7 @@
 #include <db_threadpool.h>
 #include <listener.h>
 #include <_socket.h>
+#include <transaction_queue.h>
 
 /* Function Prototypes */
 int parse_arguments(int argc, char *argv[]);
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
 		printf("-c #\n");
 		printf("\tnumber of database connections\n");
 		printf("-p #\n");
-		printf("\tport to listen for incoming connections\n");
+		printf("\tport to listen for incoming connections, default %d\n", port);
 		return 1;
 	}
 
@@ -78,8 +79,8 @@ int main(int argc, char *argv[])
 	}
 	while(1);
 
-	/* Let everyone know we exited ok. */
 	close(sockfd);
+	printf("waiting for threads to exit...\n");
 	do
 	{
 		/* Loop until all the DB worker threads have exited. */
@@ -87,6 +88,8 @@ int main(int argc, char *argv[])
 		sleep(1);
 	}
 	while (count > 0);
+
+	/* Let everyone know we exited ok. */
 	printf("exiting...\n");
 
 	return 0;
@@ -140,8 +143,12 @@ int parse_command(char *command)
 
 	if (strcmp(command, "status") == 0)
 	{
+		sem_getvalue(&queue_length, &count);
+		printf("transactions waiting = %d\n", count);
 		sem_getvalue(&db_worker_count, &count);
-		printf("db worker = %d\n", count);
+		printf("db connections = %d\n", count);
+		sem_getvalue(&listener_worker_count, &count);
+		printf("terminal connections = %d\n", count);
 	}
 	else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0)
 	{
@@ -170,6 +177,11 @@ int startup()
 	if (sockfd < 1)
 	{
 		printf("_listen() failed on port %d\n", port);
+		return ERROR;
+	}
+	if (init_transaction_queue() != OK)
+	{
+		LOG_ERROR_MESSAGE("init_transaction_queue() failed");
 		return ERROR;
 	}
 	if (pthread_create(&tid, NULL, &init_listener, &sockfd) != 0)
