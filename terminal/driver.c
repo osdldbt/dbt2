@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <semaphore.h>
 #include <common.h>
+#include <logging.h>
 #include <driver.h>
 #include <client_interface.h>
 #include <input_data_generator.h>
@@ -198,12 +199,24 @@ int start_driver()
 		sleep(1);
 	}
 	printf("terminals started...\n", terminals);
+
+	/* Note that the driver has started up all threads in the log. */
+	pthread_mutex_lock(&mutex_mix_log);
+	fprintf(log_mix, "START\n");
+	fflush(log_mix);
+	pthread_mutex_unlock(&mutex_mix_log);
+
+/*
 	do
 	{
 		sem_getvalue(&terminal_count, &count);
 		sleep(1);
 	}
 	while (count > 0);
+*/
+/* A dramatic stop to the run. */
+sleep(stop_time - time(NULL));
+exit(1);
 
 	return OK;
 }
@@ -221,8 +234,10 @@ void *terminal_worker(void *data)
 	int w_id, d_id;
 	int sockfd;
 
+	/* Each thread needs to seed in Linux. */
 	srand(time(NULL) + pthread_self());
 
+	/* Keep a count of how many terminals are being emulated. */
 	sem_post(&terminal_count);
 
 	/* Connect to the client program. */
@@ -251,55 +266,40 @@ void *terminal_worker(void *data)
 
 	while (time(NULL) < stop_time)
 	{
-		/* Determine which transaction to execute. */
+		/*
+		 * Determine which transaction to execute, minimum keying time, and
+         * mean think time.
+		 */
 		threshold = get_percentage();
 		if (threshold < transaction_mix.new_order_threshold)
 		{
 			client_data.transaction = NEW_ORDER;
+			keying_time = 18;
+			mean_think_time = 12000;
 		}
 		else if (threshold < transaction_mix.payment_threshold)
 		{
 			client_data.transaction = PAYMENT;
+			keying_time = 3;
+			mean_think_time = 12000;
 		}
 		else if (threshold < transaction_mix.order_status_threshold)
 		{
 			client_data.transaction = ORDER_STATUS;
+			keying_time = 2;
+			mean_think_time = 10000;
 		}
 		else if (threshold < transaction_mix.delivery_threshold)
 		{
 			client_data.transaction = DELIVERY;
+			keying_time = 2;
+			mean_think_time = 5000;
 		}
 		else
 		{
 			client_data.transaction = STOCK_LEVEL;
-		}
-
-		/*
-		 * Determine minimum keying time and mean think time based on the
-		 * transaction to execute.
-		 */
-		switch (client_data.transaction)
-		{
-			case DELIVERY:
-				keying_time = 2;
-				mean_think_time = 5000;
-				break;
-			case NEW_ORDER:
-				keying_time = 18;
-				mean_think_time = 12000;
-				break;
-			case ORDER_STATUS:
-				keying_time = 2;
-				mean_think_time = 10000;
-				break;
-			case PAYMENT:
-				keying_time = 3;
-				mean_think_time = 12000;
-				break;
-			case STOCK_LEVEL:
-				keying_time = 2;
-				mean_think_time = 5000;
-				break;
+			keying_time = 2;
+			mean_think_time = 5000;
 		}
 
 #ifdef DEBUG
@@ -360,5 +360,15 @@ void *terminal_worker(void *data)
 		}
 	}
 	LOG_ERROR_MESSAGE("exiting...");
+
+	/* Note when each thread has exited. */
+/*
+	pthread_mutex_lock(&mutex_mix_log);
+	fprintf(log_mix, "TERMINATED %d\n", pthread_self());
+	fflush(log_mix);
+	pthread_mutex_unlock(&mutex_mix_log);
+*/
+
+	/* Update the terminal count. */
 	sem_wait(&terminal_count);
 }
