@@ -70,5 +70,5 @@ int rollback_transaction(struct db_context_t *dbc)
 	res = PQexec(dbc->conn, "ROLLBACK");
 	PQclear(res);
 
-	return OK;
+	return STATUS_ROLLBACK;
 }

@@ -108,7 +108,7 @@
 	"  AND s_w_id = %d"
 
 #define NEW_ORDER_9 \
-	"UPDATE stock   "\
+	"UPDATE stock\n" \
 	"SET s_quantity = s_quantity - %d\n" \
 	"WHERE s_i_id = %d\n" \
 	"  AND s_w_id = %d"
@@ -423,6 +423,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 	char *my_s_dist[15];
 	char *s_data[15];
 
+	/* Loop through the last set of parameters. */
 	for (i = 0, j = 5; i < 15; i++) {
 		ol_i_id[i] = PG_GETARG_INT32(j++);
 		ol_supply_w_id[i] = PG_GETARG_INT32(j++);
@@ -461,7 +462,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		elog(NOTICE, "w_tax = %s", w_tax);
 #endif /* DEBUG */
 	} else {
-		PG_RETURN_INT32(-1);
+		PG_RETURN_INT32(10);
 	}
 
 	sprintf(query, NEW_ORDER_2, w_id, d_id);
@@ -481,7 +482,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		elog(NOTICE, "d_next_o_id = %s", d_next_o_id);
 #endif /* DEBUG */
 	} else {
-		PG_RETURN_INT32(-1);
+		PG_RETURN_INT32(11);
 	}
 
 	sprintf(query, NEW_ORDER_3, w_id, d_id);
@@ -490,7 +491,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_UPDATE) {
-		PG_RETURN_INT32(-1);
+		PG_RETURN_INT32(12);
 	}
 
 	sprintf(query, NEW_ORDER_4, w_id, d_id, c_id);
@@ -512,7 +513,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		elog(NOTICE, "c_credit = %s", c_credit);
 #endif /* DEBUG */
 	} else {
-		PG_RETURN_INT32(-1);
+		PG_RETURN_INT32(13);
 	}
 
 	sprintf(query, NEW_ORDER_5, d_next_o_id, w_id, d_id);
@@ -521,7 +522,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
-		PG_RETURN_INT32(-1);
+		PG_RETURN_INT32(14);
 	}
 
 	sprintf(query, NEW_ORDER_6, d_next_o_id, d_id, w_id, c_id, o_ol_cnt,
@@ -531,7 +532,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
-		PG_RETURN_INT32(-1);
+		PG_RETURN_INT32(15);
 	}
 
 	for (i = 0; i < o_ol_cnt; i++) {
@@ -540,7 +541,12 @@ Datum new_order(PG_FUNCTION_ARGS)
 		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
-		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+		/*
+		 * Shouldn't have to check if ol_i_id is 0, but if the row
+		 * doesn't exist, the query still passes.
+		 */
+		if (ol_i_id[i] != 0 &&
+			ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 	     		tuple = tuptable->vals[0];
@@ -555,7 +561,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		} else {
 			/* Item doesn't exist, rollback transaction. */
-			PG_RETURN_INT32(-1);
+			PG_RETURN_INT32(2);
 		}
 
 		ol_amount[i] = atof(i_price[i]) * (float) ol_quantity[i];
@@ -578,7 +584,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			elog(NOTICE, "s_data[%d] = %s", i, s_data[i]);
 #endif /* DEBUG */
 		} else {
-			PG_RETURN_INT32(-1);
+			PG_RETURN_INT32(16);
 		}
 		order_amount += ol_amount[i];
 
@@ -586,7 +592,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			sprintf(query, NEW_ORDER_9, ol_quantity[i],
 				ol_i_id[i], w_id);
 		} else {
-			sprintf(query, NEW_ORDER_9, ol_quantity[i] + 91,
+			sprintf(query, NEW_ORDER_9, ol_quantity[i] - 91,
 				ol_i_id[i], w_id);
 		}
 #ifdef DEBUG
@@ -594,7 +600,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
-			PG_RETURN_INT32(-1);
+			PG_RETURN_INT32(17);
 		}
 
 		sprintf(query, NEW_ORDER_10, d_next_o_id, d_id, w_id, i + 1,
@@ -605,13 +611,13 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_INSERT) {
-			PG_RETURN_INT32(-1);
+			PG_RETURN_INT32(18);
 		}
 	}
 
 	SPI_finish();
 
-	PG_RETURN_INT32(1);
+	PG_RETURN_INT32(0);
 }
 
 Datum order_status(PG_FUNCTION_ARGS)

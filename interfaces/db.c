@@ -93,7 +93,7 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 			}
 		}
 		rc = execute_new_order(dbc, &td->new_order);
-		if (td->new_order.rollback == 0) {
+		if (rc != ERROR && td->new_order.rollback == 0) {
 			/*
 			 * Calculate the adjusted total_amount here to work
 			 * around an issue with SAP DB stored procedures that

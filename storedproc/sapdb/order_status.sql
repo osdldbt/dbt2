@@ -264,4 +264,4 @@ SUBTRANS BEGIN;
         SET ol_delivery_d14 = '';
         SET ol_delivery_d15 = '';
       END;
-SUBTRANS END;:
+SUBTRANS END;;

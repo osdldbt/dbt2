@@ -197,7 +197,7 @@ int parse_command(char *command)
 		time(&current_time);
 		for (i = 0; i < db_connections; i++) {
 			printf("%6d  %12d  %8d\n", i, worker_count[i],
-				current_time - last_txn[i]);
+				(int) (current_time - last_txn[i]));
 		}
 		printf("------  ------------  --------\n");
 	} else if (strcmp(command, "exit") == 0 ||
