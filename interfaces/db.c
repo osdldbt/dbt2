@@ -73,6 +73,8 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 	{
 		/* Rollback. */
 		i = SQLEndTran(SQL_HANDLE_DBC, odbcc->hdbc, SQL_ROLLBACK);
+		LOG_ERROR_MESSAGE("rollback occured for %s\n",
+			transaction_name[transaction]);
 	}
 	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO)
 	{
