@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <common.h>
+#include <logging.h>
 #include <transaction_data.h>
 #include <input_data_generator.h>
 #include <db.h>
