@@ -8,7 +8,6 @@ all: datagen
 datagen: ../common.mk Makefile ../common/common.c ../include/common.h main.c
 	$(CC) $(CFLAGS) main.c -o datagen \
 		../common/common.so \
-		../common/transaction_data.so \
 		-lm
 
 clean: 
