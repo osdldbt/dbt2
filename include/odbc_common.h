@@ -23,6 +23,9 @@
 
 #define LOG_ODBC_ERROR(type, handle) log_odbc_error(__FILE__, __LINE__, type, handle)
 
+#define COMMIT "COMMIT"
+#define ROLLBACK "ROLLBACK"
+
 struct odbc_context_t
 {
 	SQLHDBC hdbc;
