@@ -3,9 +3,14 @@
 
 include ../common.mk
 
-all: transaction_test
+all: transaction_test results
 
-transaction_test: ../common.mk Makefile ../common/common.c ../include/common.h \
+results: ../common.mk ../Makefile Makefile
+	$(CC) $(CFLAGS) results.c -o results
+
+transaction_test: ../Makefile ../common.mk Makefile \
+	../common/common.c ../include/common.h ../common/common.so \
+	../common/logging.c ../include/logging.h ../common/logging.so \
 	../terminal/input_data_generator.c ../terminal/input_data_generator.so \
 	../include/input_data_generator.h ../common/transaction_data.c \
 	../common/transaction_data.so ../include/transaction_data.h \
@@ -30,6 +35,7 @@ transaction_test: ../common.mk Makefile ../common/common.c ../include/common.h \
 	transaction_test.c
 	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) transaction_test.c -o transaction_test \
 		../common/common.so ../terminal/input_data_generator.so \
+		../common/logging.so \
 		../common/transaction_data.so ../interfaces/odbc/odbc_common.so \
 		../interfaces/db.so \
 		../interfaces/odbc/odbc_new_order.so \
