@@ -59,11 +59,29 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 			LOG_ERROR_MESSAGE("unknown transaction type %d", transaction);
 			return ERROR;
 	}
-	if (rc != OK)
+	if (rc == OK)
 	{
+		/* Commit. */
+		i = SQLPrepare(odbcc->hstmt, COMMIT, SQL_NTS);
+	}
+	else
+	{
+		/* Rollback. */
+		i = SQLPrepare(odbcc->hstmt, ROLLBACK, SQL_NTS);
 		edump(transaction, (void *) &odbct->delivery);
 	}
+	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO)
+	{
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+		return ERROR;
+	}
+	i = SQLExecute(odbcc->hstmt);
+	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO)
+	{
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+		return ERROR;
+	}
 
-	return rc;
+	return OK;
 }
 #endif /* ODBC */
