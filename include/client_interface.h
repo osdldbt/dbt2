@@ -14,15 +14,6 @@
 
 #include <transaction_data.h>
 
-union transaction_data_t
-{
-	struct delivery_t delivery;
-	struct new_order_t new_order;
-	struct order_status_t order_status;
-	struct payment_t payment;
-	struct stock_level_t stock_level;
-};
-
 struct client_transaction_t
 {
 	int transaction;
