@@ -19,3 +19,10 @@ run the kit in a multi-tier environment for PostgreSQL.
 
 Edit the line in postgresql.conf that says "tcpip_socket = false", uncomment,
 set to true, and restart the daemon.
+
+-----
+
+make install-all-headers
+
+Do this from the postgresql srcif you're installing postgresql from source to
+make sure the server include files get installed.

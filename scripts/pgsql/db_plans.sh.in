@@ -67,11 +67,11 @@ SQL="EXPLAIN SELECT c_discount, c_last, c_credit FROM customer WHERE c_w_id = 1 
 echo "$SQL" >> $OUTPUT_FILE
 @PSQL@ -d dbt2 -c "$SQL" >> $OUTPUT_FILE
 
-SQL="EXPLAIN INSERT INTO new_order (no_o_id, no_d_id, no_w_id) VALUES (1, 1, 1);"
+SQL="EXPLAIN INSERT INTO new_order (no_o_id, no_d_id, no_w_id) VALUES (-1, 1, 1);"
 echo "$SQL" >> $OUTPUT_FILE
 @PSQL@ -d dbt2 -c "$SQL" >> $OUTPUT_FILE
 
-SQL="EXPLAIN INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_carrier_id, o_ol_cnt, o_all_local) VALUES (1, 1, 1, 1, current_timestamp, NULL, 1, 1);"
+SQL="EXPLAIN INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d, o_carrier_id, o_ol_cnt, o_all_local) VALUES (-1, 1, 1, 1, current_timestamp, NULL, 1, 1);"
 echo "$SQL" >> $OUTPUT_FILE
 @PSQL@ -d dbt2 -c "$SQL" >> $OUTPUT_FILE
 
@@ -87,7 +87,7 @@ SQL="EXPLAIN UPDATE stock SET s_quantity = s_quantity - 10 WHERE s_i_id = 1 AND 
 echo "$SQL" >> $OUTPUT_FILE
 @PSQL@ -d dbt2 -c "$SQL" >> $OUTPUT_FILE
 
-SQL="EXPLAIN INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_delivery_d, ol_quantity, ol_amount, ol_dist_info) VALUES (1, 1, 1, 1, 1, 1, NULL, 1, 1.0, 'hello kitty');" >> $OUTPUT_FILE
+SQL="EXPLAIN INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, ol_delivery_d, ol_quantity, ol_amount, ol_dist_info) VALUES (-1, 1, 1, 1, 1, 1, NULL, 1, 1.0, 'hello kitty');" >> $OUTPUT_FILE
 echo "$SQL" >> $OUTPUT_FILE
 @PSQL@ -d dbt2 -c "$SQL" >> $OUTPUT_FILE
 

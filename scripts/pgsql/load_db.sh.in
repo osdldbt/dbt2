@@ -38,6 +38,8 @@ bash create_indexes.sh
 
 bash load_stored_funcs.sh
 
+@PSQL@ -d $DB_NAME -c "SELECT setseed(0);"
+
 # VACUUM FULL ANALYZE
 #
 # Fully defragment tables, and build statistics

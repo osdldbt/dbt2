@@ -16,6 +16,11 @@ GetOptions(
 	"if=s" => \$stats_dir
 );
 
+unless ( $stats_dir ) {
+	print "usage: analyze_stats.pl --if <directory>\n";
+	exit 1;
+}
+
 #unless ( -d $stats_dir ) {
 #	print "$stats_dir directory doesn't exist\n";
 #	exit 1;

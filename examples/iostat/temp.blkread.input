@@ -1,4 +1,4 @@
-plot  "iostat.out.rd!c0d13.blkread.data" with lines , "iostat.out.rd!c0d27.blkread.data" with lines , "iostat.out.rd!c1d13.blkread.data" with lines , "iostat.out.rd!c1d27.blkread.data" with lines 
+plot  "iostat.out.rd!c0d13.blkread.data" title "rd!c0d13" with lines, "iostat.out.rd!c0d27.blkread.data" title "rd!c0d27" with lines, "iostat.out.rd!c1d13.blkread.data" title "rd!c1d13" with lines, "iostat.out.rd!c1d27.blkread.data" title "rd!c1d27" with lines 
 set xlabel "Elapsed Time (Minutes)"
 set ylabel "Blocks Read"
 set term png small color

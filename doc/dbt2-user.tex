@@ -19,7 +19,7 @@ Database Test 2 \\
 \Huge
 User's Guide \\
 \LARGE
-Version 0.15
+Version 0.16
 
 \begin{figure}[b]
 \flushleft
@@ -67,7 +67,9 @@ but work is currently being done to support PostgresSQL.
 
 \subsubsection{SAP DB}
 
-The OSDL-DBT-2 test kit was developed against SAP DB 7.3.0.25.
+The OSDL-DBT-2 test kit was developed against SAP DB 7.3.0.25.  The test kit
+does not work out of the box with later versions of SAP DB without changes
+to the stored procedure and database creations scripts.
 
 Linux binaries and installation instructions can be obtained on the Web at:
 http://www.sapdb.org/tgz\_linux.htm
@@ -92,6 +94,19 @@ following:
       /opt/sapdb/indep\_prog/bin/x\_cons
 \end{itemize}
 
+\subsubsection{PostgreSQL}
+
+The OSDL-DBT-2 test kit has been ported to work with PostgreSQL 7.3.  Source
+code for PostgreSQL can be obtained from their website at:
+http://www.postgresql.org/
+
+PostgreSQL needs to be built with a change in pg_config.h.in where
+INDEX_MAX_KEYS must be set to 64.  Be sure to make this change before running
+the configure script for PostgreSQL.
+
+The test kit also requies that all PostgreSQL header files are installed onto
+the system.  This is done by running: make install-all-headers.
+
 \subsubsection{OSDL-DBT-2 Test Kit Source}
 
 The test kit depends on unixODBC drivers for use wiith SAP DB.  The driver
@@ -101,7 +116,7 @@ After gunzipping the directory unixODBC-2.2.3, cd to the directory and (as
 root) install by running: \\
 \begin{tabular}[c]{l}
 ./configure \\
-make \\
+make standalone \\
 make install \\
 \end{tabular}
 

@@ -82,7 +82,7 @@ echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
-STACKSIZE=512
+STACKSIZE=256
 ulimit -s $STACKSIZE
 echo "ulimit -s $STACKSIZE" >> $OUTPUT_DIR/readme.txt
 
@@ -130,8 +130,14 @@ cp -p notpm.input $DRIVER_OUTPUT_DIR
 cd $DRIVER_OUTPUT_DIR
 cat notpm.csv | awk -F "," '{print $1, $2}' > notpm.out
 @GNUPLOT@ notpm.input
+cd -
 
 # Client doesn't go away by itself like the driver does and I nohup it.
 killall client
-/usr/local/pgsql/bin/vacuumdb -z -f -d dbt2
+/usr/local/pgsql/bin/vacuumdb -f -d dbt2
+
+# Move the log file.
+bash $TOPDIR/scripts/pgsql/stop_db.sh
+mv $TOPDIR/scripts/log $DB_OUTPUT_DIR
+
 echo "Test completed."

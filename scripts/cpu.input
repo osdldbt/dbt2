@@ -1,4 +1,4 @@
-plot "cpu_all.out" title "all" with lines, "cpu_user.out" title "user" with lines, "cpu_system.out" title "system" with lines, "cpu_nice.out" title "nice" with lines
+plot "vmstat.out.all.data" title "total" with lines, "vmstat.out.us.data" title "user" with lines, "vmstat.out.sy.data" title "system" with lines, "vmstat.out.id.data" title "idle" with lines, "vmstat.out.wa.data" title "wait" with lines
 set xlabel "Elapsed Time (s)"
 set ylabel "% Utilized"
 set term png small color

@@ -20,6 +20,7 @@ int _accept(int *s)
 	struct sockaddr_in sa;
 	int sockfd;
 
+	addrlen = sizeof(struct sockaddr_in);
 	sockfd = accept(*s, (struct sockaddr *) &sa, &addrlen);
 	return sockfd;
 }

@@ -16,6 +16,11 @@ GetOptions(
 	"if=s" => \$iostat_data
 );
 
+unless ( $iostat_data ) {
+	print "usage: transform_iostat.pl --if <iostat.out>\n";
+	exit 1;
+}
+
 unless ( -f $iostat_data ) {
 	print "$iostat_data doesn't exist\n";
 	exit 1;

@@ -1,3 +1,9 @@
+v0.21
+
+- Fixed a bug in in _accept().
+- Updated the user's guide.
+- Changed the column data types in various tables for performance.
+
 v0.20
 
 - Fixed a bug in the New-Order transaction that was introduced into v0.19

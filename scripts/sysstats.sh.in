@@ -101,6 +101,7 @@ echo "starting system statistics data collection"
 
 # collect i/o data per physical device
 @IOSTAT@ -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
+@IOSTAT@ -d -x $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostatx.out &
 
 # collect vmstat data
 VMSTAT_OUTPUT=$OUTPUT_DIR/vmstat.out
