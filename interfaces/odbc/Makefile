@@ -6,9 +6,6 @@ include ../../common.mk
 all: odbc_common.so odbc_new_order.so odbc_payment.so odbc_order_status.so \
 	odbc_delivery.so odbc_stock_level.so
 
-%.so:%.c
-	$(CC) -c -shared -fpic $(CFLAGS) -I$(ODBCINCLUDEDIR) -o $@ $<
-
 odbc_common.so: ../../common.mk Makefile odbc_common.c \
 	../../include/odbc_common.h ../../include/common.h \
 	../../common/common.c ../../common/common.so

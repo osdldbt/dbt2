@@ -14,3 +14,7 @@ CFLAGS = -g -I$(INCLUDEDIR) -D$(DB_INTERFACE)
 
 COMMONOBJS = $(COMMONDIR)/common.o
 COMMONPRGS = $(COMMONDIR)/common.c $(INCLUDEDIR)/common.h
+
+%.so:%.c
+	$(CC) -c -shared -fpic $(CFLAGS) -I$(ODBCINCLUDEDIR) -o $@ $<
+
