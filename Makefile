@@ -1,4 +1,7 @@
-all: common_obj datagen_obj odbc_obj db_obj terminal_obj tools_obj 
+all: common_obj datagen_obj odbc_obj db_obj terminal_obj tools_obj client_obj
+
+client_obj:
+	cd client; $(MAKE)
 
 common_obj:
 	cd common; $(MAKE)
