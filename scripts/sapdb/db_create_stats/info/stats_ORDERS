@@ -1,0 +1,45 @@
+select * from TABLESTATISTICS where tablename='ORDERS' 
+/opt/sapdb/depend/bin/dbmcli on DBT2>OK
+END     
+'DBT';'ORDERS';'Root pno';(null);265
+'DBT';'ORDERS';'Filetype';'perm';(null)
+'DBT';'ORDERS';'Used  pages';(null);28922
+'DBT';'ORDERS';'Index pages';(null);108
+'DBT';'ORDERS';'Leaf  pages';(null);28814
+'DBT';'ORDERS';'Index levels';(null);2
+'DBT';'ORDERS';'Space used in all   pages (%)';(null);79
+'DBT';'ORDERS';'Space used in root  page  (%)';(null);39
+'DBT';'ORDERS';'Space used in index pages (%)';(null);100
+'DBT';'ORDERS';'Space used in index pages (%) min';(null);39
+'DBT';'ORDERS';'Space used in index pages (%) max';(null);100
+'DBT';'ORDERS';'Space used in leaf  pages (%)';(null);79
+'DBT';'ORDERS';'Space used in leaf  pages (%) min';(null);44
+'DBT';'ORDERS';'Space used in leaf  pages (%) max';(null);79
+'DBT';'ORDERS';'Rows';(null);3000000
+'DBT';'ORDERS';'Avg rows per page';(null);104
+'DBT';'ORDERS';'Min rows per page';(null);58
+'DBT';'ORDERS';'Max rows per page';(null);107
+'DBT';'ORDERS';'Avg row length';(null);57
+'DBT';'ORDERS';'Min row length';(null);56
+'DBT';'ORDERS';'Max row length';(null);57
+'DBT';'ORDERS';'Avg key length';(null);14
+'DBT';'ORDERS';'Min key length';(null);13
+'DBT';'ORDERS';'Max key length';(null);14
+'DBT';'ORDERS';'Avg separator length';(null);14
+'DBT';'ORDERS';'Min separator length';(null);12
+'DBT';'ORDERS';'Max separator length';(null);14
+'DBT';'ORDERS';'Defined LONG columns';(null);0
+'DBT';'ORDERS';'Avg LONG   column length';(null);0
+'DBT';'ORDERS';'Min LONG   column length';(null);0
+'DBT';'ORDERS';'Max LONG   column length';(null);0
+'DBT';'ORDERS';'LONG column pages';(null);0
+'DBT';'ORDERS';'Avg pages per LONG column';(null);0
+'DBT';'ORDERS';'Min pages per LONG column';(null);0
+'DBT';'ORDERS';'Max pages per LONG column';(null);0
+
+---
+/opt/sapdb/depend/bin/dbmcli on DBT2>
+---
+***********************************
+Execution time in seconds: 66
+***********************************

@@ -1,0 +1,1 @@
+select * from TABLESTATISTICS where tablename='ORDER_LINE' 

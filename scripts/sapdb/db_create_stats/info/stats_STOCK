@@ -1,0 +1,45 @@
+select * from TABLESTATISTICS where tablename='STOCK' 
+/opt/sapdb/depend/bin/dbmcli on DBT2>OK
+END     
+'DBT';'STOCK';'Root pno';(null);268
+'DBT';'STOCK';'Filetype';'perm';(null)
+'DBT';'STOCK';'Used  pages';(null);557487
+'DBT';'STOCK';'Index pages';(null);1931
+'DBT';'STOCK';'Leaf  pages';(null);555556
+'DBT';'STOCK';'Index levels';(null);3
+'DBT';'STOCK';'Space used in all   pages (%)';(null);77
+'DBT';'STOCK';'Space used in root  page  (%)';(null);2
+'DBT';'STOCK';'Space used in index pages (%)';(null);99
+'DBT';'STOCK';'Space used in index pages (%) min';(null);2
+'DBT';'STOCK';'Space used in index pages (%) max';(null);100
+'DBT';'STOCK';'Space used in leaf  pages (%)';(null);77
+'DBT';'STOCK';'Space used in leaf  pages (%) min';(null);43
+'DBT';'STOCK';'Space used in leaf  pages (%) max';(null);79
+'DBT';'STOCK';'Rows';(null);10000000
+'DBT';'STOCK';'Avg rows per page';(null);18
+'DBT';'STOCK';'Min rows per page';(null);10
+'DBT';'STOCK';'Max rows per page';(null);18
+'DBT';'STOCK';'Avg row length';(null);345
+'DBT';'STOCK';'Min row length';(null);332
+'DBT';'STOCK';'Max row length';(null);357
+'DBT';'STOCK';'Avg key length';(null);12
+'DBT';'STOCK';'Min key length';(null);10
+'DBT';'STOCK';'Max key length';(null);12
+'DBT';'STOCK';'Avg separator length';(null);12
+'DBT';'STOCK';'Min separator length';(null);2
+'DBT';'STOCK';'Max separator length';(null);12
+'DBT';'STOCK';'Defined LONG columns';(null);0
+'DBT';'STOCK';'Avg LONG   column length';(null);0
+'DBT';'STOCK';'Min LONG   column length';(null);0
+'DBT';'STOCK';'Max LONG   column length';(null);0
+'DBT';'STOCK';'LONG column pages';(null);0
+'DBT';'STOCK';'Avg pages per LONG column';(null);0
+'DBT';'STOCK';'Min pages per LONG column';(null);0
+'DBT';'STOCK';'Max pages per LONG column';(null);0
+
+---
+/opt/sapdb/depend/bin/dbmcli on DBT2>
+---
+***********************************
+Execution time in seconds: 1644
+***********************************

@@ -1,0 +1,45 @@
+select * from TABLESTATISTICS where tablename='HISTORY' 
+/opt/sapdb/depend/bin/dbmcli on DBT2>OK
+END     
+'DBT';'HISTORY';'Root pno';(null);263
+'DBT';'HISTORY';'Filetype';'perm';(null)
+'DBT';'HISTORY';'Used  pages';(null);44462
+'DBT';'HISTORY';'Index pages';(null);144
+'DBT';'HISTORY';'Leaf  pages';(null);44318
+'DBT';'HISTORY';'Index levels';(null);2
+'DBT';'HISTORY';'Space used in all   pages (%)';(null);79
+'DBT';'HISTORY';'Space used in root  page  (%)';(null);45
+'DBT';'HISTORY';'Space used in index pages (%)';(null);99
+'DBT';'HISTORY';'Space used in index pages (%) min';(null);45
+'DBT';'HISTORY';'Space used in index pages (%) max';(null);99
+'DBT';'HISTORY';'Space used in leaf  pages (%)';(null);79
+'DBT';'HISTORY';'Space used in leaf  pages (%) min';(null);32
+'DBT';'HISTORY';'Space used in leaf  pages (%) max';(null);79
+'DBT';'HISTORY';'Rows';(null);3000000
+'DBT';'HISTORY';'Avg rows per page';(null);68
+'DBT';'HISTORY';'Min rows per page';(null);28
+'DBT';'HISTORY';'Max rows per page';(null);69
+'DBT';'HISTORY';'Avg row length';(null);91
+'DBT';'HISTORY';'Min row length';(null);85
+'DBT';'HISTORY';'Max row length';(null);96
+'DBT';'HISTORY';'Avg key length';(null);9
+'DBT';'HISTORY';'Min key length';(null);9
+'DBT';'HISTORY';'Max key length';(null);9
+'DBT';'HISTORY';'Avg separator length';(null);9
+'DBT';'HISTORY';'Min separator length';(null);7
+'DBT';'HISTORY';'Max separator length';(null);9
+'DBT';'HISTORY';'Defined LONG columns';(null);0
+'DBT';'HISTORY';'Avg LONG   column length';(null);0
+'DBT';'HISTORY';'Min LONG   column length';(null);0
+'DBT';'HISTORY';'Max LONG   column length';(null);0
+'DBT';'HISTORY';'LONG column pages';(null);0
+'DBT';'HISTORY';'Avg pages per LONG column';(null);0
+'DBT';'HISTORY';'Min pages per LONG column';(null);0
+'DBT';'HISTORY';'Max pages per LONG column';(null);0
+
+---
+/opt/sapdb/depend/bin/dbmcli on DBT2>
+---
+***********************************
+Execution time in seconds: 95
+***********************************
