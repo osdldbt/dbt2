@@ -1,0 +1,236 @@
+2002-08-06 13:37  fimath
+
+	* tools/Makefile (1.3): Updated Makefile to build
+	transaction_test.c to support its new features.
+
+2002-08-06 13:37  fimath
+
+	* tools/transaction_test.c (1.2): Make changes so that the program
+	can run up against the client or the database.
+
+2002-08-06 11:02  fimath
+
+	* client/main.c (1.6): Force an exit when explicitly told to exit.
+
+2002-08-06 11:01  fimath
+
+	* client/listener.c (1.3): Added code to handle the case when a
+	terminal drops a connection.
+
+2002-08-06 10:51  fimath
+
+	* common/_socket.c (1.3), include/_socket.h (1.3): Fixed a bug in
+	_accept() where the socked variable s wasn't beeing declared
+	correctly.
+
+2002-08-06 10:51  fimath
+
+	* common/client_interface.c (1.2): Added code so that a connection
+	would actually be attempted in connect_to_client().
+
+2002-08-06 09:44  fimath
+
+	* client/Makefile (1.5), client/db_threadpool.c (1.3),
+	client/listener.c (1.2), client/main.c (1.5),
+	client/transaction_queue.c (1.1), include/common.h (1.5),
+	include/listener.h (1.2), include/transaction_queue.h (1.1),
+	interfaces/db.c (1.3): Implemented framework for a transaction
+	queue and the ability to process transactions from a terminal in
+	the client program.
+
+2002-08-05 15:56  fimath
+
+	* common/Makefile (1.3), common/client_interface.c (1.1),
+	include/client_interface.h (1.1): Implemented the framework for the
+	interface to the client program.
+
+2002-08-02 15:41  fimath
+
+	* tools/: Makefile (1.2), odbc_test.c (1.4), transaction_test.c
+	(1.1): Renamed odbc_test.c to transaction_test.c and make the
+	appropriated changes to the kit.
+
+2002-08-02 12:14  fimath
+
+	* client/main.c (1.4), common/common.c (1.3), datagen/main.c (1.4),
+	include/common.h (1.4), terminal/input_data_generator.c (1.3),
+	tools/odbc_test.c (1.3): Made changes to support the use of custom
+	table cardinalities by using a global structure.
+
+2002-08-02 11:46  fimath
+
+	* scripts/sapdb/db_setup_sample.sh (1.2): Updated script to use the
+	correct command line arguments for datagen.
+
+2002-08-02 11:12  fimath
+
+	* datagen/main.c (1.3), include/common.h (1.3): Move default table
+	cardinality macros into common.h to support databases with custom
+	table cardinality.
+
+2002-08-02 10:57  fimath
+
+	* client/db_threadpool.c (1.2), client/listener.c (1.1),
+	client/main.c (1.3), include/db_threadpool.h (1.2),
+	include/listener.h (1.1): Added framework for a listener in the
+	client.
+
+2002-08-02 10:57  fimath
+
+	* client/Makefile (1.4): Updated to build newly added files.
+
+2002-08-02 10:55  fimath
+
+	* common/_socket.c (1.2), include/_socket.h (1.2): Added functions
+	what wrap up socket calls.
+
+2002-07-31 14:23  fimath
+
+	* client/Makefile (1.3), client/db_threadpool.c (1.1),
+	client/main.c (1.2), include/db_threadpool.h (1.1): Split main.c
+	into main.c and db_threadpoo.c and make corresponding header and
+	makefile changes.  This should be a better division of code.
+
+2002-07-31 14:04  fimath
+
+	* common.mk (1.2), client/Makefile (1.2), interfaces/odbc/Makefile
+	(1.2): Modified so the global rule for .c to .so is in the
+	common.mk file.
+
+2002-07-30 12:35  fimath
+
+	* client/main.c (1.1): A start for the client application, which is
+	basically a connection concentrator.  Framework is in place to open
+	connections to the database.
+
+2002-07-30 12:08  fimath
+
+	* client/Makefile (1.1): New makefile for the client bit.
+
+2002-07-30 11:58  fimath
+
+	* Makefile (1.2), common/Makefile (1.2): Updated/added for the
+	inclusion of new files in the package.
+
+2002-07-30 11:57  fimath
+
+	* include/_socket.h (1.1), common/_socket.c (1.1): Files for a
+	generic socket interface.
+
+2002-07-30 11:04  fimath
+
+	* scripts/sapdb/backup_db.sh (1.1): Something I omitted previously.
+
+2002-07-30 10:09  fimath
+
+	* datagen/main.c (1.2): Most of the table cardinalities can be set
+	on the command line.
+
+2002-07-29 15:39  fimath
+
+	* tools/odbc_test.c (1.2): Fixed a bug where an invalid flag is
+	reported as being wrong.
+
+2002-07-29 15:38  fimath
+
+	* common/common.c (1.2): Added code so that an error log is
+	openned.
+
+2002-07-29 15:37  fimath
+
+	* include/common.h (1.2): Added macros for an exit flag and the
+	default error log filename.
+
+2002-07-25 09:23  fimath
+
+	* interfaces/db.c (1.2), storedproc/sapdb/new_order.sql (1.2),
+	terminal/input_data_generator.c (1.2): Made adjustments for the
+	New-Order transaction so the database does not crash after a TRANS
+	ROLLBACK.
+
+2002-07-23 15:56  fimath
+
+	* include/db.h (1.1), interfaces/Makefile (1.1), interfaces/db.c
+	(1.1) (utags: release_0-1): Files I left out on the initial import.
+
+2002-07-23 15:50  fimath
+
+	* LICENSE (1.1), Makefile (1.1), common.mk (1.1), common/Makefile
+	(1.1), common/common.c (1.1), common/transaction_data.c (1.1),
+	datagen/Makefile (1.1), datagen/main.c (1.1), doc/architecture.sxw
+	(1.1), doc/class.dia (1.1), doc/component.dia (1.1),
+	doc/maintenance.sxw (1.1), doc/html/architecture.html (1.1),
+	doc/html/architecture_html_m4ea89498.gif (1.1), include/common.h
+	(1.1), include/input_data_generator.h (1.1), include/odbc_common.h
+	(1.1), include/odbc_delivery.h (1.1), include/odbc_new_order.h
+	(1.1), include/odbc_order_status.h (1.1), include/odbc_payment.h
+	(1.1), include/odbc_stock_level.h (1.1), include/transaction_data.h
+	(1.1), interfaces/odbc/Makefile (1.1),
+	interfaces/odbc/odbc_common.c (1.1),
+	interfaces/odbc/odbc_delivery.c (1.1),
+	interfaces/odbc/odbc_new_order.c (1.1),
+	interfaces/odbc/odbc_order_status.c (1.1),
+	interfaces/odbc/odbc_payment.c (1.1),
+	interfaces/odbc/odbc_stock_level.c (1.1),
+	scripts/sapdb/create_db_sample.sh (1.1),
+	scripts/sapdb/create_tables.sql (1.1), scripts/sapdb/customer.sql
+	(1.1), scripts/sapdb/db_setup_sample.sh (1.1),
+	scripts/sapdb/district.sql (1.1), scripts/sapdb/drop_db.sh (1.1),
+	scripts/sapdb/drop_dbproc.sh (1.1), scripts/sapdb/history.sql
+	(1.1), scripts/sapdb/item.sql (1.1), scripts/sapdb/load_dbproc.sh
+	(1.1), scripts/sapdb/new_order.sql (1.1),
+	scripts/sapdb/order_line.sql (1.1), scripts/sapdb/orders.sql (1.1),
+	scripts/sapdb/stock.sql (1.1), scripts/sapdb/warehouse.sql (1.1),
+	storedproc/sapdb/delivery.sql (1.1),
+	storedproc/sapdb/delivery_2.sql (1.1),
+	storedproc/sapdb/new_order.sql (1.1),
+	storedproc/sapdb/new_order_2.sql (1.1),
+	storedproc/sapdb/order_status.sql (1.1),
+	storedproc/sapdb/payment.sql (1.1),
+	storedproc/sapdb/stock_level.sql (1.1), terminal/Makefile (1.1),
+	terminal/input_data_generator.c (1.1), tools/Makefile (1.1),
+	tools/odbc_test.c (1.1): Initial revision
+
+2002-07-23 15:50  fimath
+
+	* LICENSE (1.1.1.1), Makefile (1.1.1.1), common.mk (1.1.1.1),
+	common/Makefile (1.1.1.1), common/common.c (1.1.1.1),
+	common/transaction_data.c (1.1.1.1), datagen/Makefile (1.1.1.1),
+	datagen/main.c (1.1.1.1), doc/architecture.sxw (1.1.1.1),
+	doc/class.dia (1.1.1.1), doc/component.dia (1.1.1.1),
+	doc/maintenance.sxw (1.1.1.1), doc/html/architecture.html
+	(1.1.1.1), doc/html/architecture_html_m4ea89498.gif (1.1.1.1),
+	include/common.h (1.1.1.1), include/input_data_generator.h
+	(1.1.1.1), include/odbc_common.h (1.1.1.1), include/odbc_delivery.h
+	(1.1.1.1), include/odbc_new_order.h (1.1.1.1),
+	include/odbc_order_status.h (1.1.1.1), include/odbc_payment.h
+	(1.1.1.1), include/odbc_stock_level.h (1.1.1.1),
+	include/transaction_data.h (1.1.1.1), interfaces/odbc/Makefile
+	(1.1.1.1), interfaces/odbc/odbc_common.c (1.1.1.1),
+	interfaces/odbc/odbc_delivery.c (1.1.1.1),
+	interfaces/odbc/odbc_new_order.c (1.1.1.1),
+	interfaces/odbc/odbc_order_status.c (1.1.1.1),
+	interfaces/odbc/odbc_payment.c (1.1.1.1),
+	interfaces/odbc/odbc_stock_level.c (1.1.1.1),
+	scripts/sapdb/create_db_sample.sh (1.1.1.1),
+	scripts/sapdb/create_tables.sql (1.1.1.1),
+	scripts/sapdb/customer.sql (1.1.1.1),
+	scripts/sapdb/db_setup_sample.sh (1.1.1.1),
+	scripts/sapdb/district.sql (1.1.1.1), scripts/sapdb/drop_db.sh
+	(1.1.1.1), scripts/sapdb/drop_dbproc.sh (1.1.1.1),
+	scripts/sapdb/history.sql (1.1.1.1), scripts/sapdb/item.sql
+	(1.1.1.1), scripts/sapdb/load_dbproc.sh (1.1.1.1),
+	scripts/sapdb/new_order.sql (1.1.1.1), scripts/sapdb/order_line.sql
+	(1.1.1.1), scripts/sapdb/orders.sql (1.1.1.1),
+	scripts/sapdb/stock.sql (1.1.1.1), scripts/sapdb/warehouse.sql
+	(1.1.1.1), storedproc/sapdb/delivery.sql (1.1.1.1),
+	storedproc/sapdb/delivery_2.sql (1.1.1.1),
+	storedproc/sapdb/new_order.sql (1.1.1.1),
+	storedproc/sapdb/new_order_2.sql (1.1.1.1),
+	storedproc/sapdb/order_status.sql (1.1.1.1),
+	storedproc/sapdb/payment.sql (1.1.1.1),
+	storedproc/sapdb/stock_level.sql (1.1.1.1), terminal/Makefile
+	(1.1.1.1), terminal/input_data_generator.c (1.1.1.1),
+	tools/Makefile (1.1.1.1), tools/odbc_test.c (1.1.1.1) (utags:
+	release_0-1, start): Initial version.
+
