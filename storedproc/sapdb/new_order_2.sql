@@ -73,15 +73,21 @@ BEGIN
     WHERE s_i_id = :ol_i_id
       AND s_w_id = :w_id;
   IF s_quantity > ol_quantity + 10 THEN
-    UPDATE dbt.stock
-    SET s_quantity = :s_quantity - :ol_quantity
-    WHERE s_i_id = :ol_i_id
-    AND s_w_id = :w_id
+    BEGIN
+      SET s_quantity = s_quantity - ol_quantity;
+      UPDATE dbt.stock
+      SET s_quantity = :s_quantity
+      WHERE s_i_id = :ol_i_id
+        AND s_w_id = :w_id;
+    END
   ELSE
-    UPDATE dbt.stock
-    SET s_quantity = :s_quantity - :ol_quantity + 91
-    WHERE s_i_id = :ol_i_id
-      AND s_w_id = :w_id;
+    BEGIN
+      SET s_quantity = s_quantity - ol_quantity + 91;
+      UPDATE dbt.stock
+      SET s_quantity = :s_quantity
+      WHERE s_i_id = :ol_i_id
+        AND s_w_id = :w_id;
+    END;
   INSERT INTO dbt.order_line (ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id,
                               ol_supply_w_id, ol_delivery_d, ol_quantity,
                               ol_amount, ol_dist_info)
