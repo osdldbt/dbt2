@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 985 2003-05-09 16:22:04Z fimath $)
+AC_REVISION($Id: configure.in 987 2003-05-12 20:08:19Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
@@ -87,6 +87,13 @@ fi
 dnl> Checks for libraries.
 dnl> Replace `main' with a function in -lm:
 AC_CHECK_LIB(m, main)
+
+dnl> GNU Getopt
+AC_CHECK_HEADERS(getopt.h,[],[
+	AC_MSG_ERROR([GNU Getopt required])
+])
+AC_SEARCH_LIBS(getopt_long, [getopt gnugetopt])
+
 
 dnl> Checks for header files.
 AC_HEADER_STDC

@@ -14,7 +14,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <time.h>
+#include <sys/time.h>
 
 #define DB_USER "dbt"
 #define DB_PASS "dbt"

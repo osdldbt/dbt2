@@ -9,13 +9,40 @@
 #
 # 18 october 2002
 
-if [ $# -lt 8 ]; then
+
+
+# Valid database list
+VALIDDBS="pgsql sapdb"
+
+####
+##
+## FUNCTION LIST
+##
+####
+
+####
+# usage()
+#
+# Display how to use the script to the user
+usage(){
     echo "usage: run_test.sh --db <database> --duration <sec> --sample <sec> -w <warehouses>"
 	echo ""
 	echo "	<database> includes:"
-	echo "		postgresql"
-	echo "		sapdb"
-    exit
+	for db in ${VALIDDBS} ; do
+		echo "		${db}"
+	done
+    exit 1
+}
+
+####
+##
+## PROGRAM EXECUTION
+##
+####
+
+# Display help if the wrong number of arguments was supplied.
+if [ $# -lt 8 ]; then
+	usage
 fi
 
 while :
@@ -43,7 +70,7 @@ do
 		optarg=`echo $option | sed -e 's/^[^=]*=//'`
 		arguments="$arguments $option"
 		;;
-	--sample | --duration | --wmin | --wmax | --warehouses | --ktd | --ktn | --kto | --ktp | --kts | --ttd | --ttn | --tto | --ttp | --tts | --tpw)
+	--db | --sample | --duration | --wmin | --wmax | --warehouses | --ktd | --ktn | --kto | --ktp | --kts | --ttd | --ttn | --tto | --ttp | --tts | --tpw)
 		optarg=$1
 		shift
 		arguments="$arguments $option=$optarg"
@@ -52,7 +79,19 @@ do
 
 	case $option in
 	--db)
-		DATABASE=$optarg
+
+		# Test to see if this database exists (directory)
+		for db in ${VALIDDBS} ; do
+			if [ "${db}" = "${optarg}" ]; then
+				DATABASE="$optarg"
+			fi
+		done
+
+		if [ -z ${DATABASE} ] ; then
+			echo "Database ${optarg} is invalid"
+			echo 
+			usage
+		fi
 		;;
 	--duration)
 		DURATION=$optarg
@@ -104,6 +143,10 @@ do
 		;;
 	esac
 done
+
+
+
+
 
 ITERATION=`expr $DURATION / $SAMPLE_LENGTH`
 

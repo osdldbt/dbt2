@@ -33,3 +33,8 @@ echo "Loading stock table..."
 psql -d $DB_NAME -c "COPY stock FROM '/tmp/stock.data' WITH NULL AS '';"
 echo "Loading warehouse table..."
 psql -d $DB_NAME -c "COPY warehouse FROM '/tmp/warehouse.data' WITH NULL AS '';"
+
+# VACUUM FULL ANALYZE
+#
+# Fully defragment tables, and build statistics
+vacuumdb -z -f -d $DB_NAME

@@ -11,5 +11,14 @@
 
 . ./init_env.sh
 
-dropdb $DB_NAME
-rm -rf $PGDATA
+dropdb ${DB_NAME}
+
+# Double check we have a value for PGDATA
+if [ -z ${PGDATA} ] ; then
+	echo "PGDATA environment variable is unset"
+	exit 1
+fi
+
+pg_ctl -D ${PGDATA} stop
+
+rm -r ${PGDATA}

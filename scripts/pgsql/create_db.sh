@@ -18,8 +18,19 @@
 
 # Create database
 echo "Creating database..."
-initdb -D $PGDATA
-postmaster -i -D $PGDATA
-createdb $DB_NAME
+if [ -d $PGDATA ] ; then
+	echo "======================================="
+	echo "PGData directory $PGDATA already exists"
+	echo "Skipping initdb"
+	echo "======================================="
+else
+	initdb -D $PGDATA
+fi
 
+pg_ctl -D $PGDATA -l log start
+
+# Give the database a few seconds to get going
+sleep 4
+
+createdb $DB_NAME
 createlang plpgsql $DB_NAME

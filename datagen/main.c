@@ -112,7 +112,7 @@ void gen_customers()
 	char a_string[512];
 	struct tm *tm1;
 	time_t t1;
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	srand(0);
 	printf("Generating customer table data...\n");
@@ -260,7 +260,7 @@ void gen_districts()
 	FILE *output;
 	int i, j;
 	char a_string[32];
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	srand(0);
 	printf("Generating district table data...\n");
@@ -347,7 +347,7 @@ void gen_history()
 	char a_string[32];
 	struct tm *tm1;
 	time_t t1;
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	srand(0);
 	printf("Generating history table data...\n");
@@ -422,7 +422,7 @@ void gen_items()
 	int i;
 	char a_string[64];
 	int j;
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	srand(0);
 	printf("Generating item table data...\n");
@@ -480,7 +480,7 @@ void gen_new_orders()
 {
 	FILE *output;
 	int i, j, k;
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	srand(0);
 	printf("Generating new-order table data...\n");
@@ -527,7 +527,7 @@ void gen_orders()
 	char a_string[32];
 	struct tm *tm1;
 	time_t t1;
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	struct node_t {
 		int value;
@@ -741,7 +741,7 @@ void gen_stock()
 	FILE *output;
 	int i, j, k;
 	char a_string[64];
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	srand(0);
 	printf("Generating stock table data...\n");
@@ -856,7 +856,7 @@ void gen_warehouses()
 	FILE *output;
 	int i;
 	char a_string[32];
-	char filename[1024];
+	char filename[1024] = "\0";
 
 	srand(0);
 	printf("Generating warehouse table data...\n");
@@ -866,6 +866,7 @@ void gen_warehouses()
 		strcat(filename, "/");
 	}
 	strcat(filename, WAREHOUSE_DATA);
+
 	output = fopen(filename, "w");
 	if (output == NULL) {
 		printf("cannot open %s\n", WAREHOUSE_DATA);
@@ -1037,8 +1038,14 @@ int main(int argc, char *argv[])
 	/*
 	 * In my environment, I don't have enough /tmp space to put the data
 	 * files in /tmp.
+	 *
+	 * Ensure the user hasn't supplied /tmp, otherwise we would be making
+	 * cyclical symlinks.  If the user has supplied /tmp, it's safe to 
+	 * fallback to our default location.
 	 */
-	if (strlen(output_path) > 0)
+	if (strlen(output_path) > 0
+		&& strcmp(output_path, "/tmp") != 0
+		&& strcmp(output_path, "/tmp/") != 0)
 	{
 		strcpy(pwd, output_path);
 	}
