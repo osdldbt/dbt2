@@ -1,6 +1,4 @@
 /*
- * listener.c
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
@@ -34,13 +32,13 @@ struct transaction_queue_node_t *get_node()
 	sem_wait(&free_count);
 	pthread_mutex_lock(&mutex_node);
 	node = node_head;
-	if (node_head == NULL)
-	{
+	if (node_head == NULL) {
+		/* This should never happen... */
 		return NULL;
-	}
-	else if (node_head->next == NULL)
-	{
+	} else if (node_head->next == NULL) {
 		node_head = node_tail = NULL;
+	} else {
+		node_head = node_head->next;
 	}
 	pthread_mutex_unlock(&mutex_node);
 
@@ -52,20 +50,17 @@ void *init_listener(void *data)
 	int *s = (int *) data; /* Listener socket. */
 	node_head = node_tail = NULL;
 
-	if (sem_init(&listener_worker_count, 0, 0) != 0)
-	{
+	if (sem_init(&listener_worker_count, 0, 0) != 0) {
 		LOG_ERROR_MESSAGE("cannot init listener_worker_count\n");
 		printf("cannot init listener_worker_count, exiting...\n");
 		exit(11);
 	}
-	if (sem_init(&free_count, 0, 0) != 0)
-	{
+	if (sem_init(&free_count, 0, 0) != 0) {
 		LOG_ERROR_MESSAGE("cannot init free_count");
 		exit(12);
 	}
 
-	while (!exiting)
-	{
+	while (!exiting) {
 		pthread_t tid;
 		struct transaction_queue_node_t *node;
 
@@ -74,14 +69,14 @@ void *init_listener(void *data)
 			malloc(sizeof(struct transaction_queue_node_t));
 
 		node->s = _accept(s);
-		if (node->s == -1)
-		{
-			LOG_ERROR_MESSAGE("_accept() failed, trying again...\n");
+		if (node->s == -1) {
+			LOG_ERROR_MESSAGE(
+				"_accept() failed, trying again...\n");
 			continue;
 		}
 
-		if (pthread_create(&tid, NULL, &listener_worker, (void *) node) != 0)
-		{
+		if (pthread_create(&tid, NULL, &listener_worker,
+			(void *) node) != 0) {
 			LOG_ERROR_MESSAGE("pthread_create() failed, closing socket and waiting for a new request\n");
 			close(node->s);
 			continue;
@@ -98,19 +93,15 @@ void *listener_worker(void *data)
 	struct transaction_queue_node_t *node =
 		(struct transaction_queue_node_t *) data;
 
-	while (!exiting)
-	{
+	while (!exiting) {
 		rc = receive_transaction_data(node->s, &node->client_data);
-		if (rc == ERROR_SOCKET_CLOSED)
-		{
+		if (rc == ERROR_SOCKET_CLOSED) {
 			LOG_ERROR_MESSAGE("exiting...");
 			/* Exit the thread when the socket has closed. */
 			sem_wait(&listener_worker_count);
 			free(node);
 			pthread_exit(0);
-		}
-		else if (rc == ERROR)
-		{
+		} else if (rc == ERROR) {
 			LOG_ERROR_MESSAGE("receive_transaction_data() error");
 			continue;
 		}
@@ -118,9 +109,14 @@ void *listener_worker(void *data)
 		/* Queue up the transaction data to be processed. */
 		enqueue_transaction(node);
 		node = get_node();
-		if (node == NULL)
-		{
+		if (node == NULL) {
+			/*
+			 * While get_node() should return a NULL from
+			 * returning, die if it doesn't.
+			 */
+			printf("stupid get_node() failed you\n");
 			LOG_ERROR_MESSAGE("Cannot get a transaction node.\n");
+			exit(1);
 		}
 	}
 
@@ -131,13 +127,10 @@ int recycle_node(struct transaction_queue_node_t *node)
 {
 	pthread_mutex_lock(&mutex_node);
 	node->next = NULL;
-	if (node_tail != NULL)
-	{
+	if (node_tail != NULL) {
 		node_tail->next = node;
 		node_tail = node;
-	}
-	else
-	{
+	} else {
 		node_head = node_tail = node;
 	}
 	sem_post(&free_count);

@@ -46,9 +46,7 @@ int _connect(char *address, unsigned short port) {
 			close(sockfd);
 			return -1;
 		}
-	}
-	else
-	{
+	} else {
 		/* Continue the assumption that an IP address is used. */
 		if ((he = gethostbyaddr((char *) (&addr), sizeof(addr),
 			AF_INET)) == NULL) {
@@ -105,8 +103,7 @@ int _send(int s, void *data, int length)
 		}
 		data += sent;
 		remaining -= sent;
-	}
-	while (sent != length);
+	} while (sent != length);
 	return sent;
 }
 

@@ -22,12 +22,11 @@
 
 char sname[32] = "";
 int exiting = 0;
+#endif /* STANDALONE */
 
 #ifdef LIBPQ
 char postmaster_port[32];
 #endif /* LIBPQ */
-
-#endif /* STANDALONE */
 
 int parse_arguments(int argc, char *argv[]);
 
@@ -123,8 +122,8 @@ int main(int argc, char *argv[])
 		printf("\n");
 		printf("-seed #\n");
 		printf("\trandom number seed\n");
-		printf("-altered 0\n");
-		printf("\trun with a thread per user\n");
+		printf("-altered [0/1]\n");
+		printf("\trun with a thread per user, -altered 1\n");
 
 #ifdef STANDALONE
 		printf("\nDriver is in STANDALONE mode.\n");
@@ -289,6 +288,8 @@ int parse_arguments(int argc, char *argv[])
 			think_time.stock_level = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "tpw") == 0) {
 			terminals_per_warehouse = atoi(argv[i + 1]);
+		} else if (strcmp(flag, "sleep") == 0) {
+			client_conn_sleep = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "seed") == 0) {
 			int count;
 			int length;

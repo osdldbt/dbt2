@@ -8,6 +8,8 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include <sys/time.h>
 #include <common.h>
 #include <listener.h>
@@ -18,11 +20,14 @@
 #include <db.h>
 
 /* Function Prototypes */
-void *db_worker(void *no_data);
+void *db_worker(void *data);
 int startup();
 
 /* Global Variables */
 int db_connections = 0;
+int db_conn_sleep = 1;
+int *worker_count;
+time_t *last_txn;
 
 /* These should probably be handled differently. */
 extern char sname[32];
@@ -31,15 +36,15 @@ sem_t db_worker_count;
 #ifdef STANDALONE
 extern FILE *log_mix;
 extern pthread_mutex_t mutex_mix_log;
+#endif /* STANDALONE */
 
 #ifdef LIBPQ
 extern char postmaster_port[32];
 #endif /* LIBPQ */
 
-#endif /* STANDALONE */
-
-void *db_worker(void *no_data)
+void *db_worker(void *data)
 {
+	int id = *((int *) data); /* Whoa... */
 #ifndef STANDALONE
 	int length;
 #endif /* STANDALONE */
@@ -70,9 +75,6 @@ void *db_worker(void *no_data)
 		node = dequeue_transaction();
 		if (node == NULL) {
 			LOG_ERROR_MESSAGE("dequeue was null");
-			pthread_mutex_lock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
-			--transaction_counter[REQ_EXECUTING][node->client_data.transaction];
-			pthread_mutex_unlock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
 			continue;
 		}
 #ifdef STANDALONE
@@ -80,10 +82,13 @@ void *db_worker(void *no_data)
 			perror("gettimeofday");
 		}
 #endif /* STANDALONE */
-		if (process_transaction(node->client_data.transaction, &dbc,
-			&node->client_data.transaction_data) != OK) {
+		node->client_data.status =
+			process_transaction(node->client_data.transaction,
+			&dbc, &node->client_data.transaction_data);
+		if (node->client_data.status != OK) {
 			LOG_ERROR_MESSAGE("process_transaction() error on %s",
-				transaction_name[node->client_data.transaction]);
+				transaction_name[
+				node->client_data.transaction]);
 			/*
 			 * Assume this isn't a fatal error, send the results
 			 * back, and try processing the next transaction.
@@ -111,10 +116,19 @@ void *db_worker(void *no_data)
 			 */
 		}
 #endif /* STANDALONE */
-		pthread_mutex_lock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
-		--transaction_counter[REQ_EXECUTING][node->client_data.transaction];
-		pthread_mutex_unlock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
+		pthread_mutex_lock(&mutex_transaction_counter[REQ_EXECUTING][
+			node->client_data.transaction]);
+		--transaction_counter[REQ_EXECUTING][
+			node->client_data.transaction];
+		pthread_mutex_unlock(&mutex_transaction_counter[REQ_EXECUTING][
+			node->client_data.transaction]);
 		recycle_node(node);
+
+		/* Keep track of how many transactions this thread has done. */
+		++worker_count[id];
+
+		/* Keep track of then the last transaction was execute. */
+		time(&last_txn[id]);
 	}
 
 	/* Disconnect from the database. */
@@ -134,16 +148,34 @@ int db_threadpool_init()
 		return ERROR;
 	}
 
+	worker_count = (int *) malloc(sizeof(int) * db_connections);
+	bzero(worker_count, sizeof(int) * db_connections);
+
+	last_txn = (time_t *) malloc(sizeof(time_t) * db_connections);
+
 	for (i = 0; i < db_connections; i++) {
 		pthread_t tid;
 
-		if (pthread_create(&tid, NULL, &db_worker, NULL) != 0) {
+		/*
+		 * Initialize the last_txn array with the time right before
+		 * the worker thread is started.  This looks better than
+		 * initializing the array with zeros.
+		 */
+		time(&last_txn[i]);
+
+		/*
+		 * Is it possible for i to change before db_worker can copy it?
+		 */
+		if (pthread_create(&tid, NULL, &db_worker, &i) != 0) {
 			LOG_ERROR_MESSAGE("error creating db thread");
 			return ERROR;
 		}
 
 		/* Keep a count of how many DB worker threads have started. */
 		sem_post(&db_worker_count);
+
+		/* Don't let the database connection attempts occur too fast. */
+		sleep(db_conn_sleep);
 	}
 
 	return OK;

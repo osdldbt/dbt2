@@ -7,9 +7,10 @@ host         all         0.0.0.0       0.0.0.0             reject
 
 -----
 
-The kit uses C stored functions that require 7.3.x.
+PostgreSQL needs to be built with a change in pg_config.h.in to set
+INDEX_MAX_KEYS to 64.
 
 -----
 
-PostgreSQL must be compile with '#define INDEX_MAX_KEYS 64' in pg_config.h
-in order for the new order transaction to execute properly.
+Contrary to the documentation, run 'make' instead of 'make standalone' and
+run the kit in a multi-tier environment for PostgreSQL.

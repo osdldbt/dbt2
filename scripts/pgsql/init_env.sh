@@ -9,11 +9,11 @@
 #
 # 01 May 2003
 
-PATH=/usr/lib/postgresql/bin:$PATH; export PATH
+PATH=/usr/local/pgsql/bin:$PATH; export PATH
 
 # Our database will be named dbt2
 DB_NAME=dbt2; export DB_NAME
 
 # Data instance path.  Storage location for this instance of the database
 # should be within the working directory
-PGDATA=`dirname $0`/pgdb; export PGDATA
+PGDATA=/opt/pgdb; export PGDATA

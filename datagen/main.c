@@ -49,7 +49,7 @@ int items = ITEM_CARDINALITY;
 int orders = ORDER_CARDINALITY;
 int new_orders = NEW_ORDER_CARDINALITY;
 
-int mode_string = MODE_SAPDB;
+int mode_string = MODE_PGSQL;
 char delimiter = ',';
 char null_str[16] = "\"NULL\"";
 

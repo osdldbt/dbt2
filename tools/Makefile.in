@@ -17,7 +17,7 @@ results: ../make.common Makefile results.c
 	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS) $(LDFLAGS)
 
 transaction_test: ../make.common Makefile transaction_test.c \
-	$(COMMON_OBJS2) $(LIBPQ_OBJS) $(TERMINAL_OBJS) $(INTERFACE_OBJS)
+	$(COMMON_OBJS2) $(TERMINAL_OBJS) $(INTERFACE_OBJS)
 	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS2) \
 		$(TERMINAL_OBJS) $(INTERFACE_OBJS) $(LDFLAGS) 
 

@@ -1,13 +1,13 @@
-// This file is released under the terms of the Artistic License.  Please see
-// the file LICENSE, included in this package, for details.
-//
-// Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
-//
-// Based on TPC-C Standard Specification Revision 5.0 Clause 2.6.2.
-// July 16, 2002
-//    Having problems with the case of searching for a customer by c_last
-//    similar to the Payment transaction.  The data generator will not execute
-//    that case.
+/* This file is released under the terms of the Artistic License.  Please see
+/* the file LICENSE, included in this package, for details.
+/*
+/* Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+/*
+/* Based on TPC-C Standard Specification Revision 5.0 Clause 2.6.2.
+/* July 16, 2002
+/*    Having problems with the case of searching for a customer by c_last
+/*    similar to the Payment transaction.  The data generator will not execute
+/*    that case.
 CREATE DBPROC order_status(
 INOUT c_id FIXED(5), IN c_w_id FIXED(9), IN c_d_id FIXED(2),
 OUT c_first VARCHAR(16), OUT c_middle char(2), INOUT c_last VARCHAR(16),
@@ -264,4 +264,4 @@ SUBTRANS BEGIN;
         SET ol_delivery_d14 = '';
         SET ol_delivery_d15 = '';
       END;
-SUBTRANS END;
+SUBTRANS END;:

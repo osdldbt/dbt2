@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 1125 2003-06-30 20:51:36Z fimath $)
+AC_REVISION($Id: configure.in 1179 2003-08-07 16:21:36Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
@@ -36,12 +36,12 @@ then
  AC_MSG_ERROR([*** sar is required])
 fi
 
-AC_PATH_PROGS([SYSCTL], [sysctl], ,
-             [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
-if test -z "$SYSCTL"
-then
- AC_MSG_ERROR([*** sysctl is required])
-fi
+#AC_PATH_PROGS([SYSCTL], [sysctl], ,
+#             [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
+#if test -z "$SYSCTL"
+#then
+# AC_MSG_ERROR([*** sysctl is required])
+#fi
 
 dnl>
 dnl> Thread Library (required)
@@ -112,15 +112,19 @@ AC_ARG_WITH(sapdb,
 
 dnl> Set up rules depending on what database is selected.
 if test "x$database_to_use" = "xpgsql"; then
-	AC_CHECK_HEADERS(postgresql/libpq-fe.h,
+	AC_CHECK_HEADERS(libpq-fe.h,
 		[],
-		[ AC_MSG_ERROR([libpq headers required]) ])
+		[AC_CHECK_HEADERS(postgresql/libpq-fe.h,
+			[],
+			[AC_CHECK_HEADERS(/usr/local/pgsql/include/libpq-fe.h,
+                		[],
+                		[ AC_MSG_ERROR([libpq headers required]) ]) ]) ])
 	AC_SEARCH_LIBS(PQexec,
 		pq,
 		,
 		AC_MSG_ERROR([libpq libs required]))
 	AC_DEFINE(LIBPQ)
-	database_interface="interfaces/libpq/Makefile storedproc/pgsql/c/Makefile storedproc/pgsql/c/stock_level.sql storedproc/pgsql/c/delivery.sql storedproc/pgsql/c/payment.sql storedproc/pgsql/c/order_status.sql storedproc/pgsql/c/new_order.sql"
+	database_interface="interfaces/libpq/Makefile storedproc/pgsql/c/Makefile storedproc/pgsql/c/delivery.sql storedproc/pgsql/c/new_order.sql storedproc/pgsql/c/order_status.sql storedproc/pgsql/c/payment.sql storedproc/pgsql/c/stock_level.sql scripts/pgsql/load_stored_funcs.sh"
 	INTERFACE_OBJ="libpq_obj"
 	DB_OBJS="LIBPQ_OBJS"
 elif test "x$database_to_use" = "xsapdb"; then

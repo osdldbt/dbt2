@@ -1,7 +1,7 @@
 include ../../../make.common
 
 %.o:%.c Makefile $(TOPDIR)/make.common
-	$(CC) -I/usr/include/postgresql -I/usr/include/pgsql -c -fpic $(CFLAGS) -o $@ $<
+	$(CC) -c -fpic $(CFLAGS) -o $@ $<
 
 funcs.so: funcs.o
 	$(CC) -shared -o funcs.so funcs.o

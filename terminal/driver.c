@@ -44,8 +44,9 @@ int stop_time;
 sem_t terminal_count;
 int w_id_min, w_id_max;
 int terminals_per_warehouse;
-int mode_altered = 1;
+int mode_altered = 0;
 unsigned int seed = -1;
+int client_conn_sleep = 1;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
@@ -243,15 +244,17 @@ int start_driver()
 				return ERROR;
 			}
 
-			/* Sleep for 1 second between starting terminals. */
-			sleep(1);
+			/* Sleep for between starting terminals. */
+			sleep(client_conn_sleep);
 		}
+
 		if (mode_altered == 1) {
 			/*
-			 * This effectively allows one client to touch the
-			 * entire warehouse range.  The setting of w_id and
-			 * d_id is moot here.
+			 * This effectively allows one client to touch
+			 * the entire warehouse range.  The setting of
+			 * w_id and d_id is moot in this case.
 			 */
+			printf("altered mode detected\n");
 			break;
 		}
 	}
@@ -305,6 +308,7 @@ void *terminal_worker(void *data)
 	int sockfd;
 #endif /* STANDALONE */
 	int rc;
+	int local_seed;
 
 #ifdef STANDALONE
 	struct db_context_t dbc;
@@ -325,11 +329,14 @@ void *terminal_worker(void *data)
 		unsigned long junk; /* Purposely used uninitialized */
 
 		gettimeofday(&tv, NULL);
-		seed = getpid() ^ tv.tv_sec ^ tv.tv_usec ^ junk;
+		local_seed = getpid() ^ pthread_self() ^ tv.tv_sec ^
+			tv.tv_usec ^ junk;
+	} else {
+		local_seed = seed;
 	}
-	printf("seed: %u\n", seed);
+	printf("seed: %u\n", local_seed);
 	fflush(stdout);
-	srand(seed);
+	srand(local_seed);
 
 	/* Keep a count of how many terminals are being emulated. */
 	sem_post(&terminal_count);
@@ -459,6 +466,7 @@ void *terminal_worker(void *data)
 #else /* STANDALONE */
 		length = send_transaction_data(sockfd, &client_data);
 		length = receive_transaction_data(sockfd, &client_data);
+		rc = client_data.status;
 #endif /* STANDALONE */
 		if (gettimeofday(&rt1, NULL) == -1) {
 			perror("gettimeofday");

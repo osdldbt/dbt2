@@ -249,6 +249,22 @@ const char s_dist[10][11] = {
 	"s_dist_06", "s_dist_07", "s_dist_08", "s_dist_09", "s_dist_10"
 };
 
+void escape_str(char *orig_str, char *esc_str)
+{
+	int i, j;
+	for (i = 0, j = 0; i < strlen(orig_str); i++) {
+		if (orig_str[i] == '\'') {
+			esc_str[j++] = '\'';
+		} else if (orig_str[i] == '\\') {
+			esc_str[j++] = '\\';
+		} else if (orig_str[i] == ')') {
+			esc_str[j++] = '\\';
+		}
+		esc_str[j++] = orig_str[i];
+	}
+	esc_str[j] = '\0';
+}
+
 Datum delivery(PG_FUNCTION_ARGS)
 {
 	/* Input variables. */
@@ -385,7 +401,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 	int i, j;
 
 	int ret;
-	char query[512];
+	char query[1024];
 
 	char *w_tax = NULL;
 
@@ -718,8 +734,10 @@ Datum order_status(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	count = SPI_processed;
+#ifdef DEBUG
 	elog(NOTICE, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d");
 	elog(NOTICE, "--  -------  --------------  -----------  ---------  -------------");
+#endif /* DEBUG */
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -781,7 +799,6 @@ Datum payment(PG_FUNCTION_ARGS)
 	char *tmp_c_id = NULL;
 	int my_c_id = 0;
 	int count;
-	int i, j;
 
 	char *c_first = NULL;
 	char *c_middle = NULL;
@@ -982,14 +999,7 @@ Datum payment(PG_FUNCTION_ARGS)
 		sprintf(my_c_data, "%d %d %d %d %d %f ", my_c_id, c_d_id,
 			c_w_id, d_id, w_id, h_amount);
 		/* Copy and escape all at once! */
-		for (i = 0, j = strlen(my_c_data); i < 500 - strlen(my_c_data);
-			i++) {
-			if (c_data[i] == '\'') {
-				my_c_data[j++] = '\'';
-			}
-			my_c_data[j++] = c_data[i];
-		}
-		my_c_data[j] = '\0';
+		escape_str(c_data, my_c_data);
 
 		sprintf(query, PAYMENT_7_BC, h_amount, my_c_data, my_c_id,
 			c_w_id, c_d_id);
@@ -1003,20 +1013,8 @@ Datum payment(PG_FUNCTION_ARGS)
 	}
 
 	/* Escape special characters. */
-	for (i = 0, j = 0; i < strlen(w_name); i++) {
-		if (w_name[i] == '\'') {
-			my_w_name[j++] = '\'';
-		}
-		my_w_name[j++] = w_name[i];
-	}
-	my_w_name[j] = '\0';
-	for (i = 0, j = 0; i < strlen(d_name); i++) {
-		if (d_name[i] == '\'') {
-			my_d_name[j++] = '\'';
-		}
-		my_d_name[j++] = d_name[i];
-	}
-	my_d_name[j] = '\0';
+	escape_str(w_name, my_w_name);
+	escape_str(d_name, my_d_name);
 
 	sprintf(query, PAYMENT_8, my_c_id, c_d_id, c_w_id, d_id, w_id,
 		h_amount, my_w_name, my_d_name);

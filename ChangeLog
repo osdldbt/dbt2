@@ -547,7 +547,7 @@
 	
 	Have the top Makefile run autoconf.
 	
-	Check for autoconf version, store file $Id: ChangeLog 1114 2003-06-18 21:49:37Z fimath $.
+	Check for autoconf version, store file $Id: ChangeLog 1179 2003-08-07 16:21:36Z fimath $.
 	
 	Clean up error message for ODBC.
 

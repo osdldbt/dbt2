@@ -17,7 +17,7 @@ if [ $# -gt 0 ]; then
 	echo
 	echo Generating data...
 	cd ../../datagen
-	./datagen -w $WAREHOUSES -d $OUTDIR
+	./datagen --sapdb -w $WAREHOUSES -d $OUTDIR
 	cd -
 	echo
 fi
