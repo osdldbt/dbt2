@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 		return 4;
 	}
 
-	if (transaction == 0)
+	if (transaction == -1)
 	{
 		printf("-t flag was not used.\n");
 		return 5;
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
 			return 6;
 		}
 		memcpy(&odbc_data, &txn_data, sizeof(union txn_data_t));
-		process_transaction(transaction, &odbcc, &odbc_data);
+		process_transaction(transaction, &odbcc, (void *) &odbc_data);
 		memcpy(&txn_data, &odbc_data, sizeof(union txn_data_t));
 		odbc_disconnect(&odbcc);
 #endif /* ODBC */
