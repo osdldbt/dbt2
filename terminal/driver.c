@@ -27,12 +27,14 @@ void *terminal_worker(void *data);
 
 /* Global Variables */
 struct transaction_mix_t transaction_mix;
+struct key_time_t key_time;
+struct think_time_t think_time;
 char hostname[32];
 int client_port = CLIENT_PORT;
-int terminals = 0; /* The number of terminals to emulate. */
 int duration = 0;
 int stop_time;
 sem_t terminal_count;
+int w_id_min, w_id_max;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
@@ -43,6 +45,18 @@ int init_driver()
 	transaction_mix.order_status_actual = MIX_ORDER_STATUS;
 	transaction_mix.payment_actual = MIX_PAYMENT;
 	transaction_mix.stock_level_actual = MIX_STOCK_LEVEL;
+
+	key_time.delivery = KEY_TIME_DELIVERY;
+	key_time.new_order = KEY_TIME_NEW_ORDER;
+	key_time.order_status = KEY_TIME_ORDER_STATUS;
+	key_time.payment = KEY_TIME_PAYMENT;
+	key_time.stock_level = KEY_TIME_STOCK_LEVEL;
+
+	think_time.delivery = THINK_TIME_DELIVERY;
+	think_time.new_order = THINK_TIME_NEW_ORDER;
+	think_time.order_status = THINK_TIME_ORDER_STATUS;
+	think_time.payment = THINK_TIME_PAYMENT;
+	think_time.stock_level = THINK_TIME_STOCK_LEVEL;
 
 	if (sem_init(&terminal_count, 0, 0) != 0)
 	{
@@ -147,12 +161,6 @@ int set_table_cardinality(int table, int cardinality)
 	return OK;
 }
 
-int set_terminals(int number)
-{
-	terminals = number;
-	return OK;
-}
-
 int set_transaction_mix(int transaction, double mix)
 {
 	switch (transaction)
@@ -180,25 +188,33 @@ int set_transaction_mix(int transaction, double mix)
 
 int start_driver()
 {
-	int i;
+	int i, j;
 	int count;
+	int warehouse_count;
 
-	printf("starting %d terminal(s)...\n", terminals);
-	for (i = 0; i < terminals; i++)
+	warehouse_count = w_id_max - w_id_min + 1;
+	printf("starting %d terminals (%d per warehouse)\n", 10 * warehouse_count,
+		table_cardinality.districts);
+	for (i = 0; i < warehouse_count; i++)
 	{
-		pthread_t tid;
-
-		if (pthread_create(&tid, NULL, &terminal_worker, NULL) != 0)
+		for (j = 0; j < table_cardinality.districts; j++)
 		{
-			LOG_ERROR_MESSAGE("error creating terminal thread");
-			return ERROR;
+			pthread_t tid;
+			struct terminal_context_t *tc;
+
+			tc = (struct terminal_context_t *)
+				malloc(sizeof(struct terminal_context_t));
+			tc->w_id = i + 1;
+			tc->d_id = j + 1;
+			if (pthread_create(&tid, NULL, &terminal_worker, (void *) tc) != 0)
+			{
+				LOG_ERROR_MESSAGE("error creating terminal thread");
+				return ERROR;
+			}
+			sleep(1);
 		}
-#ifdef DEBUG
-		LOG_ERROR_MESSAGE("[%d] starting thread %d", i, tid);
-#endif /* DEBUG */
-		sleep(1);
 	}
-	printf("terminals started...\n", terminals);
+	printf("terminals started...\n");
 
 	/* Note that the driver has started up all threads in the log. */
 	pthread_mutex_lock(&mutex_mix_log);
@@ -223,17 +239,18 @@ exit(1);
 
 void *terminal_worker(void *data)
 {
+	struct terminal_context_t *tc;
 	struct client_transaction_t client_data;
 	double threshold;
 	int keying_time;
-	struct timespec think_time, rem;
+	struct timespec thinking_time, rem;
 	int mean_think_time; /* In milliseconds. */
 	struct timeval rt0, rt1;
 	double response_time;
 	extern int errno;
-	int w_id, d_id;
 	int sockfd;
 
+	tc = (struct terminal_context_t *) data;
 	/* Each thread needs to seed in Linux. */
 	srand(time(NULL) + pthread_self());
 
@@ -248,22 +265,6 @@ void *terminal_worker(void *data)
 		pthread_exit(NULL);
 	}
 
-	/* Randomly select a w_id to use throughout the run. */
-	w_id = get_random(table_cardinality.warehouses) + 1;
-#ifdef DEBUG
-	LOG_ERROR_MESSAGE("w_id = %d", w_id);
-#endif /* DEBUG */
-
-	/*
-	 * Clause 2.8.1.1
-	 * The pair (w_id, d_id) for a terminal is supposed to be unique.
-	 * We're just generating a d_id randomly.
-	 */
-	d_id = get_random(D_ID_MAX) + 1;
-#ifdef DEBUG
-	LOG_ERROR_MESSAGE("d_id = %d", d_id);
-#endif /* DEBUG */
-
 	while (time(NULL) < stop_time)
 	{
 		/*
@@ -274,32 +275,32 @@ void *terminal_worker(void *data)
 		if (threshold < transaction_mix.new_order_threshold)
 		{
 			client_data.transaction = NEW_ORDER;
-			keying_time = 18;
-			mean_think_time = 12000;
+			keying_time = key_time.new_order;
+			mean_think_time = think_time.new_order;
 		}
 		else if (threshold < transaction_mix.payment_threshold)
 		{
 			client_data.transaction = PAYMENT;
-			keying_time = 3;
-			mean_think_time = 12000;
+			keying_time = key_time.payment;
+			mean_think_time = think_time.payment;
 		}
 		else if (threshold < transaction_mix.order_status_threshold)
 		{
 			client_data.transaction = ORDER_STATUS;
-			keying_time = 2;
-			mean_think_time = 10000;
+			keying_time = key_time.order_status;
+			mean_think_time = think_time.order_status;
 		}
 		else if (threshold < transaction_mix.delivery_threshold)
 		{
 			client_data.transaction = DELIVERY;
-			keying_time = 2;
-			mean_think_time = 5000;
+			keying_time = key_time.delivery;
+			mean_think_time = think_time.delivery;
 		}
 		else
 		{
 			client_data.transaction = STOCK_LEVEL;
-			keying_time = 2;
-			mean_think_time = 5000;
+			keying_time = key_time.stock_level;
+			mean_think_time = think_time.stock_level;
 		}
 
 #ifdef DEBUG
@@ -311,12 +312,12 @@ void *terminal_worker(void *data)
 		if (client_data.transaction != STOCK_LEVEL)
 		{
 			generate_input_data(client_data.transaction,
-				&client_data.transaction_data, w_id);
+				&client_data.transaction_data, tc->w_id);
 		}
 		else
 		{
 			generate_input_data2(client_data.transaction,
-				&client_data.transaction_data, w_id, d_id);
+				&client_data.transaction_data, tc->w_id, tc->d_id);
 		}
 
 		/* Keying time... */
@@ -342,19 +343,19 @@ void *terminal_worker(void *data)
 		pthread_mutex_unlock(&mutex_mix_log);
 
 		/* Thinking time... */
-		think_time.tv_nsec = (long) get_think_time(mean_think_time);
-		think_time.tv_sec = (time_t) (think_time.tv_nsec / 1000);
-		think_time.tv_nsec = (think_time.tv_nsec % 1000) * 1000000;
-		while (nanosleep(&think_time, &rem) == -1)
+		thinking_time.tv_nsec = (long) get_think_time(mean_think_time);
+		thinking_time.tv_sec = (time_t) (thinking_time.tv_nsec / 1000);
+		thinking_time.tv_nsec = (thinking_time.tv_nsec % 1000) * 1000000;
+		while (nanosleep(&thinking_time, &rem) == -1)
 		{
 			if (errno == EINTR)
 			{
-				memcpy(&think_time, &rem, sizeof (struct timespec));
+				memcpy(&thinking_time, &rem, sizeof (struct timespec));
 			}
 			else
 			{
 				LOG_ERROR_MESSAGE("sleep time invalid %d s %ls ns",
-					think_time.tv_sec, think_time.tv_nsec);
+					thinking_time.tv_sec, thinking_time.tv_nsec);
 				break;
 			}
 		}
