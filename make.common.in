@@ -5,7 +5,7 @@ TOPDIR =		@TOPDIR@
 INCLUDEDIR = 	$(TOPDIR)/include
 
 CC =			@CC@
-CFLAGS =		-I$(TOPDIR)/include @CFLAGS@ @DEFS@ -DODBC
+CFLAGS =		-Wall -I$(TOPDIR)/include @CFLAGS@ @DEFS@ -DODBC
 LDFLAGS =		@LDFLAGS@ @LIBS@
 
 %.so:%.c Makefile $(TOPDIR)/make.common
