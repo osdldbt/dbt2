@@ -30,6 +30,14 @@ const char *c_last_syl[C_LAST_SYL_MAX] =
 const char transaction_short_name[TRANSACTION_MAX] =
 	{ 'd', 'n', 'o', 'p', 's' };
 
+char *transaction_name[TRANSACTION_MAX] =
+	{ "delivery    ",
+	  "new-order   ",
+	  "order-status",
+	  "payment     ",
+	  "stock-level "
+	};
+
 struct table_cardinality_t table_cardinality;
 
 double difftimeval(struct timeval rt1, struct timeval rt0)
