@@ -198,6 +198,10 @@ int main(int argc, char *argv[])
 			transaction_response_time[STOCK_LEVEL] += response_time;
 			++current_transaction_count[STOCK_LEVEL];
 		}
+		else if (transaction == 'E')
+		{
+			/* Eventually count errors. */
+		}
 		else
 		{
 			printf("unknown transaction, continuing\n");
