@@ -16,12 +16,24 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 	union transaction_data_t *odbct)
 {
 	int rc;
+	int i;
+
 	switch (transaction)
 	{
 		case DELIVERY:
 			rc = execute_delivery(odbcc, &odbct->delivery);
 			break;
 		case NEW_ORDER:
+			odbct->new_order.o_all_local = 1;
+			for (i = 0; i < odbct->new_order.o_ol_cnt; i++)
+			{
+				if (odbct->new_order.order_line[i].ol_supply_w_id !=
+					odbct->new_order.w_id)
+				{
+					odbct->new_order.o_all_local = 0;
+					break;
+				}
+			}
 			rc = execute_new_order(odbcc, &odbct->new_order);
 			/*
 			 * Calculate the adjusted total_amount here to work around

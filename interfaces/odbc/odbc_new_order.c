@@ -51,8 +51,6 @@ int execute_new_order(struct odbc_context_t *odbcc, struct new_order_t *data)
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
 		return ERROR;
 	}
-/* fix me */
-data->o_all_local = 0;
 	rc = SQLBindParameter(odbcc->hstmt,
 		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
 		&data->o_all_local, 0, NULL);
