@@ -12,7 +12,9 @@
 #ifndef _ODBC_COMMON_H_
 #define _ODBC_COMMON_H_
 
+/*
 #include <WINDOWS.H>
+*/
 #include <sqltypes.h>
 #include <sql.h>
 #include <sqlext.h>
@@ -41,6 +43,7 @@ union odbc_transaction_t
 	struct stock_level_t stock_level;
 };
 
+int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc);
 int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
 	SQLHANDLE handle);
 int odbc_connect(struct odbc_context_t *odbcc);
