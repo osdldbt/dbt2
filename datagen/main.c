@@ -67,6 +67,27 @@ char null_str[16] = "\"NULL\"";
 		fprintf(a, b); \
 	}
 
+void escape_me(char *str)
+{
+	/* Shouldn't need a buffer bigger than this. */
+	char buffer[4096] = "";
+	int i = 0;
+	int j = 0;
+	int k = 0;
+
+	/* Don't need to do anything for SAP DB. */
+	if (mode_string == MODE_PGSQL) {
+		strcpy(buffer, str);
+		i = strlen(buffer);
+		for (k = 0; k <= i; k++) {
+			if (buffer[k] == '\\') {
+				str[j++] = '\\';
+			}
+			str[j++] = buffer[k];
+		}
+	}
+}
+
 void print_timestamp(FILE *ofile, struct tm *date)
 {
 	if (mode_string == MODE_SAPDB) {
@@ -124,6 +145,7 @@ void gen_customers()
 
 				/* c_first */
 				get_a_string(a_string, 8, 16);
+				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
 				fprintf(output, "%c", delimiter);
 
@@ -138,21 +160,25 @@ void gen_customers()
 					get_c_last(a_string,
 						get_nurand(255, 0, 999));
 				}
+				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
 				fprintf(output, "%c", delimiter);
 
 				/* c_street_1 */
 				get_a_string(a_string, 10, 20);
+				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
 				fprintf(output, "%c", delimiter);
 
 				/* c_street_2 */
 				get_a_string(a_string, 10, 20);
+				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
 				fprintf(output, "%c", delimiter);
 
 				/* c_city */
 				get_a_string(a_string, 10, 20);
+				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
 				fprintf(output, "%c", delimiter);
 
@@ -216,6 +242,7 @@ void gen_customers()
 
 				/* c_data */
 				get_a_string(a_string, 300, 500);
+				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
 
 				fprintf(output, "\n");
@@ -261,21 +288,25 @@ void gen_districts()
 
 			/* d_name */
 			get_a_string(a_string, 6, 10);
+			escape_me(a_string);
 			FPRINTF(output, "%s", a_string);
 			fprintf(output, "%c", delimiter);
 
 			/* d_street_1 */
 			get_a_string(a_string, 10, 20);
+			escape_me(a_string);
 			FPRINTF(output, "%s", a_string);
 			fprintf(output, "%c", delimiter);
 
 			/* d_street_2 */
 			get_a_string(a_string, 10, 20);
+			escape_me(a_string);
 			FPRINTF(output, "%s", a_string);
 			fprintf(output, "%c", delimiter);
 
 			/* d_city */
 			get_a_string(a_string, 10, 20);
+			escape_me(a_string);
 			FPRINTF(output, "%s", a_string);
 			fprintf(output, "%c", delimiter);
 
@@ -372,6 +403,7 @@ void gen_history()
 
 				/* h_data */
 				get_a_string(a_string, 12, 24);
+				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
 
 				fprintf(output, "\n");
@@ -417,6 +449,7 @@ void gen_items()
 
 		/* i_name */
 		get_a_string(a_string, 14, 24);
+		escape_me(a_string);
 		FPRINTF(output, "%s", a_string);
 		fprintf(output, "%c", delimiter);
 
@@ -432,6 +465,7 @@ void gen_items()
 			j = get_random(strlen(a_string) - 8);
 			strncpy(a_string + j, "ORIGINAL", 8);
 		}
+		escape_me(a_string);
 		FPRINTF(output, "%s", a_string);
 
 		fprintf(output, "\n");
@@ -805,6 +839,7 @@ void gen_stock()
 				k = get_random(strlen(a_string) - 8);
 				strncpy(a_string + k, "ORIGINAL", 8);
 			}
+			escape_me(a_string);
 			FPRINTF(output, "%s", a_string);
 
 			fprintf(output, "\n");
@@ -844,21 +879,25 @@ void gen_warehouses()
 
 		/* w_name */
 		get_a_string(a_string, 6, 10);
+		escape_me(a_string);
 		FPRINTF(output, "%s", a_string);
 		fprintf(output, "%c", delimiter);
 
 		/* w_street_1 */
 		get_a_string(a_string, 10, 20);
+		escape_me(a_string);
 		FPRINTF(output, "%s", a_string);
 		fprintf(output, "%c", delimiter);
 
 		/* w_street_2 */
 		get_a_string(a_string, 10, 20);
+		escape_me(a_string);
 		FPRINTF(output, "%s", a_string);
 		fprintf(output, "%c", delimiter);
 
 		/* w_city */
 		get_a_string(a_string, 10, 20);
+		escape_me(a_string);
 		FPRINTF(output, "%s", a_string);
 		fprintf(output, "%c", delimiter);
 
@@ -972,7 +1011,7 @@ int main(int argc, char *argv[])
 		strcpy(null_str, "\"NULL\"");
 	} else if (mode_string == MODE_PGSQL) {
 		delimiter = '\t';
-		strcpy(null_str, "\\NULL");
+		strcpy(null_str, "");
 	}
 
 	printf("warehouses = %d\n", warehouses);
