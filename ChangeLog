@@ -1,3 +1,150 @@
+2002-08-15 08:19  fimath
+
+	* client/transaction_queue.c (1.3): Started assigning transaction
+	id's at 1 instead of 0.
+
+2002-08-14 16:32  fimath
+
+	* client/Makefile (1.6), datagen/Makefile (1.3), terminal/Makefile
+	(1.3): Updated the makes files.
+
+2002-08-14 16:32  fimath
+
+	* tools/transaction_test.c (1.3): Fixed a bug where a check for
+	transaction == 0 was incorrectly.  Added a variable cast to match a
+	new function declaration.
+
+2002-08-14 16:31  fimath
+
+	* terminal/main.c (1.2): Changed code to call functions instead of
+	change global variables directly.
+
+2002-08-14 16:30  fimath
+
+	* terminal/input_data_generator.c (1.5): Using bzero to clean the
+	transaction data structure, because it's a union and data can
+	linger from a previous transaction that SAP DB stored procedures
+	may complain about.
+
+2002-08-14 16:29  fimath
+
+	* terminal/driver.c (1.2): Started using function calls instead of
+	setting global variables directly.  Started using a semaphore to
+	keep track of the number of terminals running.	Added code to call
+	the input data generator.
+
+2002-08-14 16:27  fimath
+
+	* scripts/sapdb/create_tables.sql (1.2): Updated table definitions
+	to use the correct column sizes.
+
+2002-08-14 16:27  fimath
+
+	* interfaces/db.c (1.4): Updated a function declaration and started
+	capturing the return value of some functions to handle any
+	potential errors.
+
+2002-08-14 16:25  fimath
+
+	* include/transaction_queue.h (1.2): Added a variable to keep a tag
+	on the number of transactions processed.  Currently only used for
+	debuggin.
+
+2002-08-14 16:22  fimath
+
+	* include/: common.h (1.8), db.h (1.2), driver.h (1.2), listener.h
+	(1.3): Updated function prototypes.
+
+2002-08-14 16:22  fimath
+
+	* common/common.c (1.5): Added a wrapper function so that anyone
+	linking against common.c can dump transaction data.
+
+2002-08-14 16:21  fimath
+
+	* common/client_interface.c (1.3): Added code to capture the length
+	of the send, but I'm not doing anything with it yet...
+
+2002-08-14 16:20  fimath
+
+	* client/transaction_queue.c (1.2): Added debug code to see what
+	the queue is doing, when I realized that my dequeue algorithm was
+	just plain broken.  It was simply broken.
+
+2002-08-14 16:18  fimath
+
+	* client/listener.c (1.4): Implemented functions to reused memory
+	allocated by each listener to handle the transaction data coming in
+	from a terminal.
+
+2002-08-14 16:17  fimath
+
+	* client/db_threadpool.c (1.5): Added a check to make sure there is
+	nothing wrong with my queue logic in dequeue_transaction().  It
+	should never return NULL.
+
+2002-08-13 13:28  fimath
+
+	* storedproc/sapdb/payment.sql (1.2): Stopped appending c_data to
+	itself in the case where there is a customer with bad credit.  To
+	be fixed properly later, when I discover the string truncating
+	function...
+
+2002-08-13 13:26  fimath
+
+	* storedproc/sapdb/order_status.sql (1.2): Fixed the size of some
+	of the parameters.  Made changes to handle the case where there may
+	not be an order found for a customer.
+
+2002-08-08 10:49  fimath
+
+	* include/client_interface.h (1.2): Removed a dependency on the
+	odbc_common.h, which shouldn't have been there in the first
+	place...
+
+2002-08-08 10:18  fimath
+
+	* datagen/Makefile (1.2), terminal/Makefile (1.2): Updated Makefile
+	to incorporate new files.
+
+2002-08-08 10:17  fimath
+
+	* include/driver.h (1.1), terminal/driver.c (1.1), terminal/main.c
+	(1.1): Framework for logic to drive the database.  The code for the
+	transaction mix, keying time, and thinking time has been
+	implemented.
+
+2002-08-08 10:16  fimath
+
+	* include/common.h (1.7): Added macros for driver.c and make
+	changes to match common.c.
+
+2002-08-08 10:14  fimath
+
+	* common/common.c (1.4): Added a char array that can be used to
+	briefly note a transaction type.  Added a difftimeval() function to
+	return the difference between two timeval structs.  Added a
+	get_think_time() function to calculate a think time.
+
+2002-08-08 10:13  fimath
+
+	* client/db_threadpool.c (1.4): Made a LOG_ERROR_MESSAGE slightly
+	more descriptive.
+
+2002-08-07 11:08  fimath
+
+	* client/main.c (1.7), include/common.h (1.6): Now using a macro to
+	define the default port the client will listen to.
+
+2002-08-06 15:48  fimath
+
+	* terminal/input_data_generator.c (1.4): Fixed a typo in a typecast
+	that caused compiler warnings.
+
+2002-08-06 13:41  fimath
+
+	* ChangeLog (1.1): Changelog for v0.2.
+
 2002-08-06 13:37  fimath
 
 	* tools/Makefile (1.3): Updated Makefile to build
@@ -151,7 +298,7 @@
 2002-07-23 15:56  fimath
 
 	* include/db.h (1.1), interfaces/Makefile (1.1), interfaces/db.c
-	(1.1) (utags: release_0-1): Files I left out on the initial import.
+	(1.1): Files I left out on the initial import.
 
 2002-07-23 15:50  fimath
 
@@ -231,6 +378,6 @@
 	storedproc/sapdb/payment.sql (1.1.1.1),
 	storedproc/sapdb/stock_level.sql (1.1.1.1), terminal/Makefile
 	(1.1.1.1), terminal/input_data_generator.c (1.1.1.1),
-	tools/Makefile (1.1.1.1), tools/odbc_test.c (1.1.1.1) (utags:
-	release_0-1, start): Initial version.
+	tools/Makefile (1.1.1.1), tools/odbc_test.c (1.1.1.1): Initial
+	version.
 
