@@ -94,13 +94,10 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 	}
 
 	/* Use an invalid i_id 1% of the time. */
-	/* Database is crashing on this case.  Omit for now. */
-/*
 	if (get_random(100) == 0)
 	{
 		data->order_line[data->o_ol_cnt - 1].ol_i_id = 0;
 	}
-*/
 
 	return OK;
 }
