@@ -10,10 +10,15 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#include "transaction_data.h"
+
 #ifdef ODBC
-#include <odbc_common.h>
-#include <client_interface.h>
+#include "odbc_common.h"
 #endif /* ODBC */
+
+#ifdef LIBPQ
+#include "libpq_common.h"
+#endif /* LIBPQ */
 
 int connect_to_db(struct db_context_t *dbc);
 int db_init(char *sname, char *uname, char *auth);
