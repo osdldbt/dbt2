@@ -10,6 +10,8 @@
 #ifndef _LIBPQ_COMMON_H_
 #define _LIBPQ_COMMON_H_
 
+#include <postgresql/libpq-fe.h>
+
 #include "transaction_data.h"
 
 struct db_context_t {
