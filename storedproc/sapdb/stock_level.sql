@@ -7,7 +7,7 @@
 CREATE DBPROC stock_level(IN w_id FIXED(9), IN d_id FIXED(2),
 IN threshold FIXED(4), OUT low_stock FIXED(9))
 AS
-  VAR d_next_o_id FIXED(8); s_quantity FIXED(4);
+  VAR d_next_o_id FIXED(8); s_quantity FIXED(4); d_next_high_o_id FIXED(8); d_next_low_o_id FIXED(8);
 SUBTRANS BEGIN;
   SELECT d_next_o_id
   INTO :d_next_o_id
@@ -15,6 +15,8 @@ SUBTRANS BEGIN;
   WHERE d_w_id = :w_id
     AND d_id = :d_id;
   SET low_stock = 0;
+  SET d_next_high_o_id = d_next_o_id - 20;
+  SET d_next_low_o_id = d_next_o_id - 1;
   SELECT count(DISTINCT s_i_id)
   INTO :low_stock
   FROM dbt.order_line, dbt.stock, dbt.district
@@ -25,6 +27,6 @@ SUBTRANS BEGIN;
     AND ol_i_id = s_i_id
     AND ol_w_id = s_w_id
     AND s_quantity < :threshold
-    AND ol_o_id BETWEEN (:d_next_o_id - 20)
-                    AND (:d_next_o_id - 1);
+    AND ol_o_id BETWEEN (:d_next_high_o_id)
+                    AND (:d_next_low_o_id);
 SUBTRANS END;
