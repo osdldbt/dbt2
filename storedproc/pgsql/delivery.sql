@@ -6,7 +6,7 @@
  *
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
  */
-CREATE OR REPLACE FUNCTION delivery (INTEGER, INTEGER) AS '
+CREATE OR REPLACE FUNCTION delivery (INTEGER, INTEGER) RETURNS INTEGER AS '
 DECLARE
 	in_w_id ALIAS FOR $1;
 	in_o_carrier_id ALIAS FOR $2;
@@ -66,5 +66,6 @@ BEGIN
 			  AND c_d_id = tmp_d_id;
 		END IF;
 	END LOOP;
+	RETURN 1;
 END;
 ' LANGUAGE 'plpgsql';
