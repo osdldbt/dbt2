@@ -1,5 +1,5 @@
 /*
- * driver.h
+ * driver.c
  *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
@@ -20,6 +20,11 @@
 #include <driver.h>
 #include <client_interface.h>
 #include <input_data_generator.h>
+#ifdef STANDALONE
+#include <transaction_queue.h>
+#include <odbc_common.h>
+#include <db_threadpool.h>
+#endif /* STANDALONE */
 
 #define MIX_LOG_NAME "mix.log"
 
@@ -205,12 +210,19 @@ int start_driver()
 {
 	int i, j;
 	int count;
-	int warehouse_count;
 
-	warehouse_count = w_id_max - w_id_min + 1;
-	printf("starting %d terminals (%d per warehouse)\n", 10 * warehouse_count,
-		table_cardinality.districts);
-	for (i = 0; i < warehouse_count; i++)
+#ifdef STANDALONE
+	/* Open database connectiosn. */
+/*
+	if (db_threadpool_init() != OK)
+	{
+		LOG_ERROR_MESSAGE("cannot open database connections");
+		return ERROR;
+	}
+*/
+#endif /* STANDALONE */
+
+	for (i = w_id_min; i < w_id_max + 1; i++)
 	{
 		for (j = 0; j < terminals_per_warehouse; j++)
 		{
@@ -274,6 +286,14 @@ void *terminal_worker(void *data)
 	extern int errno;
 	int sockfd;
 
+#ifdef STANDALONE
+	struct odbc_context_t odbcc;
+	struct transaction_queue_node_t *node = (struct transaction_queue_node_t *)
+		malloc(sizeof(struct transaction_queue_node_t));
+	extern char sname[32];
+	extern int exiting;
+#endif /* STANDALONE */
+
 	tc = (struct terminal_context_t *) data;
 	/* Each thread needs to seed in Linux. */
 	srand(time(NULL) + pthread_self());
@@ -281,6 +301,15 @@ void *terminal_worker(void *data)
 	/* Keep a count of how many terminals are being emulated. */
 	sem_post(&terminal_count);
 
+#ifdef STANDALONE
+	odbc_init(sname, DB_USER, DB_PASS);
+	if (!exiting && odbc_connect(&odbcc) != OK)
+	{
+		LOG_ERROR_MESSAGE("odbc_connect() error, terminating program");
+		printf("cannot connect to database, exiting...\n");
+		exit(1);
+	}
+#else
 	/* Connect to the client program. */
 	sockfd = connect_to_client(hostname, client_port);
 	if (sockfd < 1)
@@ -288,6 +317,7 @@ void *terminal_worker(void *data)
 		LOG_ERROR_MESSAGE("connect_to_client() failed, thread exiting...\n");
 		pthread_exit(NULL);
 	}
+#endif /* STANDALONE */
 
 	do
 	{
@@ -366,13 +396,33 @@ void *terminal_worker(void *data)
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
 		++terminal_state[EXECUTING][client_data.transaction];
 		pthread_mutex_unlock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
+//#ifndef STANDALONE
 		/* Execute transaction and record the response time. */
 		if (gettimeofday(&rt0, NULL) == -1)
 		{
 			perror("gettimeofday");
 		}
+//#endif /* STANDALONE */
+#ifdef STANDALONE
+		memcpy(&node->client_data, &client_data, sizeof(client_data));
+/*
+		enqueue_transaction(node);
+		node = get_node();
+		if (node == NULL)
+		{
+			LOG_ERROR_MESSAGE("Cannot get a transaction node.\n");
+		}
+*/
+		if (process_transaction(node->client_data.transaction, &odbcc,
+			&node->client_data.transaction_data) != OK)
+		{
+			LOG_ERROR_MESSAGE("process_transaction() error on %s",
+			transaction_name[node->client_data.transaction]);
+		}
+#else /* STANDALONE */
 		length = send_transaction_data(sockfd, &client_data);
 		length = receive_transaction_data(sockfd, &client_data);
+#endif /* STANDALONE */
 		if (gettimeofday(&rt1, NULL) == -1)
 		{
 			perror("gettimeofday");
@@ -416,6 +466,10 @@ void *terminal_worker(void *data)
 		pthread_mutex_unlock(&mutex_terminal_state[THINKING][client_data.transaction]);
 	}
 	while (time(NULL) < stop_time);
+
+#ifdef STANDALONE
+	//recycle_node(node);
+#endif /* STANDALONE */
 
 	LOG_ERROR_MESSAGE("exiting...");
 
