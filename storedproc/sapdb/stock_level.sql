@@ -7,7 +7,7 @@
 CREATE DBPROC stock_level(IN w_id FIXED(9), IN d_id FIXED(2),
 IN threshold FIXED(4), OUT low_stock FIXED(9))
 AS
-  VAR d_next_o_id FIXED(8); s_quantity FIXED(4); ol_i_id FIXED(6);
+  VAR d_next_o_id FIXED(8);
 SUBTRANS BEGIN;
   SELECT d_next_o_id
   INTO :d_next_o_id
@@ -15,24 +15,44 @@ SUBTRANS BEGIN;
   WHERE d_w_id = :w_id
     AND d_id = :d_id;
   SET low_stock = 0;
-  SELECT distinct(ol_i_id)
-  FROM dbt.order_line
-  WHERE ol_o_id < :d_next_o_id
-    AND ol_o_id >= :d_next_o_id - 20
-    AND ol_w_id = :w_id
-    AND ol_d_id = :d_id;
-  WHILE $rc = 0 DO
-    BEGIN
-      FETCH INTO :ol_i_id;
-      SELECT s_quantity
-      FROM dbt.stock
-      WHERE s_i_id = :ol_i_id
-        AND s_w_id = :w_id
-        AND s_quantity < :threshold;
-      IF $rc = 0 THEN
-        BEGIN
-          FETCH INTO :s_quantity;
-          SET low_stock = low_stock + s_quantity;
-        END;
-    END;
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
+  SET d_next_o_id = d_next_o_id - 1;
+  CALL stock_level_2(:w_id, :d_id, :d_next_o_id, :threshold, :low_stock);
 SUBTRANS END;;
