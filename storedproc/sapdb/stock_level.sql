@@ -5,7 +5,7 @@
 /
 / Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
 CREATE DBPROC stock_level(IN w_id FIXED(9), IN d_id FIXED(2),
-IN threshold FIXED(4), OUT low_stock FIXED(4))
+IN threshold FIXED(4), OUT low_stock FIXED(9))
 AS
   VAR d_next_o_id FIXED(8); s_quantity FIXED(4); ol_i_id FIXED(6);
 SUBTRANS BEGIN;
