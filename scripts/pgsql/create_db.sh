@@ -12,7 +12,7 @@
 . ./init_env.sh
 
 # su to user postgres
-# createuser $USERNAME
+# createuser -P $USERNAME
 # answer yes to all questions
 # where $USERNAME is the persion you're trying to create
 
