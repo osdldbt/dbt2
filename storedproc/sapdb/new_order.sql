@@ -1,9 +1,9 @@
-/ This file is released under the terms of the Artistic License.  Please see
-/ the file LICENSE, included in this package, for details.
-/
-/ Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
-/
-/ Based on TPC-C Standard Specification Revision 5.0 Clause 2.4.2.
+// This file is released under the terms of the Artistic License.  Please see
+// the file LICENSE, included in this package, for details.
+//
+// Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+//
+// Based on TPC-C Standard Specification Revision 5.0 Clause 2.4.2.
 CREATE DBPROC new_order(IN w_id FIXED(9), IN d_id FIXED(2),
 IN c_id FIXED(5), IN o_all_local FIXED(1), IN o_ol_cnt FIXED(2),
 IN ol_i_id1 FIXED(6), IN ol_supply_w_id1 FIXED(9), IN ol_quantity1 FIXED(2),
@@ -400,4 +400,4 @@ SUBTRANS BEGIN;
       ELSE
         SUBTRANS ROLLBACK;
     END;
-SUBTRANS END;;
+SUBTRANS END;

@@ -1,16 +1,16 @@
-/ This file is released under the terms of the Artistic License.  Please see
-/ the file LICENSE, included in this package, for details.
-/
-/ Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
-/
-/ Based on TPC-C Standard Specification Revision 5.0 Clause 2.5.2.
-/ July 10, 2002
-/     Not selecting n/2 for customer search by c_last.
-/ July 12, 2002
-/     Not using c_d_id and c_w_id when searching for customers by last name
-/     since there are cases with 1 warehouse where no customers are found.
-/ August 13, 2002
-/     Not appending c_data to c_data when credit is bad.
+// This file is released under the terms of the Artistic License.  Please see
+// the file LICENSE, included in this package, for details.
+//
+// Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+//
+// Based on TPC-C Standard Specification Revision 5.0 Clause 2.5.2.
+// July 10, 2002
+//     Not selecting n/2 for customer search by c_last.
+// July 12, 2002
+//     Not using c_d_id and c_w_id when searching for customers by last name
+//     since there are cases with 1 warehouse where no customers are found.
+// August 13, 2002
+//     Not appending c_data to c_data when credit is bad.
 CREATE DBPROC payment(IN w_id FIXED(9), IN d_id FIXED(2),
 INOUT c_id FIXED(5), IN c_w_id FIXED(9), IN c_d_id FIXED(2),
 INOUT c_last VARCHAR(16), IN h_amount FIXED(12, 6),
@@ -92,4 +92,4 @@ SUBTRANS BEGIN;
   INSERT INTO dbt.history(h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id, 
                           h_date, h_amount, h_data)
   VALUES (:c_id, :c_d_id, :c_w_id, :d_id, :w_id, TIMESTAMP, :h_amount, :h_data);
-SUBTRANS END;;
+SUBTRANS END;

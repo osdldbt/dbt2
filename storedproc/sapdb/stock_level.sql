@@ -1,9 +1,9 @@
-/ This file is released under the terms of the Artistic License.  Please see
-/ the file LICENSE, included in this package, for details.
-/
-/ Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
-/
-/ Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+// This file is released under the terms of the Artistic License.  Please see
+// the file LICENSE, included in this package, for details.
+//
+// Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+//
+// Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
 CREATE DBPROC stock_level(IN w_id FIXED(9), IN d_id FIXED(2),
 IN threshold FIXED(4), OUT low_stock FIXED(9))
 AS
@@ -27,4 +27,4 @@ SUBTRANS BEGIN;
     AND s_quantity < :threshold
     AND ol_o_id BETWEEN (:d_next_o_id - 20)
                     AND (:d_next_o_id - 1);
-SUBTRANS END;;
+SUBTRANS END;

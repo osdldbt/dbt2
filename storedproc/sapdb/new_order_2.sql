@@ -1,9 +1,9 @@
-/ This file is released under the terms of the Artistic License.  Please see
-/ the file LICENSE, included in this package, for details.
-/
-/ Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
-/
-/ Based on TPC-C Standard Specification Revision 5.0 Clause 2.4.2.
+// This file is released under the terms of the Artistic License.  Please see
+// the file LICENSE, included in this package, for details.
+//
+// Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+//
+// Based on TPC-C Standard Specification Revision 5.0 Clause 2.4.2.
 CREATE DBPROC new_order_2(IN w_id FIXED(9), IN d_id FIXED(2),
 IN ol_i_id FIXED(6), IN ol_quantity FIXED(2), IN i_price FIXED(10, 5),
 IN i_name VARCHAR(24), IN i_data VARCHAR(50), IN ol_o_id FIXED(8),
@@ -94,4 +94,4 @@ BEGIN
   VALUES (:ol_o_id, :d_id, :w_id, :ol_number, :ol_i_id,
           :ol_supply_w_id, NULL, :ol_quantity,
           :ol_amount, :s_dist);
-END;;
+END;
