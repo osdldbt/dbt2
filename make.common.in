@@ -4,6 +4,19 @@
 TOPDIR =	@TOPDIR@
 INCLUDEDIR = 	$(TOPDIR)/include
 
+LIBPQ_OBJS =	$(TOPDIR)/interfaces/libpq/libpq_common.so \
+		$(TOPDIR)/interfaces/libpq/libpq_new_order.so \
+		$(TOPDIR)/interfaces/libpq/libpq_payment.so \
+		$(TOPDIR)/interfaces/libpq/libpq_order_status.so \
+		$(TOPDIR)/interfaces/libpq/libpq_delivery.so \
+		$(TOPDIR)/interfaces/libpq/libpq_stock_level.so
+ODBC_OBJS =	$(TOPDIR)/interfaces/odbc/odbc_common.so \
+		$(TOPDIR)/interfaces/odbc/odbc_new_order.so \
+		$(TOPDIR)/interfaces/odbc/odbc_payment.so \
+		$(TOPDIR)/interfaces/odbc/odbc_order_status.so \
+		$(TOPDIR)/interfaces/odbc/odbc_delivery.so \
+		$(TOPDIR)/interfaces/odbc/odbc_stock_level.so
+DB_OBJS =	$(@DB_OBJS@)
 
 CC =		@CC@
 CFLAGS =	-Wall -I$(TOPDIR)/include @CFLAGS@ @CPPFLAGS@ @DEFS@
