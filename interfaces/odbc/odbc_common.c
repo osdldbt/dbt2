@@ -103,7 +103,7 @@ int odbc_connect(struct odbc_context_t *odbcc)
 	}
 
 	rc = SQLSetConnectAttr(odbcc->hdbc, SQL_ATTR_AUTOCOMMIT,
-		SQL_AUTOCOMMIT_OFF, NULL);
+		SQL_AUTOCOMMIT_OFF, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
 	{
 	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
@@ -111,7 +111,7 @@ int odbc_connect(struct odbc_context_t *odbcc)
 	}
 
 	rc = SQLSetConnectAttr(odbcc->hdbc, SQL_ATTR_TXN_ISOLATION,
-		SQL_TXN_REPEATABLE_READ, NULL);
+		SQL_TXN_REPEATABLE_READ, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
 	{
 	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
