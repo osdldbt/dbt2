@@ -1,8 +1,11 @@
 #!/bin/sh
 
-_o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d DBT2 -u dbm,dbm 2>&1
+SAPDBBINDIR=/opt/sapdb/depend/bin
+
+_o=`cat <<EOF | $SAPDBBINDIR/dbmcli -d DBT2 -u dbm,dbm 2>&1
 util_connect dbm,dbm
 backup_start data migration
+backup_start incr migration
 quit
 EOF`
 _test=`echo $_o | grep OK`

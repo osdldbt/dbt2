@@ -8,6 +8,8 @@
 #   - demo database user test (with password test)
 ###
 
+SAPDBDEPENDDIR=/opt/sapdb/depend
+SAPDBBINDIR=$SAPDBDEPENDDIR/bin
 
 id=`id | sed s/\(.*// | sed s/uid=//`
 
@@ -33,7 +35,7 @@ dbmcli -d $SID -u dbm,dbm db_drop >/dev/null 2>&1
 
 # create new demo database
 echo "create database $SID..."
-_o=`/opt/sapdb/depend/bin/dbmcli -s -R /opt/sapdb/depend db_create $SID dbm,dbm 2>&1`
+_o=`$SAPDBBINDIR/dbmcli -s -R $SAPDBDEPENDDIR db_create $SID dbm,dbm 2>&1`
 _test=`echo $_o | grep OK`
 if [ "$_test" = "" ]; then
 	echo "create $SID failed: $_o"
@@ -51,7 +53,7 @@ param_startsession
 param_init
 param_put LOG_MODE SINGLE
 param_put CAT_CACHE_SUPPLY 300
-param_put DATA_CACHE 25000
+param_put DATA_CACHE 10000
 param_put MAXDATADEVSPACES 5
 param_put MAXDATAPAGES 4096000
 param_put _PACKET_SIZE 131072
@@ -122,7 +124,7 @@ echo "set backup parameters..."
 _o=`cat <<EOF | dbmcli -d $SID -u dbm,dbm 2>&1
 backup_media_put data $HOME/$SID/datasave FILE DATA 0 8 YES
 backup_media_put auto $HOME/$SID/autosave FILE AUTO
-backup_media_put trash $HOME/$SID/trash FILE DATA 0 8 YES
+backup_media_put incr $HOME/$SID/incr FILE PAGES 0 8 YES
 util_connect dbm,dbm
 backup_save data
 autosave_on
