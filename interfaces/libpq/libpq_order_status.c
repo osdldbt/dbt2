@@ -39,9 +39,5 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	}
 	PQclear(res);
 
-	/* Commit the transaction. */
-	res = PQexec(dbc->conn, "COMMIT");
-	PQclear(res);
-
 	return OK;
 }

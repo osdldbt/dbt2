@@ -55,9 +55,5 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	}
 	PQclear(res);
 
-	/* Commit the transaction. */
-	res = PQexec(dbc->conn, "COMMIT");
-	PQclear(res);
-
 	return OK;
 }

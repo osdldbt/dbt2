@@ -39,9 +39,5 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 	}
 	PQclear(res);
 
-	/* Commit the transaction. */
-	res = PQexec(dbc->conn, "COMMIT");
-	PQclear(res);
-
 	return OK;
 }
