@@ -8,7 +8,7 @@
 # 01 May 2003
 
 DIR=`dirname $0`
-. ${DIR}/init_env.sh || exit
+. ${DIR}/pgsql_profile || exit
 
 $DROPDB ${DB_NAME}
 
@@ -19,5 +19,3 @@ if [ -z ${PGDATA} ] ; then
 fi
 
 $PGCTL -D ${PGDATA} stop
-
-rm -r ${PGDATA}

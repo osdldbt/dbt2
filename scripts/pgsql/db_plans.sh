@@ -3,7 +3,7 @@
 # If the SQL in funcs.c is updated, this file should be updated to match.
 
 DIR=`dirname $0`
-. ${DIR}/init_env.sh || exit
+. ${DIR}/pgsql_profile || exit 1
 
 while getopts "o:" opt; do
 	case $opt in

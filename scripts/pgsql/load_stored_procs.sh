@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 DIR=`dirname $0`
-. ${DIR}/init_env.sh || exit
+. ${DIR}/pgsql_profile || exit 1
 
 $PSQL -d dbt2 -f $TOP_DIR/storedproc/pgsql/delivery.sql || exit 1
 $PSQL -d dbt2 -f $TOP_DIR/storedproc/pgsql/new_order_2.sql || exit 1

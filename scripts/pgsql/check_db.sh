@@ -10,7 +10,7 @@
 # 01 May 2003
 
 DIR=`dirname $0`
-. ${DIR}/init_env.sh || exit
+. ${DIR}/pgsql_profile || exit 1
 
 # Load tables
 echo customer

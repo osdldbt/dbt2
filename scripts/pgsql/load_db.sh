@@ -10,7 +10,7 @@
 # 01 May 2003
 
 DIR=`dirname $0`
-. ${DIR}/init_env.sh || exit 1
+. ${DIR}/pgsql_profile || exit 1
 
 # Create tables
 $PSQL -d $DB_NAME -f create_tables.sql || exit 1
