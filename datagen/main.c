@@ -27,13 +27,6 @@
 
 #define DELIMITER ','
 
-#define CUSTOMER_CARDINALITY 3000
-#define DISTRICT_CARDINALITY 10
-#define ITEM_CARDINALITY 100000
-#define ORDER_CARDINALITY 3000
-#define STOCK_CARDINALITY 100000
-#define NEW_ORDER_CARDINALITY 900
-
 int gen_customers(int warehouses, int customers);
 int gen_districts(int warehouses);
 int gen_history(int warehouses, int customers);
