@@ -11,6 +11,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <common.h>
 #include <logging.h>
 #include <client_interface.h>
