@@ -17,6 +17,33 @@
 #define MIX_PAYMENT 0.43
 #define MIX_STOCK_LEVEL 0.04
 
+#define KEY_TIME_DELIVERY 2
+#define KEY_TIME_NEW_ORDER 18
+#define KEY_TIME_ORDER_STATUS 2
+#define KEY_TIME_PAYMENT 3
+#define KEY_TIME_STOCK_LEVEL 2
+
+#define THINK_TIME_DELIVERY 5000
+#define THINK_TIME_NEW_ORDER 12000
+#define THINK_TIME_ORDER_STATUS 10000
+#define THINK_TIME_PAYMENT 12000
+#define THINK_TIME_STOCK_LEVEL 5000
+
+struct key_time_t
+{
+	int delivery;
+	int new_order;
+	int order_status;
+	int payment;
+	int stock_level;
+};
+
+struct terminal_context_t
+{
+	int w_id;
+	int d_id;
+};
+
 struct transaction_mix_t
 {
 	/*
@@ -40,20 +67,30 @@ struct transaction_mix_t
 	double stock_level_threshold;
 };
 
+struct think_time_t
+{
+	int delivery;
+	int new_order;
+	int order_status;
+	int payment;
+	int stock_level;
+};
+
 int init_driver();
 int recalculate_mix();
 int set_client_hostname(char *addr);
 int set_client_port(int port);
 int set_duration(int seconds);
 int set_table_cardinality(int table, int cardinality);
-int set_terminals(int number);
 int set_transaction_mix(int transaction, double mix);
 int start_driver();
 
 extern struct transaction_mix_t transaction_mix;
+extern struct key_time_t key_time;
+extern struct think_time_t think_time;
 extern char hostname[32];
 extern int port;
-extern int terminals;
 extern int duration;
+extern int w_id_min, w_id_max;
 
 #endif /* _DRIVER_H_ */
