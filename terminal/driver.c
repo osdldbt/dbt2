@@ -367,9 +367,9 @@ void *terminal_worker(void *data)
 			 */
 
 			tc->w_id = w_id_min +
-				get_random(w_id_max - w_id_min);
+				get_random(w_id_max - w_id_min + 1);
 			tc->d_id =
-				get_random(table_cardinality.districts - 1) + 1;
+				get_random(table_cardinality.districts) + 1;
 		}
 
 		/*

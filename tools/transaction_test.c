@@ -177,15 +177,18 @@ int main(int argc, char *argv[])
 	switch (transaction)
 	{
 		case DELIVERY:
-			generate_input_data(DELIVERY, (void *) &txn_data.delivery,
+			generate_input_data(DELIVERY,
+				(void *) &txn_data.delivery,
 				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case NEW_ORDER:
-			generate_input_data(NEW_ORDER, (void *) &txn_data.new_order,
+			generate_input_data(NEW_ORDER,
+				(void *) &txn_data.new_order,
 				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case ORDER_STATUS:
-			generate_input_data(ORDER_STATUS, (void *) &txn_data.order_status,
+			generate_input_data(ORDER_STATUS,
+				(void *) &txn_data.order_status,
 				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case PAYMENT:
@@ -193,7 +196,8 @@ int main(int argc, char *argv[])
 				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case STOCK_LEVEL:
-			generate_input_data2(STOCK_LEVEL, (void *) &txn_data.stock_level,
+			generate_input_data2(STOCK_LEVEL,
+				(void *) &txn_data.stock_level,
 				get_random(table_cardinality.warehouses) + 1,
 				get_random(table_cardinality.districts) + 1);
 			break;

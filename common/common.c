@@ -53,7 +53,7 @@ void get_a_string(char *a_string, int x, int y)
 	int length;
 	int i;
 
-	length = x + get_random((y - x)) + 1;
+	length = x + get_random(y - x + 1) + 1;
 	a_string[length - 1] = '\0';
 
 	for (i = 0; i < length - 1; i++)
@@ -90,7 +90,7 @@ void get_l_string(char *a_string, int x, int y)
 	int length;
 	int i;
 
-	length = x + get_random((y - x)) + 1;
+	length = x + get_random(y - x + 1) + 1;
 	a_string[length - 1] = '\0';
 
 	for (i = 0; i < length - 1; i++)
@@ -107,7 +107,7 @@ void get_n_string(char *n_string, int x, int y)
 	int length;
 	int i;
 
-	length = x + get_random((long long) (y - x)) + 1;
+	length = x + get_random(y - x + 1) + 1;
 	n_string[length - 1] = '\0';
 
 	for (i = 0; i < length - 1; i++)
@@ -132,7 +132,7 @@ double get_percentage()
 
 int get_random(int max)
 {
-	return (int) (get_percentage() * (double) max);
+	return rand() % max;
 }
 
 /*
