@@ -128,7 +128,7 @@ cd -
 ./sysstats.sh --db sapdb --dbname dbt2 --outdir $OUTPUT_DIR --iter $ITERATION --sample $SAMPLE_LENGTH &
 
 # start a test run
-CMD="../terminal/sdriver -dbname dbt2 -w $W -l $DURATION"
+CMD="../terminal/driver -dbname dbt2 -w $W -l $DURATION"
 
 # generate the command line argument for the driver depending on the
 # flags used
