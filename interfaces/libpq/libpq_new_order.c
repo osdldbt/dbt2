@@ -42,7 +42,7 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 			data->order_line[i].ol_quantity);
 		strcat(stmt, tmp);
 	}
-	for (i = data->o_ol_cnt; i < 15; i++) {
+	for (i = data->o_ol_cnt; i < O_OL_CNT_MAX; i++) {
 		strcat(stmt, ", ''");
 	}
 	strcat(stmt, ")");
