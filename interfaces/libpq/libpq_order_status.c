@@ -28,7 +28,10 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	PQclear(res);
 
 	/* Create the query and execute it. */
+/*
 	sprintf(stmt, "SELECT * FROM order_status(%d, %d, %d, '%s') l(c_id INTEGER, c_first VARCHAR, c_middle VARCHAR, c_late VARCHAR, c_balance NUMERIC, o_id INTEGER, o_carrier_id INTEGER, o_entry_d VARCHAR, o_ol_cnt INTEGER, ol_i_id NUMERIC, ol_supply_w_id NUMERIC, ol_quantity NUMERIC, ol_amount NUMERIC, ol_delivery_d TIMESTAMP)",
+*/
+	sprintf(stmt, "SELECT * FROM order_status(%d, %d, %d, '%s')",
 		data->c_id, data->c_w_id, data->c_d_id, data->c_last);
 	res = PQexec(dbc->conn, stmt);
 	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&

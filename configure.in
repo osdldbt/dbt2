@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 1096 2003-06-09 21:02:32Z fimath $)
+AC_REVISION($Id: configure.in 1125 2003-06-30 20:51:36Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
@@ -120,7 +120,7 @@ if test "x$database_to_use" = "xpgsql"; then
 		,
 		AC_MSG_ERROR([libpq libs required]))
 	AC_DEFINE(LIBPQ)
-	database_interface="interfaces/libpq/Makefile"
+	database_interface="interfaces/libpq/Makefile storedproc/pgsql/c/Makefile storedproc/pgsql/c/stock_level.sql storedproc/pgsql/c/delivery.sql storedproc/pgsql/c/payment.sql storedproc/pgsql/c/order_status.sql storedproc/pgsql/c/new_order.sql"
 	INTERFACE_OBJ="libpq_obj"
 	DB_OBJS="LIBPQ_OBJS"
 elif test "x$database_to_use" = "xsapdb"; then

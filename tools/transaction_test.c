@@ -173,12 +173,16 @@ int main(int argc, char *argv[])
 		break;
 	}
 
+	/* Let's check out what's going into the transaction. */
+	printf("----- preview input data -----\n");
+	dump(stdout, transaction, (void *) &transaction_data);
+	printf("-----\n");
+
 	if (port == 0) {
 		/*
 		 * Process transaction by connecting directly to the database.
 		 */
 		printf("connecting directly to the database...\n");
-		bzero(&transaction_data, sizeof(union transaction_data_t));
 #ifdef ODBC
 		db_init(connect_str, DB_USER, DB_PASS);
 #endif /* ODBC */
@@ -224,7 +228,9 @@ int main(int argc, char *argv[])
 			sizeof(union transaction_data_t));
 	}
 
+	printf("----- data after transaction -----\n");
 	dump(stdout, transaction, (void *) &transaction_data);
+	printf("-----\n");
 	printf("\ndone.\n");
 
 	return 0;

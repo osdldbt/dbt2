@@ -4,3 +4,12 @@ So in the pg_hba.conf file, if you want to trust everyone, define this:
 local        all                                           trust
 host         all         127.0.0.1     255.0.0.0           trust
 host         all         0.0.0.0       0.0.0.0             reject
+
+-----
+
+The kit uses C stored functions that require 7.3.x.
+
+-----
+
+PostgreSQL must be compile with '#define INDEX_MAX_KEYS 64' in pg_config.h
+in order for the new order transaction to execute properly.

@@ -16,7 +16,7 @@
 int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 {
 	PGresult *res;
-	char stmt[128];
+	char stmt[512];
 
 	/* Start a transaction block. */
 	res = PQexec(dbc->conn, "BEGIN");
@@ -30,6 +30,7 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 	/* Create the query and execute it. */
 	sprintf(stmt, "SELECT stock_level(%d, %d, %d)",
 		data->w_id, data->d_id, data->threshold);
+printf("stmt: %s\n", stmt);
 	res = PQexec(dbc->conn, stmt);
 	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
 		PQresultStatus(res) != PGRES_TUPLES_OK)) {

@@ -17,7 +17,7 @@
 int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 {
 	PGresult *res;
-	char stmt[128];
+	char stmt[512];
 	char tmp[64];
 	int i;
 
@@ -32,20 +32,54 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 
 	/* Create the query and execute it. */
 	sprintf(stmt,
-		"SELECT new_order('%9d%2d%5d%1d%2d'",
+		"SELECT new_order(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
 		data->w_id, data->d_id, data->c_id, data->o_all_local,
-		data->o_ol_cnt);
-	for (i = 0; i < data->o_ol_cnt; i++) {
-		sprintf(tmp, ", '%6d%9d%2d'",
-			data->order_line[i].ol_i_id,
-			data->order_line[i].ol_supply_w_id,
-			data->order_line[i].ol_quantity);
-		strcat(stmt, tmp);
-	}
-	for (i = data->o_ol_cnt; i < O_OL_CNT_MAX; i++) {
-		strcat(stmt, ", ''");
-	}
-	strcat(stmt, ")");
+		data->o_ol_cnt,
+		data->order_line[0].ol_i_id,
+		data->order_line[0].ol_supply_w_id,
+		data->order_line[0].ol_quantity,
+		data->order_line[1].ol_i_id,
+		data->order_line[1].ol_supply_w_id,
+		data->order_line[1].ol_quantity,
+		data->order_line[2].ol_i_id,
+		data->order_line[2].ol_supply_w_id,
+		data->order_line[2].ol_quantity,
+		data->order_line[3].ol_i_id,
+		data->order_line[3].ol_supply_w_id,
+		data->order_line[3].ol_quantity,
+		data->order_line[4].ol_i_id,
+		data->order_line[4].ol_supply_w_id,
+		data->order_line[4].ol_quantity,
+		data->order_line[5].ol_i_id,
+		data->order_line[5].ol_supply_w_id,
+		data->order_line[5].ol_quantity,
+		data->order_line[6].ol_i_id,
+		data->order_line[6].ol_supply_w_id,
+		data->order_line[6].ol_quantity,
+		data->order_line[7].ol_i_id,
+		data->order_line[7].ol_supply_w_id,
+		data->order_line[7].ol_quantity,
+		data->order_line[8].ol_i_id,
+		data->order_line[8].ol_supply_w_id,
+		data->order_line[8].ol_quantity,
+		data->order_line[9].ol_i_id,
+		data->order_line[9].ol_supply_w_id,
+		data->order_line[9].ol_quantity,
+		data->order_line[10].ol_i_id,
+		data->order_line[10].ol_supply_w_id,
+		data->order_line[10].ol_quantity,
+		data->order_line[11].ol_i_id,
+		data->order_line[11].ol_supply_w_id,
+		data->order_line[11].ol_quantity,
+		data->order_line[12].ol_i_id,
+		data->order_line[12].ol_supply_w_id,
+		data->order_line[12].ol_quantity,
+		data->order_line[13].ol_i_id,
+		data->order_line[13].ol_supply_w_id,
+		data->order_line[13].ol_quantity,
+		data->order_line[14].ol_i_id,
+		data->order_line[14].ol_supply_w_id,
+		data->order_line[14].ol_quantity);
 	res = PQexec(dbc->conn, stmt);
 	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
 		PQresultStatus(res) != PGRES_TUPLES_OK)) {

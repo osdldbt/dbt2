@@ -1,0 +1,7 @@
+/*
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2003 Mark Wong & Open Source Development Lab, Inc.
+ */
+CREATE OR REPLACE FUNCTION delivery (INTEGER, INTEGER) RETURNS INTEGER AS '@TOPDIR@/storedproc/pgsql/c/funcs' LANGUAGE 'c';
