@@ -1,20 +1,20 @@
 #!/bin/sh
-if [ $# -ne 1 ]; then
-	echo "usage: db_setup_sample.sh <warehouses>"
-	exit
-fi
 
-WAREHOUSES=$1
+if [ $# -gt 0 ]; then
+	WAREHOUSES=$1
+fi
 SID=DBT2
 
 echo This is a sample script to create a database with $WAREHOUSES warehouses.
 echo
 
-echo Generating data...
-cd ../../datagen
-./datagen -w $WAREHOUSES -d /tmp/data
-cd -
-echo
+if [ $# -gt 0 ]; then
+	echo Generating data...
+	cd ../../datagen
+	./datagen -w $WAREHOUSES -d /tmp/data
+	cd -
+	echo
+fi
 
 echo Creating the database dev spaces...
 ./create_db_sample.sh
@@ -43,6 +43,9 @@ echo
 echo Loading stored procedures...
 ./load_dbproc.sh
 echo
+
+echo Updating database statistics...
+./update_stats.sh
 
 echo Backing up database...
 ./backup_db.sh
