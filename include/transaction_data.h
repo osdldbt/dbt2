@@ -53,6 +53,7 @@ struct new_order_t
 	char c_last[C_LAST_LEN + 1];
 	char c_credit[C_CREDIT_LEN + 1];
 	double c_discount;
+	int rollback;
 };
 
 struct payment_t
