@@ -13,15 +13,16 @@
 
 #ifdef ODBC
 int process_transaction(int transaction, struct odbc_context_t *odbcc,
-	union odbc_transaction_t *odbct)
+	union transaction_data_t *odbct)
 {
+	int rc;
 	switch (transaction)
 	{
 		case DELIVERY:
-			execute_delivery(odbcc, &odbct->delivery);
+			rc = execute_delivery(odbcc, &odbct->delivery);
 			break;
 		case NEW_ORDER:
-			execute_new_order(odbcc, &odbct->new_order);
+			rc = execute_new_order(odbcc, &odbct->new_order);
 			/*
 			 * Calculate the adjusted total_amount here to work around
 			 * an issue with SAP DB stored procedures that does not allow
@@ -34,18 +35,21 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 				(1 + odbct->new_order.w_tax + odbct->new_order.d_tax);
 			break;
 		case ORDER_STATUS:
-			execute_order_status(odbcc, &odbct->order_status);
+			rc = execute_order_status(odbcc, &odbct->order_status);
 			break;
 		case PAYMENT:
-			execute_payment(odbcc, &odbct->payment);
+			rc = execute_payment(odbcc, &odbct->payment);
 			break;
 		case STOCK_LEVEL:
-			execute_stock_level(odbcc, &odbct->stock_level);
+			rc = execute_stock_level(odbcc, &odbct->stock_level);
 			break;
 		default:
-			LOG_ERROR_MESSAGE("unknown transaction type %d\n",
-				transaction);
+			LOG_ERROR_MESSAGE("unknown transaction type %d", transaction);
 			return ERROR;
+	}
+	if (rc != OK)
+	{
+		edump(transaction, (void *) &odbct->delivery);
 	}
 
 	return OK;
