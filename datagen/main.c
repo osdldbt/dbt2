@@ -95,7 +95,14 @@ int gen_customers(int warehouses, int customers)
 				fprintf(output, "%c", DELIMITER);
 
 				/* c_last Clause 4.3.2.7 */
-				get_c_last(a_string, get_random(1000));
+				if (k < 1000)
+				{
+					get_c_last(a_string, k);
+				}
+				else
+				{
+					get_c_last(a_string, get_nurand(255, 0, 999));
+				}
 				fprintf(output, "\"%s\"", a_string);
 				fprintf(output, "%c", DELIMITER);
 
