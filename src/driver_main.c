@@ -230,6 +230,9 @@ int main(int argc, char *argv[])
         printf("%d terminals per warehouse\n", terminals_per_warehouse);
         printf("\n");
 
+        printf("%d second steady state duration\n", duration);
+        printf("\n");
+
         if (integrity_terminal_worker() != OK)
         {
            printf("You used wrong parameters or something wrong with database.\n");
