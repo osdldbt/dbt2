@@ -15,8 +15,9 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <getopt.h>
 
-#include <common.h>
+#include "common.h"
 
 #define CUSTOMER_DATA "customer.data"
 #define DISTRICT_DATA "district.data"
@@ -910,10 +911,12 @@ void gen_warehouses()
 
 int main(int argc, char *argv[])
 {
-	int i;
 	FILE *p;
 	char pwd[256];
 	char cmd[256];
+
+	/* For getoptlong(). */
+	int c;
 
 	init_common();
 
@@ -939,43 +942,42 @@ int main(int argc, char *argv[])
 	}
 
 	/* Parse command line arguments. */
-	for (i = 1; i < argc; i += 2)
-	{
-		/* Check for exact length of a flag: i.e. -c */
-		if (strlen(argv[i]) != 2)
-		{
-			printf("invalid flag: %s\n", argv[i]);
-			return 2;
+	while (1) {
+		int option_index = 0;
+		static struct option long_options[] = {
+			{ "pgsql", no_argument, 0, 0 },
+			{ 0, 0, 0, 0 }
+		};
+
+		c = getopt_long(argc, argv, "c:d:i:n:o:w:",
+			long_options, &option_index); 
+		if (c == -1) {
+			break;
 		}
 
-		/* Handle the recognized flags. */
-		if (argv[i][1] == 'w')
-		{
-			warehouses = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'c')
-		{
-			customers = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'i')
-		{
-			items = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'o')
-		{
-			orders = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'n')
-		{
-			new_orders = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'd')
-		{
-			strcpy(output_path, argv[i + 1]);
-		}
-		else
-		{
-			printf("invalid flag: %s\n", argv[i]);
+		switch (c) {
+		case 0:
+			break;
+		case 'c':
+			customers = atoi(optarg);
+			break;
+		case 'd':
+			strcpy(output_path, optarg);
+			break;
+		case 'i':
+			items = atoi(optarg);
+			break;
+		case 'n':
+			new_orders = atoi(optarg);
+			break;
+		case 'o':
+			orders = atoi(optarg);
+			break;
+		case 'w':
+			warehouses = atoi(optarg);
+			break;
+		default:
+			printf("?? getopt returned character code 0%o ??\n", c);
 			return 2;
 		}
 	}
