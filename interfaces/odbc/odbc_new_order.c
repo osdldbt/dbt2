@@ -26,7 +26,7 @@ int execute_new_order(struct odbc_context_t *odbcc, struct new_order_t *data)
 		return ERROR;
 	}
 
-    /* Bind variables for New Order transaction. */
+	/* Bind variables for New Order transaction. */
 	rc = SQLBindParameter(odbcc->hstmt,
 		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
 		&data->w_id, 0, NULL);
@@ -180,6 +180,14 @@ int execute_new_order(struct odbc_context_t *odbcc, struct new_order_t *data)
 	rc = SQLBindParameter(odbcc->hstmt,
 		i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
 		&data->c_discount, 0, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
+	{
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+		return ERROR;
+	}
+	rc = SQLBindParameter(odbcc->hstmt,
+		i++, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
+		&data->rollback, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
 	{
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
