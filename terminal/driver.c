@@ -298,7 +298,7 @@ void *terminal_worker(void *data)
 
 	tc = (struct terminal_context_t *) data;
 	/* Each thread needs to seed in Linux. */
-	srand(time(NULL) + pthread_self());
+	srand(time(NULL) * pthread_self() * getpid());
 
 	/* Keep a count of how many terminals are being emulated. */
 	sem_post(&terminal_count);
@@ -395,6 +395,7 @@ void *terminal_worker(void *data)
 		--terminal_state[KEYING][client_data.transaction];
 		pthread_mutex_unlock(&mutex_terminal_state[KEYING][client_data.transaction]);
 
+		/* Note this thread is executing a transation. */
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
 		++terminal_state[EXECUTING][client_data.transaction];
 		pthread_mutex_unlock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
@@ -473,7 +474,7 @@ void *terminal_worker(void *data)
 	//recycle_node(node);
 #endif /* STANDALONE */
 
-	LOG_ERROR_MESSAGE("exiting...");
+	LOG_ERROR_MESSAGE("exiting normally...");
 
 	/* Note when each thread has exited. */
 	pthread_mutex_lock(&mutex_mix_log);
