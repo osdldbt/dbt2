@@ -68,28 +68,30 @@ int main(int argc, char *argv[])
 			MIX_STOCK_LEVEL);
 		printf("\n");
 		printf("-ktd #\n");
-		printf("\tdelivery keying time, default %d s", KEY_TIME_DELIVERY);
+		printf("\tdelivery keying time, default %d s\n", KEY_TIME_DELIVERY);
 		printf("-ktn #\n");
-		printf("\tnew-order keying time, default %d s", KEY_TIME_NEW_ORDER);
+		printf("\tnew-order keying time, default %d s\n", KEY_TIME_NEW_ORDER);
 		printf("-kto #\n");
-		printf("\torder-status keying time, default %d s",
+		printf("\torder-status keying time, default %d s\n",
 			KEY_TIME_ORDER_STATUS);
 		printf("-ktp #\n");
-		printf("\tpayment keying time, default %d s", KEY_TIME_PAYMENT);
+		printf("\tpayment keying time, default %d s\n", KEY_TIME_PAYMENT);
 		printf("-kts #\n");
-		printf("\tstock-level keying time, default %d s", KEY_TIME_STOCK_LEVEL);
+		printf("\tstock-level keying time, default %d s\n",
+			KEY_TIME_STOCK_LEVEL);
 		printf("-ttd #\n");
-		printf("\tdelivery thinking time, default %d ms", THINK_TIME_DELIVERY);
+		printf("\tdelivery thinking time, default %d ms\n",
+			THINK_TIME_DELIVERY);
 		printf("-ttn #\n");
-		printf("\tnew-order thinking time, default %d ms",
+		printf("\tnew-order thinking time, default %d ms\n",
 			THINK_TIME_NEW_ORDER);
 		printf("-tto #\n");
-		printf("\torder-status thinking time, default %d ms",
+		printf("\torder-status thinking time, default %d ms\n",
 			THINK_TIME_ORDER_STATUS);
 		printf("-ttp #\n");
-		printf("\tpayment thinking time, default %d ms", THINK_TIME_PAYMENT);
+		printf("\tpayment thinking time, default %d ms\n", THINK_TIME_PAYMENT);
 		printf("-tts #\n");
-		printf("\tstock-level thinking time, default %d ms",
+		printf("\tstock-level thinking time, default %d ms\n",
 			THINK_TIME_STOCK_LEVEL);
 		return 1;
 	}
