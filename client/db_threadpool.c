@@ -55,6 +55,11 @@ void *db_worker(void *no_data)
 		 * of the dequeue...
 		 */
 		node = dequeue_transaction();
+		if (node == NULL)
+		{
+			LOG_ERROR_MESSAGE("dequeue was null");
+			continue;
+		}
 #ifdef ODBC
 		if (process_transaction(node->client_data.transaction, &odbcc,
 			&node->client_data.transaction_data) != OK)
@@ -76,6 +81,7 @@ void *db_worker(void *no_data)
 			 */
 		}
 #endif /* ODBC */
+		recycle_node(node);
 	}
 
 	/* Disconnect from the database. */
