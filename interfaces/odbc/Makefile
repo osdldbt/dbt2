@@ -8,6 +8,7 @@ all: odbc_common.so odbc_new_order.so odbc_payment.so odbc_order_status.so \
 
 odbc_common.so: ../../common.mk Makefile odbc_common.c \
 	../../include/odbc_common.h ../../include/common.h \
+	../../include/logging.h ../../include/logging.h \
 	../../common/common.c ../../common/common.so
 
 odbc_delivery.so: ../../common.mk Makefile odbc_common.c \
