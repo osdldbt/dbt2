@@ -62,20 +62,13 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 	if (rc == OK)
 	{
 		/* Commit. */
-		i = SQLPrepare(odbcc->hstmt, COMMIT, SQL_NTS);
+		i = SQLEndTran(SQL_HANDLE_DBC, odbcc->hdbc, SQL_COMMIT);
 	}
 	else
 	{
 		/* Rollback. */
-		i = SQLPrepare(odbcc->hstmt, ROLLBACK, SQL_NTS);
-		edump(transaction, (void *) &odbct->delivery);
+		i = SQLEndTran(SQL_HANDLE_DBC, odbcc->hdbc, SQL_ROLLBACK);
 	}
-	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO)
-	{
-		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
-		return ERROR;
-	}
-	i = SQLExecute(odbcc->hstmt);
 	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO)
 	{
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
