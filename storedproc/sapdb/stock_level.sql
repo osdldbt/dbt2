@@ -13,7 +13,8 @@ SUBTRANS BEGIN;
   INTO :d_next_o_id
   FROM dbt.district
   WHERE d_w_id = :w_id
-    AND d_id = :d_id;
+    AND d_id = :d_id
+  WITH LOCK ISOLATION LEVEL 0;
   SET low_stock = 0;
   SET d_next_high_o_id = d_next_o_id - 20;
   SET d_next_low_o_id = d_next_o_id - 1;
@@ -28,5 +29,6 @@ SUBTRANS BEGIN;
     AND ol_w_id = s_w_id
     AND s_quantity < :threshold
     AND ol_o_id BETWEEN (:d_next_high_o_id)
-                    AND (:d_next_low_o_id);
+                    AND (:d_next_low_o_id)
+  WITH LOCK ISOLATION LEVEL 0;
 SUBTRANS END;
