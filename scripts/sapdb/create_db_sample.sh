@@ -58,6 +58,7 @@ param_put _PACKET_SIZE 131072
 param_put _IDXFILE_LIST_SIZE 8192
 param_put MAXLOCKS 5000
 param_put MAXCPU 1
+param_put _RESTART_TIME 100000
 param_checkall
 param_commitsession
 param_adddevspace 1 SYS  $HOME/$SID/SYS_001   F
