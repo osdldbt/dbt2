@@ -153,8 +153,8 @@ system.
 
 As user sapdb, execute the following script, in dbt2/scripts/sapdb, to
 generate the database from scratch (which will execute create\_db\_sample.sh): \\
-./db\_setup.sh <warehouses> <outputdir> \\
-where <warehouses> is the number of warehouses to build for and <outputdir>
+./db\_setup.sh $<$warehouses$>$ $<$outputdir$>$ \\
+where $<$warehouses$>$ is the number of warehouses to build for and $<$outputdir$>$
 is the directory in which the data files will be generated.  This script will
 create the data files, create the database, the tables, load the database,
 create indexes, update database statistics, load the stored procedures, and
@@ -166,7 +166,7 @@ good idea to include the same thing in your system startup scripts
 /etc/rc.local: \\
 \begin{tabular}[c]{l}
 \# start remote communication server: \\
-x\_server start > /dev/null 2>\&1: \\
+x\_server start $>$ /dev/null 2$>$\&1: \\
 \end{tabular}
 
 There is an option for ''migration'' that needs to be documented, or else
@@ -261,7 +261,7 @@ depending on how your database is installed on your system.
 \section{Running the Test Kit}
 
 The shell script scripts/run\_test.sh is used to execute a test.  For example:
-	run\_test.sh <--duration sec> <--sample sec> <--warehouses warehouses>
+	run\_test.sh $<$--duration sec$>$ $<$--sample sec$>$ $<$--warehouses warehouses$>$
 		[-ktd sec] [-ktn sec] [-kto sec] [-ktp sec] [-kts sec] [-ttd ms]
 		[-ttn ms] [-tto ms] [-ttp ms] [-tts ms] [-tpw \#] 
 		[--comment comment] [--drivers] [--drivers] [--spread \#] \\
@@ -347,7 +347,7 @@ logdev0.txt, and logdev1.txt, respectively.
 \subsection{Customizing Results}
 
 Users can add more system or database collection by editing scripts/sysstat.sh
-and the script it calls,  scripts/<database sub\_directory>/db\_stats.sh.
+and the script it calls,  scripts/$<$database sub\_directory$>$/db\_stats.sh.
 
 \section{Linux Notes}
 
@@ -358,7 +358,7 @@ be found on the Web at:
 	http://oprofile.sourceforge.net/
 
 The script is used as such:
-	prof.sh <vmlinux> <ctr0-count> <sleep> <session> <outdir> \\
+	prof.sh $<$vmlinux$>$ $<$ctr0-count$>$ $<$sleep$>$ $<$session$>$ $<$outdir$>$ \\
 
 \begin{tabular}[c]{ll}
 vmlinux & Location of the uncompressed kernel image. \\

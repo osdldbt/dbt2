@@ -82,6 +82,11 @@ STACKSIZE=2048
 ulimit -s $STACKSIZE
 echo "ulimit -s $STACKSIZE" >> $OUTPUT_DIR/readme.txt
 
+bash $TOPDIR/scripts/pgsql/stop_db.sh
+sleep 1
+bash $TOPDIR/scripts/pgsql/start_db.sh
+sleep 1
+
 # Start the client.
 echo "Starting up client..."
 nohup $TOPDIR/client/client -f -d $DB_HOSTNAME -c $DBCON -l $POSTMASTER_PORT -s $SLEEPY -o $CLIENT_OUTPUT_DIR > $OUTPUT_DIR/client.out 2>&1 &
@@ -126,4 +131,5 @@ cat notpm.csv | awk -F "," '{print $1, $2}' > notpm.out
 
 # Client doesn't go away by itself like the driver does and I nohup it.
 killall client
+/usr/local/pgsql/bin/vacuumdb -z -f -d $DB_NAME
 echo "Test completed."

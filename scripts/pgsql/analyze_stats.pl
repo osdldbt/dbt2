@@ -22,7 +22,8 @@ GetOptions(
 #}
 
 my @index_names = ( "pk_district", "pk_customer", "pk_new_order", "pk_orders",
-	"pk_order_line", "pk_item", "pk_warehouse" );
+	"pk_order_line", "pk_item", "pk_warehouse", "pk_stock", "i_customer",
+	"i_orders" );
 
 my @table_names = ( "warehouse", "district", "customer", "history",
 	"new_order", "orders", "order_line", "item", "stock" );

@@ -1,7 +1,18 @@
+v0.18
+
+- Fixed a bug in the driver regarding the assignmen of warehouse id's to each
+  thread.
+
+v0.17
+
+- Fixed a bug in the New-Order transaction in the PostgreSQL C function.
+- More work on the run_workload.sh script.
+
 v0.16
 
 - Replaced the OpenOffice text documents with LaTeX versions.
 - Fixed the rollback logic for the New-Order transaction with SAP DB.
+- Added backup and restore scripts for PostgreSQL.
 
 v0.15
 

@@ -32,7 +32,7 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 	@PSQL@ -d dbt2 -c "SELECT relname,pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation;" >> $OUTPUT_DIR/lockstats.out
 	@PSQL@ -d dbt2 -c "SELECT * FROM pg_locks WHERE transaction IS NOT NULL;" >> $OUTPUT_DIR/tran_lock.out
 	@PSQL@ -d dbt2 -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out
-	@PSQL@ -d dbt2 -c "SELECT * FROM pg_stat_database WHERE datname ='DBT2';" >> $OUTPUT_DIR/db_load.out
+	@PSQL@ -d dbt2 -c "SELECT * FROM pg_stat_database WHERE datname ='dbt2';" >> $OUTPUT_DIR/db_load.out
 	@PSQL@ -d dbt2 -c "SELECT relid, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit FROM pg_statio_user_tables;" >> $OUTPUT_DIR/table_info.out
 	@PSQL@ -d dbt2 -c "SELECT relid, indexrelid, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_statio_user_indexes;" >> $OUTPUT_DIR/index_info.out
 	@PSQL@ -d dbt2 -c "SELECT * FROM pg_stat_user_tables;" >> $OUTPUT_DIR/table_scan.out

@@ -1,4 +1,4 @@
-plot "pk_customer.index_info.data" title "pk_customer" with lines, "pk_order_line.index_info.data" title "pk_order_line" with lines, "pk_district.index_info.data" title "pk_district" with lines, "pk_orders.index_info.data" title "pk_orders" with lines, "pk_item.index_info.data" title "pk_item" with lines, "pk_warehouse.index_info.data" title "pk_warehouse" with lines, "pk_new_order.index_info.data" title "pk_new_order" with lines
+plot "pk_customer.index_info.data" title "pk_customer" with lines, "pk_order_line.index_info.data" title "pk_order_line" with lines, "pk_district.index_info.data" title "pk_district" with lines, "pk_orders.index_info.data" title "pk_orders" with lines, "pk_item.index_info.data" title "pk_item" with lines, "pk_warehouse.index_info.data" title "pk_warehouse" with lines, "pk_new_order.index_info.data" title "pk_new_order" with lines, "pk_stock.index_info.data" title "pk_stock" with lines, "i_customer.index_info.data" title "i_customer" with lines, "i_orders.index_info.data" title "i_orders" with lines
 set xlabel "Elapsed Time (Minutes)"
 set ylabel "Blocks Read"
 set term png small color

@@ -34,6 +34,8 @@ echo "Loading stock table..."
 echo "Loading warehouse table..."
 @PSQL@ -d $DB_NAME -c "COPY warehouse FROM '/tmp/warehouse.data' WITH NULL AS '';"
 
+./create_indexes.sh
+
 # VACUUM FULL ANALYZE
 #
 # Fully defragment tables, and build statistics

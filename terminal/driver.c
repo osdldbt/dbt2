@@ -246,7 +246,7 @@ int start_driver()
 
 			tc = (struct terminal_context_t *)
 				malloc(sizeof(struct terminal_context_t));
-			tc->w_id = i + 1;
+			tc->w_id = i;
 			tc->d_id = j + 1;
 			if (pthread_create(&tid, NULL, &terminal_worker,
 				(void *) tc) != 0) {

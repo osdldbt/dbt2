@@ -64,6 +64,7 @@ any way imply any comparable relationship with any other benchmark.
 \section{Database Design}
 
 \begin{itemize}
+\item All required fields are not returned to the terminal. [PostgreSQL]
 \item The kit currently does not use foreign keys to enforce any integrity
       constraints.  (Clause 1.3)
 \item Storage space for a 60-day period is not determined.  (Clause 4.2.3)
@@ -82,43 +83,44 @@ any way imply any comparable relationship with any other benchmark.
 
 \begin{itemize}
 \item Errors resulting in invalid transactions are detected but are not
-      reported.  (Clause 2.3.6)
+      reported.  (Clause 2.3.6) [SAP DB]
 \end{itemize}
 
 \subsection{Payment}
 
 \begin{itemize}
-\item In the case where the selected customer has bad credit, with SAP DB,
+\item In the case where the selected customer has bad credit,
       the original c\_data is not appended to the new c\_data updated for the
-      customer.  (Clause 2.5.2.2)
+      customer.  (Clause 2.5.2.2) [SAP DB]
 \end{itemize}
 
 \subsection{Delivery}
 
 \begin{itemize}
 \item Delivery transactions are not queued and deferred, but are executed
-      immediately.  (Clause 2.7.2.1)
+      immediately.  (Clause 2.7.2.1) [SAP DB, PostgreSQL]
 
 \item Statistics are not collected for the case when deliveries are not made
-      for a district.  (Clause 2.7.2.3)
+      for a district.  (Clause 2.7.2.3) [SAP DB, PostgreSQL]
 \end{itemize}
 
 \section{Acid Properties}
 
 \begin{itemize}
 \item Test have not been designed to test the ACID properties of the database.
-      (Clause 3)
+      (Clause 3) [SAP DB, PostgreSQL]
 \end{itemize}
 
 \section{Performance Metrics}
 
 \begin{itemize}
 \item The reported throughput does not have a minimum required throughput.
-      (Clause 4.1.3)
+      (Clause 4.1.3) [SAP DB, PostgreSQL]
 \item OSDL-DBT-2 does not require reporting (Clause 5.6) nor does it require
       a full disclosure report be published (Clause 8).  An independent audit
-      is also not required.  (Clause 9)
+      is also not required.  (Clause 9) [SAP DB, PostgreSQL]
 \item The pricing of the system under test is not calculated.  (Clause 7)
+      [SAP DB, PostgreSQL]
 \end{itemize}
 
 \section{Driver}
@@ -129,14 +131,14 @@ any way imply any comparable relationship with any other benchmark.
       used in a way such that it implements most of the client code directly
       to reduce the number of connections to the database from the driver
       program directly, instead of opening a database connection per terminal
-      emulated.  (Clause 6.1)
+      emulated.  (Clause 6.1) [SAP DB, PostgreSQL]
 \item The mix of the transactions conforms to the TPC-C specification by
       default, but it can be adjusted outside the restrictions placed in the
-      specification.  (Clause 5.2.3)
+      specification.  (Clause 5.2.3) [SAP DB, PostgreSQL]
 \item The Keying Time and Thinking Time is constant but can be user defined.
-      (Clause 5.2.5.7)
+      (Clause 5.2.5.7) [SAP DB, PostgreSQL]
 \item A maximum 90th percentile response time is not required.
-      (Clause 5.2.5.3)
+      (Clause 5.2.5.3) [SAP DB, PostgreSQL]
 \end{itemize}
 
 \end{document}
