@@ -53,7 +53,8 @@ OUT i_name15 VARCHAR(24), OUT i_price15 FIXED(10, 5),
 OUT s_quantity15 FIXED( 4), OUT ol_amount15 FIXED(12, 6),
 OUT o_id FIXED(8), OUT total_amount FIXED(12, 6),
 OUT w_tax FIXED(8, 4), OUT d_tax FIXED(8, 4),
-OUT c_last VARCHAR(16), OUT c_credit CHAR(2), OUT c_discount FIXED(8, 4))
+OUT c_last VARCHAR(16), OUT c_credit CHAR(2), OUT c_discount FIXED(8, 4),
+OUT rollback FIXED(1))
 AS
   VAR d_next_o_id FIXED(8); i_data VARCHAR(50);
 SUBTRANS BEGIN;
@@ -119,6 +120,7 @@ SUBTRANS BEGIN;
   SET ol_amount15 = 0;
   SET o_id = 0;
   SET total_amount = 0;
+  SET rollback = 0;
   SELECT w_tax
   INTO :w_tax
   FROM dbt.warehouse
@@ -148,11 +150,11 @@ SUBTRANS BEGIN;
   IF o_ol_cnt > 0 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price1, :i_name1, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id1;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price1, :i_name1, :i_data;
           SET ol_amount1 = i_price1 * ol_quantity1;
           CALL new_order_2(:ol_supply_w_id1, :d_id, :ol_i_id1, :ol_quantity1,
                            :i_price1, :i_name1, :i_data, :o_id,
@@ -160,16 +162,19 @@ SUBTRANS BEGIN;
           SET total_amount = ol_amount1;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 1 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price2, :i_name2, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id2;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price2, :i_name2, :i_data;
           SET ol_amount2 = i_price2 * ol_quantity2;
           CALL new_order_2(:ol_supply_w_id2, :d_id, :ol_i_id2, :ol_quantity2,
                            :i_price2, :i_name2, :i_data, :o_id, :ol_amount2,
@@ -177,16 +182,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount2;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 2 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price3, :i_name3, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id3;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price3, :i_name3, :i_data;
           SET ol_amount3 = i_price3 * ol_quantity3;
           CALL new_order_2(:ol_supply_w_id3, :d_id, :ol_i_id3, :ol_quantity3,
                            :i_price3, :i_name3, :i_data, :o_id, :ol_amount3,
@@ -194,16 +202,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount3;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 3 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price4, :i_name4, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id4;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price4, :i_name4, :i_data;
           SET ol_amount4 = i_price4 * ol_quantity4;
           CALL new_order_2(:ol_supply_w_id4, :d_id, :ol_i_id4, :ol_quantity4,
                            :i_price4, :i_name4, :i_data, :o_id, :ol_amount4,
@@ -211,16 +222,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount4;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 4 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price5, :i_name5, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id5;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price5, :i_name5, :i_data;
           SET ol_amount5 = i_price5 * ol_quantity5;
           CALL new_order_2(:ol_supply_w_id5, :d_id, :ol_i_id5, :ol_quantity5,
                            :i_price5, :i_name5, :i_data, :o_id, :ol_amount5,
@@ -228,16 +242,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount5;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 5 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price6, :i_name6, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id6;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price6, :i_name6, :i_data;
           SET ol_amount6 = i_price6 * ol_quantity6;
           CALL new_order_2(:ol_supply_w_id6, :d_id, :ol_i_id6, :ol_quantity6,
                            :i_price6, :i_name6, :i_data, :o_id, :ol_amount6,
@@ -245,16 +262,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount6;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 6 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price7, :i_name7, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id7;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price7, :i_name7, :i_data;
           SET ol_amount7 = i_price7 * ol_quantity7;
           CALL new_order_2(:ol_supply_w_id7, :d_id, :ol_i_id7, :ol_quantity7,
                            :i_price7, :i_name7, :i_data, :o_id, :ol_amount7,
@@ -262,16 +282,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount7;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 7 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price8, :i_name8, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id8;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price8, :i_name8, :i_data;
           SET ol_amount8 = i_price8 * ol_quantity8;
           CALL new_order_2(:ol_supply_w_id8, :d_id, :ol_i_id8, :ol_quantity8,
                            :i_price8, :i_name8, :i_data, :o_id, :ol_amount8,
@@ -279,16 +302,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount8;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 8 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price9, :i_name9, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id9;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price9, :i_name9, :i_data;
           SET ol_amount9 = i_price9 * ol_quantity9;
           CALL new_order_2(:ol_supply_w_id9, :d_id, :ol_i_id9, :ol_quantity9,
                            :i_price9, :i_name9, :i_data, :o_id, :ol_amount9,
@@ -296,16 +322,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount9;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 9 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price10, :i_name10, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id10;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price10, :i_name10, :i_data;
           SET ol_amount10 = i_price10 * ol_quantity10;
           CALL new_order_2(:ol_supply_w_id10, :d_id, :ol_i_id10, :ol_quantity10,
                            :i_price10, :i_name10, :i_data, :o_id, :ol_amount10,
@@ -313,16 +342,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount10;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 10 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price11, :i_name11, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id11;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price11, :i_name11, :i_data;
           SET ol_amount11 = i_price11 * ol_quantity11;
           CALL new_order_2(:ol_supply_w_id11, :d_id, :ol_i_id11, :ol_quantity11,
                            :i_price11, :i_name11, :i_data, :o_id, :ol_amount11,
@@ -330,16 +362,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount11;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 11 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price12, :i_name12, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id12;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price12, :i_name12, :i_data;
           SET ol_amount12 = i_price12 * ol_quantity12;
           CALL new_order_2(:ol_supply_w_id12, :d_id, :ol_i_id12, :ol_quantity12,
                            :i_price12, :i_name12, :i_data, :o_id, :ol_amount12,
@@ -347,16 +382,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount12;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 12 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price13, :i_name13, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id13;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price13, :i_name13, :i_data;
           SET ol_amount13 = i_price13 * ol_quantity13;
           CALL new_order_2(:ol_supply_w_id13, :d_id, :ol_i_id13, :ol_quantity13,
                            :i_price13, :i_name13, :i_data, :o_id, :ol_amount13,
@@ -364,16 +402,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount13;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 13 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price14, :i_name14, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id14;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price14, :i_name14, :i_data;
           SET ol_amount14 = i_price14 * ol_quantity14;
           CALL new_order_2(:ol_supply_w_id14, :d_id, :ol_i_id14, :ol_quantity14,
                            :i_price14, :i_name14, :i_data, :o_id, :ol_amount14,
@@ -381,16 +422,19 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount14;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
   IF o_ol_cnt > 14 THEN
     BEGIN
       SELECT i_price, i_name, i_data
-      INTO :i_price15, :i_name15, :i_data
       FROM dbt.item
       WHERE i_id = :ol_i_id15;
       IF $rc = 0 THEN
         BEGIN
+          FETCH INTO :i_price15, :i_name15, :i_data;
           SET ol_amount15 = i_price15 * ol_quantity15;
           CALL new_order_2(:ol_supply_w_id15, :d_id, :ol_i_id15, :ol_quantity15,
                            :i_price15, :i_name15, :i_data, :o_id, :ol_amount15,
@@ -398,6 +442,9 @@ SUBTRANS BEGIN;
           SET total_amount = total_amount + ol_amount15;
         END
       ELSE
-        SUBTRANS ROLLBACK;
+        BEGIN
+          SET rollback = 1;
+          SUBTRANS ROLLBACK;
+        END;
     END;
 SUBTRANS END;
