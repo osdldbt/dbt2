@@ -62,6 +62,7 @@ void *gen_customers(void *data)
 	time_t t1;
 	char filename[1024];
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating customer table data...\n");
 
@@ -216,6 +217,7 @@ void *gen_districts(void *data)
 	char a_string[32];
 	char filename[1024];
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating district table data...\n");
 
@@ -304,6 +306,7 @@ void *gen_history(void *data)
 	time_t t1;
 	char filename[1024];
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating history table data...\n");
 
@@ -385,6 +388,7 @@ void *gen_items(void *data)
 	int j;
 	char filename[1024];
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating item table data...\n");
 
@@ -444,6 +448,7 @@ void *gen_new_orders(void *data)
 	int i, j, k;
 	char filename[1024];
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating new-order table data...\n");
 
@@ -511,6 +516,7 @@ void *gen_orders(void *data)
 
 	int o_ol_cnt;
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating order and order-line table data...\n");
 
@@ -729,6 +735,7 @@ void *gen_stock(void *data)
 	char a_string[64];
 	char filename[1024];
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating stock table data...\n");
 
@@ -849,6 +856,7 @@ void *gen_warehouses(void *data)
 	char a_string[32];
 	char filename[1024];
 
+	srand(0);
 	sem_post(&sem);
 	printf("Generating warehouse table data...\n");
 
