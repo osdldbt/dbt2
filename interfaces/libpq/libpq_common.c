@@ -13,17 +13,17 @@
 #include "logging.h"
 #include "libpq_common.h"
 
-char dbname[32] = "";
-char pghost[32] = "";
-char pgport[32] = "";
+char dbname[32] = "dbt2";
+char pghost[32] = "localhost";
+char pgport[32] = "5432";
 char pgoptions[32] = "";
 char pgtty[32] = "";
 
 /* Open a connection to the database. */
 int _connect_to_db(struct db_context_t *dbc)
 {
-	dbc->conn = PQsetdb(pghost, pgport, pgoptions, pgtty, dbname);
-
+	dbc->conn = PQsetdbLogin(pghost, pgport, NULL, NULL, dbname,
+		DB_USER, DB_PASS);
 	if (PQstatus(dbc->conn) == CONNECTION_BAD) {
 		LOG_ERROR_MESSAGE("Connection to database '%s' failed.",
 			dbname);
@@ -45,6 +45,9 @@ int _db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
 	char *_pgtty)
 {
 	/* Copy values only if it's not NULL. */
+	if (_dbname != NULL) {
+		strcpy(dbname, _dbname);
+	}
 	if (_pghost != NULL) {
 		strcpy(pghost, _pghost);
 	}
