@@ -4,9 +4,9 @@
 TOPDIR =		@TOPDIR@
 INCLUDEDIR = 	$(TOPDIR)/include
 
+
 CC =			@CC@
-CFLAGS =		-Wall -I$(TOPDIR)/include @CFLAGS@ @DEFS@ \
-				-D_FILE_OFFSET_BITS=64 -DODBC
+CFLAGS =		-Wall -I$(TOPDIR)/include @CFLAGS@ @CPPFLAGS@ @DEFS@ -DODBC
 LDFLAGS =		@LDFLAGS@ @LIBS@
 
 %.so:%.c Makefile $(TOPDIR)/make.common

@@ -1,31 +1,123 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
 
-dnl Checks for programs.
+dnl> Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
+dnl> Replace below with this in future release AC_PROG_EGREP
+AC_PATH_PROGS([EGREP], ['grep -E'], ,
+             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+if test -z "$EGREP"
+then
+ AC_MSG_ERROR([*** grep -E is required])
+fi
 
-dnl Checks for libraries.
-dnl Replace `main' with a function in -lm:
+AC_PATH_PROGS([IOSTAT], [iostat], ,
+             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+if test -z "$IOSTAT"
+then
+ AC_MSG_ERROR([*** iostat is required])
+fi
+
+AC_PATH_PROGS([GNUPLOT], [gnuplot], ,
+             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+if test -z "$GNUPLOT"
+then
+ AC_MSG_ERROR([*** gnuplot is required])
+fi
+
+AC_PATH_PROGS([SAR], [sar bsdsar], ,
+             [$PATH:/usr/local/bin:/usr/bin])
+if test -z "$SAR"
+then
+ AC_MSG_ERROR([*** sar is required])
+fi
+
+AC_PATH_PROGS([SYSCTL], [sysctl], ,
+             [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
+if test -z "$SAR"
+then
+ AC_MSG_ERROR([*** sysctl is required])
+fi
+
+dnl>
+dnl> ODBC Library (required)
+dnl> check for `odbcinit' in -lodbc, -liodbc
+dnl>
+AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h,[],[
+	AC_MSG_ERROR([could not locate SQL headers])
+])
+AC_SEARCH_LIBS(SQLDriverConnect, odbc iodbc, , AC_MSG_ERROR([unixODBC or iODBC required]))
+
+dnl>
+dnl> Thread Library (required)
+dnl> check for `pthread_create' in -lpthread
+dnl>
+AC_CHECK_HEADERS(semaphore.h pthread.h,[],[
+	AC_MSG_ERROR([could not locate threading headers])
+])
+AC_CHECK_LIB(pthread, pthread_create)
+if test ".`echo $LIBS | grep pthread`" != .; then
+dnl>
+dnl> check for `sem_init' in -lposix4
+dnl>
+   AC_CHECK_LIB(posix4, sem_init)
+else
+  AC_CHECK_LIB(pthreads, pthread_create)
+  if test ".`echo $LIBS | grep pthread`" != .; then
+dnl>
+dnl> check for `sem_init' in -lposix4
+dnl>
+    AC_CHECK_LIB(posix4, sem_init)
+  else
+    AC_CHECK_LIB(c_r, pthread_create)
+    if test ".`echo $LIBS | grep c_r`" == .; then
+      threaded=no;
+    fi
+  fi
+fi
+if test "$threaded" == "no" ; then
+  AC_MSG_ERROR([Multithread support not available.])
+fi
+
+
+dnl> Checks for libraries.
+dnl> Replace `main' with a function in -lm:
 AC_CHECK_LIB(m, main)
-dnl Replace `main' with a function in -lodbc:
-AC_CHECK_LIB(odbc, main)
-dnl Replace `main' with a function in -lpthread:
-AC_CHECK_LIB(pthread, main)
 
-dnl Checks for header files.
+dnl> Checks for header files.
 AC_HEADER_STDC
 
-dnl Checks for typedefs, structures, and compiler characteristics.
+dnl> Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_HEADER_TIME
 AC_STRUCT_TM
 
-dnl Checks for library functions.
+dnl> Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(gettimeofday socket)
+
+dnl> Large file support?
+AC_SYS_LARGEFILE
+
 
 TOPDIR=`pwd`
 AC_SUBST(TOPDIR)
 
-AC_OUTPUT(make.common interfaces/odbc/Makefile Makefile common/Makefile datagen/Makefile tools/Makefile terminal/Makefile terminal/Makefile.standalone client/Makefile client/Makefile.standalone interfaces/Makefile)
+AC_OUTPUT([
+make.common
+Makefile
+interfaces/odbc/Makefile
+common/Makefile
+datagen/Makefile
+tools/Makefile
+terminal/Makefile
+terminal/Makefile.standalone
+client/Makefile
+client/Makefile.standalone
+interfaces/Makefile
+scripts/Makefile
+scripts/run_test.sh
+scripts/sysstats.sh
+scripts/transform_sar.sh
+])

@@ -15,13 +15,13 @@
 /*
 #include <WINDOWS.H>
 */
-#include <sqltypes.h>
 #include <sql.h>
 #include <sqlext.h>
+#include <sqltypes.h>
 
-#include <common.h>
-#include <logging.h>
-#include <transaction_data.h>
+#include "common.h"
+#include "logging.h"
+#include "transaction_data.h"
 
 #define LOG_ODBC_ERROR(type, handle) log_odbc_error(__FILE__, __LINE__, type, handle)
 

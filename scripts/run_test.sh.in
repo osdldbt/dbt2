@@ -9,8 +9,12 @@
 #
 # 18 october 2002
 
-if [ $# -lt 6 ]; then
-    echo "usage: run_test.sh --duration <sec> --sample <sec> -w <warehouses>"
+if [ $# -lt 8 ]; then
+    echo "usage: run_test.sh --db <database> --duration <sec> --sample <sec> -w <warehouses>"
+	echo ""
+	echo "	<database> includes:"
+	echo "		postgresql"
+	echo "		sapdb"
     exit
 fi
 
@@ -47,6 +51,9 @@ do
 	esac
 
 	case $option in
+	--db)
+		DATABASE=$optarg
+		;;
 	--duration)
 		DURATION=$optarg
 		;;
@@ -118,14 +125,14 @@ read COMMENT
 echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
 
 # start the database
-sapdb/start_db.sh
+${DATABASE}/start_db.sh
 
 cd $OUTPUT_DIR
-../../sapdb/plan.sh > plan0.out
+../../${DATABASE}/plan.sh > plan0.out
 cd -
 
 # start system stat gathering
-./sysstats.sh --db sapdb --dbname dbt2 --outdir $OUTPUT_DIR --iter $ITERATION --sample $SAMPLE_LENGTH &
+./sysstats.sh --db ${DATABASE} --dbname dbt2 --outdir $OUTPUT_DIR --iter $ITERATION --sample $SAMPLE_LENGTH &
 
 # start a test run
 CMD="../terminal/driver -dbname dbt2 -w $W -l $DURATION"
@@ -187,7 +194,7 @@ if ! [ -z $TPW ]; then
 fi
 
 # start oprofile 
-sudo ./oprof.sh /vmlinux 300000 $DURATION oprofile $OUTPUT_DIR &
+# sudo ./oprof.sh /vmlinux 300000 $DURATION oprofile $OUTPUT_DIR &
 
 # start the driver
 $CMD
@@ -203,8 +210,8 @@ mv error.log $OUTPUT_DIR/
 echo "run complete"
 
 # stop the database
-sapdb/stop_db.sh
+${DATABASE}/stop_db.sh
 
 # draw graphs
 cd $OUTPUT_DIR
-gnuplot ../../bt.input
+@GNUPLOT@ ../../bt.input

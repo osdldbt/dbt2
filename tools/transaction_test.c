@@ -11,15 +11,17 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <common.h>
-#include <logging.h>
-#include <transaction_data.h>
-#include <input_data_generator.h>
-#include <db.h>
+
+#include "client_interface.h"
+#include "common.h"
+#include "db.h"
+#include "input_data_generator.h"
+#include "logging.h"
+#include "transaction_data.h"
+
 #ifdef ODBC
-#include <odbc_common.h>
+#include "odbc_common.h"
 #endif /* ODBC */
-#include <client_interface.h>
 
 union txn_data_t
 {

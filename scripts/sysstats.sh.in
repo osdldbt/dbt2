@@ -100,7 +100,7 @@ echo "sample length: $SAMPLE_LENGTH seconds" >> $OUTPUT_DIR/readme.txt
 echo "iterations: $ITERATIONS" >> $OUTPUT_DIR/readme.txt
 
 # capture kernel settings
-/sbin/sysctl -a | sort > $OUTPUT_DIR/proc.out
+@SYSCTL@ -a | sort > $OUTPUT_DIR/proc.out
 
 read RN < .run_number
 CURRENT_NUM=`expr $RN - 1`
@@ -117,11 +117,11 @@ echo >> $OUTPUT_DIR/readme.txt
 echo "starting system data collection"
 
 # collect cpu data per cpu
-sar -o $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $ITERATIONS &
+@SAR@ -o $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $ITERATIONS &
 
 # collect i/o data per logical device
 #iostat -d -x $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
-iostat -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
+@IOSTAT@ -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
 
 
 # collect database statistics

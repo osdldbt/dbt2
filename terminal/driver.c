@@ -9,26 +9,27 @@
  * 7 august 2002
  */
 
+#include <ctype.h>
+#include <errno.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <time.h>
-#include <errno.h>
-#include <unistd.h>
-#include <semaphore.h>
-#include <ctype.h>
-#include <common.h>
 #include <string.h>
-#include <logging.h>
-#include <driver.h>
-#include <client_interface.h>
-#include <input_data_generator.h>
+#include <time.h>
+#include <unistd.h>
+#include <sys/time.h>
+
+#include "common.h"
+#include "logging.h"
+#include "driver.h"
+#include "client_interface.h"
+#include "input_data_generator.h"
 #ifdef STANDALONE
-#include <db.h>
-#include <transaction_queue.h>
-#include <odbc_common.h>
-#include <db_threadpool.h>
+#include "db.h"
+#include "transaction_queue.h"
+#include "odbc_common.h"
+#include "db_threadpool.h"
 #endif /* STANDALONE */
 
 #define MIX_LOG_NAME "mix.log"
@@ -324,7 +325,11 @@ void *terminal_worker(void *data)
 	/* Each thread needs to seed in Linux. */
 	if (seed == -1)
 	{
-		seed = time(NULL) * pthread_self() * getpid();
+		struct timeval tv;
+		unsigned long junk; /* Purposely used uninitialized */
+
+		gettimeofday(&tv, NULL);
+		seed = getpid() ^ tv.tv_sec ^ tv.tv_usec ^ junk;
 	}
 	printf("seed: %u\n", seed);
 	fflush(stdout);

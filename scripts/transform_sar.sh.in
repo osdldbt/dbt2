@@ -1,0 +1,18 @@
+#!/bin/sh
+
+SAROUTPUT=$1
+SAMPLE_LENGTH=$2
+OUTPUTDIR=$3
+
+# Prepare processor utilization data.
+@SAR@ -f $SAROUTPUT -u | @EGREP@ all | @EGREP@ -v Average | \
+	@AWK@ '{ print (NR - 1) * '$SAMPLE_LENGTH', $4 + $5 + $6 }' > $OUTPUTDIR/cpu_all.out
+@SAR@ -f $SAROUTPUT -u | @EGREP@ all | @EGREP@ -v Average | \
+	@AWK@ '{ print (NR - 1) * '$SAMPLE_LENGTH', $4 }' > $OUTPUTDIR/cpu_user.out
+@SAR@ -f $SAROUTPUT -u | @EGREP@ all | @EGREP@ -v Average | \
+	@AWK@ '{ print (NR - 1) * '$SAMPLE_LENGTH', $5 }' > $OUTPUTDIR/cpu_nice.out
+@SAR@ -f $SAROUTPUT -u | @EGREP@ all | @EGREP@ -v Average | \
+	@AWK@ '{ print (NR - 1) * '$SAMPLE_LENGTH', $6 }' > $OUTPUTDIR/cpu_system.out
+cd $OUTPUTDIR
+@GNUPLOT@ ../../cpu.input
+cd -
