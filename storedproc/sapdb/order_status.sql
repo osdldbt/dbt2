@@ -169,9 +169,9 @@ SUBTRANS BEGIN;
       SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,
              CHAR(ol_delivery_d, ISO)
       FROM dbt.order_line
-      WHERE ol_o_id = :o_id
-        AND ol_w_id = :c_w_id
-        AND ol_d_id = :c_d_id;
+      WHERE ol_w_id = :c_w_id
+        AND ol_d_id = :c_d_id
+        AND ol_o_id = :o_id;
       IF $rc = 0 THEN 
         BEGIN
           FETCH INTO :ol_i_id1, :ol_supply_w_id1, :ol_quantity1, :ol_amount1,

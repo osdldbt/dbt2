@@ -126,8 +126,8 @@ SUBTRANS BEGIN;
   SELECT d_tax, d_next_o_id
   INTO :d_tax, :d_next_o_id
   FROM dbt.district
-  WHERE d_id = :d_id
-    AND d_w_id = :w_id;
+  WHERE d_w_id = :w_id
+    AND d_id = :d_id;
   SET o_id = d_next_o_id;
   UPDATE dbt.district
   SET d_next_o_id = :o_id + 1

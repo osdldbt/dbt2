@@ -46,9 +46,9 @@ BEGIN
           SELECT SUM(ol_amount)
           INTO :ol_amount
           FROM dbt.order_line
-          WHERE ol_o_id = :o_id
-            AND ol_w_id = :w_id
-            AND ol_d_id = :d_id;
+          WHERE ol_w_id = :w_id
+            AND ol_d_id = :d_id
+            AND ol_o_id = :o_id;
           UPDATE dbt.customer
           SET c_delivery_cnt = c_delivery_cnt + 1,
               c_balance = c_balance + :ol_amount
