@@ -233,7 +233,7 @@ int parse_arguments(int argc, char *argv[])
 		if (strcmp(flag, "d") == 0) {
 			set_client_hostname(argv[i + 1]);
 #ifdef LIBPQ
-		} else if (strcmp(flag, "l") == 0) {
+		} else if (strcmp(flag, "z") == 0) {
 			strcpy(postmaster_port, argv[i + 1]);
 #endif /* LIBPQ */
 		} else if (strcmp(flag, "p") == 0) {
