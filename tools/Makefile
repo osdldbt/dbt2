@@ -5,8 +5,8 @@ include ../common.mk
 
 all: transaction_test results
 
-results: ../common.mk ../Makefile Makefile results.c
-	$(CC) $(CFLAGS) results.c -o results
+results: ../common.mk ../Makefile Makefile results.c ../include/common.h
+	$(CC) $(CFLAGS) results.c -o results ../common/common.so -lm
 
 transaction_test: ../Makefile ../common.mk Makefile \
 	../common/common.c ../include/common.h ../common/common.so \
