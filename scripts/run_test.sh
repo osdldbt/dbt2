@@ -112,6 +112,18 @@ OUTPUT_DIR=output/$RUN_NUMBER
 RUN_NUMBER=`expr $RUN_NUMBER + 1`
 echo $RUN_NUMBER > .run_number
 
+# Capture a comment.
+echo "Enter a short description about this run:"
+read COMMENT
+echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
+
+# start the database
+sapdb/start_db.sh
+
+cd $OUTPUT_DIR
+../../sapdb/plan.sh > plan0.out
+cd -
+
 # start system stat gathering
 ./sysstats.sh --db sapdb --dbname dbt2 --outdir $OUTPUT_DIR --iter $ITERATION --sample $SAMPLE_LENGTH &
 
@@ -186,3 +198,10 @@ mv error.log $OUTPUT_DIR/
 ../tools/results $OUTPUT_DIR/mix.log $SAMPLE_LENGTH $OUTPUT_DIR
 
 echo "run complete"
+
+# stop the database
+sapdb/stop_db.sh
+
+# draw graphs
+cd $OUTPUT_DIR
+gnuplot ../../bt.input
