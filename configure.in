@@ -1,0 +1,31 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(tools/results.c)
+
+dnl Checks for programs.
+AC_PROG_AWK
+AC_PROG_CC
+
+dnl Checks for libraries.
+dnl Replace `main' with a function in -lm:
+AC_CHECK_LIB(m, main)
+dnl Replace `main' with a function in -lodbc:
+AC_CHECK_LIB(odbc, main)
+dnl Replace `main' with a function in -lpthread:
+AC_CHECK_LIB(pthread, main)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_HEADER_TIME
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(gettimeofday socket)
+
+TOPDIR=`pwd`
+AC_SUBST(TOPDIR)
+
+AC_OUTPUT(make.common interfaces/odbc/Makefile Makefile common/Makefile datagen/Makefile tools/Makefile terminal/Makefile client/Makefile interfaces/Makefile)

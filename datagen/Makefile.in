@@ -1,0 +1,14 @@
+# Makefile.in
+# 31 October 2002
+
+include ../make.common
+
+COMMON_OBJS = $(TOPDIR)/common/common.so
+
+all: datagen
+
+datagen: ../make.common Makefile main.c $(COMMON_OBJS)
+	$(CC) $(CFLAGS) main.c -o $@ $(COMMON_OBJS) $(LDFLAGS)
+
+clean: 
+	rm -f datagen *.data
