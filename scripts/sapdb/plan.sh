@@ -296,17 +296,7 @@ EOF`
 echo $_o
 echo 
 
-SQL="SELECT distinct(ol_i_id) FROM dbt.order_line WHERE ol_o_id < 1 AND ol_o_id >= 1 AND ol_w_id = 1 AND ol_d_id = 1"
-echo $SQL
-_o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d $DBNAME -u dba,dba -uSQL dbt,dbt 2>&1
-sql_execute explain $SQL
-sql_execute select * from show
-quit
-EOF`
-echo $_o
-echo 
-
-SQL="SELECT count(DISTINCT s_i_id) FROM dbt.order_line, dbt.stock, dbt.districtWHERE d_id = 1 AND d_w_id = 1 AND d_id = ol_d_id AND d_w_id = ol_w_id AND ol_i_id = s_i_id AND ol_w_id = s_w_id AND s_quantity < 20 AND ol_o_id BETWEEN (1) AND (20)"
+SQL="SELECT count(DISTINCT s_i_id) FROM dbt.order_line, dbt.stock, dbt.district WHERE d_id = 1 AND d_w_id = 1 AND d_id = ol_d_id AND d_w_id = ol_w_id AND ol_i_id = s_i_id AND ol_w_id = s_w_id AND s_quantity < 20 AND ol_o_id BETWEEN (1) AND (20)"
 echo $SQL
 _o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d $DBNAME -u dba,dba -uSQL dbt,dbt 2>&1
 sql_execute explain $SQL
