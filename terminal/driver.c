@@ -43,6 +43,7 @@ int stop_time;
 sem_t terminal_count;
 int w_id_min, w_id_max;
 int terminals_per_warehouse;
+int mode_altered = 0;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
@@ -240,7 +241,15 @@ int start_driver()
 				LOG_ERROR_MESSAGE("error creating terminal thread");
 				return ERROR;
 			}
-			sleep(1);
+			sleep(1); /* Sleep for 1 second between starting terminals. */
+		}
+		if (mode_altered == 1)
+		{
+			/*
+			 * This effectively allows one client that can touch the entire
+			 * warehouse range.  The setting of w_id and d_id is moot here.
+			 */
+			break;
 		}
 	}
 	printf("terminals started...\n");
@@ -323,6 +332,14 @@ void *terminal_worker(void *data)
 
 	do
 	{
+		if (mode_altered == 1)
+		{
+			/* Determine w_id and d_id for the client per transaction. */
+
+			tc->w_id = w_id_min + get_random(w_id_max - w_id_min + 1);
+			tc->d_id = get_random(table_cardinality.districts);
+		}
+
 		/*
 		 * Determine which transaction to execute, minimum keying time, and
          * mean think time.

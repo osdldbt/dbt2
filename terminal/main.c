@@ -319,6 +319,10 @@ int parse_arguments(int argc, char *argv[])
 		{
 			terminals_per_warehouse = atoi(argv[i + 1]);
 		}
+		else if (strcmp(flag, "altered") == 0)
+		{
+			mode_altered = 1;
+		}
 #ifdef STANDALONE
 		else if (strcmp(flag, "dbc") == 0)
 		{
