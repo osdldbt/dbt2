@@ -21,6 +21,12 @@ transaction_test: ../common.mk Makefile ../common/common.c ../include/common.h \
 	../interfaces/odbc/odbc_delivery.c \
 	../interfaces/odbc/odbc_delivery.so \
 	../interfaces/odbc/odbc_stock_level.so \
+	../include/_socket.h \
+	../common/_socket.c \
+	../common/_socket.so \
+	../include/client_interface.h \
+	../common/client_interface.c \
+	../common/client_interface.so \
 	transaction_test.c
 	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) transaction_test.c -o transaction_test \
 		../common/common.so ../terminal/input_data_generator.so \
@@ -31,6 +37,8 @@ transaction_test: ../common.mk Makefile ../common/common.c ../include/common.h \
 		../interfaces/odbc/odbc_order_status.so \
 		../interfaces/odbc/odbc_delivery.so \
 		../interfaces/odbc/odbc_stock_level.so \
+		../common/client_interface.so \
+		../common/_socket.so \
 		$(ODBCLIBDIR)/libsqlod.so -lpthread -lm
 
 clean: 
