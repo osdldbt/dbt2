@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 
 	if (parse_arguments(argc, argv) != OK)
 	{
-		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-s #] [-n #] [-q %] [-r %] [-e %] [-t %]\n",
+		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %] [-r %] [-e %] [-t %]\n",
 			argv[0]);
 		printf("\n");
 		printf("-d <address>\n");
@@ -49,8 +49,6 @@ int main(int argc, char *argv[])
 		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
 		printf("-o #\n");
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
-		printf("-s #\n");
-		printf("\tstock cardinality, default %d\n", STOCK_CARDINALITY);
 		printf("-n #\n");
 		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		printf("\n");
@@ -127,7 +125,7 @@ int main(int argc, char *argv[])
 	printf("customers = %d\n", table_cardinality.customers);
 	printf("items = %d\n", table_cardinality.items);
 	printf("orders = %d\n", table_cardinality.orders);
-	printf("stock = %d\n", table_cardinality.stock);
+	printf("stock = %d\n", table_cardinality.items);
 	printf("new-orders = %d\n", table_cardinality.new_orders);
 	printf("\n");
 

@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
 	if (argc < 3)
 	{
-		printf("usage: %s -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-s #] [-n #] [-p #]\n",
+		printf("usage: %s -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-n #] [-p #]\n",
 			argv[0]);
 		printf("\n");
 		printf("-d <connect string>\n");
@@ -64,8 +64,6 @@ int main(int argc, char *argv[])
 		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
 		printf("-o #\n");
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
-		printf("-s #\n");
-		printf("\tstock cardinality, default %d\n", STOCK_CARDINALITY);
 		printf("-n #\n");
 		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		printf("-p #\n");
@@ -129,10 +127,6 @@ int main(int argc, char *argv[])
 		{
 			table_cardinality.orders = atoi(argv[i + 1]);
 		}
-		else if (argv[i][1] == 's')
-		{
-			table_cardinality.stock = atoi(argv[i + 1]);
-		}
 		else if (argv[i][1] == 'n')
 		{
 			table_cardinality.new_orders = atoi(argv[i + 1]);
@@ -168,7 +162,7 @@ int main(int argc, char *argv[])
 	printf("customers = %d\n", table_cardinality.customers);
 	printf("items = %d\n", table_cardinality.items);
 	printf("orders = %d\n", table_cardinality.orders);
-	printf("stock = %d\n", table_cardinality.stock);
+	printf("stock = %d\n", table_cardinality.items);
 	printf("new-orders = %d\n", table_cardinality.new_orders);
 	printf("\n");
 

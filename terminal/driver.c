@@ -163,9 +163,6 @@ int set_table_cardinality(int table, int cardinality)
 		case TABLE_ORDER:
 			table_cardinality.orders = cardinality;
 			break;
-		case TABLE_STOCK:
-			table_cardinality.stock = cardinality;
-			break;
 		case TABLE_NEW_ORDER:
 			table_cardinality.new_orders = cardinality;
 			break;

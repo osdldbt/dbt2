@@ -816,7 +816,6 @@ int main(int argc, char *argv[])
 	int customers = CUSTOMER_CARDINALITY;
 	int items = ITEM_CARDINALITY;
 	int orders = ORDER_CARDINALITY;
-	int stock = STOCK_CARDINALITY;
 	int new_orders = NEW_ORDER_CARDINALITY;
 	char pwd[256];
 	char cmd[256];
@@ -835,8 +834,6 @@ int main(int argc, char *argv[])
 		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
 		printf("-o #\n");
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
-		printf("-s #\n");
-		printf("\tstock cardinality, default %d\n", STOCK_CARDINALITY);
 		printf("-n #\n");
 		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		return 1;
@@ -869,10 +866,6 @@ int main(int argc, char *argv[])
 		{
 			orders = atoi(argv[i + 1]);
 		}
-		else if (argv[i][1] == 's')
-		{
-			stock = atoi(argv[i + 1]);
-		}
 		else if (argv[i][1] == 'n')
 		{
 			new_orders = atoi(argv[i + 1]);
@@ -895,14 +888,14 @@ int main(int argc, char *argv[])
 	printf("customers = %d\n", customers);
 	printf("items = %d\n", items);
 	printf("orders = %d\n", orders);
-	printf("stock = %d\n", stock);
+	printf("stock = %d\n", items);
 	printf("new_orders = %d\n", new_orders);
 	printf("\n");
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 	gen_items(items);
 	gen_warehouses(warehouses);
-	gen_stock(warehouses, stock);
+	gen_stock(warehouses, items);
 	gen_districts(warehouses);
 	gen_customers(warehouses, customers);
 	gen_history(warehouses, customers);

@@ -99,7 +99,6 @@ struct table_cardinality_t
 	int customers;
 	int items;
 	int orders;
-	int stock;
 	int new_orders;
 };
 

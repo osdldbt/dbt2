@@ -159,7 +159,6 @@ int init_common()
 	table_cardinality.customers = CUSTOMER_CARDINALITY;
 	table_cardinality.items = ITEM_CARDINALITY;
 	table_cardinality.orders = ORDER_CARDINALITY;
-	table_cardinality.stock = STOCK_CARDINALITY;
 	table_cardinality.new_orders = NEW_ORDER_CARDINALITY;
 
 	/*
