@@ -43,7 +43,7 @@ BEGIN
           WHERE ol_o_id = :o_id
             AND ol_w_id = :w_id
             AND ol_d_id = :d_id;
-          SELECT SUM(ol_amount)
+          SELECT SUM(ol_amount * ol_quantity)
           INTO :ol_amount
           FROM dbt.order_line
           WHERE ol_w_id = :w_id
