@@ -1,7 +1,42 @@
+2003-01-10 11:49  fimath
+
+	* terminal/input_data_generator.c (1.12): Terminal no longer
+	generates data that references warehouses outside the home
+	warehouse.
+
+2003-01-10 11:20  fimath
+
+	* include/driver.h (1.7), terminal/main.c (1.15), terminal/driver.c
+	(1.18): Allow seeds to be entered as a command line argument to
+	override the random seed generation.
+
+2003-01-07 11:47  fimath
+
+	* doc/: architecture.sxw (1.3), dbt2-architecture.sxw (1.1): Rename
+	architecture.sxw to dbt2-architecture.sxw.
+
+2003-01-07 11:46  fimath
+
+	* doc/dbt2-user.sxw (1.1): A draft of the user's document.
+
+2002-12-20 13:09  fimath
+
+	* tools/results.c (1.14): Properly calculating % rollbacks per
+	transaction.  Counting rollbacks into that statistics for all
+	transactions now.
+
+2002-12-20 09:38  fimath
+
+	* ChangeLog (1.4): Updated.
+
 2002-12-20 08:44  fimath
 
 	* datagen/main.c (1.14): Seed each thread with 0 so that the same
 	data is generated all the time, except for orders and order-line.
+
+2002-12-19 14:49  fimath
+
+	* scripts/sapdb/db_setup_sample.sh (1.8): Renamed to db_setup.sh.
 
 2002-12-19 14:48  fimath
 
@@ -22,6 +57,12 @@
 	* scripts/sapdb/db_stats.sh (1.5): Stopped using full paths to
 	execut SAP DB programs, added the correct path to to the
 	environment.
+
+2002-12-19 13:51  fimath
+
+	* scripts/sapdb/db_setup_sample.sh (1.7): Accept the output
+	directory for data generation as part of the command line.  Added
+	to the PATH as opposed to using the full path of dbmcli.
 
 2002-12-19 11:01  fimath
 
@@ -68,6 +109,11 @@
 
 	* scripts/oprof.sh (1.1): Script to collect oprofile data.
 
+2002-12-19 10:30  fimath
+
+	* scripts/cpu.input (1.1): A gnuplot input file to generate a graph
+	on processor utilization.
+
 2002-12-19 10:12  fimath
 
 	* scripts/sysstats.sh (1.2): Read the .run_number file so we know
@@ -83,6 +129,15 @@
 	* scripts/transform_sar.sh (1.1): Script to take raw sar data and
 	generate files so that the processor utilization can be graphed by
 	gnuplot.
+
+2002-12-19 09:50  fimath
+
+	* scripts/tps.input (1.2): Fixed the xlabel to show units.
+
+2002-12-19 09:32  fimath
+
+	* scripts/tps.input (1.1): A gnuplot input file to graph the
+	contents of tps.csv.
 
 2002-12-19 09:20  fimath
 
@@ -354,6 +409,11 @@
 	* terminal/driver.c (1.12): Changed the code to include the pid
 	into determining a random seed.  Added a comment.
 
+2002-11-20 11:28  fimath
+
+	* scripts/sapdb/db_setup_sample.sh (1.6): Added the execute of a
+	script to gather table statistics and sizing information.
+
 2002-11-20 11:24  fimath
 
 	* scripts/sapdb/restore_db.sh (1.4): Updated restore_db.sh to make
@@ -497,6 +557,16 @@
 	* terminal/Makefile.in (1.2), tools/Makefile.in (1.2): Changed
 	references to commonk.mk to make.common.
 
+2002-11-08 11:40  fimath
+
+	* common.mk (1.4): This file has been renamed to make.common for
+	(IMHO) clarity.
+
+2002-11-08 11:20  fimath
+
+	* Makefile (1.4): This file is no longer needed since it is being
+	generated automatically now.
+
 2002-11-06 15:59  fimath
 
 	* scripts/run_test.sh (1.2): Capture the SQL plans and force the
@@ -549,11 +619,22 @@
 	maximum allowed value since 0 does not disable savepoint
 	activities.
 
+2002-10-22 08:50  fimath
+
+	* scripts/sapdb/db_setup_sample.sh (1.5): Updated the script to put
+	_RESTART_TIME at the largest value, since 0, doesn't disable
+	savepoint activities.
+	
+	Updating table statistics immediatly after the database is build.
+	
+	Skipping data generation is no command line parameter is given.
+
 2002-10-22 08:41  fimath
 
-	* client/Makefile (1.9), common/Makefile (1.5), interfaces/Makefile
-	(1.2), terminal/Makefile (1.6), tools/Makefile (1.7): Updated the
-	Makefiles to build against unixODBC.
+	* Makefile (1.3), common.mk (1.3), client/Makefile (1.9),
+	common/Makefile (1.5), interfaces/Makefile (1.2), terminal/Makefile
+	(1.6), tools/Makefile (1.7): Updated the Makefiles to build against
+	unixODBC.
 
 2002-10-21 17:32  fimath
 
@@ -717,10 +798,10 @@
 2002-10-10 13:44  fimath
 
 	* scripts/sapdb/: create_db_sample.sh (1.3), create_indexes.sh
-	(1.3), order_line.sql (1.2), orders.sql (1.2): Changed to script to
-	look for the string NULL when inserting a NULL into the table
-	during a load.	Previously, it was deciding to insert a NULL if the
-	column string was an empty string.
+	(1.3), db_setup_sample.sh (1.4), order_line.sql (1.2), orders.sql
+	(1.2): Changed to script to look for the string NULL when inserting
+	a NULL into the table during a load.  Previously, it was deciding
+	to insert a NULL if the column string was an empty string.
 
 2002-10-01 08:51  fimath
 
@@ -778,6 +859,11 @@
 	low_stock so it would stop throwing this ODBC error: sqlstate 22003
 	: [SAP AG][LIBSQLOD SO][SAP DB]Numeric value out of range;-3019
 	POS(1) Invalid exponent.
+
+2002-08-29 15:32  fimath
+
+	* scripts/sapdb/db_setup_sample.sh (1.3): Uncommented a line so
+	that the indexes get created.
 
 2002-08-29 15:31  fimath
 
@@ -1325,6 +1411,12 @@
 	release_0-2), tools/odbc_test.c (1.3): Made changes to support the
 	use of custom table cardinalities by using a global structure.
 
+2002-08-02 11:46  fimath
+
+	* scripts/sapdb/db_setup_sample.sh (1.2, release_0-4, release_0-3,
+	release_0-2): Updated script to use the correct command line
+	arguments for datagen.
+
 2002-08-02 11:12  fimath
 
 	* datagen/main.c (1.3), include/common.h (1.3): Move default table
@@ -1356,9 +1448,10 @@
 
 2002-07-31 14:04  fimath
 
-	* client/Makefile (1.2), interfaces/odbc/Makefile (1.2,
-	release_0-3, release_0-2): Modified so the global rule for .c to
-	.so is in the common.mk file.
+	* common.mk (1.2, release_0-4, release_0-3, release_0-2),
+	client/Makefile (1.2), interfaces/odbc/Makefile (1.2, release_0-3,
+	release_0-2): Modified so the global rule for .c to .so is in the
+	common.mk file.
 
 2002-07-30 12:35  fimath
 
@@ -1372,8 +1465,9 @@
 
 2002-07-30 11:58  fimath
 
-	* common/Makefile (1.2): Updated/added for the inclusion of new
-	files in the package.
+	* Makefile (1.2, release_0-4, release_0-3, release_0-2),
+	common/Makefile (1.2): Updated/added for the inclusion of new files
+	in the package.
 
 2002-07-30 11:57  fimath
 
@@ -1421,11 +1515,11 @@
 
 2002-07-23 15:50  fimath
 
-	* LICENSE (1.1), common/Makefile (1.1), common/common.c (1.1),
-	common/transaction_data.c (1.1), datagen/Makefile (1.1),
-	datagen/main.c (1.1), doc/architecture.sxw (1.1), doc/class.dia
-	(1.1), doc/component.dia (1.1), doc/maintenance.sxw (1.1),
-	doc/html/architecture.html (1.1),
+	* LICENSE (1.1), Makefile (1.1), common.mk (1.1), common/Makefile
+	(1.1), common/common.c (1.1), common/transaction_data.c (1.1),
+	datagen/Makefile (1.1), datagen/main.c (1.1), doc/architecture.sxw
+	(1.1), doc/class.dia (1.1), doc/component.dia (1.1),
+	doc/maintenance.sxw (1.1), doc/html/architecture.html (1.1),
 	doc/html/architecture_html_m4ea89498.gif (1.1), include/common.h
 	(1.1), include/input_data_generator.h (1.1), include/odbc_common.h
 	(1.1), include/odbc_delivery.h (1.1), include/odbc_new_order.h
@@ -1440,13 +1534,14 @@
 	interfaces/odbc/odbc_stock_level.c (1.1),
 	scripts/sapdb/create_db_sample.sh (1.1),
 	scripts/sapdb/create_tables.sql (1.1), scripts/sapdb/customer.sql
-	(1.1), scripts/sapdb/district.sql (1.1), scripts/sapdb/drop_db.sh
-	(1.1), scripts/sapdb/drop_dbproc.sh (1.1),
-	scripts/sapdb/history.sql (1.1), scripts/sapdb/item.sql (1.1),
-	scripts/sapdb/load_dbproc.sh (1.1), scripts/sapdb/new_order.sql
-	(1.1), scripts/sapdb/order_line.sql (1.1), scripts/sapdb/orders.sql
-	(1.1), scripts/sapdb/stock.sql (1.1), scripts/sapdb/warehouse.sql
-	(1.1), storedproc/sapdb/delivery.sql (1.1),
+	(1.1), scripts/sapdb/db_setup_sample.sh (1.1),
+	scripts/sapdb/district.sql (1.1), scripts/sapdb/drop_db.sh (1.1),
+	scripts/sapdb/drop_dbproc.sh (1.1), scripts/sapdb/history.sql
+	(1.1), scripts/sapdb/item.sql (1.1), scripts/sapdb/load_dbproc.sh
+	(1.1), scripts/sapdb/new_order.sql (1.1),
+	scripts/sapdb/order_line.sql (1.1), scripts/sapdb/orders.sql (1.1),
+	scripts/sapdb/stock.sql (1.1), scripts/sapdb/warehouse.sql (1.1),
+	storedproc/sapdb/delivery.sql (1.1),
 	storedproc/sapdb/delivery_2.sql (1.1),
 	storedproc/sapdb/new_order.sql (1.1),
 	storedproc/sapdb/new_order_2.sql (1.1),
@@ -1459,15 +1554,15 @@
 2002-07-23 15:50  fimath
 
 	* LICENSE (1.1.1.1, release_0-4, release_0-3, release_0-2),
-	common/Makefile (1.1.1.1), common/common.c (1.1.1.1),
-	common/transaction_data.c (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), datagen/Makefile (1.1.1.1, release_0-2),
-	datagen/main.c (1.1.1.1), doc/architecture.sxw (1.1.1.1,
-	release_0-3, release_0-2), doc/class.dia (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), doc/component.dia (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), doc/maintenance.sxw (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), doc/html/architecture.html
-	(1.1.1.1, release_0-3, release_0-2),
+	Makefile (1.1.1.1), common.mk (1.1.1.1), common/Makefile (1.1.1.1),
+	common/common.c (1.1.1.1), common/transaction_data.c (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), datagen/Makefile (1.1.1.1,
+	release_0-2), datagen/main.c (1.1.1.1), doc/architecture.sxw
+	(1.1.1.1, release_0-3, release_0-2), doc/class.dia (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), doc/component.dia (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), doc/maintenance.sxw
+	(1.1.1.1, release_0-4, release_0-3, release_0-2),
+	doc/html/architecture.html (1.1.1.1, release_0-3, release_0-2),
 	doc/html/architecture_html_m4ea89498.gif (1.1.1.1, release_0-3,
 	release_0-2), include/common.h (1.1.1.1),
 	include/input_data_generator.h (1.1.1.1, release_0-4, release_0-3,
@@ -1492,24 +1587,26 @@
 	scripts/sapdb/create_db_sample.sh (1.1.1.1, release_0-4,
 	release_0-3, release_0-2), scripts/sapdb/create_tables.sql
 	(1.1.1.1, release_0-2), scripts/sapdb/customer.sql (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), scripts/sapdb/district.sql
-	(1.1.1.1, release_0-4, release_0-3, release_0-2),
-	scripts/sapdb/drop_db.sh (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), scripts/sapdb/drop_dbproc.sh (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), scripts/sapdb/history.sql (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), scripts/sapdb/item.sql
-	(1.1.1.1, release_0-4, release_0-3, release_0-2),
-	scripts/sapdb/load_dbproc.sh (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), scripts/sapdb/new_order.sql (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), scripts/sapdb/order_line.sql (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), scripts/sapdb/orders.sql
-	(1.1.1.1, release_0-4, release_0-3, release_0-2),
-	scripts/sapdb/stock.sql (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), scripts/sapdb/warehouse.sql (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), storedproc/sapdb/delivery.sql (1.1.1.1,
 	release_0-4, release_0-3, release_0-2),
-	storedproc/sapdb/delivery_2.sql (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), storedproc/sapdb/new_order.sql (1.1.1.1),
+	scripts/sapdb/db_setup_sample.sh (1.1.1.1),
+	scripts/sapdb/district.sql (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), scripts/sapdb/drop_db.sh (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), scripts/sapdb/drop_dbproc.sh (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), scripts/sapdb/history.sql
+	(1.1.1.1, release_0-4, release_0-3, release_0-2),
+	scripts/sapdb/item.sql (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), scripts/sapdb/load_dbproc.sh (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), scripts/sapdb/new_order.sql (1.1.1.1,
+	release_0-4, release_0-3, release_0-2),
+	scripts/sapdb/order_line.sql (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), scripts/sapdb/orders.sql (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), scripts/sapdb/stock.sql (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), scripts/sapdb/warehouse.sql
+	(1.1.1.1, release_0-4, release_0-3, release_0-2),
+	storedproc/sapdb/delivery.sql (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), storedproc/sapdb/delivery_2.sql (1.1.1.1,
+	release_0-4, release_0-3, release_0-2),
+	storedproc/sapdb/new_order.sql (1.1.1.1),
 	storedproc/sapdb/new_order_2.sql (1.1.1.1, release_0-4,
 	release_0-3, release_0-2), storedproc/sapdb/order_status.sql
 	(1.1.1.1, release_0-2), storedproc/sapdb/payment.sql (1.1.1.1,
