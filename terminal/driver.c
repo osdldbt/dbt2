@@ -85,7 +85,7 @@ int init_driver()
 
 	if (sem_init(&terminal_count, 0, 0) != 0)
 	{
-		LOG_ERROR_MESSAGE("cannot set_init() terminal_count");
+		LOG_ERROR_MESSAGE("cannot sem_init() terminal_count");
 		return ERROR;
 	}
 
