@@ -313,6 +313,9 @@ void *terminal_worker(void *data)
 		malloc(sizeof(struct transaction_queue_node_t));
 	extern char sname[32];
 	extern int exiting;
+#ifdef LIBPQ
+	extern char postmaster_port[32];
+#endif /* LIBPQ */
 #endif /* STANDALONE */
 
 	tc = (struct terminal_context_t *) data;
@@ -332,7 +335,12 @@ void *terminal_worker(void *data)
 	sem_post(&terminal_count);
 
 #ifdef STANDALONE
+#ifdef ODBC
 	db_init(sname, DB_USER, DB_PASS);
+#endif /* ODBC */
+#ifdef LIBPQ
+	db_init(DB_NAME, sname, postmaster_port);
+#endif /* LIBPQ */
 	if (!exiting && connect_to_db(&dbc) != OK) {
 		LOG_ERROR_MESSAGE("db_connect() error, terminating program");
 		printf("cannot connect to database, exiting...\n");

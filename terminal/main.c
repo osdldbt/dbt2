@@ -22,6 +22,11 @@
 
 char sname[32] = "";
 int exiting = 0;
+
+#ifdef LIBPQ
+char postmaster_port[32];
+#endif /* LIBPQ */
+
 #endif /* STANDALONE */
 
 int parse_arguments(int argc, char *argv[]);
@@ -33,14 +38,20 @@ int main(int argc, char *argv[])
 	init_logging();
 	init_driver();
 
-	if (parse_arguments(argc, argv) != OK)
-	{
-		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0]\n",
+	if (parse_arguments(argc, argv) != OK) {
+		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0]",
 			argv[0]);
-		printf("\n");
+#ifdef LIBPQ
+		printf(" -z #");
+#endif /* LIBPQ */
+		printf("\n\n");
 #ifdef STANDALONE
 		printf("-dbname <connect_string>\n");
 		printf("\tdatabase connect string\n");
+#ifdef LIBPQ
+		printf("-z #\n");
+		printf("\tpostmaster listener port\n");
+#endif /* LIBPQ */
 #else /* STANDALONE */
 		printf("-d <address>\n");
 		printf("\tnetwork address where client program is running\n");
@@ -123,19 +134,16 @@ int main(int argc, char *argv[])
 	}
 
 	/* Sanity check on the parameters. */
-	if (w_id_min > w_id_max)
-	{
+	if (w_id_min > w_id_max) {
 		printf("wmin cannot be larger than wmax\n");
 		return 1;
 	}
-	if (w_id_max > table_cardinality.warehouses)
-	{
+	if (w_id_max > table_cardinality.warehouses) {
 		printf("wmax cannot be larger than w\n");
 		return 1;
 	}
 
-	if (recalculate_mix() != OK)
-	{
+	if (recalculate_mix() != OK) {
 		printf("invalid transaction mix: -e %0.2f. -r %0.2f. -q %0.2f. -t %0.2f. causes new-order mix of %0.2f.\n",
 			transaction_mix.delivery_actual,
 			transaction_mix.order_status_actual,
@@ -168,11 +176,13 @@ int main(int argc, char *argv[])
 
 	/* Double check the transaction threshold. */
 	printf("transaction thresholds:\n");
-	printf("new-order threshold %0.2f\n", transaction_mix.new_order_threshold);
+	printf("new-order threshold %0.2f\n",
+		transaction_mix.new_order_threshold);
 	printf("payment threshold %0.2f\n", transaction_mix.payment_threshold);
 	printf("order-status threshold %0.2f\n",
 		transaction_mix.order_status_threshold);
-	printf("delivery threshold %0.2f\n", transaction_mix.delivery_threshold);
+	printf("delivery threshold %0.2f\n",
+		transaction_mix.delivery_threshold);
 	printf("stock-level threshold %0.2f\n",
 		transaction_mix.stock_level_threshold);
 	printf("\n");
@@ -210,153 +220,97 @@ int parse_arguments(int argc, char *argv[])
 	int i;
 	char *flag;
 
-	if (argc < 9)
-	{
+	if (argc < 9) {
 		return ERROR;
 	}
 
-	for (i = 1; i < argc; i += 2)
-	{
-		if (strlen(argv[i]) < 2)
-		{
+	for (i = 1; i < argc; i += 2) {
+		if (strlen(argv[i]) < 2) {
 			printf("invalid flag: %s\n", argv[i]);
 			exit(1);
 		}
 		flag = argv[i] + 1;
-		if (strcmp(flag, "d") == 0)
-		{
+		if (strcmp(flag, "d") == 0) {
 			set_client_hostname(argv[i + 1]);
-		}
-		else if (strcmp(flag, "p") == 0)
-		{
+#ifdef LIBPQ
+		} else if (strcmp(flag, "l") == 0) {
+			strcpy(postmaster_port, argv[i + 1]);
+#endif /* LIBPQ */
+		} else if (strcmp(flag, "p") == 0) {
 			set_client_port(atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "l") == 0)
-		{
+		} else if (strcmp(flag, "l") == 0) {
 			set_duration(atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "w") == 0)
-		{
-			set_table_cardinality(TABLE_WAREHOUSE, atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "c") == 0)
-		{
-			set_table_cardinality(TABLE_CUSTOMER, atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "i") == 0)
-		{
+		} else if (strcmp(flag, "w") == 0) {
+			set_table_cardinality(TABLE_WAREHOUSE,
+				atoi(argv[i + 1]));
+		} else if (strcmp(flag, "c") == 0) {
+			set_table_cardinality(TABLE_CUSTOMER,
+				atoi(argv[i + 1]));
+		} else if (strcmp(flag, "i") == 0) {
 			set_table_cardinality(TABLE_ITEM, atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "o") == 0)
-		{
+		} else if (strcmp(flag, "o") == 0) {
 			set_table_cardinality(TABLE_ORDER, atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "s") == 0)
-		{
+		} else if (strcmp(flag, "s") == 0) {
 			set_table_cardinality(TABLE_STOCK, atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "n") == 0)
-		{
-			set_table_cardinality(TABLE_NEW_ORDER, atoi(argv[i + 1]));
-		}
-		else if (strcmp(flag, "q") == 0)
-		{
+		} else if (strcmp(flag, "n") == 0) {
+			set_table_cardinality(TABLE_NEW_ORDER,
+				atoi(argv[i + 1]));
+		} else if (strcmp(flag, "q") == 0) {
 			set_transaction_mix(PAYMENT, atof(argv[i + 1]));
-		}
-		else if (strcmp(flag, "r") == 0)
-		{
+		} else if (strcmp(flag, "r") == 0) {
 			set_transaction_mix(ORDER_STATUS, atof(argv[i + 1]));
-		}
-		else if (strcmp(flag, "e") == 0)
-		{
+		} else if (strcmp(flag, "e") == 0) {
 			set_transaction_mix(DELIVERY, atof(argv[i + 1]));
-		}
-		else if (strcmp(flag, "t") == 0)
-		{
+		} else if (strcmp(flag, "t") == 0) {
 			set_transaction_mix(STOCK_LEVEL, atof(argv[i + 1]));
-		}
-		else if (strcmp(flag, "wmin") == 0)
-		{
+		} else if (strcmp(flag, "wmin") == 0) {
 			w_id_min = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "wmax") == 0)
-		{
+		} else if (strcmp(flag, "wmax") == 0) {
 			w_id_max = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "ktd") == 0)
-		{
+		} else if (strcmp(flag, "ktd") == 0) {
 			key_time.delivery = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "ktn") == 0)
-		{
+		} else if (strcmp(flag, "ktn") == 0) {
 			key_time.new_order = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "kto") == 0)
-		{
+		} else if (strcmp(flag, "kto") == 0) {
 			key_time.order_status = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "ktp") == 0)
-		{
+		} else if (strcmp(flag, "ktp") == 0) {
 			key_time.payment = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "kts") == 0)
-		{
+		} else if (strcmp(flag, "kts") == 0) {
 			key_time.stock_level = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "ttd") == 0)
-		{
+		} else if (strcmp(flag, "ttd") == 0) {
 			think_time.delivery = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "ttn") == 0)
-		{
+		} else if (strcmp(flag, "ttn") == 0) {
 			think_time.new_order = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "tto") == 0)
-		{
+		} else if (strcmp(flag, "tto") == 0) {
 			think_time.order_status = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "ttp") == 0)
-		{
+		} else if (strcmp(flag, "ttp") == 0) {
 			think_time.payment = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "tts") == 0)
-		{
+		} else if (strcmp(flag, "tts") == 0) {
 			think_time.stock_level = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "tpw") == 0)
-		{
+		} else if (strcmp(flag, "tpw") == 0) {
 			terminals_per_warehouse = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "seed") == 0)
-		{
+		} else if (strcmp(flag, "seed") == 0) {
 			int count;
 			int length;
 
 			seed = 0;
 			length = strlen(argv[i + 1]);
 
-			for (count = 0; count < length; count++)
-			{
-				seed += (argv[i + 1][count] - '0') * (unsigned int) pow(10, length - (count + 1));
+			for (count = 0; count < length; count++) {
+				seed += (argv[i + 1][count] - '0') *
+					(unsigned int) pow(10, length -
+					(count + 1));
 			}
 
-		}
-		else if (strcmp(flag, "altered") == 0)
-		{
+		} else if (strcmp(flag, "altered") == 0) {
 			mode_altered = atoi(argv[i + 1]);
-		}
 #ifdef STANDALONE
-		else if (strcmp(flag, "dbc") == 0)
-		{
+		} else if (strcmp(flag, "dbc") == 0) {
 			db_connections = atoi(argv[i + 1]);
-		}
-		else if (strcmp(flag, "dbname") == 0)
-		{
+		} else if (strcmp(flag, "dbname") == 0) {
 			strcpy(sname, argv[i + 1]);
-		}
 #endif /* STANDALONE */
-		else
-		{
+		} else {
 			printf("invalid flag: %s\n", argv[i]);
 			exit(1);
 		}
