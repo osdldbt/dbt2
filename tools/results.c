@@ -14,14 +14,6 @@
 #include <time.h>
 #include <common.h>
 
-char *transaction_name[TRANSACTION_MAX] =
-	{ "delivery    ",
-	  "new-order   ",
-	  "order-status",
-	  "payment     ",
-	  "stock-level "
-	};
-
 int main(int argc, char *argv[])
 {
 	int i;
