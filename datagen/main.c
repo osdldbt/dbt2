@@ -10,8 +10,6 @@
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
-#define _LARGEFILE64_SOURCE
-
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
