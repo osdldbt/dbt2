@@ -23,6 +23,7 @@
 
 #define ERROR 0
 #define OK 1
+#define EXIT_CODE 2
 
 #define A_STRING_CHAR_LEN 128
 #define L_STRING_CHAR_LEN 52
@@ -68,6 +69,7 @@
 #define O_OL_CNT_MAX 15
 #define O_CARRIER_ID_MAX 10
 
+#define ERROR_LOG_NAME "error.log"
 #define LOG_ERROR_MESSAGE(arg...) log_error_message(__FILE__, __LINE__, ## arg)
 
 /* Prototypes */
