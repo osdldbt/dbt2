@@ -36,10 +36,15 @@ int main(int argc, char *argv[])
 		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%]\n",
 			argv[0]);
 		printf("\n");
+#ifdef STANDALONE
+		printf("-dbname <connect_string>\n");
+		printf("\tdatabase connect string\n");
+#else /* STANDALONE */
 		printf("-d <address>\n");
 		printf("\tnetwork address where client program is running\n");
 		printf("-p #\n");
 		printf("\tclient port, default %d\n", CLIENT_PORT);
+#endif /* STANDALONE */
 		printf("\n");
 		printf("-l #\n");
 		printf("\tthe duration of the run in seconds\n");
@@ -101,6 +106,10 @@ int main(int argc, char *argv[])
 		printf("\n");
 		printf("-tpw #\n");
 		printf("\tterminals started per warehouse, default 10\n");
+
+#ifdef STANDALONE
+		printf("\nDriver is in STANDALONE mode.\n");
+#endif /* STANDALONE */
 
 		return 1;
 	}
