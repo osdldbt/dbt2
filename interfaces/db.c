@@ -7,21 +7,21 @@
  * 16 June 2002
  */
 
-#include <db.h>
+#include "db.h"
 
 #ifdef ODBC
-#include <odbc_delivery.h>
-#include <odbc_order_status.h>
-#include <odbc_payment.h>
-#include <odbc_stock_level.h>
-#include <odbc_new_order.h>
+#include "odbc_delivery.h"
+#include "odbc_order_status.h"
+#include "odbc_payment.h"
+#include "odbc_stock_level.h"
+#include "odbc_new_order.h"
 #endif /* ODBC */
 
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
 
 #ifdef ODBC
-	rc = odbc_connect(&dbc);
+	rc = odbc_connect(dbc);
 #endif /* ODBC */
 
 	if (rc != OK) {
@@ -48,7 +48,7 @@ int disconnect_from_db(struct db_context_t *dbc) {
 #ifdef ODBC
 	/* odbc_disconnect() is halting for some reason. */
 	return OK;
-	rc = odbc_disconnect(&dbc);
+	rc = odbc_disconnect(dbc);
 #endif /* ODBC */
 
 	if (rc != OK) {
