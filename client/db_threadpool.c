@@ -73,7 +73,7 @@ void *db_worker(void *no_data)
 			 */
 			continue;
 		}
-		if (send_transaction_data(*node->s, &node->client_data) != OK)
+		if (send_transaction_data(node->s, &node->client_data) != OK)
 		{
 			LOG_ERROR_MESSAGE("send_transaction_data() error");
 			/*
@@ -83,6 +83,10 @@ void *db_worker(void *no_data)
 		}
 #endif /* ODBC */
 		recycle_node(node);
+		pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+		--transaction_counter[EXECUTING][node->client_data.transaction];
+		pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+
 	}
 
 	/* Disconnect from the database. */
