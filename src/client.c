@@ -313,8 +313,6 @@ int startup()
                         "pthread_create() error with init_listener()");
                 if (ret == EAGAIN) {
                         LOG_ERROR_MESSAGE("not enough system resources");
-                } else if (ret == EAGAIN) {
-                        LOG_ERROR_MESSAGE("more than PTHREAD_THREADS_MAX");
                 }
                 return ERROR;
         }
