@@ -1,6 +1,6 @@
 \documentclass{article}
 \usepackage{epsfig}
-\setlength{\parindent}{0pc}
+%\setlength{\parindent}{0pc}
 \setlength{\parskip}{\baselineskip}
 
 \begin{document}
@@ -19,7 +19,7 @@ Database Test 2 \\
 \Huge
 User's Guide \\
 \LARGE
-Version 0.16
+Version 0.21
 
 \begin{figure}[b]
 \flushleft
@@ -34,6 +34,7 @@ Email: info@osdl.org
 
 \end{titlepage}
 
+\noindent
 Copyright (c) 2002 by The Open Source Development Laboratory, Inc. This
 material may be distributed only subject to the terms and conditions set forth
 in the Open Publication License, v1.0 or later (the latest version is currently
@@ -41,14 +42,14 @@ available at http://www.opencontent.org/openpub/). Distribution of
 substantively modified versions of this document is prohibited without the
 explicit permission of the copyright holder.
 
+\noindent
 Other company, product or service names may be trademarks or service marks of
 others.
 
+\noindent
 Contributors to this white paper include: \\
-\begin{tabular}[c]{l}
-Mark Wong (OSDL) \\
-Mary Edie Meredith (OSDL) \\
-\end{tabular}
+\indent Mark Wong (OSDL) \\
+\indent Mary Edie Meredith (OSDL)
 
 \pagebreak
 
@@ -60,8 +61,7 @@ Development Lab's Database Test 2 (OSDL-DBT-2) test kit.
 \section{Setup}
 
 This section covers the steps of retrieving and installing a database and the
-OSDL-DBT-2 test kit source code.  The test kit currently only supports SAP DB
-but work is currently being done to support PostgresSQL.
+OSDL-DBT-2 test kit source code.  The test kit supports SAP DB and PostgreSQL.
 
 \subsection{Retrieving and Installing the Kit}
 
@@ -71,12 +71,15 @@ The OSDL-DBT-2 test kit was developed against SAP DB 7.3.0.25.  The test kit
 does not work out of the box with later versions of SAP DB without changes
 to the stored procedure and database creations scripts.
 
+\noindent
 Linux binaries and installation instructions can be obtained on the Web at:
 http://www.sapdb.org/tgz\_linux.htm
 
+\noindent
 RPM packages and installation instructions can be obtained on the Web at:
 http://www.sapdb.org/rpm\_linux.htm
 
+\noindent
 At least the following packages must be installed:
 \begin{itemize}
 \item sapdb-ind-7.3.0.25-1.i386.rpm
@@ -84,9 +87,11 @@ At least the following packages must be installed:
 \item sapdb-callif-7.3.0.25-1.i386.rpm
 \end{itemize}
 
+\noindent
 After installing, create the user id ''sapdb'', assigning the user to group
 ''sapdb''.
 
+\noindent
 Create the database stats collection tool, x\_cons, by executing the
 following:
 \begin{itemize}
@@ -96,40 +101,54 @@ following:
 
 \subsubsection{PostgreSQL}
 
-The OSDL-DBT-2 test kit has been ported to work with PostgreSQL 7.3.  Source
-code for PostgreSQL can be obtained from their website at:
-http://www.postgresql.org/
+The OSDL-DBT-2 test kit has been ported to work with PostgreSQL 7.3 but will
+also work with 7.4 wich similar changes.  Source code for PostgreSQL can be
+obtained from their website at: \\
+\indent http://www.postgresql.org/
 
-PostgreSQL needs to be built with a change in pg_config.h.in where
-INDEX_MAX_KEYS must be set to 64.  Be sure to make this change before running
+\noindent
+With PostgreSQL 7.3, it need to be built with a change in pg\_config.h.in where
+INDEX\_MAX\_KEYS must be set to 64.  Be sure to make this change before running
 the configure script for PostgreSQL.
 
+\noindent
+With PostgreSQL 7.4, it need to be built with a change in pg\_config\_manual.h
+where INDEX\_MAX\_KEYS must be set to 64.
+
+\noindent
 The test kit also requies that all PostgreSQL header files are installed onto
 the system.  This is done by running: make install-all-headers.
 
 \subsubsection{OSDL-DBT-2 Test Kit Source}
 
-The test kit depends on unixODBC drivers for use wiith SAP DB.  The driver
+\noindent
+The test kit depends on unixODBC drivers, only for use with SAP DB.  The driver
 can be retrieved at: http://www.unixodbc.org/unixODBC-2.2.3.tar.gz
 
+\noindent
 After gunzipping the directory unixODBC-2.2.3, cd to the directory and (as
 root) install by running: \\
-\begin{tabular}[c]{l}
-./configure \\
-make standalone \\
-make install \\
-\end{tabular}
+\indent ./configure \\
+\indent make standalone \\
+\indent make install \\
 
-The latest stable version of the kit can be found on SourceForge at:
-http://sourceforge.net/projects/osdldbt
+\noindent
+The latest stable version of the kit can be found on SourceForge at: \\
+\indent http://sourceforge.net/projects/osdldbt
 
 \subsubsection{Compiling the Test Kit}
 
+\paragraph{PostgreSQL}
+
 In the top level directory, dbt2/, run: \\
-\begin{tabular}[c]{l}
-./configure \\
-make standalone \\
-\end{tabular}
+\indent ./configure --with-postgresql \\
+\indent make
+
+\paragraph{SAP DB}
+
+In the top level directory, dbt2/, run: \\
+\indent ./configure --with-sapdb \\
+\indent make standalone
 
 \subsection{Building the Database}
 
@@ -137,15 +156,22 @@ The following sections explain how to build the database.
 
 \subsubsection{Sizing}
 
+\paragraph{PostgreSQL}
+
+Sizing calculations have not been made for PostgreSQL at this time.
+
 \paragraph{SAP DB}
 
 SAP DB can be used with any user account on the system, except root.  We
 typically use ''sapdb'' as the user to execute test runs, creating user sapdb
 in groups ''sapdb'' and ''disk''.
 
+\noindent
 An OpenOffice.org spreadsheet is provided to aid is sizing your system for
-the database: doc/sapdb\_sizing.sxc
+the database: \\
+\indent doc/sapdb\_sizing.sxc
 
+\noindent
 Under the Load tab, enter the number of row for the warehouse table you wish
 to configure the database for.  The size of each table will be recalculated.
 The number to note is the total number of 8 KB pages since SAP DB uses those
@@ -154,6 +180,24 @@ taken into consideration because the database grows over the course of a test
 run.
 
 \subsubsection{Creating the Database}
+
+\paragraph{PostgreSQL}
+
+Create the datafiles for PostgreSQL: \\
+\indent datagen -w \# -d $<$directory$>$ --pgsql \\
+\begin{tabular}[c]{ll}
+-d	& The output directory for the database datafiles. \\
+-w	& Then number of warehouses to build. \\
+\end{tabular}
+
+\indent create\_db.sh \\
+\indent load\_db.sh \\
+\indent run\_workload.sh -c \# -d \# -w \# \\
+\begin{tabular}[c]{ll}
+-c	& Number of database connections to open. \\
+-d	& The duraction of the test in seconds. \\
+-w	& Then number of warehouses in the database. \\
+\end{tabular}
 
 \paragraph{SAP DB}
 
@@ -166,39 +210,41 @@ if you need to change the instance name (in this an all the scripts).  Many
 other SAP DB parameters (e.g. MAXCPU) will need to be adjusted based on your
 system.
 
+\noindent
 As user sapdb, execute the following script, in dbt2/scripts/sapdb, to
-generate the database from scratch (which will execute create\_db\_sample.sh): \\
-./db\_setup.sh $<$warehouses$>$ $<$outputdir$>$ \\
-where $<$warehouses$>$ is the number of warehouses to build for and $<$outputdir$>$
-is the directory in which the data files will be generated.  This script will
-create the data files, create the database, the tables, load the database,
-create indexes, update database statistics, load the stored procedures, and
-backup the database.  This script assumes the instance name is "DBT2" so you
-need to edit the line ''SID=DBT2'' if you need to change the instance name.
+generate the database from scratch (which will execute
+create\_db\_sample.sh): \\
+\indent ./db\_setup.sh $<$warehouses$>$ $<$outputdir$>$ \\
+where $<$warehouses$>$ is the number of warehouses to build for and
+$<$outputdir$>$ is the directory in which the data files will be generated.
+This script will create the data files, create the database, the tables, load
+the database, create indexes, update database statistics, load the stored
+procedures, and backup the database.  This script assumes the instance name is
+"DBT2" so you need to edit the line ''SID=DBT2'' if you need to change the
+instance name.
 
+\noindent
 Although the create script starts the remote communication server, it is a
 good idea to include the same thing in your system startup scripts
 /etc/rc.local: \\
-\begin{tabular}[c]{l}
-\# start remote communication server: \\
-x\_server start $>$ /dev/null 2$>$\&1: \\
-\end{tabular}
+\indent \# start remote communication server: \\
+\indent x\_server start $>$ /dev/null 2$>$\&1:
 
+\noindent
 There is an option for ''migration'' that needs to be documented, or else
 removed from the create\_db.sh scripts.
 
+\noindent
 It is higly recommended for performance that you use raw partitions for the
 LOG and DATA files.  Here is a sample of the adddevices when using 1 LOG (the
 limit is one)  of 1126400 -8k pages and 5 raw DATA devices of 2044800 -8k
 pages each: \\
-\begin{tabular}[c]{ll}
-param\_adddevspace 1 LOG  /dev/raw/raw1 R 1126400 \\
-param\_adddevspace 1 DATA /dev/raw/raw2 R 204800 \\
-param\_adddevspace 2 DATA /dev/raw/raw3 R 204800 \\
-param\_adddevspace 3 DATA /dev/raw/raw4 R 204800 \\
-param\_adddevspace 4 DATA /dev/raw/raw5 R 204800 \\
-param\_adddevspace 5 DATA /dev/raw/raw6 R 204800 \\
-\end{tabular}
+\indent param\_adddevspace 1 LOG  /dev/raw/raw1 R 1126400 \\
+\indent param\_adddevspace 1 DATA /dev/raw/raw2 R 204800 \\
+\indent param\_adddevspace 2 DATA /dev/raw/raw3 R 204800 \\
+\indent param\_adddevspace 3 DATA /dev/raw/raw4 R 204800 \\
+\indent param\_adddevspace 4 DATA /dev/raw/raw5 R 204800 \\
+\indent param\_adddevspace 5 DATA /dev/raw/raw6 R 204800
 
 \subsubsection{Backup and Restoring the Database}
 
@@ -212,29 +258,33 @@ to migrate the database to test machines.
 
 In the scripts directory, create\_db.sh defines the backup media and the disk
 location the backup will go: \\
-\begin{tabular}[c]{l}
-backup\_media\_put data /data/backup/\$SID/datasave FILE DATA 0 8 YES \\
-backup\_media\_put incr /data/backup/\$SID/incr FILE PAGES 0 8 YES \\
-backup\_media\_put auto /data/backup/\$SID/autosave FILE AUTO \\
-\end{tabular}
+\indent backup\_media\_put data /data/backup/\$SID/datasave FILE DATA 0 8 YES \\
+\indent backup\_media\_put incr /data/backup/\$SID/incr FILE PAGES 0 8 YES \\
+\indent backup\_media\_put auto /data/backup/\$SID/autosave FILE AUTO
 
+\noindent
 Since the database is large, you may need to point to a different location or
 perhaps breakup the backup into smaller multiple disk files. 
 
+\noindent
 To create a backup, use scripts/sapdb/backup\_db.sh.
 
+\noindent
 There are two very important things to note in the script.  First, the script
 reduces the size of the DATA\_CACHE to 10,000.   We found that normal
 DATA\_CACHE settings for 4 GB machines caused the backup/restore to fail.
 
+\noindent
 Secondly, We make a full backup, then immediately an incremental.  When
 migrating the database, we found that restoring the full backup left the
 database in a read-only state.  The best way to clear that state is to also
 restore an additional incremental backup make right after the initial full
 backup.
 
+\noindent
 To restore the backup, use scripts/sapdb/restore\_db.sh
 
+\noindent
 If you are actually migrating to a new system, after creating the database,
 you need to add the string ''migration'' to the following line in
 restore\_db.sh.  So ''recover\_start data'' becomes
@@ -252,52 +302,61 @@ test can be executed.
 
 A .odbc.ini file must reside in the home directory of the user
 attempting to run the program.  The format of the file is: \\
-\begin{tabular}[c]{l}
-[alias] \\
-ServerDB = database\_name \\
-ServerNode = address \\
-Driver = /opt/sapdb/interfaces/odbc/lib/libsqlod.so \\
-Description = any text \\
-\end{tabular}
+\indent [alias] \\
+\indent ServerDB = database\_name \\
+\indent ServerNode = address \\
+\indent Driver = /opt/sapdb/interfaces/odbc/lib/libsqlod.so \\
+\indent Description = any text
 
-For example: \\
-\begin{tabular}[c]{l}
-[dbt2] \\
-ServerDB = DBT2 \\
-ServerNode = 192.168.0.1 \\
-Driver = /opt/sapdb/interfaces/odbc/lib/libsqlod.so \\
-Description = OSDL DBT-2 \\
-\end{tabular}
+\noindent
+\indent For example: \\
+\indent [dbt2] \\
+\indent ServerDB = DBT2 \\
+\indent ServerNode = 192.168.0.1 \\
+\indent Driver = /opt/sapdb/interfaces/odbc/lib/libsqlod.so \\
+\indent Description = OSDL DBT-2
 
+\noindent
 is a valid .odbc.ini file where dbt2 can be used as the server name to
 connect to the database.  Note that the location of libsqlod.so may vary
 depending on how your database is installed on your system.
 
 \section{Running the Test Kit}
 
-The shell script scripts/run\_test.sh is used to execute a test.  For example:
-	run\_test.sh $<$--duration sec$>$ $<$--sample sec$>$ $<$--warehouses warehouses$>$
-		[-ktd sec] [-ktn sec] [-kto sec] [-ktp sec] [-kts sec] [-ttd ms]
-		[-ttn ms] [-tto ms] [-ttp ms] [-tts ms] [-tpw \#] 
-		[--comment comment] [--drivers] [--drivers] [--spread \#] \\
+\noindent
+The shell script scripts/run\_test.sh is used to execute a test.  For
+example:
+\begin{verse}
+run\_test.sh $<$--duration sec$>$ $<$--sample sec$>$ $<$--warehouses warehouses$>$ [-ktd sec] [-ktn sec] [-kto sec] [-ktp sec] [-kts sec] [-ttd ms] [-ttn ms] [-tto ms] [-ttp ms] [-tts ms] [-tpw \#] [--comment comment] [--drivers] [--drivers] [--spread \#]
+\end{verse}
+
 \begin{tabular}[c]{ll}
---duration & Duration to execute test. \\
---sample &The sample length for calculating statistics. \\
---warehouses & The total number of warehouses in the database. \\
--ktd & Keying time for the District transaction, default 2. \\
--ktn & Keying time for the New-Order transaction, default 18. \\
--kto & Keying time for the Order-Status transaction, default 2. \\
--ktp & Keying time for the Payment transaction, default 3. \\
--kts & Keying time for the Stock-Level transaction, default 2. \\
--ttd & Think time for the District transaction, default 5000. \\
--ttn & Think time for the New-Order transaction, default 12000. \\
--tto & Think time for the Order-Status transaction, default 10000. \\
--ttp & Think time for the Payment transaction, default 12000. \\
--tts & Think time for the Stock-Level transaction, default 5000. \\
--tpw & The number of terminals to emulate per driver. \\
---comment & Comment for the test run, otherwise the script will prompt for a comment. \\
---drivers & The number of drivers to run. \\
---spread & The number of warehouses a driver will touch. \\
+--duration	&	Duration to execute test. \\
+--sample	&	The sample length for calculating statistics. \\
+--warehouses	&	The total number of warehouses in the database. \\
+-ktd		&	Keying time for the District transaction, default 2. \\
+-ktn		&	Keying time for the New-Order transaction, default
+			18. \\
+-kto		&	Keying time for the Order-Status transaction, default
+			2. \\
+-ktp		&	Keying time for the Payment transaction, default 3. \\
+-kts		&	Keying time for the Stock-Level transaction, default
+			2. \\
+-ttd		&	Think time for the District transaction, default
+			5000. \\
+-ttn		&	Think time for the New-Order transaction, default
+			12000. \\
+-tto		&	Think time for the Order-Status transaction, default
+			10000. \\
+-ttp		&	Think time for the Payment transaction, default
+			12000. \\
+-tts		&	Think time for the Stock-Level transaction, default
+			5000. \\
+-tpw		&	The number of terminals to emulate per driver. \\
+--comment	&	Comment for the test run, otherwise the script will
+			prompt for a comment. \\
+--drivers	&	The number of drivers to run. \\
+--spread	&	The number of warehouses a driver will touch. \\
 \end{tabular}
 
 \section{Test Results}
@@ -308,27 +367,33 @@ test.  Each time run\_test.sh is executed, a run number is assigned based on
 the number found in the file .run\_number.  That number becomes the name of
 the subdirectory in scripts/output where results are saved from the run.
 
+\noindent
 Under the numbered subdirectories in scripts/output, there are another set of
 numbered subdirectories corresponding to the number of drivers specified for
 the test, as indicated by the --drivers parameter to the run\_test.sh script.
 For example, if "-drivers" is set to 8 in run\_test.sh and the run number is
 101, the results will be in script/output/101 and there will be subdirectories
 101/1, 101/2, 101/3, 101/4, 101/5, 101/6 101/7 and 101/8.  Each of these
-sub-directories will contain five files after a test is completed: \\
+sub-directories will contain five files after a test is completed:
+
 \begin{tabular}[c]{ll}
-driver.out & A capture of messages to stdout by the driver. \\
-error.log & Any errors occurring during the test. \\
-mix.log & Raw transaction statistics. \\
-results.txt & A brief analysis summary of mix.log \\
-tps.csv & A tab delimited (I should change the extension) data file for the
-          number of New-Order transactions execute throughout the test. \\
+driver.out	&	A capture of messages to stdout by the driver. \\
+error.log	&	Any errors occurring during the test. \\
+mix.log		&	Raw transaction statistics. \\
+results.txt	&	A brief analysis summary of mix.log \\
+tps.csv		&	A tab delimited (I should change the extension) data
+			file for the number of New-Order transactions execute
+			throughout the test. \\
 \end{tabular}
 
+\noindent
 Additional files will be in the results directory.
 
+\noindent
 The readme.txt displays the comment for the test, uname  information, changes
 in kernel parameters from the previous test, and database version information.
 
+\noindent
 System statistics are collected by sar in raw format in the file sar\_raw.out.
 Additional I/O statistics are collected by iostat in iostat.out.  Care must be
 taken to have sar and iostat binaries appropriate for the kernel you are
@@ -339,22 +404,25 @@ utilization correctly (output in cpu.png in the results directory).
 \subsection{SAP DB Results}
 
 Each output files starting with m\_*.out, refers to a monitor table in the
-SAP DB database.  For example: \\
+SAP DB database.  For example:
+
 \begin{tabular}[c]{ll}
-m\_cache.out & MONITOR\_CACHE contains information about the operations
-               performed on the different caches. \\
-m\_lock.out & MONITOR\_LOCK contains information on the database's lock
-              management operations. \\
-m\_pages.out & MONITOR\_PAGES contains information on page accesses. \\
-m\_trans.out & MONITOR\_TRANS contains information on database transaction. \\
-m\_load.out & MONITOR\_LOAD contains information on the executed SQL
-              statements and access methods. \\
-m\_log.out  & MONITOR\_LOG contains information on the database logging
-              operations. \\
-m\_row.out & MONITOR\_ROW contains information on operations at the row
-             level. \\
+m\_cache.out	&	MONITOR\_CACHE contains information about the operations
+			performed on the different caches. \\
+m\_lock.out	&	MONITOR\_LOCK contains information on the database's
+			lock management operations. \\
+m\_pages.out	&	MONITOR\_PAGES contains information on page accesses. \\
+m\_trans.out	&	MONITOR\_TRANS contains information on database
+			transaction. \\
+m\_load.out	&	MONITOR\_LOAD contains information on the executed SQL
+			statements and access methods. \\
+m\_log.out	&	MONITOR\_LOG contains information on the database
+			logging operations. \\
+m\_row.out	&	MONITOR\_ROW contains information on operations at the
+			row level. \\
 \end{tabular}
 
+\noindent
 Additional database locking statistics are collected in lockstats.out.  The
 data and log devspaces statistics are collected in datadev0.txt, datadev1.txt,
 logdev0.txt, and logdev1.txt, respectively.
@@ -369,18 +437,19 @@ and the script it calls,  scripts/$<$database sub\_directory$>$/db\_stats.sh.
 There is a script in scripts/oprof.sh that can be used to capture oprofile
 data for the Linux kernel.  It is supported in the latter Linux 2.5 kernels
 and requires a patch for Linux 2.4 kernels.  More information on oprofile can
-be found on the Web at:
-	http://oprofile.sourceforge.net/
+be found on the Web at: \\
+\indent http://oprofile.sourceforge.net/
 
-The script is used as such:
-	prof.sh $<$vmlinux$>$ $<$ctr0-count$>$ $<$sleep$>$ $<$session$>$ $<$outdir$>$ \\
+\noindent
+The script is used as such: \\
+\indent prof.sh $<$vmlinux$>$ $<$ctr0-count$>$ $<$sleep$>$ $<$session$>$ $<$outdir$>$
 
 \begin{tabular}[c]{ll}
-vmlinux & Location of the uncompressed kernel image. \\
-ctr0-count & The number of CPU idle clock cycles before sampling. \\
-sleep & The duration of time to sample in seconds. \\
-session & An identifier for this set of oprofile data. \\
-outdir & Directory to move oprofile data too. \\
+vmlinux		& Location of the uncompressed kernel image. \\
+ctr0-count	& The number of CPU idle clock cycles before sampling. \\
+sleep		& The duration of time to sample in seconds. \\
+session		& An identifier for this set of oprofile data. \\
+outdir		& Directory to move oprofile data too. \\
 \end{tabular}
 
 \end{document}

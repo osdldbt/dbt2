@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	init_driver();
 
 	if (parse_arguments(argc, argv) != OK) {
-		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0]",
+		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0] [-spread #]",
 			argv[0]);
 #ifdef STANDALONE
 #ifdef LIBPQ
@@ -127,6 +127,8 @@ int main(int argc, char *argv[])
 		printf("\trun with a thread per user, -altered 1\n");
 		printf("-sleep #\n");
 		printf("\tnumber of seconds to sleep between terminal creation\n");
+		printf("-spread #\n");
+		printf("\tfancy warehouse skipping trick for low i/o runs\n");
 
 #ifdef STANDALONE
 		printf("\nDriver is in STANDALONE mode.\n");
@@ -296,6 +298,8 @@ int parse_arguments(int argc, char *argv[])
 			terminals_per_warehouse = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "sleep") == 0) {
 			client_conn_sleep = atoi(argv[i + 1]);
+		} else if (strcmp(flag, "spread") == 0) {
+			spread = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "seed") == 0) {
 			int count;
 			int length;

@@ -47,6 +47,7 @@ int terminals_per_warehouse;
 int mode_altered = 0;
 unsigned int seed = -1;
 int client_conn_sleep = 1;
+int spread = 1;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
@@ -239,7 +240,7 @@ int start_driver()
 	stop_time = time(NULL) + duration + client_conn_sleep *
                 terminals_per_warehouse * (w_id_max - w_id_min);
 
-	for (i = w_id_min; i < w_id_max + 1; i++) {
+	for (i = w_id_min; i < w_id_max + 1; i += spread) {
 		for (j = 0; j < terminals_per_warehouse; j++) {
 			pthread_t tid;
 			struct terminal_context_t *tc;

@@ -11,6 +11,7 @@ echo '		</pre>' >> index.html
 echo '' >> index.html
 echo '		<hr/>' >> index.html
 echo '' >> index.html
+echo '		<a href="iostatx.out">iostat</a><br/>' >> index.html
 echo '		<a href="vmstat.out">vmstat</a><br/>' >> index.html
 sar -A -f sar_raw.out > sar.out
 echo '		<a href="sar.out">sar</a><br/>' >> index.html
@@ -19,6 +20,9 @@ echo '		<a href="oprofile.txt">oprofile</a><br/>' >> index.html
 head -3 oprofile.txt > oprofile_postgres.txt
 grep postgres oprofile.txt >> oprofile_postgres.txt
 echo '		<a href="oprofile_postgres.txt">postgres oprofile</a><br/>' >> index.html
+echo '		<a href="oprofile/current">oprofile raw data</a><br/>' >> index.html
+echo '		<a href="oprofile/annotate">opannotate source output</a><br/>' >> index.html
+echo '		<a href="oprofile/assembly.txt">opannotate assembly output</a><br/>' >> index.html
 echo '		<a href="proc.out">linux /proc</a><br/>' >> index.html
 echo '		<a href="db/plan0.out">explain plans</a><br/>' >> index.html
 echo '		<a href="db/param.out">database parameters</a><br/>' >> index.html

@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 1195 2003-11-18 16:53:08Z fimath $)
+AC_REVISION($Id: configure.in 1196 2004-02-04 18:53:28Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)

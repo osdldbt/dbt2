@@ -15,7 +15,7 @@ PDFFILES=$(EPSFILES:.eps=.pdf)
 .eps.pdf:
 	epstopdf $<
 
-all: dbt2-architecture.ps dbt2-architecture.dvi dbt2-architecture.pdf dbt2-tpc.ps dbt2-tpc.dvi dbt2-tpc.pdf dbt2-user.ps dbt2-user.dvi dbt2-user.pdf
+all: dbt2-architecture.ps dbt2-architecture.pdf dbt2-tpc.ps dbt2-tpc.pdf dbt2-user.ps dbt2-user.pdf
 
 %.ps: %.dvi
 	dvips -o $@ $<
