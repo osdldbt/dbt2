@@ -8,5 +8,5 @@ CC =			@CC@
 CFLAGS =		-I$(TOPDIR)/include @CFLAGS@ @DEFS@ -DODBC
 LDFLAGS =		@LDFLAGS@ @LIBS@
 
-%.so:%.c Makefile ../make.common
+%.so:%.c Makefile $(TOPDIR)/make.common
 	$(CC) -c -shared -fpic $(CFLAGS) -o $@ $<
