@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ $# -ne 1 ]; then
 	echo "usage: gen_html.sh <results directory>"
@@ -21,7 +21,7 @@ echo '<hr/>' >> ${DIR}/index.html
 
 echo 'System Statistics<br/>' >> ${DIR}/index.html
 echo '<a href="iostatx.out">iostat</a><br/>' >> ${DIR}/index.html
-echo '<a href="vmstat.out">vmstat</a><br/>' >> ${DIR}/index.html
+echo '<a href="vmstat.out">vmstat</a> [<a href="vmcharts.html">charts</a>]<br/>' >> ${DIR}/index.html
 echo '<a href="sar.out">sar</a><br/>' >> ${DIR}/index.html
 
 echo '<hr/>' >> ${DIR}/index.html
@@ -59,7 +59,7 @@ echo '<img src="./driver/notpm.png" />' >> ${DIR}/index.html
 echo '<hr/>' >> ${DIR}/index.html
 
 echo 'Processor Utilization<br/>' >> ${DIR}/index.html
-echo '<img src="./cpu.png" />' >> ${DIR}/index.html
+echo '<img src="plots/cpu.png" />' >> ${DIR}/index.html
 
 echo '<hr/>' >> ${DIR}/index.html
 
@@ -149,3 +149,26 @@ echo '</html>' >> ${DIR}/rt.html
 echo '<hr/>' >> ${DIR}/index.html
 echo '</body>' >> ${DIR}/index.html
 echo '</html>' >> ${DIR}/index.html
+
+# vmstat Charts
+
+echo "<html>" > ${DIR}/vmcharts.html
+echo "<head>" >> ${DIR}/vmcharts.html
+echo "<title>Database Test 2 Result vmstat Charts</title>" >> ${DIR}/vmcharts.html
+echo "</head>" >> ${DIR}/vmcharts.html
+echo "<body>" >> ${DIR}/vmcharts.html
+echo "<img src=\"plots/cpu.png\" /><br />" >> ${DIR}/vmcharts.html
+echo "<hr />" >> ${DIR}/vmcharts.html
+echo "<img src=\"plots/cs.png\" /><br />" >> ${DIR}/vmcharts.html
+echo "<hr />" >> ${DIR}/vmcharts.html
+echo "<img src=\"plots/in.png\" /><br />" >> ${DIR}/vmcharts.html
+echo "<hr />" >> ${DIR}/vmcharts.html
+echo "<img src=\"plots/io.png\" /><br />" >> ${DIR}/vmcharts.html
+echo "<hr />" >> ${DIR}/vmcharts.html
+echo "<img src=\"plots/memory.png\" /><br />" >> ${DIR}/vmcharts.html
+echo "<hr />" >> ${DIR}/vmcharts.html
+echo "<img src=\"plots/procs.png\" /><br />" >> ${DIR}/vmcharts.html
+echo "<hr />" >> ${DIR}/vmcharts.html
+echo "<img src=\"plots/swap.png\" /><br />" >> ${DIR}/vmcharts.html
+echo "</body>" >> ${DIR}/vmcharts.html
+echo "</html>" >> ${DIR}/vmcharts.html

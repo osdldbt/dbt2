@@ -110,10 +110,7 @@ VMSTAT_OUTPUT=$OUTPUT_DIR/vmstat.out
 # Wait for the tools to finish before transforming data.
 wait
 
-echo "data gathering complete, transforming data..."
+echo "Data gathering complete, transforming data..."
 @SAR@ -f $OUTPUT_DIR/sar_raw.out -A > $OUTPUT_DIR/sar.out
-${SHELL} ${PFX}/transform_vmstat.sh $VMSTAT_OUTPUT
-cp -p cpu.input $OUTPUT_DIR
-cd $OUTPUT_DIR
-/usr/bin/gnuplot -noraise cpu.input
-cd -
+
+${SHELL} ${PFX}/vmplot.sh -i ${VMSTAT_OUTPUT} -o ${OUTPUT_DIR}/plots
