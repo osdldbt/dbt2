@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <common.h>
 #include <db_threadpool.h>
+#include <listener.h>
 #include <_socket.h>
 
 /* Function Prototypes */
@@ -59,6 +60,8 @@ int main(int argc, char *argv[])
 	printf("opening %d conenction(s) to %s...\n", db_connections, sname);
 	if (startup() != OK)
 	{
+		LOG_ERROR_MESSAGE("startup() failed\n");
+		printf("startup() failed\n");
 		return 4;
 	}
 
@@ -143,6 +146,12 @@ int parse_command(char *command)
 		exiting = 1;
 		return EXIT_CODE;
 	}
+	else if (strcmp(command, "help") == 0 || strcmp(command, "?") == 0)
+	{
+		printf("help or ?\n");
+		printf("status\n");
+		printf("exit or quit\n");
+	}
 	else
 	{
 		printf("unknown command: %s\n", command);
@@ -153,6 +162,7 @@ int parse_command(char *command)
 int startup()
 {
 	int i;
+	pthread_t tid;
 
 	init_common();
 
@@ -160,6 +170,11 @@ int startup()
 	if (sockfd < 1)
 	{
 		printf("_listen() failed on port %d\n", port);
+		return ERROR;
+	}
+	if (pthread_create(&tid, NULL, &init_listener, &sockfd) != 0)
+	{
+		LOG_ERROR_MESSAGE("pthread_create() error with init_listener()\n");
 		return ERROR;
 	}
 	printf("listening to port %d\n", port);

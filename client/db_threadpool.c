@@ -6,7 +6,7 @@
  *
  * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
  *
- * 25 june 2002
+ * 31 june 2002
  */
 
 #include <stdio.h>
@@ -67,7 +67,7 @@ int db_threadpool_init()
 
 	if (sem_init(&db_worker_count, 0, 0) != 0)
 	{
-		LOG_ERROR_MESSAGE("cannot init running_eu_count\n");
+		LOG_ERROR_MESSAGE("cannot init db_worker_count\n");
 		return ERROR;
 	}
 
