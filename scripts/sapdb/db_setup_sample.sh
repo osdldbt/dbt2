@@ -8,7 +8,7 @@ echo
 
 echo Generating data...
 cd ../../datagen
-./datagen $WAREHOUSES
+./datagen -w $WAREHOUSES
 cd -
 echo
 
