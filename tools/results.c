@@ -138,15 +138,15 @@ int main(int argc, char *argv[])
 		 */
 		if (current_time > previous_time + sample_length)
 		{
-			fprintf(log_notpm, "%d,%f\n", elapsed_time,
+			fprintf(log_notpm, "%d,%f\n", elapsed_time / 60,
 				((double) current_transaction_count[NEW_ORDER] / sample_length) * 60.0);
-			fprintf(log_dtpm, "%d,%f\n", elapsed_time,
+			fprintf(log_dtpm, "%d,%f\n", elapsed_time / 60,
 				(double) current_transaction_count[DELIVERY] / sample_length * 60.6);
-			fprintf(log_ostpm, "%d,%f\n", elapsed_time,
+			fprintf(log_ostpm, "%d,%f\n", elapsed_time / 60,
 				(double) current_transaction_count[ORDER_STATUS] / sample_length * 60.6);
-			fprintf(log_ptpm, "%d,%f\n", elapsed_time,
+			fprintf(log_ptpm, "%d,%f\n", elapsed_time / 60,
 				(double) current_transaction_count[PAYMENT] / sample_length * 60.6);
-			fprintf(log_sltpm, "%d,%f\n", elapsed_time,
+			fprintf(log_sltpm, "%d,%f\n", elapsed_time / 60,
 				(double) current_transaction_count[STOCK_LEVEL] / sample_length * 60.6);
 
 			elapsed_time += sample_length;
@@ -261,8 +261,6 @@ int main(int argc, char *argv[])
 	printf("%0.2f new-order transactions per minute (NOTPM)\n", tps * 60);
 	printf("%0.1f minute duration\n",
 		difftime(current_time, start_time) / 60.0);
-	printf("%d total new-order transactions per minute (NOTPM)\n",
-		transaction_count[NEW_ORDER]);
 	printf("%d total unknown errors\n", errors);
 	printf("\n");
 
