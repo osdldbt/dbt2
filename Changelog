@@ -1,28 +1,50 @@
-2003 August 6
+v0.15
+
+- Fixed the rollback logic in the New-Order transaction.
+- Added more status output in the client.
+- Fixed a bug in get_node that cause memory violations for multiple
+  connections.
+- Really fixed the stored procedures for SAP DB 7.3.0.25 this time.
+- Fixed logic in New-Order that screwed up the stock table.
+
+v0.14
+
+- Removed nonblocking socket code.
+
+v0.13
 
 - Fixed the default stored procedures to work with 7.3.0.25.
 - Undid code to use nonblocking sockets, I just don't know how to do it right.
 - Fixed a bug with get_node() in listener.c.
+- Fixed the sleep control for the connection rates between components in
+  a multi-tier environment.
+- Added more status output in the client.
 
-2003 August 5
+v0.12
 
 - Started using nonblocking sockets for communication with the client.
 - Added some more status information to the client.
-
-2003 August 4
-
-- Fixed db_setup.sh.in for sapdb to generate the correct data.
-- Fixed the tools directory Makefile.in for SAP DB.
 - Control the sleep time between openning connections to the client in
   a multi-tier environment.  Maybe cause problems when attempting to drive
   many many users.
 
-2003 August 1
+v0.11
+- Fixed db_setup.sh.in for SAP DB to generate the correct data.
+- Fixed the tools directory Makefile.in for SAP DB.
+
+v0.10
+
+- Changed default altered mode to 0.
+- Cleaned out lingering CVS directories.
+
+v0.9
 
 - Fixed funcs.c (the stored functions) to correctly escape a couple more
   characters.
+- Fixed the random seeding of threads.
+- Fixed passing of transaction status in the multi-tier environment.
 
-2003 July 31
+v0.8
 
 - Fixed the client and driver to work in a multi-tier environment with
   PostgreSQL.

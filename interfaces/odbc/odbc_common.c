@@ -184,5 +184,5 @@ int rollback_transaction(struct db_context_t *dbc)
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
 		return ERROR;
 	}
-	return OK;
+	return STATUS_ROLLBACK;
 }

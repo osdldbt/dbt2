@@ -14,3 +14,8 @@ INDEX_MAX_KEYS to 64.
 
 Contrary to the documentation, run 'make' instead of 'make standalone' and
 run the kit in a multi-tier environment for PostgreSQL.
+
+-----
+
+Edit the line in postgresql.conf that says "tcpip_socket = false", uncomment,
+set to true, and restart the daemon.

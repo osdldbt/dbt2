@@ -1,6 +1,6 @@
-plot "tps.csv" with lines
+plot "notpm.csv" with lines
 set xlabel "Elapsed Time (s)"
-set ylabel "Bogotransactions per Second"
+set ylabel "New-Order Transactions per Minutes"
 set term png small color
-set output "tps.png"
+set output "notpm.png"
 replot
