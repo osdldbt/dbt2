@@ -5,6 +5,7 @@ if [ $# -ne 4 ]; then
 	exit
 fi
 
+SID=$1
 OUTPUT_DIR=$2
 ITERATIONS=$3
 SAMPLE_LENGTH=$4
@@ -20,7 +21,7 @@ dbmcli dbm_version >> $OUTPUT_DIR/readme.txt
 echo >> $OUTPUT_DIR/readme.txt
 
 # save the database parameters
-dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c param_extgetall | sort > $OUTPUT_DIR/param.out
+dbmcli -d $SID -u dbm,dbm -uSQL dbt,dbt -c param_extgetall | sort > $OUTPUT_DIR/param.out
 read RN < .run_number
 CURRENT_NUM=`expr $RN - 1`
 PREV_NUM=`expr $RN - 2`
@@ -33,8 +34,8 @@ diff -U 0 $CURRENT_DIR/param.out $PREV_DIR/param.out >> $OUTPUT_DIR/readme.txt
 echo >> $OUTPUT_DIR/readme.txt
 
 # record data and log devspace space information before the test
-dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data > $OUTPUT_DIR/datadev0.txt
-dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info log > $OUTPUT_DIR/logdev0.txt
+dbmcli -d $SID -u dbm,dbm -uSQL dbt,dbt -c info data > $OUTPUT_DIR/datadev0.txt
+dbmcli -d $SID -u dbm,dbm -uSQL dbt,dbt -c info log > $OUTPUT_DIR/logdev0.txt
 
 # reset monitor tables
 echo "resetting monitor tables"
@@ -48,7 +49,7 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 	x_cons $1 show all >> $OUTPUT_DIR/x_cons.out
 	
 	# check lock statistics
-	dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute "SELECT * FROM LOCKSTATISTICS" >> $OUTPUT_DIR/lockstats.out
+	dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute "SELECT * FROM LOCKSTATISTICS" >> $OUTPUT_DIR/lockstats.out
 
 	# read the monitor tables
 	dbmcli -s -d $1 -u dba,dba -uSQL dbt,dbt "sql_execute select * from monitor_caches" >> $OUTPUT_DIR/m_cache.out
@@ -64,5 +65,5 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 done
 
 # record devspace space information after the test
-dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data > $OUTPUT_DIR/datadev1.txt
-dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info log > $OUTPUT_DIR/logdev1.txt
+dbmcli -d $SID -u dbm,dbm -uSQL dbt,dbt -c info data > $OUTPUT_DIR/datadev1.txt
+dbmcli -d $SID -u dbm,dbm -uSQL dbt,dbt -c info log > $OUTPUT_DIR/logdev1.txt
