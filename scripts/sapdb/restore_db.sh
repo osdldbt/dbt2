@@ -1,20 +1,8 @@
 #!/bin/sh
 
-_o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d DBT2 -u dbm,dbm 2>&1
-db_cold
-util_connect
-recover_start data
-quit
-EOF`
-_test=`echo $_o | grep OK`
-if [ "$_test" = "" ]; then
-	echo "restore failed: $_o"
-	exit 1
-fi
+SID=DBT2
 
-# Set DATA_CACHE to 25000 so we know the backup won't fail because 
-# DATA_CACHE is set too high.
-
+echo "changing data_cache to 25000"
 _o=`cat <<EOF |  /opt/sapdb/depend/bin/dbmcli -d $SID -u dbm,dbm 2>&1
 param_startsession
 param_put DATA_CACHE 25000
@@ -22,22 +10,38 @@ param_checkall
 param_commitsession
 quit
 EOF`
-_test=`echo $_o | grep OK`
-if [ "$_test" = "" ]; then
-	echo "set parameters failed: $_o"
+echo "$_o"
+_test=`echo $_o | grep ERR`
+if ! [ "$_test" = "" ]; then
+        echo "set parameters failed"
+        exit 1
+fi
+
+echo "restoring database"
+_o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d $SID -u dbm,dbm 2>&1
+db_cold
+util_connect dbm,dbm
+util_execute init config
+recover_start data 
+quit
+EOF`
+echo "$_o"
+_test=`echo $_o | grep ERR`
+if ! [ "$_test" = "" ]; then
+	echo "restore failed:"
 	exit 1
 fi
 
-# Backup to /dev/null (trash) to force a checkpoint.
+echo "force checkpoint (by backing up again)"
 _o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d $SID -u dbm,dbm 2>&1
 util_connect dbm,dbm
-autolog_off
 backup_start trash migration
-autolog_on
 quit
 EOF`
-_test=`echo $_o | grep OK`
-if [ "$_test" = "" ]; then
-	echo "backup failed: $_o"
-	exit 1
+echo "$_o"
+_test=`echo $_o | grep ERR`
+if ! [ "$_test" = "" ]; then
+        echo "backup failed:"
 fi
+
+echo "restore/backup complete"
