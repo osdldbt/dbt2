@@ -9,7 +9,6 @@
  * 5 august 2002
  */
 
-#include <pthread.h>
 #include <common.h>
 #include <logging.h>
 #include <transaction_queue.h>
@@ -22,6 +21,14 @@ sem_t queue_length;
 struct transaction_queue_node_t *transaction_head, *transaction_tail;
 pthread_mutex_t mutex_queue = PTHREAD_MUTEX_INITIALIZER;
 int transaction_id;
+int transaction_counter[2][TRANSACTION_MAX] =
+	{ { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } };
+pthread_mutex_t mutex_transaction_counter[2][TRANSACTION_MAX] =
+	{ { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	  PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	  PTHREAD_MUTEX_INITIALIZER }, { PTHREAD_MUTEX_INITIALIZER,
+	  PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	  PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER } };
 
 #ifdef DEBUG
 int dump_queue()
@@ -74,12 +81,23 @@ struct transaction_queue_node_t *dequeue_transaction()
 #endif /* DEBUG */
 	pthread_mutex_unlock(&mutex_queue);
 
+	pthread_mutex_lock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
+	--transaction_counter[QUEUED][node->client_data.transaction];
+	pthread_mutex_unlock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
+	pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+	++transaction_counter[EXECUTING][node->client_data.transaction];
+	pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+
 	return node;
 }
 
 /* Enqueue to the tail. */
 int enqueue_transaction(struct transaction_queue_node_t *node)
 {
+	pthread_mutex_lock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
+	++transaction_counter[QUEUED][node->client_data.transaction];
+	pthread_mutex_unlock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
+
 	pthread_mutex_lock(&mutex_queue);
 	node->next = NULL;
 	node->id = ++transaction_id;
