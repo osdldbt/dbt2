@@ -1,11 +1,14 @@
 #!/bin/sh
 
 SID=DBT2
+SAPDBBINDIR=/opt/sapdb/depend/bin
+export PATH=$PATH:$SAPDBBINDIR
+DATA_CACHE=10000
 
-echo "changing data_cache to 10000"
-_o=`cat <<EOF |  /opt/sapdb/depend/bin/dbmcli -d $SID -u dbm,dbm 2>&1
+echo "changing data_cache to $DATA_CACHE"
+_o=`cat <<EOF |  dbmcli -d $SID -u dbm,dbm 2>&1
 param_startsession
-param_put DATA_CACHE 10000
+param_put DATA_CACHE $DATA_CACHE
 param_checkall
 param_commitsession
 quit
@@ -18,7 +21,7 @@ if ! [ "$_test" = "" ]; then
 fi
 
 echo "restoring database"
-_o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d $SID -u dbm,dbm 2>&1
+_o=`cat <<EOF | dbmcli -d $SID -u dbm,dbm 2>&1
 db_cold
 util_connect dbm,dbm
 util_execute init config
