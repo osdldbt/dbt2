@@ -81,7 +81,7 @@ int enqueue_transaction(struct transaction_queue_node_t *node)
 {
 	pthread_mutex_lock(&mutex_queue);
 	node->next = NULL;
-	node->id = transaction_id++;
+	node->id = ++transaction_id;
 	if (transaction_tail != NULL)
 	{
 		transaction_tail->next = node;
