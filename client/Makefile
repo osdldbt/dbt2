@@ -9,6 +9,7 @@ client: Makefile main.c \
 	../Makefile ../common.mk \
 	../include/common.h \
 	../include/_socket.h ../common/_socket.so \
+	../include/transaction_data.h ../common/transaction_data.so \
 	../include/client_interface.h ../common/client_interface.so \
 	../include/transaction_queue.h transaction_queue.so \
 	../include/db.h ../interfaces/db.so \
@@ -20,6 +21,7 @@ client: Makefile main.c \
 		../common/client_interface.so \
 		transaction_queue.so \
 		../common/_socket.so \
+		../common/transaction_data.so \
 		../interfaces/db.so \
 		../interfaces/odbc/odbc_common.so \
 		../interfaces/odbc/odbc_new_order.so \

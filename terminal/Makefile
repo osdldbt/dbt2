@@ -36,13 +36,17 @@ driver: ../Makefile \
 	../terminal/driver.so \
 	../include/client_interface.h \
 	../common/client_interface.so \
+	../common/transaction_data.so \
+	../common/transaction_data.c \
 	../include/transaction_data.h \
-	../include/input_data_generator.h input_data_generator.so \
+	../include/input_data_generator.h \
+	input_data_generator.so \
 	input_data_generator.c
 	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) main.c -o driver \
 		../common/common.so \
 		../common/_socket.so \
 		../common/client_interface.so \
+		../common/transaction_data.so \
 		driver.so \
 		input_data_generator.so \
 		-lpthread -lm
