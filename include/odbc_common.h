@@ -31,8 +31,10 @@ struct db_context_t {
 int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc);
 int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
 	SQLHANDLE handle);
+int commit_transaction(struct db_context_t *dbc);
 int _connect_to_db(struct db_context_t *odbcc);
 int _disconnect_from_db(struct db_context_t *odbcc);
 int _db_init(char *sname, char *uname, char *auth);
+int rollback_transaction(struct db_context_t *dbc);
 
 #endif /* _ODBC_COMMON_H_ */

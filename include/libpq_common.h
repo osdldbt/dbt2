@@ -18,9 +18,11 @@ struct db_context_t {
 	PGconn *conn;
 };
 
+int commit_transaction(struct db_context_t *dbc);
 int _connect_to_db(struct db_context_t *dbc);
 int _disconnect_from_db(struct db_context_t *dbc);
 int _db_init(char *_dbname, char *_pghost, char *_pgport);
+int rollback_transaction(struct db_context_t *dbc);
 
 extern char dbname[32];
 extern char pghost[32];
