@@ -202,6 +202,9 @@ int main(int argc, char *argv[])
 		else if (transaction == 'N')
 		{
 			++rollback_count[NEW_ORDER];
+			++transaction_count[NEW_ORDER];
+			transaction_response_time[NEW_ORDER] += response_time;
+			++current_transaction_count[NEW_ORDER];
 		}
 		else if (transaction == 'P')
 		{
