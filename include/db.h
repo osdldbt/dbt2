@@ -15,9 +15,10 @@
 
 #ifdef ODBC
 #include <odbc_common.h>
+#include <client_interface.h>
 
 int process_transaction(int transaction, struct odbc_context_t *odbcc,
-	union odbc_transaction_t *odbct);
+	union transaction_data_t *odbct);
 #endif /* ODBC */
 
 #endif /* _DB_H_ */

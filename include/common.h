@@ -108,6 +108,7 @@ struct table_cardinality_t
 
 /* Prototypes */
 double difftimeval(struct timeval rt1, struct timeval rt0);
+int edump(int type, void *data);
 void get_a_string(char *a_string, int x, int y);
 int get_c_last(char *c_last, int i);
 void get_l_string(char *l_string, int x, int y);

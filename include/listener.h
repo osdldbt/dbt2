@@ -13,9 +13,12 @@
 #define _LISTERNE_H_
 
 #include <semaphore.h>
+#include <transaction_queue.h>
 
 void *init_listener(void *data);
 
 extern sem_t listener_worker_count;
+
+int recycle_node(struct transaction_queue_node_t *node);
 
 #endif /* _LISTENER_H_ */

@@ -42,6 +42,8 @@ struct transaction_mix_t
 
 int init_driver();
 int recalculate_mix();
+int set_client_hostname(char *addr);
+int set_client_port(int port);
 int set_duration(int seconds);
 int set_table_cardinality(int table, int cardinality);
 int set_terminals(int number);
