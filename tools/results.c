@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 */
 
 	/* Calculate the actual mix of transactions. */
-	printf("transaction       %%  avg response time (s)        total  rollbacks      %%\n");
+	printf("Transaction       %%  Avg Response Time (s)        Total  Rollbacks      %%\n");
 	for (i = 0; i < TRANSACTION_MAX; i++)
 	{
 		printf("%12s  %5.2f  %21.3f  %11d  %9d  %5.2f\n", transaction_name[i],
@@ -267,8 +267,8 @@ int main(int argc, char *argv[])
 	/* Calculated the number of transactions per second. */
 	tps = (double) transaction_count[NEW_ORDER] / difftime(current_time, start_time);
 	printf("\n");
-	printf("%0.2f bogotransactions (type 2) per second\n", tps);
-	printf("%0.2f bogotransactions (type 2) per minute\n", tps * 60);
+	printf("%0.2f new-order transactions per second\n", tps);
+	printf("%0.2f new-order transactions per minute (NOTPM)\n", tps * 60);
 	printf("%0.1f minute duration\n",
 		difftime(current_time, start_time) / 60.0);
 	printf("%d total bogotransactions (type 2)\n",
