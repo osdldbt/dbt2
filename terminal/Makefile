@@ -38,6 +38,7 @@ driver: ../Makefile \
 	../terminal/driver.so \
 	../include/client_interface.h \
 	../common/client_interface.so \
+	../common/client_interface.c \
 	../common/transaction_data.so \
 	../common/transaction_data.c \
 	../include/transaction_data.h \
