@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
 	int current_transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
 	double response_time, total_response_time = 0;
 	time_t start_time = -1;
-	time_t previous_time, current_time;
+	time_t previous_time = 0; /* Initialized to remove compiler warning. */
+	time_t current_time;
 	char transaction;
 	char marker[64];
 	int tid;
