@@ -16,9 +16,6 @@
 #include <transaction_queue.h>
 #include <db_threadpool.h>
 #include <db.h>
-#ifdef ODBC
-#include <odbc_common.h>
-#endif /* ODBC */
 
 /* Function Prototypes */
 void *db_worker(void *no_data);
@@ -42,23 +39,19 @@ void *db_worker(void *no_data)
 	int length;
 #endif /* STANDALONE */
 	struct transaction_queue_node_t *node;
-#ifdef ODBC
-	struct db_context_t odbcc;
-#endif /* ODBC */
+	struct db_context_t dbc;
 #ifdef STANDALONE
 	struct timeval rt0, rt1;
 	double response_time;
 #endif /* STANDALONE */
 
 	/* Open a connection to the database. */
-#ifdef ODBC
-	odbc_init(sname, DB_USER, DB_PASS);
-	if (!exiting && odbc_connect(&odbcc) != OK) {
-		LOG_ERROR_MESSAGE("odbc_connect() error, terminating program");
+	db_init(sname, DB_USER, DB_PASS);
+	if (!exiting && connect_to_db(&dbc) != OK) {
+		LOG_ERROR_MESSAGE("connect_to_db() error, terminating program");
 		printf("cannot connect to database, exiting...\n");
 		exit(1);
 	}
-#endif /* ODBC */
 	while (!exiting) {
 		/*
 		 * I know this loop will prevent the program from exiting
@@ -77,8 +70,7 @@ void *db_worker(void *no_data)
 			perror("gettimeofday");
 		}
 #endif /* STANDALONE */
-#ifdef ODBC
-		if (process_transaction(node->client_data.transaction, &odbcc,
+		if (process_transaction(node->client_data.transaction, &dbc,
 			&node->client_data.transaction_data) != OK) {
 			LOG_ERROR_MESSAGE("process_transaction() error on %s",
 				transaction_name[node->client_data.transaction]);
@@ -87,7 +79,6 @@ void *db_worker(void *no_data)
 			 * back, and try processing the next transaction.
 			 */
 		}
-#endif /* ODBC */
 #ifdef STANDALONE
 		if (gettimeofday(&rt1, NULL) == -1) {
 			perror("gettimeofday");
@@ -117,12 +108,7 @@ void *db_worker(void *no_data)
 	}
 
 	/* Disconnect from the database. */
-#ifdef ODBC
-	/* The program is halting on the odbc_disconnect(). */
-/*
-	odbc_disconnect(&odbcc);
-*/
-#endif /* ODBC */
+	disconnect_from_db(&dbc);
 
 	sem_wait(&db_worker_count);
 
