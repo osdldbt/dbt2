@@ -25,7 +25,7 @@ if [ -d $PGDATA ] ; then
 	echo "Skipping initdb"
 	echo "======================================="
 else
-	$INITDB -D $PGDATA --locale=C
+	$INITDB -D $PGDATA --locale=C || exit 1
 fi
 
 $PGCTL -D $PGDATA -l log start
@@ -36,3 +36,4 @@ sleep 4
 $CREATEDB $DB_NAME
 $CREATELANG plpgsql $DB_NAME
 
+exit 0
