@@ -2,7 +2,7 @@ sql_execute create table warehouse ( w_id fixed(9), w_name varchar(10), w_street
 
 sql_execute create table district ( d_id fixed(2), d_w_id fixed(9), d_name varchar(10), d_street_1 varchar(20), d_street_2 varchar(20), d_city varchar(20), d_state char(2), d_zip char(9), d_tax fixed(8, 4), d_ytd fixed(24, 12), d_next_o_id fixed(8) )
 
-sql_execute create table customer ( c_id fixed(5), c_d_id fixed(2), c_w_id fixed(9), c_first varchar(16), c_middle char(2), c_last varchar(16), c_street_1 varchar(20), c_street_2 varchar(20), c_city varchar(20), c_state char(2), c_zip char(9), c_phone char(16), c_since timestamp, c_credit char(2), c_credit_lim fixed(24, 12), c_discount fixed(8, 4), c_balance fixed(24, 12), c_ytd_payment fixed(24, 12), c_payment_cnt fixed(8, 4), c_delivery_cnt fixed(8, 4), c_data varchar(500) )
+sql_execute create table customer ( c_id fixed(5), c_d_id fixed(2), c_w_id fixed(9), c_first varchar(16), c_middle char(2), c_last varchar(16), c_street_1 varchar(20), c_street_2 varchar(20), c_city varchar(20), c_state char(2), c_zip char(9), c_phone char(16), c_since timestamp, c_credit char(2), c_credit_lim fixed(24, 12), c_discount fixed(8, 4), c_balance fixed(24, 12), c_ytd_payment fixed(24, 12), c_payment_cnt fixed(4), c_delivery_cnt fixed(4), c_data varchar(500) )
 
 sql_execute create table history ( h_c_id fixed(5), h_c_d_id fixed(2), h_c_w_id fixed(9), h_d_id fixed(2), h_w_id fixed(9), h_date timestamp, h_amount fixed(12, 6), h_data varchar(24) )
 
