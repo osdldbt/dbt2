@@ -591,7 +591,7 @@ int gen_orders(int warehouses, int customers, int orders)
 				}
 				else
 				{
-					fprintf(order, "\"\"");
+					fprintf(order, "\"NULL\"");
 				}
 				fprintf(order, "%c", DELIMITER);
 
@@ -649,7 +649,7 @@ int gen_orders(int warehouses, int customers, int orders)
 					}
 					else
 					{
-						fprintf(order_line, "\"\"");
+						fprintf(order_line, "\"NULL\"");
 					}
 					fprintf(order_line, "%c", DELIMITER);
 
