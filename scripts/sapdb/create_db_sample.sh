@@ -59,15 +59,16 @@ param_rmfile
 param_startsession
 param_init
 param_put LOG_MODE SINGLE
-param_put CAT_CACHE_SUPPLY 300
+param_put CAT_CACHE_SUPPLY 3232
 param_put DATA_CACHE 10000
-param_put MAXDATADEVSPACES 5
-param_put MAXDATAPAGES 4096000
+param_put _MAXTRANS 528
+param_put MAXDATADEVSPACES 22
 param_put _PACKET_SIZE 131072
 param_put _IDXFILE_LIST_SIZE 8192
-param_put MAXLOCKS 5000
-param_put MAXCPU 1
-param_put _RESTART_TIME 100000
+param_put MAXLOCKS 10000
+param_put MAXCPU 8
+param_put _RESTART_TIME 600
+param_put DIAG_HISTORY_NUM 20
 param_checkall
 param_commitsession
 param_adddevspace 1 SYS  $HOME/$SID/SYS_001   F
