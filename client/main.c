@@ -23,7 +23,6 @@ int parse_command(char *command);
 
 /* Global Variables */
 char sname[32] = "";
-int db_connections = 0;
 int port = CLIENT_PORT;
 int sockfd;
 int exiting = 0;
