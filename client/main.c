@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 	char command[128];
 
 	init_common();
+	init_logging();
 
 	if (parse_arguments(argc, argv) != OK)
 	{
