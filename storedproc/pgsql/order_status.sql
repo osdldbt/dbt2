@@ -6,7 +6,7 @@
  *
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.6.2.
  */
-CREATE OR REPLACE FUNCTION order_status (INTEGER, INTEGER, INTEGER, TEXT) RETURNS INTEGER AS '
+CREATE OR REPLACE FUNCTION order_status (INTEGER, INTEGER, INTEGER, TEXT) RETURNS SETOF record AS '
 DECLARE
 	in_c_id ALIAS FOR $1;
 	in_c_w_id ALIAS FOR $2;
@@ -22,10 +22,9 @@ DECLARE
 	out_o_id INTEGER;
 	out_o_carrier_id INTEGER;
 	out_o_entry_d VARCHAR;
-	 out_o_ol_cnt INTEGER;
+	out_o_ol_cnt INTEGER;
 
 	ol RECORD;
-	count INTEGER;
 BEGIN
 	/*
 	 * Pick a customer by searching for c_last, should pick the one in the
@@ -58,18 +57,19 @@ BEGIN
   	AND o_c_id = out_c_id
 	ORDER BY o_id DESC;
 
-	count = 0;
 	FOR ol IN
-		SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,
-		       ol_delivery_d
+		SELECT out_c_id, out_c_first, out_c_middle, out_c_last,
+		       out_c_balance, out_o_id, out_o_carrier_id,
+		       out_o_entry_d, out_o_ol_cnt, ol_i_id, ol_supply_w_id,
+		       ol_quantity, ol_amount, ol_delivery_d
 		FROM order_line
 		WHERE ol_w_id = in_c_w_id  
 		  AND ol_d_id = in_c_d_id
 		  AND ol_o_id = out_o_id
 	LOOP
-		count = count + 1;
+		RETURN NEXT ol;
 	END LOOP;
 
-	RETURN count;
+	RETURN null;
 END;
 ' LANGUAGE 'plpgsql';
