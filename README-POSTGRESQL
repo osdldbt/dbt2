@@ -1,0 +1,6 @@
+The kit is configured to expect PostgreSQL to have trusted connections defined.
+So in the pg_hba.conf file, if you want to trust everyone, define this:
+
+local        all                                           trust
+host         all         127.0.0.1     255.0.0.0           trust
+host         all         0.0.0.0       0.0.0.0             reject
