@@ -56,13 +56,22 @@ void *init_listener(void *data)
 
 void *listener_worker(void *data)
 {
+	int rc;
+
 	/* This thread should only handle one transaction at a time... */
 	struct transaction_queue_node_t node;
 
 	node.s = (int *) data;
 	while (!exiting)
 	{
-		if (receive_transaction_data(*node.s, &node.client_data) != OK)
+		rc = receive_transaction_data(*node.s, &node.client_data);
+		if (rc == ERROR_SOCKET_CLOSED)
+		{
+			/* Exit the thread when the socket has closed. */
+			sem_wait(&listener_worker_count);
+			pthread_exit(0);
+		}
+		else if (rc != OK)
 		{
 			LOG_ERROR_MESSAGE("receive_transaction_data() error");
 			continue;
