@@ -1,4 +1,5 @@
 #!/bin/sh
+
 DBNAME=DBT2
 
 echo -------------
@@ -251,7 +252,7 @@ EOF`
 echo $_o
 echo 
 
-SQL="SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip FROM dbt.district WHERE d_id = 1"
+SQL="SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip FROM dbt.district WHERE d_id = 1 AND d_w_id = 1"
 echo $SQL
 _o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d $DBNAME -u dba,dba -uSQL dbt,dbt 2>&1
 sql_execute explain $SQL
@@ -305,7 +306,7 @@ EOF`
 echo $_o
 echo 
 
-SQL="SELECT s_quantity FROM dbt.stock WHERE s_i_id = 1 AND s_w_id = 1 AND s_quantity < 1"
+SQL="SELECT count(DISTINCT s_i_id) FROM dbt.order_line, dbt.stock, dbt.districtWHERE d_id = 1 AND d_w_id = 1 AND d_id = ol_d_id AND d_w_id = ol_w_id AND ol_i_id = s_i_id AND ol_w_id = s_w_id AND s_quantity < 20 AND ol_o_id BETWEEN (1) AND (20)"
 echo $SQL
 _o=`cat <<EOF | /opt/sapdb/depend/bin/dbmcli -d $DBNAME -u dba,dba -uSQL dbt,dbt 2>&1
 sql_execute explain $SQL
