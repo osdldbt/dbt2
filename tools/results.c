@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	char transaction;
 	char marker[64];
 	int tid;
-	int elapsed_time;
+	int elapsed_time = 0;
 	double tps;
 
 	int transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
