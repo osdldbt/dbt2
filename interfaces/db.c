@@ -46,6 +46,8 @@ int disconnect_from_db(struct db_context_t *dbc) {
 	int rc;
 
 #ifdef ODBC
+	/* odbc_disconnect() is halting for some reason. */
+	return OK;
 	rc = odbc_disconnect(&dbc);
 #endif /* ODBC */
 
