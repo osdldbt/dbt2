@@ -8,6 +8,11 @@ all: transaction_queue.so listener.so db_threadpool.so client
 client: Makefile main.c \
 	../Makefile ../common.mk \
 	../include/common.h \
+	../common/common.c \
+	../common/common.so \
+	../include/logging.h \
+	../common/logging.c \
+	../common/logging.so \
 	../include/_socket.h ../common/_socket.so \
 	../include/transaction_data.h ../common/transaction_data.so \
 	../include/client_interface.h ../common/client_interface.so \
@@ -18,6 +23,7 @@ client: Makefile main.c \
 		db_threadpool.so \
 		listener.so \
 		../common/common.so \
+		../common/logging.so \
 		../common/client_interface.so \
 		transaction_queue.so \
 		../common/_socket.so \
