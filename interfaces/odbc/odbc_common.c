@@ -22,6 +22,41 @@ SQLCHAR servername[32];
 SQLCHAR username[32];
 SQLCHAR authentication[32];
 
+int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc)
+{
+	
+	if (rc == SQL_SUCCESS)
+	{
+		return OK;
+	}
+	else if (rc == SQL_SUCCESS_WITH_INFO)
+	{
+		LOG_ERROR_MESSAGE("SQL_SUCCESS_WITH_INFO");
+	}
+	else if (rc == SQL_NEED_DATA)
+	{
+		LOG_ERROR_MESSAGE("SQL_NEED_DATA");
+	}
+	else if (rc == SQL_STILL_EXECUTING)
+	{
+		LOG_ERROR_MESSAGE("SQL_STILL_EXECUTING");
+	}
+	else if (rc == SQL_ERROR)
+	{
+		return ERROR;
+	}
+	else if (rc == SQL_NO_DATA)
+	{
+		LOG_ERROR_MESSAGE("SQL_NO_DATA");
+	}
+	else if (rc == SQL_INVALID_HANDLE)
+	{
+		LOG_ERROR_MESSAGE("SQL_INVALID_HANDLE");
+	}
+	
+	return OK;
+}
+
 /* Print out all errors messages generated to the error log file. */
 int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
 	SQLHANDLE handle)
@@ -69,6 +104,14 @@ int odbc_connect(struct odbc_context_t *odbcc)
 
 	rc = SQLSetConnectAttr(odbcc->hdbc, SQL_ATTR_AUTOCOMMIT,
 		SQL_AUTOCOMMIT_OFF, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
+	{
+	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+	        return ERROR;
+	}
+
+	rc = SQLSetConnectAttr(odbcc->hdbc, SQL_ATTR_TXN_ISOLATION,
+		SQL_TXN_REPEATABLE_READ, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
 	{
 	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
@@ -129,6 +172,12 @@ int odbc_init(char *sname, char *uname, char *auth)
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
 	{
 		LOG_ERROR_MESSAGE("alloc env handle failed");
+		return ERROR;
+	}
+	rc = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (void *) SQL_OV_ODBC3, 0);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
+	{
+		SQLFreeHandle(SQL_HANDLE_ENV, henv);
 		return ERROR;
 	}
 
