@@ -7,7 +7,6 @@
  * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
  *
  * 16 june 2002
- * Based on TPC-C Standard Specification Revision 5.0.
  */
 
 #ifndef _DB_H_
