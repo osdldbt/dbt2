@@ -37,11 +37,12 @@ int main(int argc, char *argv[])
 	int elapsed_time = 0;
 	double tps;
 	char filename[256];
+	/*
 	char filename_d[256];
 	char filename_o[256];
 	char filename_p[256];
 	char filename_s[256];
-	int offset;
+	*/
 
 	int transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
 	double transaction_response_time[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
@@ -211,7 +212,7 @@ int main(int argc, char *argv[])
 */
 
 	/* Calculate the actual mix of transactions. */
-	printf("transaction\t%\tavg response time (s)\n");
+	printf("transaction\t%%\tavg response time (s)\n");
 	for (i = 0; i < TRANSACTION_MAX; i++)
 	{
 		printf("%s\t%2.2f\t%0.3f\n", transaction_name[i],

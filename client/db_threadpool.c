@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <common.h>
+#include <listener.h>
 #include <logging.h>
 #include <client_interface.h>
 #include <transaction_queue.h>
@@ -131,6 +132,8 @@ void *db_worker(void *no_data)
 #endif /* ODBC */
 
 	sem_wait(&db_worker_count);
+
+	return NULL;	/* keep compiler quiet */
 }
 
 int db_threadpool_init()

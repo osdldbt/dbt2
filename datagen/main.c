@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <common.h>
 
@@ -474,7 +475,7 @@ int gen_orders(int warehouses, int customers, int orders)
 	struct node_t *current;
 	struct node_t *prev;
 	struct node_t *new_node;
-	int count, iter;
+	int iter;
 
 	int o_ol_cnt;
 

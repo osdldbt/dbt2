@@ -12,6 +12,7 @@
 #include <common.h>
 #include <logging.h>
 #include <client_interface.h>
+#include <_socket.h>
 
 int connect_to_client(char *addr, int port)
 {

@@ -14,3 +14,5 @@
 
 extern sem_t db_worker_count;
 extern int db_connections;
+
+int db_threadpool_init();

@@ -10,6 +10,8 @@
  * 20 march 2002
  */
 
+#include <string.h>
+#include <unistd.h>
 #include <_socket.h>
 
 int resolveproto(const char *proto);
@@ -26,11 +28,9 @@ int _accept(int *s)
 
 int _connect(char *address, unsigned short port)
 {
-	extern int errno;
 	int sockfd;
 	struct sockaddr_in sa;
 	struct hostent *he;
-	socklen_t addrlen;
 	in_addr_t addr;
 
 	bzero(&sa, sizeof(struct sockaddr_in));
@@ -127,7 +127,6 @@ int _send(int s, void *data, int length)
 
 int _listen(int port)
 {
-	extern int errno;
 	struct sockaddr_in sa;
 	int sockfd;
 

@@ -10,6 +10,11 @@
  */
 
 #include <db.h>
+#include <odbc_delivery.h>
+#include <odbc_order_status.h>
+#include <odbc_payment.h>
+#include <odbc_stock_level.h>
+#include <odbc_new_order.h>
 
 #ifdef ODBC
 int process_transaction(int transaction, struct odbc_context_t *odbcc,

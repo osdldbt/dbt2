@@ -10,10 +10,12 @@
  */
 
 #include <pthread.h>
+#include <unistd.h>
 #include <common.h>
 #include <logging.h>
 #include <listener.h>
 #include <client_interface.h>
+#include <_socket.h>
 
 void *listener_worker(void *data);
 
@@ -86,6 +88,8 @@ void *init_listener(void *data)
 		}
 		sem_post(&listener_worker_count);
 	}
+
+	return NULL;	/* keep compiler quiet */
 }
 
 void *listener_worker(void *data)
@@ -119,6 +123,8 @@ void *listener_worker(void *data)
 			LOG_ERROR_MESSAGE("Cannot get a transaction node.\n");
 		}
 	}
+
+	return NULL;	/* keep compiler quiet */
 }
 
 int recycle_node(struct transaction_queue_node_t *node)

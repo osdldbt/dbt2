@@ -10,6 +10,7 @@
  */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <common.h>
 #include <logging.h>
 #include <db_threadpool.h>
@@ -26,6 +27,8 @@ char sname[32] = "";
 int port = CLIENT_PORT;
 int sockfd;
 int exiting = 0;
+
+int startup();
 
 int main(int argc, char *argv[])
 {
@@ -198,7 +201,6 @@ int parse_command(char *command)
 
 int startup()
 {
-	int i;
 	pthread_t tid;
 
 	sockfd = _listen(port);

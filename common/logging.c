@@ -15,6 +15,7 @@
 #include <time.h>
 #include <common.h>
 #include <logging.h>
+#include <transaction_data.h>
 
 FILE *log_error;
 pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
@@ -38,6 +39,8 @@ int init_logging()
 		fprintf(stderr, "cannot open %s\n", ERROR_LOG_NAME);
 		return ERROR;
 	}
+
+	return OK;
 }
 
 int log_error_message(char *filename, int line, const char *fmt, ...)

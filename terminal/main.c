@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
 	if (parse_arguments(argc, argv) != OK)
 	{
-		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %] [-r %] [-e %] [-t %]\n",
+		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%]\n",
 			argv[0]);
 		printf("\n");
 		printf("-d <address>\n");
@@ -59,16 +59,16 @@ int main(int argc, char *argv[])
 		printf("-n #\n");
 		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		printf("\n");
-		printf("-q %\n");
+		printf("-q %%\n");
 		printf("\tmix percentage of Payment transaction, default %0.2f\n",
 			MIX_PAYMENT);
-		printf("-r %\n");
+		printf("-r %%\n");
 		printf("\tmix percentage of Order-Status transaction, default %0.2f\n",
 			MIX_ORDER_STATUS);
-		printf("-e %\n");
+		printf("-e %%\n");
 		printf("\tmix percentage of Delivery transaction, default %0.2f\n",
 			MIX_DELIVERY);
-		printf("-t %\n");
+		printf("-t %%\n");
 		printf("\tmix percentage of Stock-Level transaction, default %0.2f\n",
 			MIX_STOCK_LEVEL);
 		printf("\n");

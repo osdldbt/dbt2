@@ -10,6 +10,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <common.h>
 #include <logging.h>
 #include <transaction_data.h>
@@ -31,7 +32,6 @@ union txn_data_t
 
 int main(int argc, char *argv[])
 {
-	int rc;
 	int i;
 	char sname[32] = "";
 	int transaction = -1;

@@ -12,8 +12,10 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <time.h>
 #include <errno.h>
+#include <unistd.h>
 #include <semaphore.h>
 #include <common.h>
 #include <logging.h>
@@ -481,4 +483,6 @@ void *terminal_worker(void *data)
 
 	/* Update the terminal count. */
 	sem_wait(&terminal_count);
+
+	return NULL;	/* keep the compiler quiet */
 }

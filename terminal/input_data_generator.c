@@ -10,6 +10,7 @@
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
+#include <string.h>
 #include <common.h>
 #include <transaction_data.h>
 
