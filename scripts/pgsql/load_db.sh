@@ -9,32 +9,48 @@
 #
 # 01 May 2003
 
-. ./init_env.sh
+DIR=`dirname $0`
+. ${DIR}/init_env.sh || exit 1
 
 # Create tables
-psql -d $DB_NAME -f create_tables.sql
+$PSQL -d $DB_NAME -f create_tables.sql || exit 1
 
 # Load tables
 echo "Loading customer table..."
-psql -d $DB_NAME -c "COPY customer FROM '/tmp/customer.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY customer FROM '$DBDATA/customer.data' WITH NULL AS '';" || exit 1
 echo "Loading district table..."
-psql -d $DB_NAME -c "COPY district FROM '/tmp/district.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY district FROM '$DBDATA/district.data' WITH NULL AS '';" || exit 1
 echo "Loading history table..."
-psql -d $DB_NAME -c "COPY history FROM '/tmp/history.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY history FROM '$DBDATA/history.data' WITH NULL AS '';" || exit 1
 echo "Loading item table..."
-psql -d $DB_NAME -c "COPY item FROM '/tmp/item.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY item FROM '$DBDATA/item.data' WITH NULL AS '';" || exit 1
 echo "Loading new_order table..."
-psql -d $DB_NAME -c "COPY new_order FROM '/tmp/new_order.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY new_order FROM '$DBDATA/new_order.data' WITH NULL AS '';" || exit 1
 echo "Loading order_line table..."
-psql -d $DB_NAME -c "COPY order_line FROM '/tmp/order_line.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY order_line FROM '$DBDATA/order_line.data' WITH NULL AS '';" || exit 1
 echo "Loading orders table..."
-psql -d $DB_NAME -c "COPY orders FROM '/tmp/order.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY orders FROM '$DBDATA/order.data' WITH NULL AS '';" || exit 1
 echo "Loading stock table..."
-psql -d $DB_NAME -c "COPY stock FROM '/tmp/stock.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY stock FROM '$DBDATA/stock.data' WITH NULL AS '';" || exit 1
 echo "Loading warehouse table..."
-psql -d $DB_NAME -c "COPY warehouse FROM '/tmp/warehouse.data' WITH NULL AS '';"
+$PSQL -d $DB_NAME -c "COPY warehouse FROM '$DBDATA/warehouse.data' WITH NULL AS
+'';" || exit 1
+
+bash create_indexes.sh || exit 1
+
+# load C or SQL implementation of the stored procedures
+if true; then
+  bash load_stored_funcs.sh || exit 1
+else
+  bash load_stored_procs.sh || exit 1
+fi
+
+$PSQL -d $DB_NAME -c "SELECT setseed(0);" || exit 1
 
 # VACUUM FULL ANALYZE
 #
 # Fully defragment tables, and build statistics
-vacuumdb -z -f -d $DB_NAME
+$VACUUMDB -z -f -d $DB_NAME || exit 1
+
+$PSQL -d $DB_NAME -c "ANALYZE;" || exit 1
+

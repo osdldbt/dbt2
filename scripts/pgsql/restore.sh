@@ -1,6 +1,7 @@
 #!/bin/sh
 
-. init_env.sh
+DIR=`dirname $0`
+. ${DIR}/init_env.sh || exit
 
 while getopts "o:" opt; do
 	case $opt in
@@ -15,7 +16,7 @@ if [ "$OUTPUT" == "" ]; then
 	exit 1;
 fi
 
-_test=`pg_restore -v Fc -a -d $DB_NAME $OUTPUT | grep OK`
+_test=`$PGRESTORE -v Fc -a -d $DB_NAME $OUTPUT | grep OK`
 if [ "$_test" != "" ]; then
 	echo "restore failed: $_test"
 	exit 1

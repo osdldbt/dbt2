@@ -1,81 +1,106 @@
-AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 1196 2004-02-04 18:53:28Z fimath $)
+AC_PREREQ(2.59)
+AC_REVISION($Id: configure.in 1198 2004-03-24 17:39:32Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(tools/results.c)
+AC_INIT(dbt2, 0.22, osdldbt-general@lists.sourceforge.net)
+AM_INIT_AUTOMAKE
+AH_TOP([
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
+])
+AC_CONFIG_HEADERS(config.h)
+AH_BOTTOM([
+#endif
+])
+AC_CONFIG_SRCDIR(src/client.c)
 
-dnl> Checks for programs.
+
+dnl System type
+AC_CANONICAL_BUILD
+case $build in
+*-*-solaris*)
+  AC_DEFINE(SOLARIS, 1, [Build for solaris])
+  ;;
+*-*-linux*)
+  AC_DEFINE(LINUX, 1, [Build for Linux])
+  ;;
+*)
+  AC_MSG_ERROR([*** Build system not supported])
+  ;;
+esac
+
+
+dnl Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
-dnl> Replace below with this in future release AC_PROG_EGREP
+
+dnl Replace below with this in future release AC_PROG_EGREP
 AC_PATH_PROGS([EGREP], ['grep -E'], ,
              [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$EGREP"
 then
- AC_MSG_ERROR([*** grep -E is required])
+  AC_MSG_ERROR([*** grep -E is required])
 fi
 
 AC_PATH_PROGS([VMSTAT], [vmstat], ,
              [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$VMSTAT"
 then
- AC_MSG_ERROR([*** vmstat is required])
+  AC_MSG_WARN([*** vmstat not found some scripts may not be usable])
+  VMSTAT=/usr/bin/vmstat
 fi
 
 AC_PATH_PROGS([IOSTAT], [iostat], ,
              [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$IOSTAT"
 then
- AC_MSG_ERROR([*** iostat is required])
+  AC_MSG_WARN([*** iostat not found some scripts may not be usable])
+  IOSTAT=/usr/bin/iostat
 fi
 
 AC_PATH_PROGS([GNUPLOT], [gnuplot], ,
              [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$GNUPLOT"
 then
- AC_MSG_ERROR([*** gnuplot is required])
+  AC_MSG_WARN([*** gnuplot not found some scripts may not be usable])
+  GNUPLOT=/usr/bin/gnuplot
 fi
 
 AC_PATH_PROGS([SAR], [sar bsdsar], ,
              [$PATH:/usr/local/bin:/usr/bin])
 if test -z "$SAR"
 then
- AC_MSG_ERROR([*** sar is required])
+  AC_MSG_WARN([*** sar or bsdsar not found some scripts may not be usable])
+  SAR=/usr/bin/sar
 fi
 
 AC_PATH_PROGS([SYSCTL], [sysctl], ,
              [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
 if test -z "$SYSCTL"
 then
- AC_MSG_ERROR([*** sysctl is required])
+  AC_MSG_WARN([*** sysctl not found some scripts may not be usable])
+  SYSCTL=/usr/bin/sysctl
 fi
 
-AC_PATH_PROGS([PSQL], [psql], ,
-             [$PATH:/usr/local/bin:/usr/bin:/bin:/usr/local/pgsql/bin])
-if test -z "$PSQL"
-then
- AC_MSG_ERROR([*** psql is required])
-fi
-
-dnl>
-dnl> Thread Library (required)
-dnl> check for `pthread_create' in -lpthread
-dnl>
+dnl
+dnl Thread Library (required)
+dnl check for `pthread_create' in -lpthread
+dnl
 AC_CHECK_HEADERS(semaphore.h pthread.h,[],[
 	AC_MSG_ERROR([could not locate threading headers])
 ])
 AC_CHECK_LIB(pthread, pthread_create)
 if test ".`echo $LIBS | grep pthread`" != .; then
-dnl>
-dnl> check for `sem_init' in -lposix4
-dnl>
+dnl
+dnl check for `sem_init' in -lposix4
+dnl
    AC_CHECK_LIB(posix4, sem_init)
 else
   AC_CHECK_LIB(pthreads, pthread_create)
   if test ".`echo $LIBS | grep pthread`" != .; then
-dnl>
-dnl> check for `sem_init' in -lposix4
-dnl>
+dnl
+dnl check for `sem_init' in -lposix4
+dnl
     AC_CHECK_LIB(posix4, sem_init)
   else
     AC_CHECK_LIB(c_r, pthread_create)
@@ -89,100 +114,172 @@ if test "$threaded" == "no" ; then
 fi
 
 
-dnl> Checks for libraries.
-dnl> Replace `main' with a function in -lm:
+dnl Checks for libraries.
+dnl Replace `main' with a function in -lm:
 AC_CHECK_LIB(m, main)
 
-dnl> GNU Getopt
-AC_CHECK_HEADERS(getopt.h,[],[
-	AC_MSG_ERROR([GNU Getopt required])
-])
-AC_SEARCH_LIBS(getopt_long, [getopt gnugetopt])
+dnl search for socket libraries
+AC_SEARCH_LIBS(socket, socket, [], AC_MSG_ERROR([socket required]))
+AC_SEARCH_LIBS(gethostbyname, nsl, [], AC_MSG_ERROR([gethostbyname required]))
+
+dnl Argument for GNU getopt
+AC_ARG_WITH(getopt,
+  [AC_HELP_STRING([--with-getopt=DIR],
+    [Set this to GNU getopt's installation directory, or leave it unset if it
+     is in compiler's default search paths.])],
+  [default_getopt="$withval"],
+  [default_getopt="default"]
+)
+if test "$default_getopt" != default; then
+  CPPFLAGS="-I${default_getopt}/include $CPPFLAGS"
+  CFLAGS="-I${default_getopt}/include $CFLAGS"
+  LDFLAGS="-L${default_getopt}/lib -Wl,-R${default_getopt}/lib $LDFLAGS"
+fi
+
+dnl GNU Getopt
+AC_CHECK_HEADERS(getopt.h,[],AC_MSG_ERROR([GNU Getopt required]))
+AC_SEARCH_LIBS(getopt_long, [getopt gnugetopt], [],
+  AC_MSG_ERROR([getopt libs required])
+)
 
 
-dnl> Checks for header files.
+dnl Configuration options for different databases, PostgreSQL is default.
+AC_ARG_WITH(postgresql,
+  [AC_HELP_STRING([--with-postgresql=DIR],
+    [Default on. Set to the path of the PostgreSQL's installation, or leave
+     unset if the path is already in the compiler search path.])],
+  [database_to_use=$withval],
+  [database_to_use="pqsql"]
+)
+AC_ARG_WITH(sapdb,
+  [AC_HELP_STRING([--with-sapdb], [using ODBC])],
+  [database_to_use="sapdb"],
+  [],
+)
+
+
+dnl Set up rules depending on what database is selected.
+if test "$database_to_use" != "sapdb"; then
+  dnl check for initdb
+  AC_PATH_PROGS(INITDB, initdb, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$INITDB" ; then
+    AC_MSG_ERROR([*** initdb is required])
+  fi
+  dnl check for createdb
+  AC_PATH_PROGS(CREATEDB, createdb, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$CREATEDB" ; then
+    AC_MSG_ERROR([*** createdb is required])
+  fi
+  dnl check for dropdb
+  AC_PATH_PROGS(DROPDB, dropdb, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$DROPDB" ; then
+    AC_MSG_ERROR([*** dropdb is required])
+  fi
+  dnl check for pg_restore
+  AC_PATH_PROGS(PGRESTORE, pg_restore, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PGRESTORE" ; then
+    AC_MSG_ERROR([*** pg_restore is required])
+  fi
+  dnl check for createlang
+  AC_PATH_PROGS(CREATELANG, createlang, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$CREATELANG" ; then
+    AC_MSG_ERROR([*** createlang is required])
+  fi
+  dnl check for pg_ctl
+  AC_PATH_PROGS(PGCTL, pg_ctl, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PGCTL" ; then
+    AC_MSG_ERROR([*** pg_ctl is required])
+  fi
+  dnl check for psql
+  AC_PATH_PROGS(PSQL, psql, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PSQL" ; then
+    AC_MSG_ERROR([*** psql is required])
+  fi
+  dnl check for vacuumdb
+  AC_PATH_PROGS(VACUUMDB, vacuumdb, ,
+    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$VACUUMDB" ; then
+    AC_MSG_ERROR([*** vacuumdb is required])
+  fi
+
+  dnl check if the user has specified path for pgsql
+  if test "$database_to_use" != "pqsql"; then
+    CPPFLAGS="-I${database_to_use}/include -I${database_to_use}/include/server $CPPFLAGS"
+    CFLAGS="-I${database_to_use}/include -I${database_to_use}/include/server $CFLAGS"
+    LDFLAGS="-L${database_to_use}/lib -Wl,-R${database_to_use}/lib $LDFLAGS"
+  fi
+
+  AC_CHECK_HEADERS(libpq-fe.h, [], AC_MSG_ERROR([libpq headers required]))
+  AC_SEARCH_LIBS(PQexec, pq, [], AC_MSG_ERROR([libpq libs required]))
+  AC_DEFINE(LIBPQ, 1, [using PostgreSQL])
+  INTERFACE_OBJ="libpq_obj cfuncs_obj"
+  DBC="libpq"
+else
+  dnl ODBC Library (required)
+  dnl check for `odbcinit' in -lodbc, -liodbc
+  AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h, [],
+    [AC_MSG_ERROR([unixODBC or iODBC required])]
+  )
+  AC_SEARCH_LIBS(SQLDriverConnect, [odbc iodbc], [],
+    AC_MSG_ERROR([unixODBC or iODBC required])
+  )
+  AC_DEFINE(ODBC, 1, [using ODBC to SAPDB])
+  INTERFACE_OBJ="odbc_obj"
+  DBC="odbc"
+fi
+
+
+dnl Checks for header files.
 AC_HEADER_STDC
 
-dnl> Checks for typedefs, structures, and compiler characteristics.
+dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_HEADER_TIME
 AC_STRUCT_TM
 
-dnl> Checks for library functions.
+dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(gettimeofday socket)
 
-dnl> Large file support?
+dnl Large file support?
 AC_SYS_LARGEFILE
 
-dnl> Configuration options for different databases, PostgreSQL is default.
-database_to_use="pgsql"
-AC_ARG_WITH(postgres,
-	[  --with-postgresql       default, using libpq],
-	database_to_use="pgsql")
-AC_ARG_WITH(sapdb,
-	[  --with-sapdb            using ODBC],
-	database_to_use="sapdb")
 
-dnl> Set up rules depending on what database is selected.
-if test "x$database_to_use" = "xpgsql"; then
-	AC_CHECK_HEADERS(libpq-fe.h,
-		[],
-		[AC_CHECK_HEADERS(postgresql/libpq-fe.h,
-			[],
-			[AC_CHECK_HEADERS(/usr/local/pgsql/include/libpq-fe.h,
-                		[],
-                		[ AC_MSG_ERROR([libpq headers required]) ]) ]) ])
-	AC_SEARCH_LIBS(PQexec,
-		pq,
-		,
-		AC_MSG_ERROR([libpq libs required]))
-	AC_DEFINE(LIBPQ)
-	database_interface="interfaces/libpq/Makefile storedproc/pgsql/c/Makefile storedproc/pgsql/c/delivery.sql storedproc/pgsql/c/new_order.sql storedproc/pgsql/c/order_status.sql storedproc/pgsql/c/payment.sql storedproc/pgsql/c/stock_level.sql scripts/pgsql/load_stored_funcs.sh scripts/pgsql/db_stat.sh scripts/pgsql/db_plans.sh scripts/pgsql/load_db.sh scripts/pgsql/create_indexes.sh"
-	INTERFACE_OBJ="libpq_obj cfuncs_obj"
-	DB_OBJS="LIBPQ_OBJS"
-elif test "x$database_to_use" = "xsapdb"; then
-	dnl>
-	dnl> ODBC Library (required)
-	dnl> check for `odbcinit' in -lodbc, -liodbc
-	dnl>
-	AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h,
-		[],
-		[AC_MSG_ERROR([unixODBC or iODBC required])])
-	AC_SEARCH_LIBS(SQLDriverConnect,
-		odbc iodbc,
-		,
-		AC_MSG_ERROR([unixODBC or iODBC required]))
-	AC_DEFINE(ODBC)
-	database_interface="interfaces/odbc/Makefile"
-	INTERFACE_OBJ="odbc_obj"
-	DB_OBJS="ODBC_OBJS"
-else
-	AC_MSG_ERROR('You stink at autoconf!')
-fi
 AC_SUBST(INTERFACE_OBJ)
-AC_SUBST(DB_OBJS)
+AC_SUBST(DBC)
 
-
-TOPDIR=`pwd`
-AC_SUBST(TOPDIR)
 
 AC_OUTPUT([
-make.common
-Makefile
-$database_interface
-common/Makefile
-datagen/Makefile
-tools/Makefile
-terminal/Makefile
-terminal/Makefile.standalone
-client/Makefile
-client/Makefile.standalone
-interfaces/Makefile
-scripts/Makefile
-scripts/run_test.sh
-scripts/sysstats.sh
-scripts/transform_sar.sh
-scripts/run_workload.sh
-scripts/Linux/get_os_info.sh
+Makefile                            \
+src/Makefile                        \
+storedproc/Makefile                 \
+storedproc/pgsql/Makefile           \
+storedproc/pgsql/c/Makefile         \
+scripts/run_test.sh                 \
+scripts/sysstats.sh                 \
+scripts/transform_sar.sh            \
+scripts/run_workload.sh             \
+scripts/Linux/get_os_info.sh        \
+scripts/SunOS/get_os_info.sh        \
+storedproc/pgsql/c/delivery.sql     \
+storedproc/pgsql/c/new_order.sql    \
+storedproc/pgsql/c/order_status.sql \
+storedproc/pgsql/c/payment.sql      \
+storedproc/pgsql/c/stock_level.sql  \
+scripts/pgsql/init_env.sh           \
 ])

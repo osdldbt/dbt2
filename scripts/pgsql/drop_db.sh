@@ -7,9 +7,10 @@
 #
 # 01 May 2003
 
-. ./init_env.sh
+DIR=`dirname $0`
+. ${DIR}/init_env.sh || exit
 
-dropdb ${DB_NAME}
+$DROPDB ${DB_NAME}
 
 # Double check we have a value for PGDATA
 if [ -z ${PGDATA} ] ; then
@@ -17,6 +18,6 @@ if [ -z ${PGDATA} ] ; then
 	exit 1
 fi
 
-pg_ctl -D ${PGDATA} stop
+$PGCTL -D ${PGDATA} stop
 
 rm -r ${PGDATA}

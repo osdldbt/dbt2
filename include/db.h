@@ -10,6 +10,10 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "transaction_data.h"
 
 #ifdef ODBC

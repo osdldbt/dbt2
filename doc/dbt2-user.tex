@@ -19,7 +19,7 @@ Database Test 2 \\
 \Huge
 User's Guide \\
 \LARGE
-Version 0.21
+Version 0.22
 
 \begin{figure}[b]
 \flushleft
@@ -49,14 +49,16 @@ others.
 \noindent
 Contributors to this white paper include: \\
 \indent Mark Wong (OSDL) \\
-\indent Mary Edie Meredith (OSDL)
+\indent Mary Edie Meredith (OSDL) \\
+\indent Min Xu (UW-Madison)
 
 \pagebreak
 
 \section{Introduction}
 
 This document provides instructions on how to set up and use the Open Source
-Development Lab's Database Test 2 (OSDL-DBT-2) test kit.
+Development Lab's Database Test 2 (OSDL-DBT-2) test kit with either PostgreSQL
+or SAPDB DBMS.
 
 \section{Setup}
 
@@ -112,12 +114,23 @@ INDEX\_MAX\_KEYS must be set to 64.  Be sure to make this change before running
 the configure script for PostgreSQL.
 
 \noindent
-With PostgreSQL 7.4, it need to be built with a change in pg\_config\_manual.h
+With PostgreSQL 7.4, it need to be built with a change in src/include/pg\_config\_manual.h
 where INDEX\_MAX\_KEYS must be set to 64.
 
 \noindent
 The test kit also requies that all PostgreSQL header files are installed onto
 the system.  This is done by running: make install-all-headers.
+
+\noindent
+The installation is pretty standard. You just:
+
+\indent ./configure --prefix=<installation dir> \\
+\indent make \\
+\indent make install
+
+\noindent
+Please don't run ``initdb'' and start postmaster at this point. Our script will
+create the database and start the database engine for you.
 
 \subsubsection{OSDL-DBT-2 Test Kit Source}
 
@@ -141,8 +154,15 @@ The latest stable version of the kit can be found on SourceForge at: \\
 \paragraph{PostgreSQL}
 
 In the top level directory, dbt2/, run: \\
-\indent ./configure --with-postgresql \\
-\indent make
+\indent ./configure --prefix=<your installation dir> --with-postgresql=<pgsql
+installation dir> --with-getopt=<getopt installation dir> \\
+\indent make \\
+\indent make install
+
+Note, --with-getopt may not be needed for Linux system, but might be needed for
+Solaris. And ``make install'' is optional, can also choose to run everything
+(binary and scripts) from the source directory. (Currently, it is recommended
+not to ``make install'' and run everything from your build directory.
 
 \paragraph{SAP DB}
 
@@ -190,12 +210,23 @@ Create the datafiles for PostgreSQL: \\
 -w	& Then number of warehouses to build. \\
 \end{tabular}
 
-\indent create\_db.sh \\
-\indent load\_db.sh \\
-\indent run\_workload.sh -c \# -d \# -w \# \\
+\indent cd scripts/pgsql
+
+Review the setting in init\_env.sh. You may want to change the path where
+``psql'' resides. And you want to tell the script where do you want to put
+the new database. And tell the script where is your newly generated data.
+
+\indent bash create\_db.sh
+
+Review this script too. You may not need to run it at all if you already have
+postmaster running. You can just create the database manually.
+
+\indent bash load\_db.sh
+
+\indent bash run\_workload.sh -c \# -t \# -w \# \\
 \begin{tabular}[c]{ll}
 -c	& Number of database connections to open. \\
--d	& The duraction of the test in seconds. \\
+-t	& The duration of the test in seconds. \\
 -w	& Then number of warehouses in the database. \\
 \end{tabular}
 
@@ -205,7 +236,7 @@ The script dbt2/scripts/sapdb/create\_db\_sample.sh must be edited to
 configure the SAP DB devspaces.  The param\_adddevspaces commands need to be
 changed to match your system configuration.  Similarly, the backup\_media\_put
 commands also need to be changed to match your system configuration.  The
-script assumes the instance name to be "DBT2" .  Change the line "SID=DBT2"
+script assumes the instance name to be ``DBT2''.  Change the line ``SID=DBT2''
 if you need to change the instance name (in this an all the scripts).  Many
 other SAP DB parameters (e.g. MAXCPU) will need to be adjusted based on your
 system.
@@ -220,7 +251,7 @@ $<$outputdir$>$ is the directory in which the data files will be generated.
 This script will create the data files, create the database, the tables, load
 the database, create indexes, update database statistics, load the stored
 procedures, and backup the database.  This script assumes the instance name is
-"DBT2" so you need to edit the line ''SID=DBT2'' if you need to change the
+``DBT2'' so you need to edit the line ''SID=DBT2'' if you need to change the
 instance name.
 
 \noindent
@@ -371,7 +402,7 @@ the subdirectory in scripts/output where results are saved from the run.
 Under the numbered subdirectories in scripts/output, there are another set of
 numbered subdirectories corresponding to the number of drivers specified for
 the test, as indicated by the --drivers parameter to the run\_test.sh script.
-For example, if "-drivers" is set to 8 in run\_test.sh and the run number is
+For example, if ``-drivers'' is set to 8 in run\_test.sh and the run number is
 101, the results will be in script/output/101 and there will be subdirectories
 101/1, 101/2, 101/3, 101/4, 101/5, 101/6 101/7 and 101/8.  Each of these
 sub-directories will contain five files after a test is completed:

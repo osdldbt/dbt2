@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# start_db.sh
+# stop_db.sh
 #
 # This file is released under the terms of the Artistic License.  Please see
 # the file LICENSE, included in this package, for details.
@@ -10,9 +10,8 @@
 # 15 May 2003
 
 DIR=`dirname $0`
-
 . ${DIR}/init_env.sh || exit
 
 sleep 1
-pg_ctl -D $PGDATA stop
+$PGCTL -D $PGDATA stop
 sleep 1

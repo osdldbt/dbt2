@@ -1,6 +1,7 @@
 #!/bin/sh
 
-. init_env.sh
+DIR=`dirname $0`
+. ${DIR}/init_env.sh || exit
 
 while getopts "o:" opt; do
 	case $opt in

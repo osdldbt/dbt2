@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# init_env.sh
+# check_db.sh
 #
 # This file is released under the terms of the Artistic License.  Please see
 # the file LICENSE, included in this package, for details.
@@ -9,24 +9,25 @@
 #
 # 01 May 2003
 
-. ./init_env.sh
+DIR=`dirname $0`
+. ${DIR}/init_env.sh || exit
 
 # Load tables
 echo customer
-psql -d $DB_NAME -c "select count(*) from customer"
+$PSQL -d $DB_NAME -c "select count(*) from customer"
 echo district
-psql -d $DB_NAME -c "select count(*) from district"
+$PSQL -d $DB_NAME -c "select count(*) from district"
 echo history 
-psql -d $DB_NAME -c "select count(*) from history"
+$PSQL -d $DB_NAME -c "select count(*) from history"
 echo item    
-psql -d $DB_NAME -c "select count(*) from item"
+$PSQL -d $DB_NAME -c "select count(*) from item"
 echo new_order
-psql -d $DB_NAME -c "select count(*) from new_order"
+$PSQL -d $DB_NAME -c "select count(*) from new_order"
 echo order_line
-psql -d $DB_NAME -c "select count(*) from order_line"
+$PSQL -d $DB_NAME -c "select count(*) from order_line"
 echo orders  
-psql -d $DB_NAME -c "select count(*) from orders"
+$PSQL -d $DB_NAME -c "select count(*) from orders"
 echo stock   
-psql -d $DB_NAME -c "select count(*) from stock"
+$PSQL -d $DB_NAME -c "select count(*) from stock"
 echo warehouse
-psql -d $DB_NAME -c "select count(*) from warehouse"
+$PSQL -d $DB_NAME -c "select count(*) from warehouse"

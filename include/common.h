@@ -10,6 +10,10 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -20,6 +24,7 @@
 #define DB_USER "dbt"
 #define DB_PASS "dbt"
 #endif /* ODBC */
+
 #ifdef LIBPQ
 #define DB_NAME "dbt2"
 #endif /* LIBPQ */
