@@ -52,20 +52,23 @@ unsigned int seed = -1;
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
 
-int terminal_state[3][TRANSACTION_MAX] =
-	{ { 0, 0, 0, 0, 0 },
-	  { 0, 0, 0, 0, 0 },
-	  { 0, 0, 0, 0, 0 } };
-pthread_mutex_t mutex_terminal_state[3][TRANSACTION_MAX] =
-	{ { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-	    PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-	    PTHREAD_MUTEX_INITIALIZER },
-	  { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-	    PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-	    PTHREAD_MUTEX_INITIALIZER },
-	  { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-	    PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
-	    PTHREAD_MUTEX_INITIALIZER } };
+int terminal_state[3][TRANSACTION_MAX] = {
+	{ 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0 }
+};
+
+pthread_mutex_t mutex_terminal_state[3][TRANSACTION_MAX] = {
+	{ PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+		PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+		PTHREAD_MUTEX_INITIALIZER },
+	{ PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+		PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+		PTHREAD_MUTEX_INITIALIZER },
+	{ PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+		PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+		PTHREAD_MUTEX_INITIALIZER }
+};
 
 int init_driver()
 {
@@ -250,7 +253,7 @@ int start_driver()
 		if (mode_altered == 1)
 		{
 			/*
-			 * This effectively allows one client that can touch the entire
+			 * This effectively allows one client to touch the entire
 			 * warehouse range.  The setting of w_id and d_id is moot here.
 			 */
 			break;
@@ -434,13 +437,13 @@ void *terminal_worker(void *data)
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
 		++terminal_state[EXECUTING][client_data.transaction];
 		pthread_mutex_unlock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
-//#ifndef STANDALONE
+/* #ifndef STANDALONE */
 		/* Execute transaction and record the response time. */
 		if (gettimeofday(&rt0, NULL) == -1)
 		{
 			perror("gettimeofday");
 		}
-//#endif /* STANDALONE */
+/*#endif*/ /* STANDALONE */
 #ifdef STANDALONE
 		memcpy(&node->client_data, &client_data, sizeof(client_data));
 /*
@@ -521,7 +524,7 @@ void *terminal_worker(void *data)
 	while (time(NULL) < stop_time);
 
 #ifdef STANDALONE
-	//recycle_node(node);
+	/*recycle_node(node);*/
 #endif /* STANDALONE */
 
 	LOG_ERROR_MESSAGE("exiting normally...");
