@@ -1,0 +1,28 @@
+2003 August 6
+
+- Fixed the default stored procedures to work with 7.3.0.25.
+- Undid code to use nonblocking sockets, I just don't know how to do it right.
+- Fixed a bug with get_node() in listener.c.
+
+2003 August 5
+
+- Started using nonblocking sockets for communication with the client.
+- Added some more status information to the client.
+
+2003 August 4
+
+- Fixed db_setup.sh.in for sapdb to generate the correct data.
+- Fixed the tools directory Makefile.in for SAP DB.
+- Control the sleep time between openning connections to the client in
+  a multi-tier environment.  Maybe cause problems when attempting to drive
+  many many users.
+
+2003 August 1
+
+- Fixed funcs.c (the stored functions) to correctly escape a couple more
+  characters.
+
+2003 July 31
+
+- Fixed the client and driver to work in a multi-tier environment with
+  PostgreSQL.
