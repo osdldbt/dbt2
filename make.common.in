@@ -1,0 +1,12 @@
+# Makefile.in
+# 31 October 2002
+
+TOPDIR =		@TOPDIR@
+INCLUDEDIR = 	$(TOPDIR)/include
+
+CC =			@CC@
+CFLAGS =		-I$(TOPDIR)/include @CFLAGS@ @DEFS@ -DODBC
+LDFLAGS =		@LDFLAGS@ @LIBS@
+
+%.so:%.c Makefile ../make.common
+	$(CC) -c -shared -fpic $(CFLAGS) -o $@ $<
