@@ -19,6 +19,7 @@
 #include <semaphore.h>
 #include <ctype.h>
 #include <common.h>
+#include <string.h>
 #include <logging.h>
 #include <driver.h>
 #include <client_interface.h>
