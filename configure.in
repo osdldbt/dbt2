@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 867 2003-03-31 17:16:07Z fimath $)
+AC_REVISION($Id: configure.in 985 2003-05-09 16:22:04Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
@@ -38,7 +38,7 @@ fi
 
 AC_PATH_PROGS([SYSCTL], [sysctl], ,
              [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
-if test -z "$SAR"
+if test -z "$SYSCTL"
 then
  AC_MSG_ERROR([*** sysctl is required])
 fi
