@@ -1,0 +1,36 @@
+# Makefile.in
+# 31 October 2002
+
+include ../make.common
+
+OBJS =				driver.so input_data_generator.so
+COMMON_OBJS =		$(TOPDIR)/common/common.so \
+					$(TOPDIR)/common/logging.so \
+					$(TOPDIR)/common/_socket.so \
+					$(TOPDIR)/common/client_interface.so \
+					$(TOPDIR)/common/transaction_data.so \
+					$(TOPDIR)/client/db_threadpool.so \
+					$(TOPDIR)/client/transaction_queue.so \
+					$(TOPDIR)/client/listener.so \
+					$(TOPDIR)/interfaces/db.so \
+					$(TOPDIR)/interfaces/odbc/odbc_common.so \
+					$(TOPDIR)/interfaces/odbc/odbc_new_order.so \
+					$(TOPDIR)/interfaces/odbc/odbc_payment.so \
+					$(TOPDIR)/interfaces/odbc/odbc_order_status.so \
+					$(TOPDIR)/interfaces/odbc/odbc_delivery.so \
+					$(TOPDIR)/interfaces/odbc/odbc_stock_level.so
+CFLAGS =			-Wall -I$(TOPDIR)/include @CFLAGS@ @DEFS@ -DODBC \
+					-DSTANDALONE
+
+all: driver $(OBJS)
+
+driver.so: $(INCLUDEDIR)/common.h $(INCLUDEDIR)/driver.h 
+
+input_data_generator.so: $(INCLUDEDIR)/common.h \
+	$(INCLUDEDIR)/transaction_data.h $(INCLUDEDIR)/input_data_generator.h
+
+driver: ../make.common Makefile main.c $(OBJS) $(COMMON_OBJS)
+	$(CC) $(CFLAGS) main.c -o $@ $(OBJS) $(COMMON_OBJS) $(LDFLAGS)
+
+clean: 
+	rm -f driver $(OBJS)

@@ -28,4 +28,4 @@ AC_CHECK_FUNCS(gettimeofday socket)
 TOPDIR=`pwd`
 AC_SUBST(TOPDIR)
 
-AC_OUTPUT(make.common interfaces/odbc/Makefile Makefile common/Makefile datagen/Makefile tools/Makefile terminal/Makefile client/Makefile interfaces/Makefile)
+AC_OUTPUT(make.common interfaces/odbc/Makefile Makefile common/Makefile datagen/Makefile tools/Makefile terminal/Makefile terminal/Makefile.standalone client/Makefile client/Makefile.standalone interfaces/Makefile)

@@ -1,10 +1,16 @@
 # Makefile.in
 # 31 October 2002
 
-all: common_obj datagen_obj odbc_obj db_obj terminal_obj tools_obj client_obj
+all:		common_obj datagen_obj odbc_obj db_obj terminal_obj \
+		tools_obj client_obj
+standalone:	common_obj datagen_obj odbc_obj db_obj client_standalone_obj \
+		terminal_standalone_obj tools_obj client_standalone_obj
 
 client_obj:
 	cd client; $(MAKE)
+
+client_standalone_obj:
+	cd client; $(MAKE) -f Makefile.standalone
 
 common_obj:
 	cd common; $(MAKE)
@@ -23,6 +29,9 @@ tools_obj:
 
 terminal_obj:
 	cd terminal; $(MAKE)
+
+terminal_standalone_obj:
+	cd terminal; $(MAKE) -f Makefile.standalone
 
 clean:
 	cd common; $(MAKE) clean
