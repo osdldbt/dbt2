@@ -52,6 +52,8 @@ void *init_listener(void *data)
         int *s = (int *) data; /* Listener socket. */
         node_head = node_tail = NULL;
 
+        size_t stacksize = 131072; /* 128 kilobytes. */
+
         if (sem_init(&listener_worker_count, 0, 0) != 0) {
                 LOG_ERROR_MESSAGE("cannot init listener_worker_count");
                 printf("cannot init listener_worker_count, exiting...\n");
@@ -67,6 +69,8 @@ void *init_listener(void *data)
                 pthread_t tid;
                 struct transaction_queue_node_t *node;
 
+                pthread_attr_t attr;
+
                 /* Allocate some memory to pass to the new thread. */
                 node = (struct transaction_queue_node_t *)
                         malloc(sizeof(struct transaction_queue_node_t));
@@ -79,27 +83,34 @@ void *init_listener(void *data)
                 node->s = _accept(s);
                 if (node->s == -1) {
                         LOG_ERROR_MESSAGE(
-                                "_accept() failed, trying again...");
+                                        "_accept() failed, trying again...");
                         continue;
                 }
 
-                ret = pthread_create(&tid, NULL, &listener_worker,
+                if (pthread_attr_init(&attr) != 0) {
+                        LOG_ERROR_MESSAGE("could not init pthread attr");
+                        return ERROR;
+                }
+                if (pthread_attr_setstacksize(&attr, stacksize) != 0) {
+                       LOG_ERROR_MESSAGE("could not set pthread stack size");
+                       return ERROR;
+                }
+
+                ret = pthread_create(&tid, &attr, &listener_worker,
                         (void *) node);
                 if (ret != 0) {
                         close(node->s);
-                        LOG_ERROR_MESSAGE(
-                                "pthread_create() failed, closing socket and waiting for a new request");
+                        LOG_ERROR_MESSAGE("pthread_create() failed, closing socket and waiting for a new request");
                         if (ret == EAGAIN) {
                                 LOG_ERROR_MESSAGE(
                                         "not enough system resources");
-                        } else if (ret == EAGAIN) {
-                                LOG_ERROR_MESSAGE(
-                                        "more than PTHREAD_THREADS_MAX");
                         }
 
+                        pthread_attr_destroy(&attr);
                         continue;
                 }
                 sem_post(&listener_worker_count);
+                pthread_attr_destroy(&attr);
         }
 
         return NULL;        /* keep compiler quiet */
