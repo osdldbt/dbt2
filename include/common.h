@@ -92,9 +92,6 @@
 
 #define CLIENT_PORT 30000
 
-#define ERROR_LOG_NAME "error.log"
-#define LOG_ERROR_MESSAGE(arg...) log_error_message(__FILE__, __LINE__, ## arg)
-
 struct table_cardinality_t
 {
 	int warehouses;

@@ -30,25 +30,12 @@ const char *c_last_syl[C_LAST_SYL_MAX] =
 const char transaction_short_name[TRANSACTION_MAX] =
 	{ 'd', 'n', 'o', 'p', 's' };
 
-FILE *log_error;
-pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
-
 struct table_cardinality_t table_cardinality;
 
 double difftimeval(struct timeval rt1, struct timeval rt0)
 {
 	return (rt1.tv_sec - rt0.tv_sec) +
 		(double) (rt1.tv_usec - rt0.tv_usec) / 1000000.00;
-}
-
-int edump(int type, void *data)
-{
-	pthread_mutex_lock(&mutex_error_log);
-	fprintf(log_error, "[%d]\n", pthread_self());
-	dump(log_error, type, data);
-	pthread_mutex_unlock(&mutex_error_log);
-
-	return OK;
 }
 
 /* Clause 4.3.2.2.  */
@@ -186,35 +173,5 @@ int init_common()
 		a_string_char[j++] = (char) i;
 	}
 	
-	/* Open a file to log errors to. */
-	log_error = fopen(ERROR_LOG_NAME, "w");
-	if (log_error == NULL)
-	{
-		fprintf(stderr, "cannot open %s\n", ERROR_LOG_NAME);
-		return ERROR;
-	}
-
-	return OK;
-}
-
-int log_error_message(char *filename, int line, const char *fmt, ...)
-{
-	va_list fmtargs;
-	time_t t;
-	FILE *of = (log_error) ? log_error: stderr;
-
-	/* Print the error message(s) */
-	t = time(NULL);
-	va_start(fmtargs, fmt);
-
-	pthread_mutex_lock(&mutex_error_log);
-	fprintf(of, "%stid:%d %s:%d\n", ctime(&t), pthread_self(), filename, line);
-	va_start(fmtargs, fmt);
-	vfprintf(of, fmt, fmtargs);
-	va_end(fmtargs);
-	fprintf(of, "\n");
-	fflush(log_error);
-	pthread_mutex_unlock(&mutex_error_log);
-
 	return OK;
 }
