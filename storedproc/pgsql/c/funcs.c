@@ -527,12 +527,13 @@ Datum new_order(PG_FUNCTION_ARGS)
 		PG_RETURN_INT32(13);
 	}
 
+	sprintf(query, NEW_ORDER_5, d_next_o_id, w_id, d_id);
 #ifdef DEBUG
 	elog(NOTICE, "%d %s", (int) getpid(), query);
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
-		elog(NOTICE, "NEW_ORDER_5 failed");
+		elog(NOTICE, "NEW_ORDER_5 failed %d", ret);
 		PG_RETURN_INT32(14);
 	}
 

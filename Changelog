@@ -1,3 +1,11 @@
+v0.20
+
+- Fixed a bug in the New-Order transaction that was introduced into v0.19
+  by accident.
+
+v0.19
+
+- Fixed a query in the New-Order transaction to reduce the number of rollbacks.
 v0.18
 
 - Fixed a bug in the driver regarding the assignmen of warehouse id's to each
