@@ -31,6 +31,17 @@ int connect_to_db(struct db_context_t *dbc) {
 	return OK;
 }
 
+int db_init(char *sname, char *uname, char *auth)
+{
+	int rc;
+
+#ifdef ODBC
+	rc = odbc_init(sname, uname, auth);
+#endif /* ODBC */
+
+	return OK;
+}
+
 int disconnect_from_db(struct db_context_t *dbc) {
 	int rc;
 

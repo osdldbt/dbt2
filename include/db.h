@@ -16,6 +16,7 @@
 #endif /* ODBC */
 
 int connect_to_db(struct db_context_t *dbc);
+int db_init(char *sname, char *uname, char *auth);
 int disconnect_from_db(struct db_context_t *dbc);
 int process_transaction(int transaction, struct db_context_t *dbc,
 	union transaction_data_t *odbct);
