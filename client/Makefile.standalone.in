@@ -9,13 +9,7 @@ COMMON_OBJS =	$(TOPDIR)/common/common.so \
 		$(TOPDIR)/common/_socket.so \
 		$(TOPDIR)/common/client_interface.so \
 		$(TOPDIR)/common/transaction_data.so
-INTERFACE_OBJS =	$(TOPDIR)/interfaces/db.so
-ODBC_OBJS =	$(TOPDIR)/interfaces/odbc/odbc_common.so \
-		$(TOPDIR)/interfaces/odbc/odbc_new_order.so \
-		$(TOPDIR)/interfaces/odbc/odbc_payment.so \
-		$(TOPDIR)/interfaces/odbc/odbc_order_status.so \
-		$(TOPDIR)/interfaces/odbc/odbc_delivery.so \
-		$(TOPDIR)/interfaces/odbc/odbc_stock_level.so
+INTERFACE_OBJS =	$(TOPDIR)/interfaces/db.so $(DB_OBJS)
 CFLAGS =	-Wall -I$(TOPDIR)/include @CFLAGS@ @DEFS@ -DSTANDALONE
 
 all: $(OBJS) 
