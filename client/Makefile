@@ -3,7 +3,7 @@
 
 include ../common.mk
 
-all: db_threadpool.so client
+all: listener.so db_threadpool.so client
 
 client: Makefile main.c \
 	../Makefile ../common.mk \
@@ -11,6 +11,7 @@ client: Makefile main.c \
 	../include/_socket.h ../common/_socket.so
 	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) main.c -o client \
 		db_threadpool.so \
+		listener.so \
 		../common/common.so \
 		../common/_socket.so \
 		../interfaces/odbc/odbc_common.so \
@@ -18,6 +19,9 @@ client: Makefile main.c \
 		-lpthread -lm
 
 db_threadpool.so: Makefile db_threadpool.c ../include/db_threadpool.h \
+	../Makefile ../common.mk
+
+listener.so: Makefile listener.c ../include/listener.h \
 	../Makefile ../common.mk
 
 clean: 
