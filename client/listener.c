@@ -48,7 +48,6 @@ struct transaction_queue_node_t *get_node()
 void *init_listener(void *data)
 {
 	int *s = (int *) data; /* Listener socket. */
-	int sockfd; /* Socket to terminal. */
 	node_head = node_tail = NULL;
 
 	if (sem_init(&listener_worker_count, 0, 0) != 0)
@@ -66,17 +65,23 @@ void *init_listener(void *data)
 	while (!exiting)
 	{
 		pthread_t tid;
+		struct transaction_queue_node_t *node;
 
-		sockfd = _accept(s);
-		if (sockfd == -1)
+		/* Allocate some memory to pass to the new thread. */
+		node = (struct transaction_queue_node_t *)
+			malloc(sizeof(struct transaction_queue_node_t));
+
+		node->s = _accept(s);
+		if (node->s == -1)
 		{
 			LOG_ERROR_MESSAGE("_accept() failed, trying again...\n");
 			continue;
 		}
-		if (pthread_create(&tid, NULL, &listener_worker, &sockfd) != 0)
+
+		if (pthread_create(&tid, NULL, &listener_worker, (void *) node) != 0)
 		{
 			LOG_ERROR_MESSAGE("pthread_create() failed, closing socket and waiting for a new request\n");
-			close(sockfd);
+			close(node->s);
 			continue;
 		}
 		sem_post(&listener_worker_count);
@@ -86,16 +91,12 @@ void *init_listener(void *data)
 void *listener_worker(void *data)
 {
 	int rc;
+	struct transaction_queue_node_t *node =
+		(struct transaction_queue_node_t *) data;
 
-	/* Create a chunk of memory for each worker that is started. */
-	struct transaction_queue_node_t *node;
-	node = (struct transaction_queue_node_t *)
-		malloc(sizeof(struct transaction_queue_node_t));
-
-	node->s = (int *) data;
 	while (!exiting)
 	{
-		rc = receive_transaction_data(*node->s, &node->client_data);
+		rc = receive_transaction_data(node->s, &node->client_data);
 		if (rc == ERROR_SOCKET_CLOSED)
 		{
 			LOG_ERROR_MESSAGE("exiting...");
@@ -112,6 +113,10 @@ void *listener_worker(void *data)
 		/* Queue up the transaction data to be processed. */
 		enqueue_transaction(node);
 		node = get_node();
+		if (node == NULL)
+		{
+			LOG_ERROR_MESSAGE("Cannot get a transaction node.\n");
+		}
 	}
 }
 
