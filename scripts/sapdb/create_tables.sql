@@ -14,4 +14,4 @@ sql_execute create table order_line ( ol_o_id fixed(8), ol_d_id fixed(2), ol_w_i
 
 sql_execute create table item ( i_id fixed(6), i_im_id fixed(6), i_name varchar(24), i_price fixed(10, 5), i_data varchar(50), primary key(i_id) )
 
-sql_execute create table stock ( s_i_id fixed(6), s_w_id fixed(9), s_quantity fixed(4), s_dist_01 varchar(24), s_dist_02 varchar(24), s_dist_03 varchar(24), s_dist_04 varchar(24), s_dist_05 varchar(24), s_dist_06 varchar(24), s_dist_07 varchar(24), s_dist_08 varchar(24), s_dist_09 varchar(24), s_dist_10 varchar(24), s_ytd fixed(16, 8), s_order_cnt fixed(8, 4), s_remote_cnt fixed(8, 4), s_data varchar(50), primary key(s_w_id, s_i_id) )
+sql_execute create table stock ( s_i_id fixed(6), s_w_id fixed(9), s_quantity fixed(4), s_dist_01 varchar(24), s_dist_02 varchar(24), s_dist_03 varchar(24), s_dist_04 varchar(24), s_dist_05 varchar(24), s_dist_06 varchar(24), s_dist_07 varchar(24), s_dist_08 varchar(24), s_dist_09 varchar(24), s_dist_10 varchar(24), s_ytd fixed(16, 8), s_order_cnt fixed(8, 4), s_remote_cnt fixed(8, 4), s_data varchar(50), primary key(s_w_id, s_i_id, s_quantity) )
