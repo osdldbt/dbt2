@@ -14,52 +14,56 @@ OUT c_first VARCHAR(16), OUT c_middle char(2), INOUT c_last VARCHAR(16),
 OUT c_balance FIXED(24, 12), OUT o_id FIXED(8), OUT o_carrier_id FIXED(2),
 OUT o_entry_d VARCHAR(28), OUT o_ol_cnt FIXED(2),
 OUT ol_supply_w_id1 FIXED(9), OUT ol_i_id1 FIXED(6),
-OUT ol_quantity1 FIXED(2), OUT ol_amount1 FIXED(12, 6),
+OUT ol_quantity1 FIXED(4), OUT ol_amount1 FIXED(12, 6),
 OUT ol_delivery_d1 VARCHAR(28),
 OUT ol_supply_w_id2 FIXED(9), OUT ol_i_id2 FIXED(6),
-OUT ol_quantity2 FIXED(2), OUT ol_amount2 FIXED(12, 6),
+OUT ol_quantity2 FIXED(4), OUT ol_amount2 FIXED(12, 6),
 OUT ol_delivery_d2 VARCHAR(28),
 OUT ol_supply_w_id3 FIXED(9), OUT ol_i_id3 FIXED(6),
-OUT ol_quantity3 FIXED(2), OUT ol_amount3 FIXED(12, 6),
+OUT ol_quantity3 FIXED(4), OUT ol_amount3 FIXED(12, 6),
 OUT ol_delivery_d3 VARCHAR(28),
 OUT ol_supply_w_id4 FIXED(9), OUT ol_i_id4 FIXED(6),
-OUT ol_quantity4 FIXED(2), OUT ol_amount4 FIXED(12, 6),
+OUT ol_quantity4 FIXED(4), OUT ol_amount4 FIXED(12, 6),
 OUT ol_delivery_d4 VARCHAR(28),
 OUT ol_supply_w_id5 FIXED(9), OUT ol_i_id5 FIXED(6),
-OUT ol_quantity5 FIXED(2), OUT ol_amount5 FIXED(12, 6),
+OUT ol_quantity5 FIXED(4), OUT ol_amount5 FIXED(12, 6),
 OUT ol_delivery_d5 VARCHAR(28),
 OUT ol_supply_w_id6 FIXED(9), OUT ol_i_id6 FIXED(6),
-OUT ol_quantity6 FIXED(2), OUT ol_amount6 FIXED(12, 6),
+OUT ol_quantity6 FIXED(4), OUT ol_amount6 FIXED(12, 6),
 OUT ol_delivery_d6 VARCHAR(28),
 OUT ol_supply_w_id7 FIXED(9), OUT ol_i_id7 FIXED(6),
-OUT ol_quantity7 FIXED(2), OUT ol_amount7 FIXED(12, 6),
+OUT ol_quantity7 FIXED(4), OUT ol_amount7 FIXED(12, 6),
 OUT ol_delivery_d7 VARCHAR(28),
 OUT ol_supply_w_id8 FIXED(9), OUT ol_i_id8 FIXED(6),
-OUT ol_quantity8 FIXED(2), OUT ol_amount8 FIXED(12, 6),
+OUT ol_quantity8 FIXED(4), OUT ol_amount8 FIXED(12, 6),
 OUT ol_delivery_d8 VARCHAR(28),
 OUT ol_supply_w_id9 FIXED(9), OUT ol_i_id9 FIXED(6),
-OUT ol_quantity9 FIXED(2), OUT ol_amount9 FIXED(12, 6),
+OUT ol_quantity9 FIXED(4), OUT ol_amount9 FIXED(12, 6),
 OUT ol_delivery_d9 VARCHAR(28),
 OUT ol_supply_w_id10 FIXED(9), OUT ol_i_id10 FIXED(6),
-OUT ol_quantity10 FIXED(2), OUT ol_amount10 FIXED(12, 6),
+OUT ol_quantity10 FIXED(4), OUT ol_amount10 FIXED(12, 6),
 OUT ol_delivery_d10 VARCHAR(28),
 OUT ol_supply_w_id11 FIXED(9), OUT ol_i_id11 FIXED(6),
-OUT ol_quantity11 FIXED(2), OUT ol_amount11 FIXED(12, 6),
+OUT ol_quantity11 FIXED(4), OUT ol_amount11 FIXED(12, 6),
 OUT ol_delivery_d11 VARCHAR(28),
 OUT ol_supply_w_id12 FIXED(9), OUT ol_i_id12 FIXED(6),
-OUT ol_quantity12 FIXED(2), OUT ol_amount12 FIXED(12, 6),
+OUT ol_quantity12 FIXED(4), OUT ol_amount12 FIXED(12, 6),
 OUT ol_delivery_d12 VARCHAR(28),
 OUT ol_supply_w_id13 FIXED(9), OUT ol_i_id13 FIXED(6),
-OUT ol_quantity13 FIXED(2), OUT ol_amount13 FIXED(12, 6),
+OUT ol_quantity13 FIXED(4), OUT ol_amount13 FIXED(12, 6),
 OUT ol_delivery_d13 VARCHAR(28),
 OUT ol_supply_w_id14 FIXED(9), OUT ol_i_id14 FIXED(6),
-OUT ol_quantity14 FIXED(2), OUT ol_amount14 FIXED(12, 6),
+OUT ol_quantity14 FIXED(4), OUT ol_amount14 FIXED(12, 6),
 OUT ol_delivery_d14 VARCHAR(28),
 OUT ol_supply_w_id15 FIXED(9), OUT ol_i_id15 FIXED(6),
-OUT ol_quantity15 FIXED(2), OUT ol_amount15 FIXED(12, 6),
+OUT ol_quantity15 FIXED(4), OUT ol_amount15 FIXED(12, 6),
 OUT ol_delivery_d15 VARCHAR(28))
 AS
 SUBTRANS BEGIN;
+  SET o_ol_cnt = 0;
+  SET o_id = 0;
+  SET o_carrier_id = 0;
+  SET o_entry_d = '';
   SET ol_supply_w_id1 = 0;
   SET ol_i_id1 = 0;
   SET ol_quantity1 = 0;
@@ -159,101 +163,103 @@ SUBTRANS BEGIN;
     AND o_d_id = :c_d_id
     AND o_c_id = :c_id
   ORDER BY o_id DESC;
-  FETCH INTO :o_id, :o_carrier_id, :o_entry_d;
-  SET o_ol_cnt = 0;
-  SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,
-         CHAR(ol_delivery_d, ISO)
-  FROM dbt.order_line
-  WHERE ol_o_id = :o_id
-    AND ol_w_id = :c_w_id
-    AND ol_d_id = :c_d_id;
-  IF $rc = 0 THEN 
+  IF $rc = 0 THEN
     BEGIN
-      FETCH INTO :ol_i_id1, :ol_supply_w_id1, :ol_quantity1, :ol_amount1,
-                 :ol_delivery_d1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id2, :ol_supply_w_id2, :ol_quantity2, :ol_amount2,
-                 :ol_delivery_d2;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id3, :ol_supply_w_id3, :ol_quantity3, :ol_amount3,
-                 :ol_delivery_d3;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id4, :ol_supply_w_id4, :ol_quantity4, :ol_amount4,
-                 :ol_delivery_d4;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id5, :ol_supply_w_id5, :ol_quantity5, :ol_amount5,
-                 :ol_delivery_d5;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id6, :ol_supply_w_id6, :ol_quantity6, :ol_amount6,
-                 :ol_delivery_d6;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id7, :ol_supply_w_id7, :ol_quantity7, :ol_amount7,
-                 :ol_delivery_d7;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id8, :ol_supply_w_id8, :ol_quantity8, :ol_amount8,
-                 :ol_delivery_d8;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id9, :ol_supply_w_id9, :ol_quantity9, :ol_amount9,
-                 :ol_delivery_d9;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id10, :ol_supply_w_id10, :ol_quantity10, :ol_amount10,
-                 :ol_delivery_d10;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id11, :ol_supply_w_id11, :ol_quantity11, :ol_amount11,
-                 :ol_delivery_d11;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id12, :ol_supply_w_id12, :ol_quantity12, :ol_amount12,
-                 :ol_delivery_d12;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id13, :ol_supply_w_id13, :ol_quantity13, :ol_amount13,
-                 :ol_delivery_d13;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id14, :ol_supply_w_id14, :ol_quantity14, :ol_amount14,
-                 :ol_delivery_d14;
-      SET o_ol_cnt = o_ol_cnt + 1;
-    END;
-  IF $rc = 0 THEN 
-    BEGIN
-      FETCH INTO :ol_i_id15, :ol_supply_w_id15, :ol_quantity15, :ol_amount15,
-                 :ol_delivery_d15;
-      SET o_ol_cnt = o_ol_cnt + 1;
+      FETCH INTO :o_id, :o_carrier_id, :o_entry_d;
+      SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,
+             CHAR(ol_delivery_d, ISO)
+      FROM dbt.order_line
+      WHERE ol_o_id = :o_id
+        AND ol_w_id = :c_w_id
+        AND ol_d_id = :c_d_id;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id1, :ol_supply_w_id1, :ol_quantity1, :ol_amount1,
+                     :ol_delivery_d1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id2, :ol_supply_w_id2, :ol_quantity2, :ol_amount2,
+                     :ol_delivery_d2;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id3, :ol_supply_w_id3, :ol_quantity3, :ol_amount3,
+                     :ol_delivery_d3;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id4, :ol_supply_w_id4, :ol_quantity4, :ol_amount4,
+                     :ol_delivery_d4;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id5, :ol_supply_w_id5, :ol_quantity5, :ol_amount5,
+                     :ol_delivery_d5;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id6, :ol_supply_w_id6, :ol_quantity6, :ol_amount6,
+                     :ol_delivery_d6;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id7, :ol_supply_w_id7, :ol_quantity7, :ol_amount7,
+                     :ol_delivery_d7;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id8, :ol_supply_w_id8, :ol_quantity8, :ol_amount8,
+                     :ol_delivery_d8;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id9, :ol_supply_w_id9, :ol_quantity9, :ol_amount9,
+                     :ol_delivery_d9;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id10, :ol_supply_w_id10, :ol_quantity10,
+                     :ol_amount10, :ol_delivery_d10;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id11, :ol_supply_w_id11, :ol_quantity11,
+                     :ol_amount11, :ol_delivery_d11;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id12, :ol_supply_w_id12, :ol_quantity12,
+                     :ol_amount12, :ol_delivery_d12;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id13, :ol_supply_w_id13, :ol_quantity13,
+                     :ol_amount13, :ol_delivery_d13;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id14, :ol_supply_w_id14, :ol_quantity14,
+                     :ol_amount14, :ol_delivery_d14;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
+      IF $rc = 0 THEN 
+        BEGIN
+          FETCH INTO :ol_i_id15, :ol_supply_w_id15, :ol_quantity15,
+                     :ol_amount15, :ol_delivery_d15;
+          SET o_ol_cnt = o_ol_cnt + 1;
+        END;
     END;
 SUBTRANS END;;
