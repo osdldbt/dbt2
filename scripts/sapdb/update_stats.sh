@@ -1,13 +1,15 @@
 #!/bin/sh
 
+SID=DBT2
 SAPDBBINDIR=/opt/sapdb/depend/bin
+export PATH=$PATH:$SAPDBBINDIR
 
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics warehouse
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics district
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics customer
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics history
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics new_order
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics orders
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics order_line
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics item
-$SAPDBBINDIR/dbmcli -d DBT2 -u dba,dba -uSQL dbt,dbt sql_execute update statistics stock
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics warehouse
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics district
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics customer
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics history
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics new_order
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics orders
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics order_line
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics item
+dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute update statistics stock
