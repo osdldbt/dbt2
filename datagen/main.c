@@ -18,7 +18,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <semaphore.h>
 #include <common.h>
 
 #define CUSTOMER_DATA "customer.data"
@@ -50,8 +49,6 @@ int items = ITEM_CARDINALITY;
 int orders = ORDER_CARDINALITY;
 int new_orders = NEW_ORDER_CARDINALITY;
 
-sem_t sem;
-
 /* Clause 4.3.3.1 */
 void *gen_customers(void *data)
 {
@@ -63,7 +60,6 @@ void *gen_customers(void *data)
 	char filename[1024];
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating customer table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -72,7 +68,7 @@ void *gen_customers(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, CUSTOMER_DATA);
-	output = fopen64(filename, "w");
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", CUSTOMER_DATA);
@@ -205,7 +201,6 @@ void *gen_customers(void *data)
 	}
 	fclose(output);
 	printf("Finished customer table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -218,7 +213,6 @@ void *gen_districts(void *data)
 	char filename[1024];
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating district table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -227,7 +221,7 @@ void *gen_districts(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, DISTRICT_DATA);
-	output = fopen64(filename, "w");
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", DISTRICT_DATA);
@@ -292,7 +286,6 @@ void *gen_districts(void *data)
 	}
 	fclose(output);
 	printf("Finished district table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -307,7 +300,6 @@ void *gen_history(void *data)
 	char filename[1024];
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating history table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -316,7 +308,7 @@ void *gen_history(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, HISTORY_DATA);
-	output = fopen64(filename, "w");
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", HISTORY_DATA);
@@ -375,7 +367,6 @@ void *gen_history(void *data)
 	}
 	fclose(output);
 	printf("Finished history table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -389,7 +380,6 @@ void *gen_items(void *data)
 	char filename[1024];
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating item table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -398,7 +388,7 @@ void *gen_items(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, ITEM_DATA);
-	output = fopen64(filename, "w");
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", ITEM_DATA);
@@ -437,7 +427,6 @@ void *gen_items(void *data)
 	}
 	fclose(output);
 	printf("Finished item table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -449,7 +438,6 @@ void *gen_new_orders(void *data)
 	char filename[1024];
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating new-order table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -458,7 +446,7 @@ void *gen_new_orders(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, NEW_ORDER_DATA);
-	output = fopen64(filename, "w");
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", NEW_ORDER_DATA);
@@ -489,7 +477,6 @@ void *gen_new_orders(void *data)
 	}
 	fclose(output);
 	printf("Finished new-order table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -517,7 +504,6 @@ void *gen_orders(void *data)
 	int o_ol_cnt;
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating order and order-line table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -526,7 +512,7 @@ void *gen_orders(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, ORDER_DATA);
-	order = fopen64(filename, "w");
+	order = fopen(filename, "w");
 	if (order == NULL)
 	{
 		printf("cannot open %s\n", ORDER_DATA);
@@ -539,7 +525,7 @@ void *gen_orders(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, ORDER_LINE_DATA);
-	order_line = fopen64(filename, "w");
+	order_line = fopen(filename, "w");
 	if (order_line == NULL)
 	{
 		printf("cannot open %s\n", ORDER_LINE_DATA);
@@ -723,7 +709,6 @@ void *gen_orders(void *data)
 	fclose(order);
 	fclose(order_line);
 	printf("Finished order and order-line table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -736,7 +721,6 @@ void *gen_stock(void *data)
 	char filename[1024];
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating stock table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -745,7 +729,7 @@ void *gen_stock(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, STOCK_DATA);
-	output = fopen64(filename, "w");
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", STOCK_DATA);
@@ -844,7 +828,6 @@ void *gen_stock(void *data)
 	}
 	fclose(output);
 	printf("Finished stock table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -857,7 +840,6 @@ void *gen_warehouses(void *data)
 	char filename[1024];
 
 	srand(0);
-	sem_post(&sem);
 	printf("Generating warehouse table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -866,7 +848,7 @@ void *gen_warehouses(void *data)
 		strcat(filename, "/");
 	}
 	strcat(filename, WAREHOUSE_DATA);
-	output = fopen64(filename, "w");
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", WAREHOUSE_DATA);
@@ -920,7 +902,6 @@ void *gen_warehouses(void *data)
 	}
 	fclose(output);
 	printf("Finished warehouse table data...\n");
-	sem_wait(&sem);
 	return NULL;
 }
 
@@ -931,8 +912,6 @@ int main(int argc, char *argv[])
 	char pwd[256];
 	char cmd[256];
 	pthread_t t1, t2, t3, t4, t5, t6, t7, t8;
-
-	int sem_val;
 
 	init_common();
 
@@ -1014,12 +993,6 @@ int main(int argc, char *argv[])
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 
-	if (sem_init(&sem, 0, 0) != 0)
-	{
-		perror("sem_init");
-		return 1;
-	}
-
 	if (pthread_create(&t1, NULL, gen_items, NULL) != 0)
 	{
 		perror("pthread_create");
@@ -1060,12 +1033,15 @@ int main(int argc, char *argv[])
 		perror("pthread_create");
 	}
 
-	do
-	{
-		sleep(10);
-		sem_getvalue(&sem, &sem_val);
-	} while (sem_val > 0);
-	sem_destroy(&sem);
+    /* I'm silly so I'll just go through each pthread handle. */
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+    pthread_join(t3, NULL);
+    pthread_join(t4, NULL);
+    pthread_join(t5, NULL);
+    pthread_join(t6, NULL);
+    pthread_join(t7, NULL);
+    pthread_join(t8, NULL);
 
 	/*
 	 * In my environment, I don't have enough /tmp space to put the data files
