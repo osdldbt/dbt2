@@ -33,7 +33,7 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 		data->c_last, data->h_amount);
 	res = PQexec(dbc->conn, stmt);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("SELECT failed\n");
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;
 	}

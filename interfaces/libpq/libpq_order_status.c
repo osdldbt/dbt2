@@ -32,7 +32,7 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 		data->c_id, data->c_w_id, data->c_d_id, data->c_last);
 	res = PQexec(dbc->conn, stmt);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("SELECT failed\n");
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;
 	}
