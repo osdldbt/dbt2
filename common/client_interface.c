@@ -42,8 +42,10 @@ int receive_transaction_data(int s, struct client_transaction_t *client_data)
 
 int send_transaction_data(int s, struct client_transaction_t *client_data)
 {
-	if (_send(s, (void *) client_data,
-		sizeof(struct client_transaction_t)) == -1)
+	int length;
+
+	if ((length = _send(s, (void *) client_data,
+		sizeof(struct client_transaction_t))) == -1)
 	{
 		LOG_ERROR_MESSAGE("cannot send transaction data");
 		return ERROR;
