@@ -14,8 +14,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
+#include <semaphore.h>
 #include <common.h>
 #include <driver.h>
+#include <client_interface.h>
+#include <input_data_generator.h>
 
 #define MIX_LOG_NAME "mix.log"
 
@@ -24,10 +27,11 @@ void *terminal_worker(void *data);
 /* Global Variables */
 struct transaction_mix_t transaction_mix;
 char hostname[32];
-int port = CLIENT_PORT;
+int client_port = CLIENT_PORT;
 int terminals = 0; /* The number of terminals to emulate. */
 int duration = 0;
 int stop_time;
+sem_t terminal_count;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
@@ -38,6 +42,12 @@ int init_driver()
 	transaction_mix.order_status_actual = MIX_ORDER_STATUS;
 	transaction_mix.payment_actual = MIX_PAYMENT;
 	transaction_mix.stock_level_actual = MIX_STOCK_LEVEL;
+
+	if (sem_init(&terminal_count, 0, 0) != 0)
+	{
+		LOG_ERROR_MESSAGE("cannot set_init() terminal_count");
+		return ERROR;
+	}
 
 	log_mix = fopen(MIX_LOG_NAME, "w");
 	if (log_mix == NULL)
@@ -85,6 +95,18 @@ int recalculate_mix()
 		transaction_mix.delivery_threshold +
 		transaction_mix.stock_level_actual;
 
+	return OK;
+}
+
+int set_client_hostname(char *addr)
+{
+	strcpy(hostname, addr);
+	return OK;
+}
+
+int set_client_port(int port)
+{
+	client_port = port;
 	return OK;
 }
 
@@ -158,7 +180,7 @@ int set_transaction_mix(int transaction, double mix)
 int start_driver()
 {
 	int i;
-	pthread_t last_tid;
+	int count;
 
 	printf("starting %d terminal(s)...\n", terminals);
 	for (i = 0; i < terminals; i++)
@@ -170,17 +192,25 @@ int start_driver()
 			LOG_ERROR_MESSAGE("error creating terminal thread");
 			return ERROR;
 		}
-		last_tid = tid;
+#ifdef DEBUG
+		LOG_ERROR_MESSAGE("[%d] starting thread %d", i, tid);
+#endif /* DEBUG */
+		sleep(1);
 	}
 	printf("terminals started...\n", terminals);
-	pthread_join (last_tid, NULL);
+	do
+	{
+		sem_getvalue(&terminal_count, &count);
+		sleep(1);
+	}
+	while (count > 0);
 
 	return OK;
 }
 
 void *terminal_worker(void *data)
 {
-	int transaction;
+	struct client_transaction_t client_data;
 	double threshold;
 	int keying_time;
 	struct timespec think_time, rem;
@@ -188,6 +218,36 @@ void *terminal_worker(void *data)
 	struct timeval rt0, rt1;
 	double response_time;
 	extern int errno;
+	int w_id, d_id;
+	int sockfd;
+
+	srand(time(NULL) + pthread_self());
+
+	sem_post(&terminal_count);
+
+	/* Connect to the client program. */
+	sockfd = connect_to_client(hostname, client_port);
+	if (sockfd < 1)
+	{
+		LOG_ERROR_MESSAGE("connect_to_client() failed, thread exiting...\n");
+		pthread_exit(NULL);
+	}
+
+	/* Randomly select a w_id to use throughout the run. */
+	w_id = get_random(table_cardinality.warehouses) + 1;
+#ifdef DEBUG
+	LOG_ERROR_MESSAGE("w_id = %d", w_id);
+#endif /* DEBUG */
+
+	/*
+	 * Clause 2.8.1.1
+	 * The pair (w_id, d_id) for a terminal is supposed to be unique.
+	 * We're just generating a d_id randomly.
+	 */
+	d_id = get_random(D_ID_MAX) + 1;
+#ifdef DEBUG
+	LOG_ERROR_MESSAGE("d_id = %d", d_id);
+#endif /* DEBUG */
 
 	while (time(NULL) < stop_time)
 	{
@@ -195,30 +255,30 @@ void *terminal_worker(void *data)
 		threshold = get_percentage();
 		if (threshold < transaction_mix.new_order_threshold)
 		{
-			transaction = NEW_ORDER;
+			client_data.transaction = NEW_ORDER;
 		}
 		else if (threshold < transaction_mix.payment_threshold)
 		{
-			transaction = PAYMENT;
+			client_data.transaction = PAYMENT;
 		}
 		else if (threshold < transaction_mix.order_status_threshold)
 		{
-			transaction = ORDER_STATUS;
+			client_data.transaction = ORDER_STATUS;
 		}
 		else if (threshold < transaction_mix.delivery_threshold)
 		{
-			transaction = DELIVERY;
+			client_data.transaction = DELIVERY;
 		}
 		else
 		{
-			transaction = STOCK_LEVEL;
+			client_data.transaction = STOCK_LEVEL;
 		}
 
 		/*
 		 * Determine minimum keying time and mean think time based on the
-		 * transaction.
+		 * transaction to execute.
 		 */
-		switch (transaction)
+		switch (client_data.transaction)
 		{
 			case DELIVERY:
 				keying_time = 2;
@@ -242,14 +302,33 @@ void *terminal_worker(void *data)
 				break;
 		}
 
+#ifdef DEBUG
+		LOG_ERROR_MESSAGE("executing transaction %c", 
+			transaction_short_name[client_data.transaction]);
+#endif /* DEBUG */
+
+		/* Generate the input data for the transaction. */
+		if (client_data.transaction != STOCK_LEVEL)
+		{
+			generate_input_data(client_data.transaction,
+				&client_data.transaction_data, w_id);
+		}
+		else
+		{
+			generate_input_data2(client_data.transaction,
+				&client_data.transaction_data, w_id, d_id);
+		}
+
 		/* Keying time... */
 		sleep(keying_time);
 
-		/* Execute transaction. */
+		/* Execute transaction and record the response time. */
 		if (gettimeofday(&rt0, NULL) == -1)
 		{
 			perror("gettimeofday");
 		}
+		send_transaction_data(sockfd, &client_data);
+		receive_transaction_data(sockfd, &client_data);
 		if (gettimeofday(&rt1, NULL) == -1)
 		{
 			perror("gettimeofday");
@@ -257,7 +336,7 @@ void *terminal_worker(void *data)
 		response_time = difftimeval(rt1, rt0);
 		pthread_mutex_lock(&mutex_mix_log);
 		fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
-			transaction_short_name[transaction], response_time,
+			transaction_short_name[client_data.transaction], response_time,
 			pthread_self());
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
@@ -280,4 +359,6 @@ void *terminal_worker(void *data)
 			}
 		}
 	}
+	LOG_ERROR_MESSAGE("exiting...");
+	sem_wait(&terminal_count);
 }
