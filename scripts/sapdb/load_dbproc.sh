@@ -12,4 +12,5 @@ SID=DBT2
 /opt/sapdb/depend/bin/repmcli -d $SID -u dbt,dbt -b ../../storedproc/sapdb/delivery_2.sql
 /opt/sapdb/depend/bin/repmcli -d $SID -u dbt,dbt -b ../../storedproc/sapdb/delivery.sql
 
+/opt/sapdb/depend/bin/repmcli -d $SID -u dbt,dbt -b ../../storedproc/sapdb/stock_level_2.sql
 /opt/sapdb/depend/bin/repmcli -d $SID -u dbt,dbt -b ../../storedproc/sapdb/stock_level.sql
