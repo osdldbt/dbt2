@@ -24,33 +24,39 @@ int connect_to_client(char *addr, int port)
 
 int receive_transaction_data(int s, struct client_transaction_t *client_data)
 {
-	int rc;
+	int length;
 
-	rc = _receive(s, client_data, sizeof(struct client_transaction_t));
-	if (rc == -1)
+	length = _receive(s, client_data, sizeof(struct client_transaction_t));
+	if (length == -1)
 	{
 		LOG_ERROR_MESSAGE("cannot receive interaction data");
 		return ERROR;
 	}
-	else if (rc == 0)
+	else if (length == 0)
 	{
 		LOG_ERROR_MESSAGE("socket closed on _receive");
 		return ERROR_SOCKET_CLOSED;
 	}
 
-	return OK;
+	return length;
 }
 
 int send_transaction_data(int s, struct client_transaction_t *client_data)
 {
 	int length;
 
-	if ((length = _send(s, (void *) client_data,
-		sizeof(struct client_transaction_t))) == -1)
+	length =
+		_send(s, (void *) client_data, sizeof(struct client_transaction_t));
+	if (length == -1)
 	{
 		LOG_ERROR_MESSAGE("cannot send transaction data");
 		return ERROR;
 	}
+	else if (length == 0)
+	{
+		LOG_ERROR_MESSAGE("socket closed on _send");
+		return ERROR_SOCKET_CLOSED;
+	}
 
-	return OK;
+	return length;
 }
