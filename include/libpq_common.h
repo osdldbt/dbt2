@@ -12,17 +12,19 @@
 
 #include "transaction_data.h"
 
-struct ligpq_context_t {
-	char dbname[32];
-	char pghost[32];
-	char pgport[32];
-	char pgoptions[32];
-	char pgtty[32];
+struct db_context_t {
+	PGconn *conn;
 };
 
-int libpq_connect(struct ligpq_context_t *pqc, PGconn *conn);
-int libpq_disconnect(PGconn *conn);
-int lipq_init(struct ligpq_context_t *pqc, char *dbname, char *pghost,
-	char *pgport, char *pgoptions, char *pgtty);
+int libpq_connect(struct db_context_t *dbc);
+int libpq_disconnect(struct db_context_t *dbc);
+int lipq_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
+	char *_pgtty);
+
+extern char dbname[32];
+extern char pghost[32];
+extern char pgport[32];
+extern char pgoptions[32];
+extern char pgtty[32];
 
 #endif /* _LIGPQ_COMMON_H_ */

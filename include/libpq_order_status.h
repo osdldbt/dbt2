@@ -12,6 +12,6 @@
 
 #include "libpq_common.h"
 
-int execute_order_status(PGconn *conn, struct order_status_t *data);
+int execute_order_status(struct db_context_t *dbc, struct order_status_t *data);
 
 #endif /* _LIBPQ_ORDER_STATUS_H_ */

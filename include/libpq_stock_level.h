@@ -12,6 +12,6 @@
 
 #include "libpq_common.h"
 
-int execute_stock_level(PGconn *conn, struct stock_level_t *data);
+int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data);
 
 #endif /* _LIBPQ_STOCK_LEVEL_H_ */

@@ -12,6 +12,6 @@
 
 #include "libpq_common.h"
 
-int execute_new_order(PGconn *conn, struct new_order_t *data);
+int execute_new_order(struct db_context_t *dbc, struct new_order_t *data);
 
 #endif /* _LIBPQ_NEW_ORDER_H_ */

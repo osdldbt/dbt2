@@ -12,6 +12,6 @@
 
 #include "libpq_common.h"
 
-int execute_delivery(PGconn *conn, struct delivery_t *data);
+int execute_delivery(struct db_context_t *dbc, struct delivery_t *data);
 
 #endif /* _LIBPQ_DELIVERY_H_ */

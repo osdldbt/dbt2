@@ -12,6 +12,6 @@
 
 #include "libpq_common.h"
 
-int execute_payment(PGconn *conn, struct payment_t *data);
+int execute_payment(struct db_context_t *dbc, struct payment_t *data);
 
 #endif /* _LIBPQ_PAYMENT_H_ */
