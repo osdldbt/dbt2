@@ -21,7 +21,7 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 	/* Start a transaction block. */
 	res = PQexec(dbc->conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("BEGIN command failed.\n");
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;
 	}

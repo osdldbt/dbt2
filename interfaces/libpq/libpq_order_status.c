@@ -21,7 +21,7 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	/* Start a transaction block. */
 	res = PQexec(dbc->conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("BEGIN command failed.\n");
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;
 	}
