@@ -45,31 +45,24 @@ SUBTRANS BEGIN;
     AND d_w_id = :w_id;
   IF c_id = 0 THEN
     BEGIN
-      SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,
-             c_state, c_zip, c_phone, CHAR(c_since, ISO), c_credit,
-             c_credit_lim, c_discount, c_balance, c_data, c_id,
-             c_ytd_payment
+      SELECT c_id
       FROM dbt.customer
-      WHERE c_last = :c_last
+      WHERE c_w_id = :c_w_id
+        AND c_d_id = :c_d_id
+        AND c_last = :c_last
       ORDER BY c_first ASC;
-      FETCH INTO :c_first, :c_middle, :c_last, :c_street_1, :c_street_2,
-                 :c_city, :c_state, :c_zip, :c_phone, :c_since, :c_credit,
-                 :c_credit_lim, :c_discount, :c_balance, :c_data, :c_id,
-                 :c_ytd_payment;
-    END
-  ELSE
-    BEGIN
-      SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,
-             c_state, c_zip, c_phone, CHAR(c_since, ISO), c_credit,
-             c_credit_lim, c_discount, c_balance, c_data, c_ytd_payment
-      INTO :c_first, :c_middle, :c_last, :c_street_1, :c_street_2, :c_city,
-           :c_state, :c_zip, :c_phone, :c_since, :c_credit,
-           :c_credit_lim, :c_discount, :c_balance, :c_data, :c_ytd_payment
-      FROM dbt.customer
-      WHERE c_id = :c_id
-        AND c_w_id = :c_w_id
-        AND c_d_id = :c_d_id;
+      FETCH INTO :c_id;
     END;
+  SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,
+         c_state, c_zip, c_phone, CHAR(c_since, ISO), c_credit,
+         c_credit_lim, c_discount, c_balance, c_data, c_ytd_payment
+  INTO :c_first, :c_middle, :c_last, :c_street_1, :c_street_2, :c_city,
+       :c_state, :c_zip, :c_phone, :c_since, :c_credit,
+       :c_credit_lim, :c_discount, :c_balance, :c_data, :c_ytd_payment
+  FROM dbt.customer
+  WHERE c_w_id = :c_w_id
+    AND c_d_id = :c_d_id
+    AND c_id = :c_id;
   SET c_balance = c_balance - h_amount;
   SET c_ytd_payment = c_ytd_payment + 1;
   IF c_credit = 'BC' THEN
