@@ -1,0 +1,7 @@
+plot "customer.table_info.data" title "customer" with lines, "order_line.table_info.data" title "order_line" with lines, "district.table_info.data" title "district" with lines, "orders.table_info.data" title "orders" with lines, "item.table_info.data" title "item" with lines, "warehouse.table_info.data" title "warehouse" with lines, "new_order.table_info.data" title "new_order" with lines
+set xlabel "Elapsed Time (Minutes)"
+set ylabel "Blocks Read"
+set term png small color
+set output "table_info.png"
+set yrange [0:]
+replot

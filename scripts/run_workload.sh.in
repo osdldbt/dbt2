@@ -1,0 +1,129 @@
+#!/bin/sh
+
+TOPDIR=@TOPDIR@
+
+DB_HOSTNAME="localhost"
+POSTMASTER_PORT=5432
+SLEEPY=1
+
+while getopts "c:d:l:s:t:w:" opt; do
+	case $opt in
+	c)
+		DBCON=$OPTARG
+		;;
+	l)
+		POSTMASTER_PORT=$OPTARG
+		;;
+	s)
+		SLEEPY=$OPTARG
+		;;
+	t)
+		DURATION=$OPTARG
+		;;
+	w)
+		WAREHOUSES=$OPTARG
+		;;
+	esac
+done
+
+# Check parameters.
+
+if [ "$DBCON" == "" ]; then
+	echo "specify the number of database connections using -c #"
+	exit 1;
+fi
+
+if [ "$DURATION" == "" ]; then
+	echo "specify the duration of the test in seconds using -t #"
+	exit 1;
+fi
+
+if [ "$WAREHOUSES" == "" ]; then
+	echo "specify the number of warehouses using -w #"
+	exit 1;
+fi
+
+# Determine the output directory for storing data.
+# determine run number for selecting an output directory
+RUN_NUMBER=-1
+read RUN_NUMBER < .run_number
+if [ $RUN_NUMBER -eq -1 ]; then
+	RUN_NUMBER=0
+fi
+OUTPUT_DIR=output/$RUN_NUMBER
+CLIENT_OUTPUT_DIR=$OUTPUT_DIR/client
+DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
+DB_OUTPUT_DIR=$OUTPUT_DIR/db
+
+# Create the directories we will need.
+mkdir -p $OUTPUT_DIR
+mkdir -p $CLIENT_OUTPUT_DIR
+mkdir -p $DRIVER_OUTPUT_DIR
+mkdir -p $DB_OUTPUT_DIR
+
+# Update the run number for the next test.
+RUN_NUMBER=`expr $RUN_NUMBER + 1`
+echo $RUN_NUMBER > .run_number
+
+# Create a readme file in the output directory and date it.
+date >> $OUTPUT_DIR/readme.txt
+uname -a >> $OUTPUT_DIR/readme.txt
+
+# Get any OS specific information.
+OS_DIR=`uname`
+bash $TOPDIR/scripts/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
+
+# Output run information into the readme.txt.
+echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
+echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
+echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
+
+STACKSIZE=2048
+ulimit -s $STACKSIZE
+echo "ulimit -s $STACKSIZE" >> $OUTPUT_DIR/readme.txt
+
+# Start the client.
+echo "Starting up client..."
+nohup $TOPDIR/client/client -f -d $DB_HOSTNAME -c $DBCON -l $POSTMASTER_PORT -s $SLEEPY -o $CLIENT_OUTPUT_DIR > $OUTPUT_DIR/client.out 2>&1 &
+
+# Sleep long enough for all the client database connections to be established.
+SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY ))
+sleep $SLEEPYTIME
+
+# Start collecting data before we start the test.
+SLEEPYTIME=$(( (($WAREHOUSES+1)*10*$SLEEPY)+$DURATION ))
+SAMPLE_LENGTH=60
+ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
+nohup bash $TOPDIR/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
+nohup bash $TOPDIR/scripts/pgsql/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
+
+# Start collect profile data before the driver starts up.
+if [ -f /proc/profile ]; then
+	sudo /usr/sbin/readprofile -r
+fi
+
+# Start the driver.
+echo "Starting up driver..."
+nohup $TOPDIR/terminal/driver -d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR > $OUTPUT_DIR/driver.out 2>&1 &
+
+# Sleep for the duration of the run, including driver rampup time.
+sleep $SLEEPYTIME
+
+# Stop collecting profile data.
+if [ -f /proc/profile ]; then
+	PROFILE=$OUTPUT_DIR/readprofile.out
+	/usr/sbin/readprofile -n -m /boot/System.map > $PROFILE
+	cat $PROFILE | grep -v "total" | sort -n -r -k1 > $OUTPUT_DIR/readprofile_ticks.out
+	cat $PROFILE | grep -v "total" | sort -n -r -k3 > $OUTPUT_DIR/readprofile_load.out
+fi
+
+# Run some post processing analysese.
+$TOPDIR/tools/results $DRIVER_OUTPUT_DIR/mix.log 60 $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
+cp -p notpm.input $DRIVER_OUTPUT_DIR
+cd $DRIVER_OUTPUT_DIR
+cat notpm.csv | awk -F "," '{print $1, $2}' > notpm.out
+@GNUPLOT@ notpm.input
+
+# Client doesn't go away by itself like the driver does and I nohup it.
+killall client
+echo "Test completed."
