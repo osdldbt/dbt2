@@ -26,7 +26,6 @@
 #ifdef STANDALONE
 #include "db.h"
 #include "transaction_queue.h"
-#include "odbc_common.h"
 #include "db_threadpool.h"
 #endif /* STANDALONE */
 
@@ -308,7 +307,7 @@ void *terminal_worker(void *data)
 	int rc;
 
 #ifdef STANDALONE
-	struct db_context_t odbcc;
+	struct db_context_t dbc;
 	struct transaction_queue_node_t *node =
 		(struct transaction_queue_node_t *)
 		malloc(sizeof(struct transaction_queue_node_t));
@@ -333,9 +332,9 @@ void *terminal_worker(void *data)
 	sem_post(&terminal_count);
 
 #ifdef STANDALONE
-	odbc_init(sname, DB_USER, DB_PASS);
-	if (!exiting && odbc_connect(&odbcc) != OK) {
-		LOG_ERROR_MESSAGE("odbc_connect() error, terminating program");
+	db_init(sname, DB_USER, DB_PASS);
+	if (!exiting && connect_to_db(&dbc) != OK) {
+		LOG_ERROR_MESSAGE("db_connect() error, terminating program");
 		printf("cannot connect to database, exiting...\n");
 		exit(1);
 	}
@@ -443,7 +442,7 @@ void *terminal_worker(void *data)
 			LOG_ERROR_MESSAGE("Cannot get a transaction node.\n");
 		}
 */
-		rc = process_transaction(node->client_data.transaction, &odbcc,
+		rc = process_transaction(node->client_data.transaction, &dbc,
 			&node->client_data.transaction_data);
 		if (rc == ERROR) {
 			LOG_ERROR_MESSAGE("process_transaction() error on %s",
