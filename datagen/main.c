@@ -36,6 +36,8 @@ int gen_orders(int warehouses, int customers, int orders);
 int gen_stock(int warehouses, int stock);
 int gen_warehouses(int warehouses);
 
+char output_path[512] = "";
+
 /* Clause 4.3.3.1 */
 int gen_customers(int warehouses, int customers)
 {
@@ -44,10 +46,17 @@ int gen_customers(int warehouses, int customers)
 	char a_string[512];
 	struct tm *tm1;
 	time_t t1;
+	char filename[1024];
 
 	printf("Generating customer table data...\n");
 
-	output = fopen(CUSTOMER_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, CUSTOMER_DATA);
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", CUSTOMER_DATA);
@@ -181,10 +190,17 @@ int gen_districts(int warehouses)
 	FILE *output;
 	int i, j;
 	char a_string[32];
+	char filename[1024];
 
 	printf("Generating district table data...\n");
 
-	output = fopen(DISTRICT_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, DISTRICT_DATA);
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", DISTRICT_DATA);
@@ -259,10 +275,17 @@ int gen_history(int warehouses, int customers)
 	char a_string[32];
 	struct tm *tm1;
 	time_t t1;
+	char filename[1024];
 
 	printf("Generating history table data...\n");
 
-	output = fopen(HISTORY_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, HISTORY_DATA);
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", HISTORY_DATA);
@@ -330,10 +353,17 @@ int gen_items(int items)
 	int i;
 	char a_string[64];
 	int j;
+	char filename[1024];
 
 	printf("Generating item table data...\n");
 
-	output = fopen(ITEM_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, ITEM_DATA);
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", ITEM_DATA);
@@ -379,10 +409,17 @@ int gen_new_orders(int warehouses, int orders, int new_orders)
 {
 	FILE *output;
 	int i, j, k;
+	char filename[1024];
 
 	printf("Generating new-order table data...\n");
 
-	output = fopen(NEW_ORDER_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, NEW_ORDER_DATA);
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", NEW_ORDER_DATA);
@@ -424,6 +461,7 @@ int gen_orders(int warehouses, int customers, int orders)
 	char a_string[32];
 	struct tm *tm1;
 	time_t t1;
+	char filename[1024];
 
 	struct node_t
 	{
@@ -440,14 +478,26 @@ int gen_orders(int warehouses, int customers, int orders)
 
 	printf("Generating order and order-line table data...\n");
 
-	order = fopen(ORDER_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, ORDER_DATA);
+	order = fopen(filename, "w");
 	if (order == NULL)
 	{
 		printf("cannot open %s\n", ORDER_DATA);
 		return ERROR;
 	}
 
-	order_line = fopen(ORDER_LINE_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, ORDER_LINE_DATA);
+	order_line = fopen(filename, "w");
 	if (order_line == NULL)
 	{
 		printf("cannot open %s\n", ORDER_LINE_DATA);
@@ -639,10 +689,17 @@ int gen_stock(int warehouses, int stock)
 	FILE *output;
 	int i, j, k;
 	char a_string[64];
+	char filename[1024];
 
 	printf("Generating stock table data...\n");
 
-	output = fopen(STOCK_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, STOCK_DATA);
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", STOCK_DATA);
@@ -749,10 +806,17 @@ int gen_warehouses(int warehouses)
 	FILE *output;
 	int i;
 	char a_string[32];
+	char filename[1024];
 
 	printf("Generating warehouse table data...\n");
 
-	output = fopen(WAREHOUSE_DATA, "w");
+	if (strlen(output_path) > 0)
+	{
+		strcpy(filename, output_path);
+		strcat(filename, "/");
+	}
+	strcat(filename, WAREHOUSE_DATA);
+	output = fopen(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", WAREHOUSE_DATA);
@@ -824,7 +888,7 @@ int main(int argc, char *argv[])
 
 	if (argc < 2)
 	{
-		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #]\n", argv[0]);
+		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #] [-d <str>]\n", argv[0]);
 		printf("\n");
 		printf("-w #\n");
 		printf("\twarehouse cardinality\n");
@@ -836,6 +900,8 @@ int main(int argc, char *argv[])
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
 		printf("-n #\n");
 		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
+		printf("-d <path>\n");
+		printf("\toutput path of data files\n");
 		return 1;
 	}
 
@@ -869,6 +935,10 @@ int main(int argc, char *argv[])
 		else if (argv[i][1] == 'n')
 		{
 			new_orders = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'd')
+		{
+			strcpy(output_path, argv[i + 1]);
 		}
 		else
 		{
