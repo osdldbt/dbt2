@@ -13,7 +13,6 @@
 #include <string.h>
 #include <common.h>
 #include <transaction_data.h>
-#include <driver.h>
 
 int generate_delivery_data(int w_id, struct delivery_t *data);
 int generate_new_order_data(int w_id, struct new_order_t *data);
@@ -114,7 +113,8 @@ int generate_order_status_data(int w_id, struct order_status_t *data)
 	data->c_d_id = get_random(D_ID_MAX) + 1;
 
 	/* Select a customer by last name 60%, byt c_id 40% of the time. */
-	if (mode_altered == 0 && get_random(100) < 60)
+	if (get_random(100) < 60)
+	//if (0)
 	{
 		data->c_id = C_ID_UNKNOWN;
 		get_c_last(data->c_last, get_nurand(255, 0, 999));
@@ -135,7 +135,8 @@ int generate_payment_data(int w_id, struct payment_t *data)
 	data->d_id = get_random(D_ID_MAX) + 1;
 
 	/* Select a customer by last name 60%, byt c_id 40% of the time. */
-	if (mode_altered == 0 && get_random(100) < 60)
+	if (get_random(100) < 60)
+	//if (0)
 	{
 		data->c_id = C_ID_UNKNOWN;
 		get_c_last(data->c_last, get_nurand(255, 0, 999));
