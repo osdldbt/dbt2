@@ -30,6 +30,16 @@
 #include "libpq_new_order.h"
 #endif /* LIBPQ */
 
+
+#ifdef LIBMYSQL
+#include "mysql_delivery.h"
+#include "mysql_order_status.h"
+#include "mysql_payment.h"
+#include "mysql_stock_level.h"
+#include "mysql_new_order.h"
+#endif /* LIBMYSQL */
+
+
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
 
@@ -47,6 +57,10 @@ int db_init(char *sname, char *uname, char *auth)
 #ifdef LIBPQ
 int db_init(char *_dbname, char *_pghost, char *_pgport)
 #endif /* LIBPQ */
+#ifdef LIBMYSQL
+int db_init(char * _mysql_dbname, char * _mysql_host, char * _mysql_port, char * _mysql_socket)
+#endif /* LIBMYSQL */
+
 {
 	int rc;
 
@@ -57,6 +71,11 @@ int db_init(char *_dbname, char *_pghost, char *_pgport)
 #ifdef LIBPQ
 	rc = _db_init(_dbname, _pghost, _pgport);
 #endif /* LIBPQ */
+
+#ifdef LIBMYSQL
+        rc = _db_init(_mysql_dbname, _mysql_host, _mysql_port, _mysql_socket);
+#endif /* LIBMYSQL */
+
 
 	return OK;
 }

@@ -25,7 +25,7 @@
 #define DB_PASS "dbt"
 #endif /* ODBC */
 
-#ifdef LIBPQ
+#if defined(LIBPQ) || defined(LIBMYSQL)
 #define DB_NAME "dbt2"
 #endif /* LIBPQ */
 
@@ -104,6 +104,10 @@
 
 #define CLIENT_PORT 30000
 
+#define CLIENT_PID_FILENAME "dbt2_client.pid"
+#define DRIVER_PID_FILENAME "dbt2_driver.pid"
+
+
 struct table_cardinality_t {
 	int warehouses;
 	int districts;
@@ -125,6 +129,7 @@ double get_percentage();
 int get_random(int max);
 int get_think_time(int mean_think_time);
 int init_common();
+int create_pid_file();
 
 extern char output_path[256];
 extern const char *c_last_syl[C_LAST_SYL_MAX];

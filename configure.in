@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.in 1203 2005-03-04 02:56:36Z fimath $)
+AC_REVISION($Id: configure.in 1207 2005-03-04 06:05:30Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.22, osdldbt-general@lists.sourceforge.net)
@@ -23,6 +23,11 @@ case $build in
   ;;
 *-*-linux*)
   AC_DEFINE(LINUX, 1, [Build for Linux])
+  AC_DEFINE(BROKEN_SEMAPHORES, 1, [Pthread semaphores are broken])
+  ;;
+*-*-darwin*)
+  AC_DEFINE(DARWIN, 1, [Build for DARWIN])
+  AC_DEFINE(BROKEN_SEMAPHORES, 1, [Pthread semaphores are broken])
   ;;
 *)
   AC_MSG_ERROR([*** Build system not supported])
@@ -122,6 +127,9 @@ dnl search for socket libraries
 AC_SEARCH_LIBS(socket, socket, [], AC_MSG_ERROR([socket required]))
 AC_SEARCH_LIBS(gethostbyname, nsl, [], AC_MSG_ERROR([gethostbyname required]))
 
+dnl I like warnings.
+CFLAGS="-Wall $CFLAGS"
+
 dnl Argument for GNU getopt
 AC_ARG_WITH(getopt,
   [AC_HELP_STRING([--with-getopt=DIR],
@@ -144,92 +152,125 @@ AC_SEARCH_LIBS(getopt_long, [getopt gnugetopt], [],
 
 
 dnl Configuration options for different databases, PostgreSQL is default.
+
+# PostgreSQL
 AC_ARG_WITH(postgresql,
   [AC_HELP_STRING([--with-postgresql=DIR],
     [Default on. Set to the path of the PostgreSQL's installation, or leave
      unset if the path is already in the compiler search path.])],
-  [database_to_use=$withval],
-  [database_to_use="pqsql"]
+  [pgsql_path=$withval
+  database_to_use="pgsql"],
+  [database_to_use="pgsql"]
 )
+
+# SAP DB
 AC_ARG_WITH(sapdb,
   [AC_HELP_STRING([--with-sapdb], [using ODBC])],
   [database_to_use="sapdb"],
   [],
 )
 
+# MySQL
+AC_ARG_WITH(mysql,
+  [AC_HELP_STRING([--with-mysql=DIR],
+    [Build C based version of dbt2 test. Set to the path of the MySQL's 
+     installation, or leave unset if the path is already in the search 
+     path])],
+  [ ac_cv_use_mysql=$withval
+    database_to_use="mysql"],
+  [],
+)
+
+AC_ARG_ENABLE(nonsp,
+  [AC_HELP_STRING([--enable-nonsp],
+    [Force to build pure C based version of dbt2 test (default is no)]
+  )], 
+  NONSP="yes"
+)
+
+AC_ARG_ENABLE(debug_query,
+  [AC_HELP_STRING([--enable-debug-query],
+    [Turn on debug info for nonsp version of test dbt2 test (default is no)]
+  )], 
+  CFLAGS="$CFLAGS -DDEBUG_QUERY"
+)
 
 dnl Set up rules depending on what database is selected.
-if test "$database_to_use" != "sapdb"; then
+if test "$database_to_use" == "pgsql"; then
   dnl check for initdb
   AC_PATH_PROGS(INITDB, initdb, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$INITDB" ; then
     AC_MSG_ERROR([*** initdb is required])
   fi
   dnl check for createdb
   AC_PATH_PROGS(CREATEDB, createdb, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$CREATEDB" ; then
     AC_MSG_ERROR([*** createdb is required])
   fi
   dnl check for dropdb
   AC_PATH_PROGS(DROPDB, dropdb, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$DROPDB" ; then
     AC_MSG_ERROR([*** dropdb is required])
   fi
   dnl check for pg_restore
   AC_PATH_PROGS(PGRESTORE, pg_restore, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PGRESTORE" ; then
     AC_MSG_ERROR([*** pg_restore is required])
   fi
   dnl check for createlang
   AC_PATH_PROGS(CREATELANG, createlang, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$CREATELANG" ; then
     AC_MSG_ERROR([*** createlang is required])
   fi
   dnl check for pg_ctl
   AC_PATH_PROGS(PGCTL, pg_ctl, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PGCTL" ; then
     AC_MSG_ERROR([*** pg_ctl is required])
   fi
   dnl check for psql
   AC_PATH_PROGS(PSQL, psql, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PSQL" ; then
     AC_MSG_ERROR([*** psql is required])
   fi
   dnl check for vacuumdb
   AC_PATH_PROGS(VACUUMDB, vacuumdb, ,
-    [$PATH:$database_to_use/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$VACUUMDB" ; then
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
 
   dnl check if the user has specified path for pgsql
-  if test "$database_to_use" != "pqsql"; then
-    CPPFLAGS="-I${database_to_use}/include -I${database_to_use}/include/server $CPPFLAGS"
-    CFLAGS="-I${database_to_use}/include -I${database_to_use}/include/server $CFLAGS"
-    LDFLAGS="-L${database_to_use}/lib -Wl,-R${database_to_use}/lib $LDFLAGS"
+  if test "$pgsql_path" != ""; then
+    CPPFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server $CPPFLAGS"
+    CFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server $CFLAGS"
+    LDFLAGS="-L${pgsql_path}/lib -Wl,-R${pgsql_path}/lib $LDFLAGS"
   fi
 
   AC_CHECK_HEADERS(libpq-fe.h, [], AC_MSG_ERROR([libpq headers required]))
   AC_SEARCH_LIBS(PQexec, pq, [], AC_MSG_ERROR([libpq libs required]))
   AC_DEFINE(LIBPQ, 1, [using PostgreSQL])
-  INTERFACE_OBJ="libpq_obj cfuncs_obj"
-  DBC="libpq"
-else
+
+  DBC_FUNCTIONS="libpq"
+  DBC_CORE="libpq"
+
+  SP_DIR="pgsql"
+
+elif test "$database_to_use" == "sapdb"; then
   dnl ODBC Library (required)
   dnl check for `odbcinit' in -lodbc, -liodbc
   AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h, [],
@@ -239,10 +280,69 @@ else
     AC_MSG_ERROR([unixODBC or iODBC required])
   )
   AC_DEFINE(ODBC, 1, [using ODBC to SAPDB])
-  INTERFACE_OBJ="odbc_obj"
-  DBC="odbc"
+  AC_DEFINE(DELAY_IN_MILISECONDS, 1, [to use delays in msec])
+
+  DBC_CORE="odbc"
+  DBC_FUNCTIONS="odbc"
+
+  SP_DIR=""
+elif test "$database_to_use" == "mysql"; then
+
+  AC_CHECK_MYSQLR([$ac_cv_use_mysql])
+  CFLAGS="$CFLAGS $MYSQL_CFLAGS"
+
+  AC_MSG_CHECKING(Version of MySQL headers)
+  AC_TRY_RUN([#include <stdio.h>
+    #include <mysql.h>
+    main()
+    {
+      FILE *f=fopen("conftestval", "w");
+      if (!f) exit(1);
+      fprintf(f, "%d\n", MYSQL_VERSION_ID);
+      fclose(f);
+      exit(0);
+    }], 
+    [MYSQL_VER=`cat conftestval`], 
+    [ 
+      MYSQL_VER=0
+    ]
+  )
+  AC_MSG_RESULT($MYSQL_VER)
+
+  if test $MYSQL_VER -eq 0 ; then 
+    AC_MSG_WARN([Unable to detect version of headers. Please check that include 
+                    directory was correctly specifed.])
+  fi
+
+  LIBS="$LIBS $MYSQL_LIBS" 
+
+  if test -z "$NONSP" ; then
+    if test $MYSQL_VER -ne 0 && test $MYSQL_VER -lt 50000 ; then
+      AC_MSG_ERROR(["To build SP based test you should use includes and 
+                   libraries at least from MySQL 5.0 but you use them from $MYSQL_VER.
+                    It is possible to build nonSP version of test. Please use --enable-nonsp 
+                    option"])
+    fi 
+    AC_DEFINE(MYSQL_SP, 1, [SP based version of test])
+  fi
+
+  DBC_CORE="mysql"
+  DBC_FUNCTIONS="mysql"
+
+  AC_DEFINE(LIBMYSQL, 1, [using MySQL])
+  AC_DEFINE(DELAY_IN_MILISECONDS, 1, [to use delays in msec])
+
+  SP_DIR=""        
+else
+  AC_MSG_ERROR('Please choose DBMS. ./configure --with-(postgresql|sapdb|mysql)!')
 fi
 
+dnl Check for test type(SP/NONSP)
+if test -n "$NONSP" && test "$database_to_use" != "pgsql"; then
+  DBC_FUNCTIONS="nonsp"  
+
+fi
+AM_CONDITIONAL(NONSP, test -n "$NONSP" && test "$database_to_use" != "pgsql")
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -259,9 +359,9 @@ AC_CHECK_FUNCS(gettimeofday socket)
 dnl Large file support?
 AC_SYS_LARGEFILE
 
-
-AC_SUBST(INTERFACE_OBJ)
-AC_SUBST(DBC)
+AC_SUBST(DBC_CORE)
+AC_SUBST(DBC_FUNCTIONS)
+AC_SUBST(SP_DIR)
 
 
 AC_OUTPUT([
@@ -271,6 +371,7 @@ storedproc/Makefile                 \
 storedproc/pgsql/Makefile           \
 storedproc/pgsql/c/Makefile         \
 scripts/run_test.sh                 \
+scripts/run_mysql.sh                \
 scripts/sysstats.sh                 \
 scripts/transform_sar.sh            \
 scripts/run_workload.sh             \
@@ -281,5 +382,4 @@ storedproc/pgsql/c/new_order.sql    \
 storedproc/pgsql/c/order_status.sql \
 storedproc/pgsql/c/payment.sql      \
 storedproc/pgsql/c/stock_level.sql  \
-scripts/pgsql/init_env.sh           \
 ])

@@ -37,22 +37,23 @@
 void *terminal_worker(void *data);
 
 /* Global Variables */
-pthread_t** g_tid;
+pthread_t** g_tid = NULL;
 struct transaction_mix_t transaction_mix;
 struct key_time_t key_time;
 struct think_time_t think_time;
 char hostname[32];
 int client_port = CLIENT_PORT;
 int duration = 0;
-int stop_time;
-int w_id_min, w_id_max;
-int terminals_per_warehouse;
+int stop_time = 0;
+int w_id_min = 0, w_id_max = 0;
+int terminals_per_warehouse = 0;
 int mode_altered = 0;
 unsigned int seed = -1;
 int client_conn_sleep = 1;
 int spread = 1;
+int threads_start_time= 0;
 
-FILE *log_mix;
+FILE *log_mix = NULL;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
 
 int terminal_state[3][TRANSACTION_MAX] = {
@@ -222,7 +223,6 @@ int set_transaction_mix(int transaction, double mix)
 int start_driver()
 {
         int i, j;
-        int count;
 
 #ifdef STANDALONE
         /* Open database connectiosn. */
@@ -235,9 +235,15 @@ int start_driver()
 #endif /* STANDALONE */
 
         /* Caulculate when the test should stop. */
-        stop_time = time(NULL) + duration + client_conn_sleep *
-                terminals_per_warehouse * (w_id_max - w_id_min);
+        threads_start_time = client_conn_sleep * terminals_per_warehouse *
+                             (w_id_max - w_id_min);
 
+#ifdef DELAY_IN_MILISECONDS
+        /* to measure delay in miliseconds*/
+        threads_start_time = (threads_start_time / 1000) + 1;
+#endif
+
+        stop_time = time(NULL) + duration + threads_start_time;
         /* allocate g_tid */
         g_tid = (pthread_t**)
                 malloc(sizeof(pthread_t*) * (w_id_max+1)/spread);
@@ -259,7 +265,11 @@ int start_driver()
                         }
 
                         /* Sleep for between starting terminals. */
+#ifdef DELAY_IN_MILISECONDS
+                        usleep(client_conn_sleep*1000);
+#else
                         sleep(client_conn_sleep);
+#endif
                 }
 
                 if (mode_altered == 1) {
@@ -301,7 +311,6 @@ int start_driver()
                 }
         }
         printf("driver is exiting normally\n");
-
         return OK;
 }
 
@@ -334,6 +343,11 @@ void *terminal_worker(void *data)
 #ifdef LIBPQ
         extern char postmaster_port[32];
 #endif /* LIBPQ */
+
+#ifdef LIBMYSQL
+	extern char dbt2_mysql_port[32];
+#endif /* LIBMYSQL */
+
 #endif /* STANDALONE */
 
         tc = (struct terminal_context_t *) data;
@@ -343,7 +357,7 @@ void *terminal_worker(void *data)
                 unsigned long junk; /* Purposely used uninitialized */
 
                 gettimeofday(&tv, NULL);
-                local_seed = getpid() ^ pthread_self() ^ tv.tv_sec ^
+                local_seed = getpid() ^ (int) pthread_self() ^ tv.tv_sec ^
                         tv.tv_usec ^ junk;
         } else {
                 local_seed = seed;
@@ -359,6 +373,11 @@ void *terminal_worker(void *data)
 #ifdef LIBPQ
         db_init(DB_NAME, sname, postmaster_port);
 #endif /* LIBPQ */
+#ifdef LIBMYSQL
+        printf("CONNECTED TO DB |%s| |%s| |%s|\n", DB_NAME, sname, dbt2_mysql_port);
+	db_init(sname, "", dbt2_mysql_port);
+#endif /* LIBMYSQL */
+
         if (!exiting && connect_to_db(&dbc) != OK) {
                 LOG_ERROR_MESSAGE("db_connect() error, terminating program");
                 printf("cannot connect to database, exiting...\n");
@@ -536,12 +555,30 @@ void *terminal_worker(void *data)
 #ifdef STANDALONE
         /*recycle_node(node);*/
 #endif /* STANDALONE */
-
         /* Note when each thread has exited. */
         pthread_mutex_lock(&mutex_mix_log);
         fprintf(log_mix, "TERMINATED %d\n", (int) pthread_self());
         fflush(log_mix);
         pthread_mutex_unlock(&mutex_mix_log);
-
         return NULL;        /* keep the compiler quiet */
+}
+
+int create_pid_file()
+{
+  FILE * fpid;
+  char pid_filename[1024];
+
+  sprintf(pid_filename, "%s/%s", output_path, DRIVER_PID_FILENAME);
+
+  fpid = fopen(pid_filename,"w");
+  if (!fpid)
+  {
+    printf("cann't create pid file: %s\n", pid_filename);
+    return ERROR;
+  }
+
+  fprintf(fpid,"%d", getpid());
+  fclose(fpid);
+
+  return OK;
 }

@@ -313,6 +313,7 @@ Datum delivery(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_DELETE) {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 
@@ -331,6 +332,7 @@ Datum delivery(PG_FUNCTION_ARGS)
 			elog(NOTICE, "o_c_id = %s", no_o_id);
 #endif /* DEBUG */
 		} else {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 
@@ -340,6 +342,7 @@ Datum delivery(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 
@@ -349,6 +352,7 @@ Datum delivery(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 
@@ -367,6 +371,7 @@ Datum delivery(PG_FUNCTION_ARGS)
 			elog(NOTICE, "ol_amount = %s", no_o_id);
 #endif /* DEBUG */
 		} else {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 
@@ -376,6 +381,7 @@ Datum delivery(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 	}
@@ -469,6 +475,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	} else {
 		elog(NOTICE, "NEW_ORDER_1 failed");
+		SPI_finish();
 		PG_RETURN_INT32(10);
 	}
 
@@ -491,6 +498,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	} else {
 		elog(NOTICE, "NEW_ORDER_2 failed");
+		SPI_finish();
 		PG_RETURN_INT32(11);
 	}
 
@@ -501,6 +509,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_UPDATE) {
 		elog(NOTICE, "NEW_ORDER_3 failed");
+		SPI_finish();
 		PG_RETURN_INT32(12);
 	}
 
@@ -524,6 +533,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	} else {
 		elog(NOTICE, "NEW_ORDER_4 failed");
+		SPI_finish();
 		PG_RETURN_INT32(13);
 	}
 
@@ -534,6 +544,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
 		elog(NOTICE, "NEW_ORDER_5 failed %d", ret);
+		SPI_finish();
 		PG_RETURN_INT32(14);
 	}
 
@@ -545,6 +556,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
 		elog(NOTICE, "NEW_ORDER_6 failed");
+		SPI_finish();
 		PG_RETURN_INT32(15);
 	}
 
@@ -577,6 +589,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		} else {
 			/* Item doesn't exist, rollback transaction. */
+			SPI_finish();
 			PG_RETURN_INT32(2);
 		}
 
@@ -604,6 +617,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		} else {
 			elog(NOTICE, "NEW_ORDER_8 failed");
+			SPI_finish();
 			PG_RETURN_INT32(16);
 		}
 		order_amount += ol_amount[i];
@@ -621,6 +635,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
 			elog(NOTICE, "NEW_ORDER_9 failed");
+			SPI_finish();
 			PG_RETURN_INT32(17);
 		}
 
@@ -633,12 +648,12 @@ Datum new_order(PG_FUNCTION_ARGS)
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_INSERT) {
 			elog(NOTICE, "NEW_ORDER_10 failed");
+			SPI_finish();
 			PG_RETURN_INT32(18);
 		}
 	}
 
 	SPI_finish();
-
 	PG_RETURN_INT32(0);
 }
 
@@ -701,6 +716,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			my_c_id = atoi(tmp_c_id);
 		} else {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 	} else {
@@ -728,6 +744,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 		elog(NOTICE, "c_balance = %s", c_balance);
 #endif /* DEBUG */
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -753,6 +770,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 		elog(NOTICE, "o_ol_cnt = %s", o_ol_cnt);
 #endif /* DEBUG */
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -786,6 +804,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		}
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -887,6 +906,7 @@ Datum payment(PG_FUNCTION_ARGS)
 		elog(NOTICE, "w_zip = %s", w_zip);
 #endif /* DEBUG */
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -896,6 +916,7 @@ Datum payment(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_UPDATE) {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -924,6 +945,7 @@ Datum payment(PG_FUNCTION_ARGS)
 		elog(NOTICE, "d_zip = %s", d_zip);
 #endif /* DEBUG */
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -933,6 +955,7 @@ Datum payment(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_UPDATE) {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -957,6 +980,7 @@ Datum payment(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			my_c_id = atoi(tmp_c_id);
 		} else {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 	} else {
@@ -1008,6 +1032,7 @@ Datum payment(PG_FUNCTION_ARGS)
 		elog(NOTICE, "c_ytd_payment = %s", c_ytd_payment);
 #endif /* DEBUG */
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -1019,6 +1044,7 @@ Datum payment(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 	} else {
@@ -1036,6 +1062,7 @@ Datum payment(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 	}
@@ -1051,6 +1078,7 @@ Datum payment(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -1093,6 +1121,7 @@ Datum stock_level(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		d_next_o_id = atoi(buf);
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
@@ -1113,6 +1142,7 @@ Datum stock_level(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		low_stock = atoi(buf);
 	} else {
+		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 

@@ -48,6 +48,12 @@ extern pthread_mutex_t mutex_mix_log;
 extern char postmaster_port[32];
 #endif /* LIBPQ */
 
+#ifdef LIBMYSQL
+extern char dbt2_mysql_port[32];
+extern char dbt2_mysql_host[128];
+extern char dbt2_mysql_socket[256];
+#endif /* LIBMYSQL */
+
 void *db_worker(void *data)
 {
         int id = *((int *) data); /* Whoa... */
@@ -63,15 +69,22 @@ void *db_worker(void *data)
 
         /* Open a connection to the database. */
 #ifdef ODBC
+        printf("connect to ODBC server with parameters: db_name: |%s| user: |%s| pass: |%s|\n", sname, DB_USER, DB_PASS);
         db_init(sname, DB_USER, DB_PASS);
 #endif /* ODBC */
 #ifdef LIBPQ
         db_init(DB_NAME, sname, postmaster_port);
 #endif /* LIBPQ */
 
+#ifdef LIBMYSQL
+       printf("connect to mysql server with parameters: db_name: |%s| host: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_mysql_port, dbt2_mysql_socket);
+       db_init(sname, dbt2_mysql_host ,dbt2_mysql_port, dbt2_mysql_socket);
+#endif /* LIBMYSQL */
+
+
         if (!exiting && connect_to_db(&dbc) != OK) {
                 LOG_ERROR_MESSAGE("connect_to_db() error, terminating program");
-                printf("cannot connect to database, exiting...\n");
+		printf("cannot connect to database(see details in error.log file, exiting...\n");
                 exit(1);
         }
 
@@ -114,6 +127,7 @@ void *db_worker(void *data)
                         fflush(log_mix);
                 pthread_mutex_unlock(&mutex_mix_log);
 #endif /* STANDALONE */
+
 #ifndef STANDALONE
                 length = send_transaction_data(node->s, &node->client_data);
                 if (length == ERROR) {
@@ -150,7 +164,6 @@ void *db_worker(void *data)
 int db_threadpool_init()
 {
         int i;
-
         if (sem_init(&db_worker_count, 0, 0) != 0) {
                 LOG_ERROR_MESSAGE("cannot init db_worker_count\n");
                 return ERROR;
@@ -183,8 +196,11 @@ int db_threadpool_init()
                 sem_post(&db_worker_count);
 
                 /* Don't let the database connection attempts occur too fast. */
+#ifdef DELAY_IN_MILISECONDS
+          	usleep(db_conn_sleep*1000);
+#else
                 sleep(db_conn_sleep);
+#endif
         }
-
         return OK;
 }

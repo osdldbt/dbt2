@@ -1,0 +1,347 @@
+#!/bin/bash
+
+# run_mysql_test.sh
+#
+# This file is released under the terms of the Artistic License.  Please see
+# the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+
+abs_top_srcdir=@abs_top_srcdir@
+
+#detect sysstat.sh - 
+#ps -ao pid,args | grep sysstats.sh | grep bash | PP=`egrep -o "^\ ([0-9]+)\ "` | echo "PID $PP"
+
+#Install signals handlers
+trap 'echo "Test was interrupted by Control-C."; \
+      killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat' INT 
+
+trap 'echo "Test was interrupted. Got TERM signal."; \
+      killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat ' TERM
+
+#trap 'echo "Test finished." ' EXIT
+
+EXIT_OK=0
+
+usage() {
+
+  if [ "$1" != "" ]; then 
+    echo ''
+    echo "error: $1"
+  fi
+  
+  echo ''
+  echo 'usage: run_mysql.sh -c <number of database connections> -t <duration of test> -w <number of warehouses>'
+  echo 'other options:'
+  echo '       -n <database name. (default dbt2)>'
+  echo '       -h <database host name. (default localhost)>'
+  echo '       -l <database port number. (default 3306)>'
+  echo '       -o <database socket>'
+  echo '       -u <database user>'
+  echo '       -p <database password>'
+  echo '       -s <delay of starting of new thread in milliseconds>'
+  echo '       -k <stack size. (default 256k)>'
+  echo '       -m <terminals per warehouse. [1..10] (default 10)>'
+  echo '       -z <comments for the test>'
+  echo '       -e <use zero delays for test (default no)>'
+  echo '       -v <verbose output>'
+  echo ''
+  echo 'Example: sh run_mysql.sh -c 20 -t 300 -w 10'
+  echo 'Test will be run for 300 seconds with 20 database connections and scale factor(num of warehouses) 10'
+  echo ''
+}
+
+
+validate_parameter()
+{
+  if [ "$2" != "$3" ]; then
+    usage "wrong argument '$2' for parameter '-$1'"
+    exit 1
+  fi
+}
+
+#DEFAULTS
+DBCONN=""
+DB_PASSWORD=""
+DURATION=""
+WAREHOUSES=""
+VERBOSE=""
+
+STACKSIZE=256
+DB_NAME="dbt2"
+DB_HOST="localhost"
+DB_PORT="3306"
+DB_USER=$USER
+DB_SOCKET="/tmp/mysql.sock"
+TPW=10
+SLEEPY=300 
+ZERO_DELAY=0
+
+while getopts "c:d:l:s:t:w:z:k:n:h:m:o:u:p:ev" opt; do
+	case $opt in
+	c)
+		DBCON=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DBCON 
+		;;
+        n)      
+                DB_NAME=$OPTARG
+                ;;
+        h)
+                DB_HOST=$OPTARG
+                ;;
+	l)
+		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DB_PORT
+		;;
+        o)      
+                DB_SOCKET=$OPTARG
+                ;;
+        u)      
+                DB_USER=$OPTARG
+                ;;
+        o)      
+                DB_PASSWORD=$OPTARG
+                ;;
+	s)
+		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $SLEEPY
+		;;
+	t)
+		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DURATION
+		;;
+	w)
+		WAREHOUSES=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $WAREHOUSES
+		;;
+	z)
+		COMMENT=$OPTARG
+		;;
+        k)      
+                STACKSIZE=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $STACKSIZE
+                ;;
+        m)
+		TPW=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $TPW
+                ;;
+        e)
+		ZERO_DELAY=1
+                ;;
+	v)	
+		VERBOSE=1
+		;;
+	esac
+done
+
+# Check parameters.
+
+if [ "$DBCON" == "" ]; then
+    usage "specify the number of database connections using -c #"
+    exit 1;
+fi
+
+if [ "$DURATION" == "" ]; then
+    usage "specify the duration of the test in seconds using -t #"
+    exit 1;
+fi
+
+if [ "$WAREHOUSES" == "" ]; then
+    usage "specify the number of warehouses using -w #"
+    exit 1;
+fi
+
+if [  $(( $TPW*1 )) -lt 1 -o $(( $TPW*1 )) -gt 10 ]; then 
+  usage "TPW value should be in range [1..10]. Please specify correct value"
+  exit 1;
+fi
+
+# Determine run number for selecting an output directory
+RUN_NUMBER=-1
+
+if [ -f ".run_number" ]; then 
+  read RUN_NUMBER < .run_number
+fi
+
+if [ $RUN_NUMBER -eq -1 ]; then
+	RUN_NUMBER=0
+fi
+
+# Determine the output directory for storing data.
+OUTPUT_DIR=output/$RUN_NUMBER
+CLIENT_OUTPUT_DIR=$OUTPUT_DIR/client
+DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
+DB_OUTPUT_DIR=$OUTPUT_DIR/db
+
+# Create the directories we will need.
+mkdir -p $OUTPUT_DIR
+mkdir -p $CLIENT_OUTPUT_DIR
+mkdir -p $DRIVER_OUTPUT_DIR
+mkdir -p $DB_OUTPUT_DIR
+
+# Update the run number for the next test.
+RUN_NUMBER=`expr $RUN_NUMBER + 1`
+echo $RUN_NUMBER > .run_number
+
+# Create a readme file in the output directory and date it.
+date >> $OUTPUT_DIR/readme.txt
+echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
+uname -a >> $OUTPUT_DIR/readme.txt
+
+# Get any OS specific information.
+OS_DIR=`uname`
+bash $abs_top_srcdir/scripts/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
+
+# Output run information into the readme.txt.
+echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
+echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
+echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
+
+ulimit -s $STACKSIZE
+echo "ulimit -s $STACKSIZE" >> $OUTPUT_DIR/readme.txt
+
+#TODO: Should add routine to stop/start mysql server before test to flush all buffers/caches
+
+echo "************************************************************************"
+echo "*                     DBT2 test for MySQL  started                     *"
+echo "*                                                                      *"
+echo "*            Results can be found in output/$(( $RUN_NUMBER-1 )) directory               *"
+echo "************************************************************************"
+echo "*                                                                      *"
+echo "*  Test consists of 3 stages:                                          *"
+echo "*                                                                      *"
+echo "*  1. Start of client to create pool of databases connections          *"
+echo "*  2. Start of driver to emulate terminals and transactions generation *"
+echo "*  3. Test                                                             *"     
+echo "*  4. Processing of results                                            *"
+echo "*                                                                      *"
+echo "************************************************************************"
+
+
+THREADS=$(( $WAREHOUSES*$TPW ))
+
+echo ""
+echo "DATABASE NAME:                $DB_NAME"
+echo "DATABASE CONNECTIONS:         $DBCON"
+echo "TERMINAL THREADS:             $THREADS"
+echo "SCALE FACTOR:                 $WAREHOUSES"
+echo "DURATION OF TEST(in sec):     $DURATION"
+echo "SLEEPY in (msec)              $SLEEPY"
+echo "ZERO DELAYS MODE:             $ZERO_DELAY"
+echo ""
+
+# Start the client.
+echo ''
+echo "Stage 1. Starting up client..."
+
+CLIENT_COMMAND_ARGS="-f -d $DB_NAME -c $DBCON -l $DB_PORT -h $DB_HOST -t $DB_SOCKET  -s $SLEEPY -o $CLIENT_OUTPUT_DIR"
+CLIENT_COMMAND="$abs_top_srcdir/src/client $CLIENT_COMMAND_ARGS"
+
+if [ -n "$VERBOSE" ]; then 
+  echo "STARTING CLIENT CONNECTIONS: $CLIENT_COMMAND"
+fi
+nohup $CLIENT_COMMAND > $OUTPUT_DIR/client.out 2>&1 &
+
+# Sleep long enough for all the client database connections to be established.
+SLEEPYTIME=$(( ((1+$DBCON)*$SLEEPY)/1000+1 ))
+echo "Delay for each thread - $SLEEPY msec. Will sleep for $SLEEPYTIME sec to start $DBCON database connections"
+sleep $SLEEPYTIME
+
+if [ -f "$CLIENT_OUTPUT_DIR/dbt2_client.pid" ]; then
+  CLIENT_PID=`cat $CLIENT_OUTPUT_DIR/dbt2_client.pid`;
+  echo "CLIENT_PID = $CLIENT_PID"
+else
+  echo ""
+  echo "ERROR: Client was not started. Please look at $OUTPUT_DIR/client.out and $CLIENT_OUTPUT_DIR/error.log for details."
+  exit 15
+fi
+
+SAMPLE_LENGTH=60
+THREADS=$(( $WAREHOUSES*$TPW ))
+WARMUPTIME=$(( 1+(($THREADS+$TPW)*$SLEEPY)/1000 ))
+SLEEPYTIME=$(( $WARMUPTIME+$DURATION ))
+ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
+
+# Start collecting data before we start the test.
+SYSTAT_COMMAND_ARGS="--iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR"
+SYSTAT_COMMAND="$abs_top_srcdir/scripts/sysstats.sh $SYSTAT_COMMAND_ARGS"
+
+if [ -n "$VERBOSE" ]; then
+  echo "STARTING SYSSTAT COMMAND: $SYSSTAT_COMMAND"
+fi
+
+nohup bash $SYSTAT_COMMAND > $OUTPUT_DIR/stats.out 2>&1 &
+
+#FIXME: to add script for gathering of MySQL specific statistics 
+
+# Start collect profile data before the driver starts up.
+if [ -f /proc/profile ]; then
+	sudo /usr/sbin/readprofile -r
+fi
+
+# Start the driver.
+echo ''
+echo "Stage 2. Starting up driver..."
+
+if [ -n "$ZERO_DELAY" ]; then
+  DRIVER_ARGS="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
+fi
+
+#echo "DRIVER LINE: $abs_top_srcdir/terminal/driver  > $OUTPUT_DIR/driver.out 2>&1 &"
+DRIVER_COMMAND_ARGS="-d $DB_HOST -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -tpw $TPW -outdir $DRIVER_OUTPUT_DIR"
+DRIVER_COMMAND="$abs_top_srcdir/src/driver $DRIVER_COMMAND_ARGS $DRIVER_ARGS"
+
+if [ -n "$VERBOSE" ]; then
+  echo "STARTING DRIVER COMMAND: $DRIVER_COMMAND"
+fi
+
+nohup $DRIVER_COMMAND > $OUTPUT_DIR/driver.out 2>&1 &
+
+# Sleep for the duration of the run, including driver rampup time.
+
+echo "Delay for each thread - $SLEEPY msec. Will sleep for $WARMUPTIME sec to start $THREADS terminal threads"
+sleep $WARMUPTIME
+echo "All threads has spawned successfuly."
+
+#FIXME: to check that driver binary was successful finished
+
+echo ""
+echo "Stage 3. Starting of the test. Duration of the test $DURATION sec" 
+sleep $DURATION
+
+# Stop collecting profile data.
+if [ -f /proc/profile ]; then
+	PROFILE=$OUTPUT_DIR/readprofile.out
+	/usr/sbin/readprofile -n -m /boot/System.map > $PROFILE
+	cat $PROFILE | grep -v "total" | sort -n -r -k1 > $OUTPUT_DIR/readprofile_ticks.out
+	cat $PROFILE | grep -v "total" | sort -n -r -k3 > $OUTPUT_DIR/readprofile_load.out
+fi
+
+# Run some post processing analysese.
+echo ''
+echo "Stage 4. Processing of results..."
+
+$abs_top_srcdir/src/results $DRIVER_OUTPUT_DIR/mix.log 60 $DRIVER_OUTPUT_DIR | tee $DRIVER_OUTPUT_DIR/results.out
+
+#Make graphs
+cp -p notpm.input $DRIVER_OUTPUT_DIR
+cd $DRIVER_OUTPUT_DIR
+cat notpm.csv | awk -F "," '{print $1, $2}' > notpm.out 2>gnuplot.out
+if [ -s "notpm.out" ]; then
+  /usr/bin/gnuplot notpm.input >>gnuplot.out 2>&1
+else
+  echo "Unable to make a graph"
+fi
+cd -
+
+# Client doesn't go away by itself like the driver does and I nohup it.
+
+if [ -n "$CLIENT_PID" ]; then 
+  echo "Shutdown clients. Send TERM signal to $CLIENT_PID."
+  kill "$CLIENT_PID" 
+fi
+
+echo "Test completed."
+EXIT_OK=1
+

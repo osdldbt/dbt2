@@ -40,6 +40,13 @@ storedproc/sapdb/new_order_2.sql \
 storedproc/sapdb/order_status.sql \
 storedproc/sapdb/payment.sql \
 storedproc/sapdb/stock_level.sql \
+storedproc/mysql/delivery.sql \
+storedproc/mysql/delivery_2.sql \
+storedproc/mysql/new_order.sql \
+storedproc/mysql/new_order_2.sql \
+storedproc/mysql/order_status.sql \
+storedproc/mysql/payment.sql \
+storedproc/mysql/stock_level.sql \
 scripts/Linux/get_os_info.sh.in \
 scripts/SunOS/get_os_info.sh.in \
 scripts/pgsql/init_env.sh.in \
@@ -103,6 +110,9 @@ scripts/sapdb/trace_off.sh \
 scripts/sapdb/trace_on.sh \
 scripts/sapdb/update_stats.sh \
 scripts/sapdb/warehouse.sql \
+scripts/mysql/mysql_dbt2_plans.sh \
+scripts/mysql/mysql_load_db.sh  \
+scripts/mysql/mysql_load_sp.sh  \
 scripts/cpu.input \
 scripts/mix_analyzer.pl \
 scripts/notpm.input \
@@ -113,6 +123,9 @@ scripts/tps.input \
 scripts/transform_iostat.pl \
 scripts/transform_sar.sh.in \
 scripts/transform_vmstat.sh \
+scripts/run_mysql.sh \
+scripts/load.sh \
+scripts/run_test.sh \
 scripts/sysstats.sh \
 doc/Makefile \
 doc/maintenance.sxw \

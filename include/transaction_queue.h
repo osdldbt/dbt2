@@ -12,8 +12,7 @@
 #ifndef _TRANSACTION_QUEUE_H_
 #define _TRANSACTION_QUEUE_H_
 
-#include <pthread.h>
-#include <semaphore.h>
+#include <_semaphore.h>
 #include <client_interface.h>
 
 #define REQ_QUEUED 0

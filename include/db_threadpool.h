@@ -9,8 +9,7 @@
  * 31 june 2002
  */
 
-#include <pthread.h>
-#include <semaphore.h>
+#include <_semaphore.h>
 
 extern sem_t db_worker_count;
 extern int db_connections;

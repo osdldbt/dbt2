@@ -12,7 +12,7 @@
 #ifndef _LISTENER_H_
 #define _LISTERNE_H_
 
-#include <semaphore.h>
+#include <_semaphore.h>
 #include <transaction_queue.h>
 
 void *init_listener(void *data);

@@ -24,6 +24,11 @@
 #include "libpq_common.h"
 #endif /* LIBPQ */
 
+#ifdef LIBMYSQL
+#include "mysql_common.h"
+#endif /* LIBMYSQL */
+
+
 int connect_to_db(struct db_context_t *dbc);
 #ifdef ODBC
 int db_init(char *sname, char *uname, char *auth);
@@ -31,6 +36,11 @@ int db_init(char *sname, char *uname, char *auth);
 #ifdef LIBPQ
 int db_init(char *_dbname, char *_pghost, char *_pgport);
 #endif /* LIBPQ */
+
+#ifdef LIBMYSQL
+int db_init(char *_mysql_dbname, char *_mysql_host, char *_mysql_port, char * _mysql_socket);
+#endif /* LIBMYSQL */
+
 int disconnect_from_db(struct db_context_t *dbc);
 int process_transaction(int transaction, struct db_context_t *dbc,
 	union transaction_data_t *odbct);

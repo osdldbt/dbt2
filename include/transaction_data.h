@@ -13,7 +13,6 @@
 #ifndef _TRANSACTION_DATA_H_
 #define _TRANSACTION_DATA_H_
 
-#include <stdio.h>
 #include <common.h>
 
 struct delivery_t

@@ -138,8 +138,14 @@ int generate_payment_data(int w_id, struct payment_t *data)
 	} else {
 		data->c_d_id = get_random(D_ID_MAX) + 1;
 		if (table_cardinality.warehouses > 1) {
+			/*
+			 * Select a random warehouse that is not the same
+			 * as this user's home warehouse by shifting the
+			 * numbers slightly.
+			 */
 			data->c_w_id =
-				get_random(table_cardinality.warehouses) + 1;
+				get_random(table_cardinality.warehouses - 1)
+					+ 1;
 			if (data->c_w_id >= w_id) {
 				++data->c_w_id;
 			}

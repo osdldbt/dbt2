@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = no-dependencies
 
-noinst_PROGRAMS = funcs.so
+noinst_DATA = funcs.so
 
 %.o:%.c
 	$(CC) -c -fpic $(CFLAGS) -o $@ $<

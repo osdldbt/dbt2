@@ -33,9 +33,17 @@ int port = CLIENT_PORT;
 int sockfd;
 int exiting = 0;
 int force_sleep = 0;
+
 #ifdef LIBPQ
 char postmaster_port[32];
 #endif /* LIBPQ */
+
+#ifdef LIBMYSQL
+char dbt2_mysql_host[128];
+char dbt2_mysql_port[32];
+char dbt2_mysql_socket[256];
+#endif /* LIBPQ */
+
 
 int startup();
 
@@ -66,6 +74,16 @@ int main(int argc, char *argv[])
 		printf("-l #\n");
 		printf("\tpostmaster port\n");
 #endif /* LIBPQ */
+#ifdef LIBMYSQL
+                printf("-h <hostname of mysql server>\n");
+                printf("\tname of host where mysql server is running\n");
+                printf("-d <db_name>\n");
+                printf("\tdatabase name\n");
+                printf("-l #\n");
+                printf("\tport number to use for connection to mysql server\n");
+                printf("-t <socket>\n");
+                printf("\tsocket for connection to mysql server\n");
+#endif /* LIBMYSQL */
 		printf("-s #\n");
 		printf("\tseconds to sleep between openning db connections, default 1 s\n");
 		return 1;
@@ -91,6 +109,9 @@ int main(int argc, char *argv[])
 		return 4;
 	}
 	printf("client has started\n");
+
+        LOG_ERROR_MESSAGE("%d DB worker threads have started", db_connections);
+        create_pid_file();
 
 	/* Wait for command line input. */
 	do {
@@ -139,7 +160,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:l:o:p:s:f",
+		c = getopt_long(argc, argv, "c:d:l:o:p:s:t:h:f",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -158,7 +179,19 @@ int parse_arguments(int argc, char *argv[])
 			force_sleep=1;
 			break;
 		case 'l':
+#if defined(LIBPQ)
 			strcpy(postmaster_port, optarg);
+#endif
+#if defined(LIBMYSQL)
+			strcpy(dbt2_mysql_port, optarg);
+#endif
+
+			break;
+		case 'h':
+#if defined(LIBMYSQL)
+			strcpy(dbt2_mysql_host, optarg);
+#endif
+
 			break;
 		case 'o':
 			strcpy(output_path, optarg);
@@ -168,6 +201,11 @@ int parse_arguments(int argc, char *argv[])
 			break;
 		case 's':
 			db_conn_sleep = atoi(optarg);
+			break;
+		case 't':
+#if defined(LIBMYSQL)
+			strcpy(dbt2_mysql_socket, optarg);
+#endif
 			break;
 		default:
 			printf("?? getopt returned character code 0%o ??\n", c);
@@ -257,4 +295,24 @@ int startup()
 	}
 
 	return OK;
+}
+
+int create_pid_file()
+{
+  FILE * fpid;
+  char pid_filename[1024]; 
+
+  sprintf(pid_filename, "%s%s", output_path, CLIENT_PID_FILENAME);
+ 
+  fpid = fopen(pid_filename,"w");
+  if (!fpid)
+  {
+    printf("cann't create pid file: %s\n", pid_filename);
+    return ERROR;
+  }
+
+  fprintf(fpid,"%d", getpid());
+  fclose(fpid);
+
+  return OK;
 }

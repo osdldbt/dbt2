@@ -7,12 +7,12 @@
  * 19 August 2002
  */
 
+#include <common.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <common.h>
 #include <logging.h>
 #include <transaction_data.h>
 

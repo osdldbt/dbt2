@@ -1,1 +1,1 @@
-SUBDIRS = pgsql
+SUBDIRS = @SP_DIR@

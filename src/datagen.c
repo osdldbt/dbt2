@@ -10,6 +10,8 @@
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
+#include <common.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +19,8 @@
 #include <unistd.h>
 #include <getopt.h>
 
-#include <common.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define CUSTOMER_DATA "customer.data"
 #define DISTRICT_DATA "district.data"
@@ -31,6 +34,7 @@
 
 #define MODE_SAPDB 0
 #define MODE_PGSQL 1
+#define MODE_MYSQL 2
 
 void gen_customers();
 void gen_districts();
@@ -55,13 +59,13 @@ char null_str[16] = "\"NULL\"";
 #define FPRINTF(a, b, c) \
 	if (mode_string == MODE_SAPDB) { \
 		fprintf(a, "\""b"\"", c); \
-	} else if (mode_string == MODE_PGSQL) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
 		fprintf(a, b, c); \
 	}
 #define FPRINTF2(a, b) \
 	if (mode_string == MODE_SAPDB) { \
 		fprintf(a, "\""b"\""); \
-	} else if (mode_string == MODE_PGSQL) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
 		fprintf(a, b); \
 	}
 
@@ -74,7 +78,7 @@ void escape_me(char *str)
 	int k = 0;
 
 	/* Don't need to do anything for SAP DB. */
-	if (mode_string == MODE_PGSQL) {
+	if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		strcpy(buffer, str);
 		i = strlen(buffer);
 		for (k = 0; k <= i; k++) {
@@ -92,7 +96,7 @@ void print_timestamp(FILE *ofile, struct tm *date)
 		fprintf(ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
 			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 			date->tm_hour, date->tm_min, date->tm_sec);
-	} else if (mode_string == MODE_PGSQL) {
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		fprintf(ofile, "%04d-%02d-%02d %02d:%02d:%02d",
 			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 			date->tm_hour, date->tm_min, date->tm_sec);
@@ -934,6 +938,8 @@ int main(int argc, char *argv[])
 	char pwd[256];
 	char cmd[256];
 
+        struct stat st;
+
 	/* For getoptlong(). */
 	int c;
 
@@ -960,6 +966,8 @@ int main(int argc, char *argv[])
 		printf("\tformat data for SAP DB\n");
 		printf("--pgsql\n");
 		printf("\tformat data for PostgreSQL\n");
+		printf("--mysql\n");
+		printf("\tformat data for MySQL\n");
 		return 1;
 	}
 
@@ -969,6 +977,7 @@ int main(int argc, char *argv[])
 		static struct option long_options[] = {
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
+			{ "mysql", no_argument, &mode_string, MODE_MYSQL },                        
 			{ 0, 0, 0, 0 }
 		};
 
@@ -1010,11 +1019,17 @@ int main(int argc, char *argv[])
 		return 3;
 	}
 
+        if (strlen(output_path) > 0 && ((stat(output_path, &st) < 0) || (st.st_mode & S_IFMT) != S_IFDIR))
+        {
+          printf("Output directory of data files '%s' not exists\n",output_path);
+          return 3;
+        } 
+
 	/* Set the correct delimiter. */
 	if (mode_string == MODE_SAPDB) {
 		delimiter = ',';
 		strcpy(null_str, "\"NULL\"");
-	} else if (mode_string == MODE_PGSQL) {
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		delimiter = '\t';
 		strcpy(null_str, "");
 	}
@@ -1027,6 +1042,16 @@ int main(int argc, char *argv[])
 	printf("stock = %d\n", items);
 	printf("new_orders = %d\n", new_orders);
 	printf("\n");
+
+        if (strlen(output_path) > 0)
+        {
+          printf("Output directory of data files: %s\n",output_path);
+        }
+        else
+        {
+          printf("Output directory of data files: current directory\n");
+        }
+        printf("\n");
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 

@@ -7,9 +7,9 @@
  * 31 june 2002
  */
 
+#include <common.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <common.h>
 #include <logging.h>
 #include <listener.h>
 #include <client_interface.h>
@@ -67,6 +67,11 @@ void *init_listener(void *data)
 		/* Allocate some memory to pass to the new thread. */
 		node = (struct transaction_queue_node_t *)
 			malloc(sizeof(struct transaction_queue_node_t));
+
+                if (!node)
+                {
+                  LOG_ERROR_MESSAGE("Out of memory while allocating memory for new thread");
+                }
 
 		node->s = _accept(s);
 		if (node->s == -1) {

@@ -7,8 +7,8 @@
  * 24 june 2002
  */
 
-#include <pthread.h>
 #include <transaction_data.h>
+#include <pthread.h>
 
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 union data_pointer_t
