@@ -37,10 +37,12 @@ SUBTRANS BEGIN;
   SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip
   INTO :d_name, :d_street_1, :d_street_2, :d_city, :d_state, :d_zip
   FROM dbt.district
-  WHERE d_id = :d_id;
+  WHERE d_id = :d_id
+    AND d_w_id = :w_id;
   UPDATE dbt.district
   SET d_ytd = d_ytd + :h_amount
-  WHERE d_id = :d_id;
+  WHERE d_id = :d_id
+    AND d_w_id = :w_id;
   IF c_id = 0 THEN
     BEGIN
       SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,
