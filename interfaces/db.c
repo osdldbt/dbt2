@@ -41,16 +41,23 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 				}
 			}
 			rc = execute_new_order(odbcc, &odbct->new_order);
-			/*
-			 * Calculate the adjusted total_amount here to work around
-			 * an issue with SAP DB stored procedures that does not allow
-			 * any statements to execute after a SUBTRANS ROLLBACK without
-			 * throwing an error.
-			 */
-			odbct->new_order.total_amount =
-				odbct->new_order.total_amount *
-				(1 - odbct->new_order.c_discount) *
-				(1 + odbct->new_order.w_tax + odbct->new_order.d_tax);
+			if (odbct->new_order.rollback == 0)
+			{
+				/*
+			 	* Calculate the adjusted total_amount here to work around
+			 	* an issue with SAP DB stored procedures that does not allow
+			 	* any statements to execute after a SUBTRANS ROLLBACK without
+			 	* throwing an error.
+			 	*/
+				odbct->new_order.total_amount =
+					odbct->new_order.total_amount *
+					(1 - odbct->new_order.c_discount) *
+					(1 + odbct->new_order.w_tax + odbct->new_order.d_tax);
+			}
+			else
+			{
+				rc = ERROR;
+			}
 			break;
 		case ORDER_STATUS:
 			rc = execute_order_status(odbcc, &odbct->order_status);
