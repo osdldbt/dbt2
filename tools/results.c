@@ -20,12 +20,12 @@ int main(int argc, char *argv[])
 	int i;
 	FILE *log_mix;
 	FILE *log_tps;
-	/*
+/*
 	FILE *log_dtps;
 	FILE *log_otps;
 	FILE *log_ptps;
 	FILE *log_stps;
-	*/
+*/
 	int sample_length;
 	int total_transaction_count = 0;
 	int current_transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
 	int elapsed_time = 0;
 	double tps;
 	char filename[256];
-	/*
+/*
 	char filename_d[256];
 	char filename_o[256];
 	char filename_p[256];
 	char filename_s[256];
-	*/
+*/
 
 	int transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
 	double transaction_response_time[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
@@ -70,22 +70,22 @@ int main(int argc, char *argv[])
 	if (argc == 4)
 	{
 		sprintf(filename, "%s/tps.csv", argv[3]);
-		/*
+/*
 		sprintf(filename_d, "%s/tps_d.csv", argv[3]);
 		sprintf(filename_o, "%s/tps_o.csv", argv[3]);
 		sprintf(filename_p, "%s/tps_p.csv", argv[3]);
 		sprintf(filename_s, "%s/tps_s.csv", argv[3]);
-		*/
+*/
 	}
 	else
 	{
 		strcpy(filename, "tps.csv");
-		/*
+/*
 		strcpy(filename, "tps_d.csv");
 		strcpy(filename, "tps_o.csv");
 		strcpy(filename, "tps_p.csv");
 		strcpy(filename, "tps_s.csv");
-		*/
+*/
 	}
 	log_tps = fopen(filename, "w");
 	if (log_tps == NULL)
@@ -257,7 +257,8 @@ int main(int argc, char *argv[])
 	printf("Transaction       %%  Avg Response Time (s)        Total  Rollbacks      %%\n");
 	for (i = 0; i < TRANSACTION_MAX; i++)
 	{
-		printf("%12s  %5.2f  %21.3f  %11d  %9d  %5.2f\n", transaction_name[i],
+		printf("%12s  %5.2f  %21.3f  %11d  %9d  %5.2f\n",
+			transaction_name[i],
 			(double) transaction_count[i] / (double) total_transaction_count * 100.0,
 			transaction_response_time[i] / (double) transaction_count[i],
 			transaction_count[i], rollback_count[i],
@@ -267,11 +268,10 @@ int main(int argc, char *argv[])
 	/* Calculated the number of transactions per second. */
 	tps = (double) transaction_count[NEW_ORDER] / difftime(current_time, start_time);
 	printf("\n");
-	printf("%0.2f new-order transactions per second\n", tps);
 	printf("%0.2f new-order transactions per minute (NOTPM)\n", tps * 60);
 	printf("%0.1f minute duration\n",
 		difftime(current_time, start_time) / 60.0);
-	printf("%d total bogotransactions (type 2)\n",
+	printf("%d total new-order transactions per minute (NOTPM)\n",
 		transaction_count[NEW_ORDER]);
 	printf("\n");
 
