@@ -15,6 +15,11 @@ if [ $# -lt 1 ]; then
     exit
 fi
 
+# Set the relative execution prefix
+PFX=`dirname $0`
+
+
+
 COUNTER=0
 
 while :
@@ -51,10 +56,10 @@ do
 
 	case $option in
 	--db)
-		DATABASE=$optarg
+		DBTYPE=$optarg
 		;;
 	--dbname)
-		DATABASE_NAME=$optarg
+		DBTYPE_NAME=$optarg
 		;;
 	--outdir)
 		OUTPUT_DIR=$optarg
@@ -68,11 +73,11 @@ do
 	esac
 done
 
-if [ -z $DATABASE ]; then
+if [ -z $DBTYPE ]; then
 	echo "use --db"
 	exit
 fi
-if [ -z $DATABASE_NAME ]; then
+if [ -z $DBTYPE_NAME ]; then
 	echo "use --dbname"
 	exit
 fi
@@ -126,10 +131,10 @@ echo "starting system data collection"
 
 # collect database statistics
 echo "starting database statistics gathering"
-if [ $DATABASE = "sapdb" ]; then
-	sapdb/db_stats.sh DBT2 $OUTPUT_DIR $ITERATIONS $SAMPLE_LENGTH
+if [ $DBTYPE = "sapdb" ]; then
+	${SHELL} ${PFX}/sapdb/db_stats.sh DBT2 $OUTPUT_DIR $ITERATIONS $SAMPLE_LENGTH
 fi
 
 
 echo "data gathering complete, transforming data..."
-./transform_sar.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR
+${SHELL} ${PFX}/transform_sar.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR

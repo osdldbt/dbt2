@@ -39,6 +39,7 @@ usage(){
 ## PROGRAM EXECUTION
 ##
 ####
+PFX=`dirname $0`
 
 # Display help if the wrong number of arguments was supplied.
 if [ $# -lt 8 ]; then
@@ -83,11 +84,11 @@ do
 		# Test to see if this database exists (directory)
 		for db in ${VALIDDBS} ; do
 			if [ "${db}" = "${optarg}" ]; then
-				DATABASE="$optarg"
+				DBTYPE="$optarg"
 			fi
 		done
 
-		if [ -z ${DATABASE} ] ; then
+		if [ -z ${DBTYPE} ] ; then
 			echo "Database ${optarg} is invalid"
 			echo 
 			usage
@@ -168,17 +169,23 @@ read COMMENT
 echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
 
 # start the database
-${DATABASE}/start_db.sh
+${PFX}/${DBTYPE}/start_db.sh
 
-cd $OUTPUT_DIR
-../../${DATABASE}/plan.sh > plan0.out
-cd -
+# SapDB has a plan file -- run it to generate query plans.
+#
+# PostgreSQL uses the EXECUTE style which stores plans on the 
+# server side.  These need to be handled by the client.
+if [ -f ${PFX}/../../${DBTYPE}/plan.sh ] ; then
+	cd $OUTPUT_DIR
+	${SHELL} ${PFX}/../../${DBTYPE}/plan.sh > plan0.out
+	cd -
+fi
 
 # start system stat gathering
-./sysstats.sh --db ${DATABASE} --dbname dbt2 --outdir $OUTPUT_DIR --iter $ITERATION --sample $SAMPLE_LENGTH &
+${SHELL} ${PFX}/sysstats.sh --db ${DBTYPE} --dbname dbt2 --outdir $OUTPUT_DIR --iter $ITERATION --sample $SAMPLE_LENGTH &
 
 # start a test run
-CMD="../terminal/driver -dbname dbt2 -w $W -l $DURATION"
+CMD="${PFX}/../terminal/driver -d dbt2 -w $W -l $DURATION"
 
 # generate the command line argument for the driver depending on the
 # flags used
@@ -246,14 +253,14 @@ $CMD
 echo "moving mix.log and error.log"
 mv mix.log $OUTPUT_DIR/
 mv error.log $OUTPUT_DIR/
-
+exit;
 # analyze the results of mix.log
 ../tools/results $OUTPUT_DIR/mix.log $SAMPLE_LENGTH $OUTPUT_DIR
 
 echo "run complete"
 
 # stop the database
-${DATABASE}/stop_db.sh
+${DBTYPE}/stop_db.sh
 
 # draw graphs
 cd $OUTPUT_DIR
