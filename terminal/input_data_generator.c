@@ -34,7 +34,7 @@ int generate_input_data(int type, void *data, int w_id)
 			generate_order_status_data(w_id, (struct order_status_t *) data);
 			break;
 		case PAYMENT:
-			generate_payment_data(w_id, (struct new_payment_t *) data);
+			generate_payment_data(w_id, (struct payment_t *) data);
 			break;
 		default:
 			return ERROR;
@@ -45,7 +45,7 @@ int generate_input_data(int type, void *data, int w_id)
 /* This function generates data only for the Stock-Level transaction. */
 int generate_input_data2(int type, void *data, int w_id, int d_id)
 {
-	generate_stock_level_data(w_id, d_id, (struct new_stock_level_t *) data);
+	generate_stock_level_data(w_id, d_id, (struct stock_level_t *) data);
 	return OK;
 }
 
