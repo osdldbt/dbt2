@@ -1,12 +1,10 @@
 /*
- * transaction_test.c
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
  *
- * 24 june 2002
+ * 24 June 2002
  */
 
 #include <stdio.h>
@@ -39,7 +37,7 @@ int main(int argc, char *argv[])
 {
 	int i;
 	int transaction = -1;
-	struct odbc_context_t odbcc;
+	struct db_context_t odbcc;
 	union txn_data_t txn_data;
 	union odbc_transaction_t odbc_data;
 
@@ -50,8 +48,7 @@ int main(int argc, char *argv[])
 	init_common();
 	init_logging();
 
-	if (argc < 3)
-	{
+	if (argc < 3) {
 		printf("usage: %s -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-n #] [-p #]\n",
 			argv[0]);
 		printf("\n");
@@ -76,84 +73,52 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	for (i = 1; i < argc; i += 2)
-	{
-		if (strlen(argv[i]) != 2)
-		{
+	for (i = 1; i < argc; i += 2) {
+		if (strlen(argv[i]) != 2) {
 			printf("invalid flag: %s\n", argv[i]);
 			return 2;
 		}
-		if (argv[i][1] == 'd')
-		{
+		if (argv[i][1] == 'd') {
 			strcpy(sname, argv[i + 1]);
-		}
-		else if (argv[i][1] == 't')
-		{
-			if (argv[i + 1][0] == 'd')
-			{
+		} else if (argv[i][1] == 't') {
+			if (argv[i + 1][0] == 'd') {
 				transaction = DELIVERY;
-			}
-			else if (argv[i + 1][0] == 'n')
-			{
+			} else if (argv[i + 1][0] == 'n') {
 				transaction = NEW_ORDER;
-			}
-			else if (argv[i + 1][0] == 'o')
-			{
+			} else if (argv[i + 1][0] == 'o') {
 				transaction = ORDER_STATUS;
-			}
-			else if (argv[i + 1][0] == 'p')
-			{
+			} else if (argv[i + 1][0] == 'p') {
 				transaction = PAYMENT;
-			}
-			else if (argv[i + 1][0] == 's')
-			{
+			} else if (argv[i + 1][0] == 's') {
 				transaction = STOCK_LEVEL;
-			}
-			else
-			{
+			} else {
 				printf("unknown transaction: %s\n", argv[i + 1]);
 				return 3;
 			}
-		}
-		else if (argv[i][1] == 'w')
-		{
+		} else if (argv[i][1] == 'w') {
 			table_cardinality.warehouses = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'c')
-		{
+		} else if (argv[i][1] == 'c') {
 			table_cardinality.customers = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'i')
-		{
+		} else if (argv[i][1] == 'i') {
 			table_cardinality.items = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'o')
-		{
+		} else if (argv[i][1] == 'o') {
 			table_cardinality.orders = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'n')
-		{
+		} else if (argv[i][1] == 'n') {
 			table_cardinality.new_orders = atoi(argv[i + 1]);
-		}
-		else if (argv[i][1] == 'p')
-		{
+		} else if (argv[i][1] == 'p') {
 			port = atoi(argv[i + 1]);
-		}
-		else
-		{
+		} else {
 			printf("invalid flag: %s\n", argv[i]);
 			return 2;
 		}
 	}
 
-	if (strlen(sname) == 0)
-	{
+	if (strlen(sname) == 0) {
 		printf("-d flag was not used.\n");
 		return 4;
 	}
 
-	if (transaction == -1)
-	{
+	if (transaction == -1) {
 		printf("-t flag was not used.\n");
 		return 5;
 	}
@@ -174,44 +139,41 @@ int main(int argc, char *argv[])
 
 	/* Generate input data. */
 	bzero(&txn_data, sizeof(union txn_data_t));
-	switch (transaction)
-	{
-		case DELIVERY:
-			generate_input_data(DELIVERY,
-				(void *) &txn_data.delivery,
-				get_random(table_cardinality.warehouses) + 1);
-			break;
-		case NEW_ORDER:
-			generate_input_data(NEW_ORDER,
-				(void *) &txn_data.new_order,
-				get_random(table_cardinality.warehouses) + 1);
-			break;
-		case ORDER_STATUS:
-			generate_input_data(ORDER_STATUS,
-				(void *) &txn_data.order_status,
-				get_random(table_cardinality.warehouses) + 1);
-			break;
-		case PAYMENT:
-			generate_input_data(PAYMENT, (void *) &txn_data.payment,
-				get_random(table_cardinality.warehouses) + 1);
-			break;
-		case STOCK_LEVEL:
-			generate_input_data2(STOCK_LEVEL,
-				(void *) &txn_data.stock_level,
-				get_random(table_cardinality.warehouses) + 1,
-				get_random(table_cardinality.districts) + 1);
-			break;
+	switch (transaction) {
+	case DELIVERY:
+		generate_input_data(DELIVERY, (void *) &txn_data.delivery,
+			get_random(table_cardinality.warehouses) + 1);
+		break;
+	case NEW_ORDER:
+		generate_input_data(NEW_ORDER, (void *) &txn_data.new_order,
+			get_random(table_cardinality.warehouses) + 1);
+		break;
+	case ORDER_STATUS:
+		generate_input_data(ORDER_STATUS,
+			(void *) &txn_data.order_status,
+			get_random(table_cardinality.warehouses) + 1);
+		break;
+	case PAYMENT:
+		generate_input_data(PAYMENT, (void *) &txn_data.payment,
+			get_random(table_cardinality.warehouses) + 1);
+		break;
+	case STOCK_LEVEL:
+		generate_input_data2(STOCK_LEVEL,
+			(void *) &txn_data.stock_level,
+			get_random(table_cardinality.warehouses) + 1,
+			get_random(table_cardinality.districts) + 1);
+		break;
 	}
 
-	if (port == 0)
-	{
-		/* Process transaction by connecting directly to the database. */
+	if (port == 0) {
+		/*
+		 * Process transaction by connecting directly to the database.
+		 */
 		printf("connecting directly to the database...\n");
 #ifdef ODBC
 		bzero(&odbc_data, sizeof(union odbc_transaction_t));
 		odbc_init(sname, DB_USER, DB_PASS);
-		if (odbc_connect(&odbcc) != OK)
-		{
+		if (odbc_connect(&odbcc) != OK) {
 			return 6;
 		}
 		memcpy(&odbc_data, &txn_data, sizeof(union txn_data_t));
@@ -219,15 +181,12 @@ int main(int argc, char *argv[])
 		memcpy(&txn_data, &odbc_data, sizeof(union txn_data_t));
 		odbc_disconnect(&odbcc);
 #endif /* ODBC */
-	}
-	else
-	{
+	} else {
 		/* Process transaction by connecting to the client program. */
 		printf("connecting to client program on port %d...\n", port);
 
 		sockfd = connect_to_client(sname, port);
-		if (sockfd > 0)
-		{
+		if (sockfd > 0) {
 			printf("connected to client\n");
 		}
 
@@ -235,15 +194,13 @@ int main(int argc, char *argv[])
 		memcpy(&client_txn.transaction_data, &txn_data,
 			sizeof(union txn_data_t));
 		printf("sending transaction data...\n");
-		if (send_transaction_data(sockfd, &client_txn) != OK)
-		{
+		if (send_transaction_data(sockfd, &client_txn) != OK) {
 			printf("send_transaction_data() error\n");
 			return 7;
 		}
 
 		printf("receiving transaction data...\n");
-		if (receive_transaction_data(sockfd, &client_txn) != OK)
-		{
+		if (receive_transaction_data(sockfd, &client_txn) != OK) {
 			printf("receive_transaction_data() error\n");
 			return 8;
 		}
