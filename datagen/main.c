@@ -18,6 +18,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+
 #include <common.h>
 
 #define CUSTOMER_DATA "customer.data"
