@@ -18,14 +18,6 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 {
 	char stmt[128];
 
-        /* Start a transaction block. */
-        if (mysql_real_query(dbc->mysql, "SET AUTOCOMMIT=0", 16))
-        {
-          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->mysql) ,
-                            mysql_error(dbc->mysql));
-          return ERROR;
-        }
-
 	/* Create the query and execute it. */
 	sprintf(stmt, "call order_status(%d, %d, %d, '%s')",
 		data->c_id, data->c_w_id, data->c_d_id, data->c_last);

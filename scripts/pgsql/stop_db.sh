@@ -13,5 +13,5 @@ DIR=`dirname $0`
 . ${DIR}/init_env.sh || exit
 
 sleep 1
-$PGCTL -D $PGDATA stop
+$PGCTL -D $PGDATA stop $1
 sleep 1

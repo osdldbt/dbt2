@@ -106,15 +106,6 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
                                                            //W_NAME W_STREET_1 W_STREET_2
                                                            //W_CITY W_STATE W_ZIP
 
-#ifdef DEBUG_QUERY
-          LOG_ERROR_MESSAGE("PAYMENT_1: W_NAME: %s\n", vals[W_NAME]);
-          LOG_ERROR_MESSAGE("PAYMENT_1: W_STREET_1: %s\n", vals[W_STREET_1]);
-          LOG_ERROR_MESSAGE("PAYMENT_1: W_STREET_2: %s\n", vals[W_STREET_2]);
-          LOG_ERROR_MESSAGE("PAYMENT_1: W_CITY: %s\n", vals[W_CITY]);
-          LOG_ERROR_MESSAGE("PAYMENT_1: W_STATE: %s\n", vals[W_STATE]);
-          LOG_ERROR_MESSAGE("PAYMENT_1: W_ZIP: %s\n", vals[W_ZIP]);
-          LOG_ERROR_MESSAGE("PAYMENT_1: VALS_NUM: %d\n", nvals);
-#endif
           dbt2_sql_close_cursor(dbc, &result);          
         }
         else //error

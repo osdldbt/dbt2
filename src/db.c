@@ -20,6 +20,7 @@
 #include "odbc_payment.h"
 #include "odbc_stock_level.h"
 #include "odbc_new_order.h"
+#include "odbc_integrity.h"
 #endif /* ODBC */
 
 #ifdef LIBPQ
@@ -28,6 +29,7 @@
 #include "libpq_payment.h"
 #include "libpq_stock_level.h"
 #include "libpq_new_order.h"
+#include "libpq_integrity.h"
 #endif /* LIBPQ */
 
 
@@ -37,6 +39,7 @@
 #include "mysql_payment.h"
 #include "mysql_stock_level.h"
 #include "mysql_new_order.h"
+#include "mysql_integrity.h"
 #endif /* LIBMYSQL */
 
 
@@ -58,7 +61,8 @@ int db_init(char *sname, char *uname, char *auth)
 int db_init(char *_dbname, char *_pghost, char *_pgport)
 #endif /* LIBPQ */
 #ifdef LIBMYSQL
-int db_init(char * _mysql_dbname, char * _mysql_host, char * _mysql_port, char * _mysql_socket)
+int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
+             char * _mysql_pass, char * _mysql_port, char * _mysql_socket)
 #endif /* LIBMYSQL */
 
 {
@@ -73,7 +77,8 @@ int db_init(char * _mysql_dbname, char * _mysql_host, char * _mysql_port, char *
 #endif /* LIBPQ */
 
 #ifdef LIBMYSQL
-        rc = _db_init(_mysql_dbname, _mysql_host, _mysql_port, _mysql_socket);
+        rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass, 
+                      _mysql_port, _mysql_socket);
 #endif /* LIBMYSQL */
 
 
@@ -103,6 +108,9 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 	int status;
 
 	switch (transaction) {
+	case INTEGRITY:
+		rc = execute_integrity(dbc, &td->integrity);
+		break;
 	case DELIVERY:
 		rc = execute_delivery(dbc, &td->delivery);
 		break;

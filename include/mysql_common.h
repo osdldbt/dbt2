@@ -32,13 +32,14 @@ extern char mysql_dbname[32];
 extern char mysql_host[32];
 extern char mysql_port_t[32];
 extern char mysql_user[32];
-extern char mysql_password[32];
+extern char mysql_pass[32];
 extern char mysql_socket_t[256];
 
 int commit_transaction(struct db_context_t *dbc);
 int _connect_to_db(struct db_context_t *dbc);
 int _disconnect_from_db(struct db_context_t *dbc);
-int _db_init(char *_mysql_dbname, char *_mysql_host, char *_mysql_port, char * _mysql_socket);
+int _db_init(char *_mysql_dbname, char *_mysql_host, char * _mysql_user, char * _mysql_pass, 
+             char *_mysql_port, char * _mysql_socket);
 int rollback_transaction(struct db_context_t *dbc);
 
 int dbt2_sql_execute(struct db_context_t *dbc, char * query,

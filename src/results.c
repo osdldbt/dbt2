@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	double response_time, total_response_time = 0;
 	time_t start_time = -1;
 	time_t previous_time = 0; /* Initialized to remove compiler warning. */
-	time_t current_time;
+	time_t current_time = 0; /* Initialized to remove compiler warning. */
 	char transaction;
 	char marker[64];
 	int tid;
@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
 	char os_filename[256];
 	char p_filename[256];
 	char sl_filename[256];
+
+	int starttime2 = 0;
 
 	int errors = 0; /* Unknown error counter. */
 
@@ -107,9 +109,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	while (fscanf(log_mix, "%d,%c,%lf,%d", (int *) &current_time,
+	while (fscanf(log_mix, "%i,%c,%lf,%d", &starttime2,
 		&transaction, &response_time, &tid) == 4) {
 		int i;
+
+		current_time=starttime2;
 
 		/* Note when the rampup has ended. */
 		if (start_time == -1) {

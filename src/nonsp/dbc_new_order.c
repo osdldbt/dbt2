@@ -206,7 +206,9 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
           else //error
           {
             /* Item doesn't exist, rollback transaction. */
+#ifdef DEBUG_QUERY
             LOG_ERROR_MESSAGE("ROLLBACK BECAUSE OL_I_ID[%d]= 0 for query:\nNEW_ORDER_7: %s", i, query);
+#endif
             rc=2;
             break;
           }

@@ -104,9 +104,7 @@ DECLARE out_ol_delivery_d15 VARCHAR(28);
 
 	DECLARE out_c_id INT;
 	DECLARE out_c_last VARCHAR(255);
-
         declare rc int default 0;
-        declare continue handler for sqlstate '02000' set rc = 1;
 
         declare c cursor for SELECT ol_i_id, ol_supply_w_id, ol_quantity, 
                                     ol_amount, ol_delivery_d
@@ -114,6 +112,8 @@ DECLARE out_ol_delivery_d15 VARCHAR(28);
                              WHERE ol_w_id = in_c_w_id
                                AND ol_d_id = in_c_d_id
                                AND ol_o_id = out_o_id;
+
+        declare continue handler for sqlstate '02000' set rc = 1;
 
 #	out_c_first VARCHAR(255);
 #	out_c_middle VARCHAR(255);
@@ -152,7 +152,7 @@ DECLARE out_ol_delivery_d15 VARCHAR(28);
 	WHERE o_w_id = in_c_w_id
   	AND o_d_id = in_c_d_id
   	AND o_c_id = out_c_id
-	ORDER BY o_id DESC;
+	ORDER BY o_id DESC limit 1;
 
         open c;
 

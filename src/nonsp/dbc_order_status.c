@@ -157,11 +157,6 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
           vals[O_OL_CNT]= dbt2_sql_getvalue(dbc, &result, 3);
 
           dbt2_sql_close_cursor(dbc, &result);
-
-          if (!vals[O_CARRIER_ID])
-          {
-            LOG_ERROR_MESSAGE("ERROR: O_CARRIER_ID=NULL for query ORDER_STATUS_3:\n%s\n", query);
-          }
         }
         else //error
         {

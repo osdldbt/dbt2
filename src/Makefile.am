@@ -15,7 +15,8 @@ INTERFACE_SRCS=\
   @DBC_FUNCTIONS@/dbc_payment.c \
   @DBC_FUNCTIONS@/dbc_order_status.c \
   @DBC_FUNCTIONS@/dbc_delivery.c \
-  @DBC_FUNCTIONS@/dbc_stock_level.c
+  @DBC_FUNCTIONS@/dbc_stock_level.c \
+  @DBC_FUNCTIONS@/dbc_integrity.c
 
 if NONSP 
 NONSP_SRCS=@DBC_FUNCTIONS@/dbc_nonsp.c

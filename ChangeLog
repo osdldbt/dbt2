@@ -1,7 +1,12 @@
+v0.24
+
+- Changed the format of the vmstat data files that are graphed.
+- Fix for results.c for some 64 bit platform.
+
 v0.23
 
 - MySQL support.
-- Minor bug fix.
+- Minor bug fix with generating data for the payment transaction.
 
 v0.22
 
@@ -27,7 +32,7 @@ v0.19
 - Fixed a query in the New-Order transaction to reduce the number of rollbacks.
 v0.18
 
-- Fixed a bug in the driver regarding the assignmen of warehouse id's to each
+- Fixed a bug in the driver regarding the assignment of warehouse id's to each
   thread.
 
 v0.17

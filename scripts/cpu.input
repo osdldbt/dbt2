@@ -1,7 +1,11 @@
-plot "vmstat.out.all.data" title "total" with lines, "vmstat.out.us.data" title "user" with lines, "vmstat.out.sy.data" title "system" with lines, "vmstat.out.id.data" title "idle" with lines, "vmstat.out.wa.data" title "wait" with lines
+plot "vmstat.out.data" using 1:6 title "total" with lines, \
+     "vmstat.out.data" using 1:2 title "user" with lines, \
+     "vmstat.out.data" using 1:3 title "system" with lines, \
+     "vmstat.out.data" using 1:4 title "idle" with lines, \
+     "vmstat.out.data" using 1:5 title "wait" with lines
 set xlabel "Elapsed Time (s)"
 set ylabel "% Utilized"
-set term png small color
+set term png small
 set output "cpu.png"
 set yrange [0:100]
 replot

@@ -44,6 +44,11 @@ extern FILE *log_mix;
 extern pthread_mutex_t mutex_mix_log;
 #endif /* STANDALONE */
 
+#if defined(LIBMYSQL) || defined(ODBC)
+extern char dbt2_user[128];
+extern char dbt2_pass[128];
+#endif
+
 #ifdef LIBPQ
 extern char postmaster_port[32];
 #endif /* LIBPQ */
@@ -69,16 +74,16 @@ void *db_worker(void *data)
 
         /* Open a connection to the database. */
 #ifdef ODBC
-        printf("connect to ODBC server with parameters: db_name: |%s| user: |%s| pass: |%s|\n", sname, DB_USER, DB_PASS);
-        db_init(sname, DB_USER, DB_PASS);
+        printf("connect to ODBC server with parameters: DSN: |%s| user: |%s| pass: |%s|\n", sname, dbt2_user, dbt2_pass);
+        db_init(sname, dbt2_user, dbt2_pass);
 #endif /* ODBC */
 #ifdef LIBPQ
         db_init(DB_NAME, sname, postmaster_port);
 #endif /* LIBPQ */
 
 #ifdef LIBMYSQL
-       printf("connect to mysql server with parameters: db_name: |%s| host: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_mysql_port, dbt2_mysql_socket);
-       db_init(sname, dbt2_mysql_host ,dbt2_mysql_port, dbt2_mysql_socket);
+       printf("connect to mysql server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
+       db_init(sname, dbt2_mysql_host , dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
 #endif /* LIBMYSQL */
 
 

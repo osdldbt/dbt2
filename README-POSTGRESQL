@@ -1,9 +1,15 @@
-The kit is configured to expect PostgreSQL to have trusted connections defined.
-So in the pg_hba.conf file, if you want to trust everyone, define this:
+For PostgreSQL 7.4 and earlier the kit is configured to expect PostgreSQL
+to have trusted connections defined.  So in the pg_hba.conf file, if you
+want to trust everyone, define this:
 
 local        all                                           trust
 host         all         127.0.0.1     255.0.0.0           trust
 host         all         0.0.0.0       0.0.0.0             reject
+
+-----
+
+For PostgreSQL 7.4 edit the line in postgresql.conf that says
+"tcpip_socket = false", uncomment, set to true, and restart the daemon.
 
 -----
 
@@ -17,12 +23,60 @@ run the kit in a multi-tier environment for PostgreSQL.
 
 -----
 
-Edit the line in postgresql.conf that says "tcpip_socket = false", uncomment,
-set to true, and restart the daemon.
+make install-all-headers
+
+Do this from the postgresql src if you're installing postgresql from source
+to make sure the server include files get installed.
+
+This command does not need to be run as of 8.0beta4.
 
 -----
 
-make install-all-headers
+For PostgreSQL 8.0, run configure with the --enable-thread-safety to
+avoid SIGPIPE handling for the multi-thread dbt2 client program.
 
-Do this from the postgresql srcif you're installing postgresql from source to
-make sure the server include files get installed.
+-----
+
+A quick howto run the test (Thanks Min!):
+
+small db 2 warehouse; big db 20 warehouse, tiny db, 500 warehouse
+
+generated from: (tpcc only allow scaling warehouse)
+mkdir DB.small
+./src/datagen --pgsql -w 20 -d DB.small -c 300 -i 10000 -o 300 -n 90
+
+# scaling the other factor
+./src/datagen --pgsql -w 500 -d DB.500warehouse -c 3 -i 10 -o 3 -n 9
+
+can get # of warehouse from psql: select count(*) from warehouse;
+
+run "client" program manually, can monitor the query length too
+
+cd <dbt2_home>/scripts/pgsql
+../../src/client -d localhost -c 2 -l 5432 -o ../output/0
+
+run "driver" program manually, control tpw (terminal per warehouse)
+
+../../src/driver -d localhost -l 360 -wmin 1 -wmax 20 -w 20 \
+  -c 3 -i 10 -o 3 -n 9 \
+  -ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 \
+  -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 -tpw 80 -outdir ../output/0
+
+empty ../output/0 after each run
+
+tuning:
+
+1. If you have fsync on then the daemon will be waiting for disk I/O
+   for writing log (WAL)
+2. For 1 warehouse, increase currency hurt per cpu utilization.
+   1 daemon 1 terminal: 12% in 8 way system
+   2 daemon 2 terminal: 9.2%
+   3 daemon 3 terminal: 6.7%
+   4 daemon 4 terminal: 5.5%
+
+  Note the tpc-c model: company scales with # of warehouses;
+    each warehouse supports 10 districts;
+    each district serve 3000 customers;
+    each warehouse maintain stock level of 100,000 items;
+    require ~10% orders are fullfilled from other warehouses due to not have
+      all items in the company's catalog;

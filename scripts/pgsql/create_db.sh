@@ -25,7 +25,7 @@ if [ -d $PGDATA ] ; then
 	echo "Skipping initdb"
 	echo "======================================="
 else
-	$INITDB -D $PGDATA
+	$INITDB -D $PGDATA --locale=C
 fi
 
 $PGCTL -D $PGDATA -l log start

@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.in 1207 2005-03-04 06:05:30Z fimath $)
+AC_REVISION($Id: configure.in 1209 2005-03-04 06:14:59Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.22, osdldbt-general@lists.sourceforge.net)
@@ -170,6 +170,14 @@ AC_ARG_WITH(sapdb,
   [],
 )
 
+# ODBC
+AC_ARG_WITH(odbc,
+  [AC_HELP_STRING([--with-odbc], [using ODBC])],
+  [database_to_use="odbc"],
+  [],
+)
+
+
 # MySQL
 AC_ARG_WITH(mysql,
   [AC_HELP_STRING([--with-mysql=DIR],
@@ -270,15 +278,86 @@ if test "$database_to_use" == "pgsql"; then
 
   SP_DIR="pgsql"
 
-elif test "$database_to_use" == "sapdb"; then
+elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
   dnl ODBC Library (required)
   dnl check for `odbcinit' in -lodbc, -liodbc
-  AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h, [],
-    [AC_MSG_ERROR([unixODBC or iODBC required])]
+
+  if test "$database_to_use" == "odbc" -a -z "$NONSP"; then 
+    AC_MSG_ERROR(["It is possible to build only nonSP version of test for ODBC mode. Please 
+                   use --enable-nonsp option"])
+  fi
+  
+  AC_ARG_WITH([unixodbc],
+    [AC_HELP_STRING([--with-unixodbc=DIR],
+      [path to UnixODBC installation root])],
+    [unixodbc_root=$withval]
   )
-  AC_SEARCH_LIBS(SQLDriverConnect, [odbc iodbc], [],
-    AC_MSG_ERROR([unixODBC or iODBC required])
+
+  AC_ARG_WITH([iodbc],
+    [AC_HELP_STRING([--with-iodbc=DIR],
+      [path to iODBC installation root])],
+    [iodbc_root=$withval]
   )
+
+  if test "$unixodbc_root" != ""; then 
+
+    CPPFLAGS="$CPPFLAGS -DUNIXODBC"
+
+    if test "$unixodbc_root" != "yes" -a "$unixodbc_root" != "no"; then 
+      if test -d "$unixodbc_root/include"; then     
+        CFLAGS="$CFLAGS -I$unixodbc_root/include"
+      else
+        AC_MSG_ERROR([Detection of ODBC components: Directory $unixodbc_root/include not exist])
+      fi
+      if test -d "$unixodbc_root/lib"; then     
+        LDFLAGS="$LDFLAGS -L$unixodbc_root/lib"
+      else
+        AC_MSG_ERROR([Detection of ODBC components: Directory $unixodbc_root/lib not exist])
+      fi
+      LIBS="$LIBS -lodbc"
+    else
+      AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h, [],
+        [AC_MSG_ERROR([unixODBC required])]
+      )
+      AC_SEARCH_LIBS(SQLDriverConnect, [odbc], [],
+        AC_MSG_ERROR([unixODBC required])
+      )
+    fi        
+  elif test "$iodbc_root" != ""; then 
+
+    CPPFLAGS="$CPPFLAGS -DIODBC"
+
+    if test "$iodbc_root" != "yes" -a "$iodbc_root" != "no"; then 
+
+      if test -d "$iodbc_root/include"; then     
+        CFLAGS="$CFLAGS -I$iodbc_root/include"
+      else
+        AC_MSG_ERROR([Detection of ODBC components: Directory $iodbc_root/include not exist])
+      fi
+      if test -d "$iodbc_root/lib"; then     
+        LDFLAGS="$LDFLAGS -L$iodbc_root/lib"
+      else
+        AC_MSG_ERROR([Detection of ODBC components: Directory $iodbc_root/lib not exist])
+      fi
+
+      LIBS="$LIBS -liodbc"
+    else
+      AC_CHECK_HEADERS(isql.h isqlext.h isqltypes.h, [],
+        [AC_MSG_ERROR([iODBC required])]
+      )
+      AC_SEARCH_LIBS(SQLDriverConnect, [iodbc], [],
+        AC_MSG_ERROR([iODBC required])
+      )
+    fi        
+  else
+    AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h, [],
+      [AC_MSG_ERROR([unixODBC or iODBC required])]
+    )
+    AC_SEARCH_LIBS(SQLDriverConnect, [odbc iodbc], [],
+      AC_MSG_ERROR([unixODBC or iODBC required])
+    )
+  fi
+
   AC_DEFINE(ODBC, 1, [using ODBC to SAPDB])
   AC_DEFINE(DELAY_IN_MILISECONDS, 1, [to use delays in msec])
 
@@ -288,32 +367,9 @@ elif test "$database_to_use" == "sapdb"; then
   SP_DIR=""
 elif test "$database_to_use" == "mysql"; then
 
-  AC_CHECK_MYSQLR([$ac_cv_use_mysql])
+  AC_CHECK_MYSQL([$ac_cv_use_mysql],["libmysql_r"])
+
   CFLAGS="$CFLAGS $MYSQL_CFLAGS"
-
-  AC_MSG_CHECKING(Version of MySQL headers)
-  AC_TRY_RUN([#include <stdio.h>
-    #include <mysql.h>
-    main()
-    {
-      FILE *f=fopen("conftestval", "w");
-      if (!f) exit(1);
-      fprintf(f, "%d\n", MYSQL_VERSION_ID);
-      fclose(f);
-      exit(0);
-    }], 
-    [MYSQL_VER=`cat conftestval`], 
-    [ 
-      MYSQL_VER=0
-    ]
-  )
-  AC_MSG_RESULT($MYSQL_VER)
-
-  if test $MYSQL_VER -eq 0 ; then 
-    AC_MSG_WARN([Unable to detect version of headers. Please check that include 
-                    directory was correctly specifed.])
-  fi
-
   LIBS="$LIBS $MYSQL_LIBS" 
 
   if test -z "$NONSP" ; then
@@ -340,8 +396,8 @@ fi
 dnl Check for test type(SP/NONSP)
 if test -n "$NONSP" && test "$database_to_use" != "pgsql"; then
   DBC_FUNCTIONS="nonsp"  
-
 fi
+
 AM_CONDITIONAL(NONSP, test -n "$NONSP" && test "$database_to_use" != "pgsql")
 
 dnl Checks for header files.
@@ -375,6 +431,7 @@ scripts/run_mysql.sh                \
 scripts/sysstats.sh                 \
 scripts/transform_sar.sh            \
 scripts/run_workload.sh             \
+scripts/pgsql/init_env.sh           \
 scripts/Linux/get_os_info.sh        \
 scripts/SunOS/get_os_info.sh        \
 storedproc/pgsql/c/delivery.sql     \

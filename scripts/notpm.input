@@ -1,7 +1,7 @@
 plot "notpm.out" with lines
 set xlabel "Elapsed Time (Minutes)"
 set ylabel "New-Order Transactions"
-set term png small color
+set term png small
 set output "not.png"
 set yrange [0:]
 replot

@@ -17,14 +17,6 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 {
 	char stmt[512];
 
-        /* Start a transaction block. */
-        if (mysql_real_query(dbc->mysql, "SET AUTOCOMMIT=0", 16))
-        {
-          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->mysql) ,
-                            mysql_error(dbc->mysql));
-          return ERROR;
-        }
-
         /* Create the query and execute it. */
 	sprintf(stmt, "call stock_level(%d, %d, %d, @low_stock)", data->w_id, data->d_id, data->threshold);
 

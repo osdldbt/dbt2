@@ -14,9 +14,19 @@
 #include "logging.h"
 #include "transaction_data.h"
 
+#ifdef IODBC
+#include <isql.h>
+#include <isqlext.h>
+#include <isqltypes.h>
+#else /* UNIXODBC */
 #include <sql.h>
 #include <sqlext.h>
-#include <sqltypes.h>
+#include <sqltypes.h> 
+#endif
+
+#ifndef SQLLEN
+#define SQLLEN SQLINTEGER
+#endif
 
 
 #define LOG_ODBC_ERROR(type, handle) log_odbc_error(__FILE__, __LINE__, type, handle)

@@ -38,7 +38,8 @@ int db_init(char *_dbname, char *_pghost, char *_pgport);
 #endif /* LIBPQ */
 
 #ifdef LIBMYSQL
-int db_init(char *_mysql_dbname, char *_mysql_host, char *_mysql_port, char * _mysql_socket);
+int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
+            char * _mysql_pass, char * _mysql_port, char * _mysql_socket);
 #endif /* LIBMYSQL */
 
 int disconnect_from_db(struct db_context_t *dbc);

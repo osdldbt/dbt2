@@ -6,6 +6,7 @@
 # Copyright (C) 2003 Mark Wong & Open Source Development Lab, Inc.
 #
 # 4 September 2003
+# 5 November 2004 with help from Ken Brush
 
 use strict;
 use Getopt::Long;
@@ -21,11 +22,6 @@ unless ( $stats_dir ) {
 	exit 1;
 }
 
-#unless ( -d $stats_dir ) {
-#	print "$stats_dir directory doesn't exist\n";
-#	exit 1;
-#}
-
 my @index_names = ( "pk_district", "pk_customer", "pk_new_order", "pk_orders",
 	"pk_order_line", "pk_item", "pk_warehouse", "pk_stock", "i_customer",
 	"i_orders" );
@@ -33,64 +29,81 @@ my @index_names = ( "pk_district", "pk_customer", "pk_new_order", "pk_orders",
 my @table_names = ( "warehouse", "district", "customer", "history",
 	"new_order", "orders", "order_line", "item", "stock" );
 
-my $index;
-foreach $index ( @index_names) {
-	# Split indexes_scan.out into individual files by index.
-	`cat $stats_dir/indexes_scan.out | grep $index | awk '{ print NR, \$11 }' > $stats_dir/$index.index_scan.data`;
+my @input_file;
 
-	# Recreate the files to be incremental instead of cumulative.
-	open( FH, "< $stats_dir/$index.index_scan.data" )
-		or die "Couldn't open $index.index_scan.data for reading: $!\n";
-	my $line;
-	my @data = ();
-	while ( defined( $line = <FH> ) ) {
-		my @raw_data = split / /, $line;
-		push @data, $raw_data[ 1 ];
-	}
-	close FH;
-	`echo "0 0" > $stats_dir/$index.index_scan.data`;
-	for ( my $i = 1; $i < scalar( @data ); $i++ ) {
-		my $newval = $data[ $i ] - $data[ $i - 1 ];
-		`echo "$i $newval" >> $stats_dir/$index.index_scan.data`;
+sub process {
+	my ( $filename, $column, $ylabel, @names ) = @_;
+
+	# Read it all the data files and process the data.
+	my @index_data;
+	$filename = ( split /\//, $filename )[ -1 ];
+	foreach my $index ( @names ) {
+		my @data;
+		my $previous_value = 0;
+
+		# The first data point must be a zero.
+		push @data, 0;
+		open( FILE, "$stats_dir/$filename" );
+		while ( <FILE> ) {
+			/\s$index\s/ and do {
+				my $current_value = ( split, $_ )[ $column ];
+				push @data, $current_value - $previous_value;
+				$previous_value = $current_value;
+			}
+		}
+		close( FILE );
+		@{ $index_data[ $#index_data + 1] } = @data;
 	}
 
-	# Split index_info.out into individual files by index.
-	`cat $stats_dir/index_info.out | grep $index | awk '{ print NR, \$9 }' > $stats_dir/$index.index_info.data`;
+	# Output the a graphable data file.
+	# The last data point seems kind of screwy, always drop it.
+	$filename =~ s/out$/data/;
+	open( FILE, ">$stats_dir/$filename" );
+	for ( my $i = 0; $i < ( scalar @{ $index_data[ 0 ] } ) - 1; $i++ ) {
+		print FILE "$i";
+		for ( my $j = 0; $j < scalar @index_data; $j++ ) {
+			print FILE " $index_data[ $j ][ $i ]";
+		}
+		print FILE "\n";
+	}
+	close( FILE );
 
-	# Recreate the files to be incremental instead of cumulative.
-	open( FH, "< $stats_dir/$index.index_info.data" )
-		or die "Couldn't open $index.index_info.data for reading: $!\n";
-	@data = ();
-	while ( defined( $line = <FH> ) ) {
-		my @raw_data = split / /, $line;
-		push @data, $raw_data[ 1 ];
+	# Create a gnuplot input file.
+	my $input_filename = $filename;
+	$input_filename =~ s/data$/input/;
+	push @input_file, $input_filename;
+	my $png_filename = $filename;
+	$png_filename =~ s/data$/png/;
+	open( FILE, ">$stats_dir/$input_filename" );
+	print FILE "plot \"$filename\" using 1:1 title \"$names[ 0 ]\" with lines, \\\n";
+	my $i;
+	for ( $i = 1; $i < (scalar @names) - 1; $i++ ) {
+		print FILE "\"$filename\" using 1:" . ($i + 1) .
+			" title \"$names[ $i ]\" with lines, \\\n";
 	}
-	close FH;
-	`echo "0 0" > $stats_dir/$index.index_info.data`;
-	for ( my $i = 1; $i < scalar( @data ); $i++ ) {
-		my $newval = $data[ $i ] - $data[ $i - 1 ];
-		`echo "$i $newval" >> $stats_dir/$index.index_info.data`;
-	}
+	print FILE "\"$filename\" using 1:" . ($i + 1) .
+		" title \"$names[ $i ]\" with lines\n";
+	print FILE "set xlabel \"Elapsed Time (s)\"\n";
+	print FILE "set ylabel \"$ylabel\"\n";
+	print FILE "set term png small\n";
+	print FILE "set output \"$png_filename\"\n";
+	print FILE "set yrange [0:]\n";
+	print FILE "replot\n";
+	close( FILE );
 }
 
-my $table;
-foreach $table ( @table_names ) {
-	# Split table_info.out into individual files by table.
-	`cat $stats_dir/table_info.out | grep $table | awk '{ print NR, \$5 }' > $stats_dir/$table.table_info.data`;
+foreach my $filename ( <$stats_dir/*indexes_scan.out> ) {
+	process( $filename, 10, "Index Scans", @index_names );
+}
+foreach my $filename ( <$stats_dir/*index_info.out> ) {
+	process( $filename, 8, "Blocks Read", @index_names );
+}
+foreach my $filename ( <$stats_dir/*table_info.out> ) {
+	process( $filename, 4, "Blocks Read", @table_names );
+}
 
-	# Recreate the files to be incremental instead of cumulative.
-	open( FH, "< $stats_dir/$table.table_info.data" )
-		or die "Couldn't open $table.table_info.data for reading: $!\n";
-	my $line;
-	my @data = ();
-	while ( defined( $line = <FH> ) ) {
-		my @raw_data = split / /, $line;
-		push @data, $raw_data[ 1 ];
-	}
-	close FH;
-	`echo "0 0" > $stats_dir/$table.table_info.data`;
-	for ( my $i = 1; $i < scalar( @data ); $i++ ) {
-		my $newval = $data[ $i ] - $data[ $i - 1 ];
-		`echo "$i $newval" >> $stats_dir/$table.table_info.data`;
-	}
+# Plot each gnuplot input file.
+chdir $stats_dir;
+foreach my $filename ( @input_file ) {
+	system "gnuplot $filename";
 }

@@ -582,3 +582,42 @@ int create_pid_file()
 
   return OK;
 }
+
+int integrity_terminal_worker()
+{
+        int length;
+        int sockfd;
+
+        struct client_transaction_t client_data;
+        extern int errno;
+
+        /* Connect to the client program. */
+        sockfd = connect_to_client(hostname, client_port);
+        if (sockfd < 1) {
+                LOG_ERROR_MESSAGE(
+                        "connect_to_client() failed, thread exiting...");
+                printf("connect_to_client() failed, thread exiting...");
+                pthread_exit(NULL);
+        }
+
+        client_data.transaction = INTEGRITY;
+        generate_input_data(client_data.transaction,
+                            &client_data.transaction_data, table_cardinality.warehouses);
+
+#ifdef DEBUG
+        printf("executing transaction %c\n", 
+                 transaction_short_name[client_data.transaction]);
+        fflush(stdout);
+
+                LOG_ERROR_MESSAGE("executing transaction %c", 
+                        transaction_short_name[client_data.transaction]);
+#endif /* DEBUG */
+
+        length = send_transaction_data(sockfd, &client_data);
+        length = receive_transaction_data(sockfd, &client_data);
+        close(sockfd);
+
+        return client_data.status;
+
+}
+

@@ -244,4 +244,8 @@ int dbt2_free_values(char ** values, int max_values);
 	"  AND ol_o_id BETWEEN (%d)\n" \
 	"		  AND (%d)"
 
+#define INTEGRITY_1 \
+	"SELECT count(*)\n" \
+	"FROM warehouse\n" 
+
 #endif /* _NONSP_COMMON_H_ */

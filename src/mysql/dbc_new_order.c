@@ -17,14 +17,10 @@
 int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 {
 	char stmt[512];
+        int rc;
 
-        /* Start a transaction block. */
-        if (mysql_real_query(dbc->mysql, "SET AUTOCOMMIT=0", 16))
-        {
-          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->mysql) ,
-                            mysql_error(dbc->mysql));
-          return ERROR;
-        }
+        MYSQL_RES * result;
+        MYSQL_ROW row;
 
 	/* Create the query and execute it. */
 	sprintf(stmt,
@@ -93,6 +89,34 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
           return ERROR;
         }
 
-	return OK;
+        rc= ERROR;
+
+        if (mysql_query(dbc->mysql, "select @rc"))
+        {
+          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->mysql) ,
+                            mysql_error(dbc->mysql));
+        }
+        else
+        {
+          if ((result = mysql_store_result(dbc->mysql)))
+          {
+            if ((row = mysql_fetch_row(result)) && (row[0]))
+            {
+              data->rollback=atoi(row[0]);
+              if  (data->rollback)
+              {
+                LOG_ERROR_MESSAGE("NEW_ORDER ROLLBACK RC %d\n",data->rollback);
+              }
+              rc= OK;
+            }
+            else
+            {
+              fprintf(stderr, "Error: %s\n", mysql_error(dbc->mysql));
+            }
+            mysql_free_result(result);
+          }
+        }
+
+	return rc;
 }
 

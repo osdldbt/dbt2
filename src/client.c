@@ -34,6 +34,11 @@ int sockfd;
 int exiting = 0;
 int force_sleep = 0;
 
+#if defined(LIBMYSQL) || defined(ODBC)
+char dbt2_user[128] = DB_USER;
+char dbt2_pass[128] = DB_PASS;
+#endif
+
 #ifdef LIBPQ
 char postmaster_port[32];
 #endif /* LIBPQ */
@@ -42,7 +47,7 @@ char postmaster_port[32];
 char dbt2_mysql_host[128];
 char dbt2_mysql_port[32];
 char dbt2_mysql_socket[256];
-#endif /* LIBPQ */
+#endif /* LIBMYSQL */
 
 
 int startup();
@@ -86,6 +91,10 @@ int main(int argc, char *argv[])
 #endif /* LIBMYSQL */
 		printf("-s #\n");
 		printf("\tseconds to sleep between openning db connections, default 1 s\n");
+#if defined(LIBMYSQL) || defined(ODBC)
+                printf("-u <db user>\n");
+                printf("-a <db password>\n");
+#endif
 		return 1;
 	}
 
@@ -98,6 +107,10 @@ int main(int argc, char *argv[])
 		printf("-c not used\n");
 		return 3;
 	}
+
+#if defined(LIBMYSQL) || defined(ODBC)
+        printf("User %s Pass %s\n", dbt2_user, dbt2_pass);
+#endif
 
 	/* Ok, let's get started! */
 	init_logging();
@@ -160,7 +173,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:l:o:p:s:t:h:f",
+		c = getopt_long(argc, argv, "c:d:l:o:p:s:t:h:u:a:f",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -207,6 +220,14 @@ int parse_arguments(int argc, char *argv[])
 			strcpy(dbt2_mysql_socket, optarg);
 #endif
 			break;
+#if defined(LIBMYSQL) || defined(ODBC)
+                case 'u':
+                        strncpy(dbt2_user, optarg, 127);
+			break;
+                case 'a':
+                        strncpy(dbt2_pass, optarg, 127);
+			break;
+#endif
 		default:
 			printf("?? getopt returned character code 0%o ??\n", c);
 		}

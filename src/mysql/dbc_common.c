@@ -15,8 +15,8 @@
 char mysql_dbname[32] = "dbt2";
 char mysql_host[32] = "localhost";
 char mysql_user[32] = "root";
-char mysql_password[32] = "";
-char mysql_port_t[32] = "3306";
+char mysql_pass[32] = "";
+char mysql_port_t[32] = "0";
 char mysql_socket_t[256] = "/tmp/mysql.sock";
 
 
@@ -38,7 +38,7 @@ int _connect_to_db(struct db_context_t *dbc)
     dbc->mysql=mysql_init(NULL);
 
     //FIXME: change atoi() to strtol() and check for errors
-    if (!mysql_real_connect(dbc->mysql, mysql_host, mysql_user, mysql_password, mysql_dbname, atoi(mysql_port_t), mysql_socket_t, 0))
+    if (!mysql_real_connect(dbc->mysql, mysql_host, mysql_user, mysql_pass, mysql_dbname, atoi(mysql_port_t), mysql_socket_t, 0))
     {
       if (mysql_errno(dbc->mysql))
       {
@@ -48,6 +48,15 @@ int _connect_to_db(struct db_context_t *dbc)
       }
       return ERROR;
     }
+
+    /* Disable AUTOCOMMIT mode for connection */
+    if (mysql_real_query(dbc->mysql, "SET AUTOCOMMIT=0", 16))
+    {
+      LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->mysql) ,
+                         mysql_error(dbc->mysql));
+      return ERROR;
+    }
+
     return OK;
 }
 
@@ -58,7 +67,8 @@ int _disconnect_from_db(struct db_context_t *dbc)
 	return OK;
 }
 
-int _db_init(char *_mysql_dbname, char *_mysql_host, char *_mysql_port, char * _mysql_socket)
+int _db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user, 
+             char * _mysql_pass, char * _mysql_port, char * _mysql_socket)
 {
 	/* Copy values only if it's not NULL. */
 	if (_mysql_dbname != NULL) {
@@ -66,6 +76,12 @@ int _db_init(char *_mysql_dbname, char *_mysql_host, char *_mysql_port, char * _
 	}
 	if (_mysql_host != NULL) {
 		strcpy(mysql_host, _mysql_host);
+        }
+	if (_mysql_user != NULL) {
+		strcpy(mysql_user, _mysql_user);
+        }
+	if (_mysql_pass != NULL) {
+		strcpy(mysql_pass, _mysql_pass);
 	}
 	if (_mysql_port != NULL) {
 		strcpy(mysql_port_t, _mysql_port);
@@ -175,7 +191,9 @@ char * dbt2_sql_getvalue(struct db_context_t *dbc, struct sql_result_t * sql_res
     }
     else
     {
+#ifdef DEBUG_QUERY
       LOG_ERROR_MESSAGE("dbt2_sql_getvalue: var[%d]=NULL\n", field);
+#endif
     }
   }
   else

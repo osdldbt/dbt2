@@ -8,6 +8,7 @@
  * 20 March 2002
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <_socket.h>

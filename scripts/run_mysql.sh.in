@@ -36,7 +36,7 @@ usage() {
   echo 'other options:'
   echo '       -n <database name. (default dbt2)>'
   echo '       -h <database host name. (default localhost)>'
-  echo '       -l <database port number. (default 3306)>'
+  echo '       -l <database port number>'
   echo '       -o <database socket>'
   echo '       -u <database user>'
   echo '       -p <database password>'
@@ -44,7 +44,7 @@ usage() {
   echo '       -k <stack size. (default 256k)>'
   echo '       -m <terminals per warehouse. [1..10] (default 10)>'
   echo '       -z <comments for the test>'
-  echo '       -e <use zero delays for test (default no)>'
+  echo '       -e <enable zero delays for test (default no)>'
   echo '       -v <verbose output>'
   echo ''
   echo 'Example: sh run_mysql.sh -c 20 -t 300 -w 10'
@@ -63,24 +63,26 @@ validate_parameter()
 
 #DEFAULTS
 DBCONN=""
+DB_USER=""
 DB_PASSWORD=""
+DB_PORT=""
+DB_SOCKET=""
 DURATION=""
 WAREHOUSES=""
 VERBOSE=""
+ZERO_DELAY=""
 
 STACKSIZE=256
 DB_NAME="dbt2"
 DB_HOST="localhost"
-DB_PORT="3306"
-DB_USER=$USER
-DB_SOCKET="/tmp/mysql.sock"
+
 TPW=10
 SLEEPY=300 
-ZERO_DELAY=0
 
 while getopts "c:d:l:s:t:w:z:k:n:h:m:o:u:p:ev" opt; do
 	case $opt in
 	c)
+	        #Check for numeric value
 		DBCON=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DBCON 
 		;;
@@ -209,7 +211,7 @@ echo "*                                                                      *"
 echo "*            Results can be found in output/$(( $RUN_NUMBER-1 )) directory               *"
 echo "************************************************************************"
 echo "*                                                                      *"
-echo "*  Test consists of 3 stages:                                          *"
+echo "*  Test consists of 4 stages:                                          *"
 echo "*                                                                      *"
 echo "*  1. Start of client to create pool of databases connections          *"
 echo "*  2. Start of driver to emulate terminals and transactions generation *"
@@ -223,9 +225,32 @@ THREADS=$(( $WAREHOUSES*$TPW ))
 
 echo ""
 echo "DATABASE NAME:                $DB_NAME"
+
+if [ -n "$DB_USER" ]; then 
+  echo "DATABASE USER:                $DB_USER" 
+  CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -u $DB_USER"
+fi 
+
+if [ -n "$DB_PASSWORD" ]; then 
+  echo "DATABASE PASSWORD:            *******" 
+  CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -a $DB_PASSWORD"
+fi 
+
+if [ -n "$DB_SOCKET" ]; then 
+  echo "DATABASE SOCKET:              $DB_SOCKET"
+  CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -t $DB_SOCKET"
+fi 
+
+if [ -n "$DB_PORT" ]; then 
+  echo "DATABASE PORT:                $DB_PORT"
+  CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -l $DB_PORT"
+fi 
+
+
 echo "DATABASE CONNECTIONS:         $DBCON"
 echo "TERMINAL THREADS:             $THREADS"
-echo "SCALE FACTOR:                 $WAREHOUSES"
+echo "SCALE FACTOR(WARHOUSES):      $WAREHOUSES"
+echo "TERMINALS PER WAREHOUSE:      $TPW"
 echo "DURATION OF TEST(in sec):     $DURATION"
 echo "SLEEPY in (msec)              $SLEEPY"
 echo "ZERO DELAYS MODE:             $ZERO_DELAY"
@@ -235,7 +260,8 @@ echo ""
 echo ''
 echo "Stage 1. Starting up client..."
 
-CLIENT_COMMAND_ARGS="-f -d $DB_NAME -c $DBCON -l $DB_PORT -h $DB_HOST -t $DB_SOCKET  -s $SLEEPY -o $CLIENT_OUTPUT_DIR"
+CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -f -d $DB_NAME -c $DBCON -h $DB_HOST -s $SLEEPY -o $CLIENT_OUTPUT_DIR"
+
 CLIENT_COMMAND="$abs_top_srcdir/src/client $CLIENT_COMMAND_ARGS"
 
 if [ -n "$VERBOSE" ]; then 
@@ -314,8 +340,8 @@ sleep $DURATION
 if [ -f /proc/profile ]; then
 	PROFILE=$OUTPUT_DIR/readprofile.out
 	/usr/sbin/readprofile -n -m /boot/System.map > $PROFILE
-	cat $PROFILE | grep -v "total" | sort -n -r -k1 > $OUTPUT_DIR/readprofile_ticks.out
-	cat $PROFILE | grep -v "total" | sort -n -r -k3 > $OUTPUT_DIR/readprofile_load.out
+	cat $PROFILE | sort -n -r -k1 > $OUTPUT_DIR/readprofile_ticks.out
+	cat $PROFILE | sort -n -r -k3 > $OUTPUT_DIR/readprofile_load.out
 fi
 
 # Run some post processing analysese.

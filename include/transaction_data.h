@@ -138,6 +138,12 @@ struct stock_level_t
 	int low_stock;
 };
 
+struct integrity_t
+{
+	/* Input data. */
+        int w_id;
+};
+
 union transaction_data_t
 {
 	struct delivery_t delivery;
@@ -145,6 +151,7 @@ union transaction_data_t
 	struct order_status_t order_status;
 	struct payment_t payment;
 	struct stock_level_t stock_level;
+	struct integrity_t integrity;	
 };
 
 int dump(FILE *fp, int type, void *data);

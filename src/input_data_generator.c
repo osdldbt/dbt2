@@ -17,6 +17,7 @@ int generate_new_order_data(int w_id, struct new_order_t *data);
 int generate_order_status_data(int w_id, struct order_status_t *data);
 int generate_payment_data(int w_id, struct payment_t *data);
 int generate_stock_level_data(int w_id, int d_id, struct stock_level_t *data);
+int generate_integrity_data(int w_id, struct integrity_t *data);
 
 /* Does it make sense to include driver.h for this? */
 extern int mode_altered;
@@ -38,6 +39,8 @@ int generate_input_data(int type, void *data, int w_id)
 	case PAYMENT:
 		generate_payment_data(w_id, (struct payment_t *) data);
 		break;
+        case INTEGRITY:
+                generate_integrity_data(w_id, (struct integrity_t *) data);
 	default:
 		return ERROR;
 	}
@@ -167,4 +170,12 @@ int generate_stock_level_data(int w_id, int d_id, struct stock_level_t *data)
 	data->threshold = get_random(11) + 10;
 
 	return OK;
+}
+
+int generate_integrity_data(int w_id, struct integrity_t *data)
+{
+        bzero(data, sizeof(struct integrity_t));
+        data->w_id = w_id;
+        
+        return OK;
 }

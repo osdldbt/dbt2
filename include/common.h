@@ -20,14 +20,14 @@
 #include <time.h>
 #include <sys/time.h>
 
-#ifdef ODBC
+#if defined(ODBC) || defined(LIBMYSQL)
 #define DB_USER "dbt"
-#define DB_PASS "dbt"
-#endif /* ODBC */
+#define DB_PASS ""
+#endif /* ODBC || LIBMYSQL */
 
 #if defined(LIBPQ) || defined(LIBMYSQL)
 #define DB_NAME "dbt2"
-#endif /* LIBPQ */
+#endif /* LIBPQ || LIBMYSQL */
 
 #define DELIVERY 0
 #define NEW_ORDER 1
@@ -35,6 +35,7 @@
 #define PAYMENT 3
 #define STOCK_LEVEL 4
 #define TRANSACTION_MAX 5
+#define INTEGRITY 10
 
 #define TABLE_WAREHOUSE 0
 #define TABLE_DISTRICT 1

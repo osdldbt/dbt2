@@ -19,6 +19,7 @@
 #include <logging.h>
 #include <client_interface.h>
 #include <driver.h>
+#include <unistd.h>
 #ifdef STANDALONE
 #include <db_threadpool.h>
 
@@ -228,6 +229,12 @@ int main(int argc, char *argv[])
 
         printf("%d terminals per warehouse\n", terminals_per_warehouse);
         printf("\n");
+
+        if (integrity_terminal_worker() != OK)
+        {
+           printf("You used wrong parameters or something wrong with database.\n");
+           return 1;
+        }
 
         start_driver();
 

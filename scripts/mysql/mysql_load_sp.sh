@@ -136,7 +136,7 @@ if [ "$DB_PASSWORD" != "" ]; then
   MYSQL_ARGS="-p $DB_PASSWORD"
 fi
 
-MYSQL_ARGS="$MYSQL_ARGS -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"
+MYSQL_ARGS="$MYSQL_ARGS $DB_NAME -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"
 MYSQL="$MYSQL $MYSQL_ARGS"
 
 echo ""

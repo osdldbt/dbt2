@@ -18,14 +18,6 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 {
 	char stmt[512];
 
-	/* Start a transaction block. */
-        if (mysql_real_query(dbc->mysql, "SET AUTOCOMMIT=0", 16))
-        {
-          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->mysql) , 
-                            mysql_error(dbc->mysql));
-          return ERROR;
-        }
-
 	/* Create the query and execute it. */
 	sprintf(stmt, "call delivery(%d, %d)",
 		data->w_id, data->o_carrier_id);

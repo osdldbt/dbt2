@@ -17,14 +17,6 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 {
 	char stmt[512];
 
-        /* Start a transaction block. */
-        if (mysql_real_query(dbc->mysql, "SET AUTOCOMMIT=0", 16))
-        {
-          LOG_ERROR_MESSAGE("mysql reports before: %d %s", mysql_errno(dbc->mysql) ,
-                            mysql_error(dbc->mysql));
-          return ERROR;
-        }
-
 	/* Create the query and execute it. */
 	sprintf(stmt, "call payment(%d, %d, %d, %d, %d, '%s', %f)",
 		data->w_id, data->d_id, data->c_id, data->c_w_id, data->c_w_id,
