@@ -79,8 +79,15 @@ int main(int argc, char *argv[])
 	}
 	while(1);
 
+	printf("closing socket...\n");
 	close(sockfd);
-	printf("waiting for threads to exit...\n");
+	printf("waiting for threads to exit... [NOT!]\n");
+
+	/*
+	 * There are threads waiting on a semaphore that won't exit and I haven't
+	 * looked into how to get around that so I'm forcing an exit.
+	 */
+exit(0);
 	do
 	{
 		/* Loop until all the DB worker threads have exited. */
@@ -107,7 +114,7 @@ int parse_arguments(int argc, char *argv[])
 	for (i = 1; i < argc; i += 2)
 	{
 
-		/* Check for exact length of a flag: i.e. -c */
+		/* Check for exact length of a one character flag: i.e. -c */
 		if (strlen(argv[i]) != 2)
 		{
 			printf("invalid flag: %s\n", argv[i]);
