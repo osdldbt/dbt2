@@ -18,6 +18,7 @@
 struct transaction_queue_node_t
 {
 	int *s;
+	int id;
 	struct client_transaction_t client_data;
 	struct transaction_queue_node_t *next;
 };
