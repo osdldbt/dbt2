@@ -20,7 +20,7 @@ char pgoptions[32] = "";
 char pgtty[32] = "";
 
 /* Open a connection to the database. */
-int libpq_connect(struct db_context_t *dbc)
+int _connect_to_db(struct db_context_t *dbc)
 {
 	dbc->conn = PQsetdb(pghost, pgport, pgoptions, pgtty, dbname);
 
@@ -35,13 +35,13 @@ int libpq_connect(struct db_context_t *dbc)
 }
 
 /* Disconnect from the database and free the connection handle. */
-int libpq_disconnect(struct db_context_t *dbc)
+int _disconnect_from_db(struct db_context_t *dbc)
 {
 	PQfinish(dbc->conn);
 	return OK;
 }
 
-int lipq_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
+int _db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
 	char *_pgtty)
 {
 	/* Copy values only if it's not NULL. */

@@ -18,9 +18,9 @@ struct db_context_t {
 	PGconn *conn;
 };
 
-int libpq_connect(struct db_context_t *dbc);
-int libpq_disconnect(struct db_context_t *dbc);
-int lipq_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
+int _connect_to_db(struct db_context_t *dbc);
+int _disconnect_from_db(struct db_context_t *dbc);
+int _db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
 	char *_pgtty);
 
 extern char dbname[32];

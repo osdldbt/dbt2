@@ -8,6 +8,7 @@
  */
 
 #include "db.h"
+#include "logging.h"
 
 #ifdef ODBC
 #include "odbc_delivery.h"
@@ -17,13 +18,18 @@
 #include "odbc_new_order.h"
 #endif /* ODBC */
 
+#ifdef LIBPQ
+#include "libpq_delivery.h"
+#include "libpq_order_status.h"
+#include "libpq_payment.h"
+#include "libpq_stock_level.h"
+#include "libpq_new_order.h"
+#endif /* LIBPQ */
+
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
 
-#ifdef ODBC
-	rc = odbc_connect(dbc);
-#endif /* ODBC */
-
+	rc = _connect_to_db(dbc);
 	if (rc != OK) {
 		return ERROR;
 	}
@@ -31,13 +37,23 @@ int connect_to_db(struct db_context_t *dbc) {
 	return OK;
 }
 
+#ifdef ODBC
 int db_init(char *sname, char *uname, char *auth)
+#endif /* ODBC */
+#ifdef LIBPQ
+int db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
+	char *_pgtty)
+#endif /* LIBPQ */
 {
 	int rc;
 
 #ifdef ODBC
-	rc = odbc_init(sname, uname, auth);
+	rc = _db_init(sname, uname, auth);
 #endif /* ODBC */
+
+#ifdef LIBPQ
+	rc = _db_init(_dbname, _pghost, _pgport, _pgoptions, _pgtty);
+#endif /* LIBPQ */
 
 	return OK;
 }
@@ -46,11 +62,10 @@ int disconnect_from_db(struct db_context_t *dbc) {
 	int rc;
 
 #ifdef ODBC
-	/* odbc_disconnect() is halting for some reason. */
+	/* ODBC _disconnect_from_db() is halting for some reason. */
 	return OK;
-	rc = odbc_disconnect(dbc);
 #endif /* ODBC */
-
+	rc = _disconnect_from_db(dbc);
 	if (rc != OK) {
 		return ERROR;
 	}
@@ -107,6 +122,7 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 		LOG_ERROR_MESSAGE("unknown transaction type %d", transaction);
 		return ERROR;
 	}
+#ifdef ODBC
 	if (rc == OK) {
 		/* Commit. */
 		i = SQLEndTran(SQL_HANDLE_DBC, dbc->hdbc, SQL_COMMIT);
@@ -120,6 +136,12 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
 		status = ERROR;
 	}
+#endif /* ODBC */
+
+#ifdef LIBPQ
+	/* Placeholder until I figure out how to handle rollbacks. */
+	status = OK;
+#endif /* LIBPQ */
 
 	return status;
 }

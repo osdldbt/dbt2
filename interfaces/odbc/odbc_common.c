@@ -62,7 +62,7 @@ int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
 }
 
 /* Open an ODBC connection to the database. */
-int odbc_connect(struct db_context_t *odbcc)
+int _connect_to_db(struct db_context_t *odbcc)
 {
 	SQLRETURN rc;
 
@@ -139,7 +139,7 @@ int odbc_disconnect(struct db_context_t *odbcc)
 }
 
 /* Initialize ODBC environment handle and the database connect string. */
-int odbc_init(char *sname, char *uname, char *auth)
+int _db_init(char *sname, char *uname, char *auth)
 {
 	SQLRETURN rc;
 

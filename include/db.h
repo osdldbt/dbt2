@@ -21,7 +21,13 @@
 #endif /* LIBPQ */
 
 int connect_to_db(struct db_context_t *dbc);
+#ifdef ODBC
 int db_init(char *sname, char *uname, char *auth);
+#endif /* ODBC */
+#ifdef LIBPQ
+int db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
+	char *_pgtty);
+#endif /* LIBPQ */
 int disconnect_from_db(struct db_context_t *dbc);
 int process_transaction(int transaction, struct db_context_t *dbc,
 	union transaction_data_t *odbct);
