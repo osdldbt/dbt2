@@ -14,9 +14,12 @@ COUNTER=0
 # put db info into the readme.txt file
 /opt/sapdb/depend/bin/dbmcli dbm_version >> $OUTPUT_DIR/readme.txt
 
-# record devspace space information before the test
-echo "info data (before test)" >> $OUTPUT_DIR/readme.txt
-/opt/sapdb/depend/bin/dbmcli d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data >> $OUTPUT_DIR/readme.txt
+# save the database parameters
+/opt/sapdb/depend/bin/dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c param_extgetall | sort > $OUTPUT_DIR/param.out
+
+# record data and log devspace space information before the test
+/opt/sapdb/depend/bin/dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data > $OUTPUT_DIR/datadev0.txt
+/opt/sapdb/depend/bin/dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info log > $OUTPUT_DIR/logdev0.txt
 
 # reset monitor tables
 echo "resetting monitor tables"
@@ -42,6 +45,6 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 	sleep $SAMPLE_LENGTH
 done
 
-# record devspace space information after the test
-echo "info data (after test)" >> $OUTPUT_DIR/readme.txt
-/opt/sapdb/depend/bin/dbmcli d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data >> $OUTPUT_DIR/readme.txt
+# record data and log devspace space information after the test
+/opt/sapdb/depend/bin/dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data > $OUTPUT_DIR/datadev1.txt
+/opt/sapdb/depend/bin/dbmcli -d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info log > $OUTPUT_DIR/logdev1.txt
