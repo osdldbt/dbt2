@@ -1,0 +1,23 @@
+fastload table customer
+c_id 1
+c_d_id 2
+c_w_id 3
+c_first 4
+c_middle 5
+c_last 6
+c_street_1 7
+c_street_2 8
+c_city 9
+c_state 10
+c_zip 11
+c_phone 12
+c_since 13
+c_credit 14
+c_credit_lim 15
+c_discount 16
+c_balance 17
+c_ytd_payment 18
+c_payment_cnt 19
+c_delivery_cnt 20
+c_data 21
+infile '/tmp/customer.data'

@@ -1,0 +1,19 @@
+fastload table stock
+s_i_id 1
+s_w_id 2
+s_quantity 3
+s_dist_01 4
+s_dist_02 5
+s_dist_03 6
+s_dist_04 7
+s_dist_05 8
+s_dist_06 9
+s_dist_07 10
+s_dist_08 11
+s_dist_09 12
+s_dist_10 13
+s_ytd 14
+s_order_cnt 15
+s_remote_cnt 16
+s_data 17
+infile '/tmp/stock.data'

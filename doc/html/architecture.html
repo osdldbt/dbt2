@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=iso-8859-1">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.0  (Linux)">
+	<META NAME="AUTHOR" CONTENT="Mark Wong">
+	<META NAME="CREATED" CONTENT="20020612;14132200">
+	<META NAME="CHANGED" CONTENT="20020617;14154900">
+	<STYLE>
+	<!--
+		@page { margin-left: 3.18cm; margin-right: 3.18cm; margin-top: 2.54cm; margin-bottom: 2.54cm }
+		P { margin-bottom: 0.21cm }
+		H1 { margin-bottom: 0.21cm }
+		H1.western { font-family: "Albany", sans-serif; font-size: 16pt }
+		H1.cjk { font-size: 16pt }
+		H1.ctl { font-size: 16pt }
+		H2 { margin-bottom: 0.21cm; page-break-before: auto }
+		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-size: 14pt; font-style: italic }
+		H2.ctl { font-size: 14pt; font-style: italic }
+		P.sdfootnote { margin-left: 0.5cm; text-indent: -0.5cm; margin-bottom: 0cm; font-size: 10pt }
+		A.sdfootnoteanc { font-size: 57% }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US">
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm">OSDL-DBT-2</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm">An On-Line Transaction
+Processing Test Kit</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm">Architecture</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm">Version 0.2</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm">June 17, 2002</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<DIV ID="Table of Contents1">
+	<DIV ID="Table of Contents1_Head">
+		<P STYLE="margin-top: 0.42cm; page-break-before: always; page-break-after: avoid">
+		<FONT FACE="Albany, sans-serif"><FONT SIZE=4 STYLE="font-size: 16pt"><B>Table
+		of Contents</B></FONT></FONT></P>
+	</DIV>
+	<P STYLE="margin-bottom: 0cm">Introduction	3</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">TPC-C	3</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">OSDL-DBT-2	3</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Improper
+	Comparisons	3</P>
+	<P STYLE="margin-bottom: 0cm">Design	4</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Database	4</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Remove Terminal
+	Emulators	4</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Clients	4</P>
+</DIV>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H1 CLASS="western" STYLE="page-break-before: always">Introduction</H1>
+<P>This document gives a brief description of the Transaction
+Processing Performance Council Benchmark C (TPC-C<FONT FACE="Times New Roman">&trade;</FONT>),
+what the OSDL-DBT-2 test kit is, and an overview of the architecture
+of the test kit.</P>
+<H2 CLASS="western">TPC-C</H2>
+<P>The TPC-C Standard Specification<A CLASS="sdfootnoteanc" NAME="sdfootnote1anc" HREF="#sdfootnote1sym"><SUP>1</SUP></A>
+does an excellent job at describing itself:</P>
+<P><BR><BR>
+</P>
+<P STYLE="margin-left: 0.99cm; margin-right: 1.02cm">&ldquo;TPC
+Benchmark C (TPC-C) is an OLTP workload. It is a mixture of read-only
+and update intensive transactions that simulate the activities found
+in complex OLTP application environments.&rdquo;</P>
+<P><BR><BR>
+</P>
+<P>The benchmark simulates a workload that represents and activities
+of any industry that manages, sells, and distributes a product or
+service, such as car rental agencies, food distribution companies,
+and parts suppliers.</P>
+<P><BR><BR>
+</P>
+<P>TPC-C consists of many transaction types of varying complexity. 
+These transactions exorcises a database's ability to maintain
+transaction integrity, access data of varying sizes and attributes
+through primary and secondary keys, and handle contention on accesses
+and updates.  The transactions are called New-Order, Payment,
+Order-Status,</P>
+<P>Delivery, and Stock-Level.  The New-Order transaction enters a
+complete order.  The Payment transaction updates a customer's balance
+and reflects the payment on the district and warehouse sales
+statistics.  The Order-Status transaction looks up the status of a
+customer's most recent order.  The Delivery transaction processes a
+batch of up to ten undelivered orders.  The Stock-Level transaction
+determines the number of recently sold items that have a stock level
+belows a given threshold.</P>
+<H2 CLASS="western">OSDL-DBT-2</H2>
+<P>OSDL-DBT-2 is a derivative of the TPC-C designed to produce a
+workload similar to the TPC-C to stress the Linux operation system
+without the complexity and expense of running a TPC compliant
+benchmark.</P>
+<P><BR><BR>
+</P>
+<P>The Transaction Processing Performance Council (TPC) benchmarks
+are intended as competitive marketing tools.  The TPC requires all
+published results to comply with strict publication and auditing
+rules to ensure fair comparisons between competitors.  The TPC also
+requires the general availability and disclosure of the pricing for
+all products used for the benchmark.  It is impractical for open
+source development projects to adhere to these rules; thus, the
+results reported by the OSDL-DBT-2 test kit do not constitute a TPC-C
+result, and are incomparable with any TPC-C benchmark.</P>
+<H2 CLASS="western">Improper Comparisons</H2>
+<P>If you discover any usage of DBT-2 in drawing conclusions about
+TPC-C performance, this inappropriate usage should be reported to
+both the TPC and to the OSDL:</P>
+<P>	TPC - <A HREF="mailto:admin@tpc.org"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">admin@tpc.org</FONT></SPAN></A></P>
+<P>	OSDL- <A HREF="mailto:wookie@osdl.org"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">wookie@osdl.org</FONT></SPAN></A></P>
+<H1 CLASS="western">Design</H1>
+<P>This kit is composed of three main components, as illustrated in
+Figure 1: a database, remote terminal emulators, and clients.  Each
+component is explained in the following sub-sections.</P>
+<P ALIGN=CENTER><IMG SRC="architecture_html_m1a0a852f.gif" NAME="Frame1" ALT="Frame1" ALIGN=BOTTOM></P>
+<H2 CLASS="western">Database</H2>
+<P>The database consists of nine tables with stored procedures to
+support five transactions.  The data represents a company that is a
+wholesale supplier with a number of distributed sales districts and
+associated warehouses covering a wide geographic range.  A warehouse
+covers 10 districts, each district serving 3,000 customers, with each
+warehouse maintaining stock for the complete inventory of 100,000
+items.</P>
+<H2 CLASS="western">Remote Terminal Emulators</H2>
+<P>A remote terminal emulator (RTE) simulates the activities of a
+person at a terminal console executing one of the five transactions
+supported by the database.  The RTE is designed to either connect to
+a client system in order to access the database  in a three-tier
+model or to connect to the database directly in a two-tier model. 
+The three-tire model is intended to be used for executing the kit to
+stress a system, while the two-tier is provided for functional
+testing purposes.</P>
+<H2 CLASS="western">Clients</H2>
+<P>The client is a terminal concentrator that allows more than one
+RTE to share a connection to the database system.  The terminal
+concentrator also provides some transaction management functionality.</P>
+<DIV ID="sdfootnote1">
+	<P CLASS="sdfootnote"><A CLASS="sdfootnotesym" NAME="sdfootnote1sym" HREF="#sdfootnote1anc">1</A>TPC
+	Benchmark C Standard Specification Revision 5.0, February 26, 2001.</P>
+</DIV>
+</BODY>
+</HTML>
