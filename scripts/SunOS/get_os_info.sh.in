@@ -1,0 +1,13 @@
+#!/bin/sh
+
+while getopts "o:" opt; do
+	case $opt in
+	o)
+		OUTPUT_DIR=$OPTARG
+		;;
+	esac
+done
+
+if test -f @SYSCTL@; then
+  @SYSCTL@ -a | sort > $OUTPUT_DIR/proc.out
+fi

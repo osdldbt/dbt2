@@ -1,0 +1,2 @@
+  Mar. 23 2004: Now autoconfig works on both Solaris and Linux
+  Mar. 17 2004: update to use modern automake/autoconf
