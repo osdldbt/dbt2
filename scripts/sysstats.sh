@@ -132,4 +132,4 @@ fi
 
 
 echo "data gathering complete, transforming data..."
-./transform.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR
+./transform_sar.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR
