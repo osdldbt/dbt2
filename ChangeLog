@@ -1,3 +1,972 @@
+2002-12-20 08:44  fimath
+
+	* datagen/main.c (1.14): Seed each thread with 0 so that the same
+	data is generated all the time, except for orders and order-line.
+
+2002-12-19 14:48  fimath
+
+	* scripts/sapdb/db_setup.sh (1.1): Remamed from db_setup_sample.sh.
+
+2002-12-19 14:31  fimath
+
+	* scripts/sysstats.sh (1.3): Fixed a type with calling the
+	transform_sar.sh script.
+
+2002-12-19 14:00  fimath
+
+	* scripts/sapdb/: restore_db.sh (1.7), backup_db.sh (1.6),
+	update_stats.sh (1.5): Use set -x.
+
+2002-12-19 13:54  fimath
+
+	* scripts/sapdb/db_stats.sh (1.5): Stopped using full paths to
+	execut SAP DB programs, added the correct path to to the
+	environment.
+
+2002-12-19 11:01  fimath
+
+	* scripts/sapdb/trace_on.sh (1.1): Script to turn on the database
+	trace.
+
+2002-12-19 11:00  fimath
+
+	* scripts/sapdb/update_stats.sh (1.4): Now exporting the binary
+	directory instead of using the full path to run dbmcli.
+
+2002-12-19 10:53  fimath
+
+	* scripts/sapdb/trace_off.sh (1.1): Script to turn of the database
+	trace and create an output file.
+
+2002-12-19 10:45  fimath
+
+	* scripts/sapdb/restore_db.sh (1.6): Use an environment variable to
+	set DATA_CACHE.  Export the SAP DB bin path instead of calling
+	dbmcli by the full path.
+
+2002-12-19 10:42  fimath
+
+	* scripts/sapdb/backup_db.sh (1.5): Export the path instead of
+	using a full path to execute dbmcli.  Fixed the error checking.
+
+2002-12-19 10:39  fimath
+
+	* scripts/sapdb/drop_dbproc.sh (1.4): Revised the script so it may
+	be easier to update in the future.
+
+2002-12-19 10:38  fimath
+
+	* scripts/sapdb/load_dbproc.sh (1.3): Revised the script so that it
+	might be easier to update in the future.
+
+2002-12-19 10:34  fimath
+
+	* scripts/run_test.sh (1.4): Call oprof.sh to collect oprofile
+	data.
+
+2002-12-19 10:33  fimath
+
+	* scripts/oprof.sh (1.1): Script to collect oprofile data.
+
+2002-12-19 10:12  fimath
+
+	* scripts/sysstats.sh (1.2): Read the .run_number file so we know
+	what directory to put stuff in.  Only collects raw sar data now. 
+	Call transform_sar.sh to process raw sar data.
+
+2002-12-19 10:11  fimath
+
+	* scripts/transform_sar.sh (1.2): Call gnuplot to generate graphs.
+
+2002-12-19 10:08  fimath
+
+	* scripts/transform_sar.sh (1.1): Script to take raw sar data and
+	generate files so that the processor utilization can be graphed by
+	gnuplot.
+
+2002-12-19 09:20  fimath
+
+	* tools/results.c (1.13): Modified the output format.  Calculate
+	the percentage of rollbacks.  Display the number of
+	bogotransactions per minute.
+
+2002-12-19 08:37  fimath
+
+	* terminal/driver.c (1.17): Added string.h to avoid a compiler
+	warning.
+
+2002-12-18 16:31  fimath
+
+	* datagen/main.c (1.13): Changed from multi-process program to a
+	multi-threaded program because I chouldn't figure out how to use
+	process semaphores. :(
+
+2002-12-18 13:16  fimath
+
+	* tools/results.c (1.12): The number of new-order transactions and
+	average response time is once again calculated into the analysis
+	even if there is a rollback again.
+
+2002-12-18 13:12  fimath
+
+	* storedproc/sapdb/order_status.sql (1.6): Reworked the logic for
+	cases of searching for a customer by c_last.  Querying for o_ol_cnt
+	instead of counting it.  Added a check to set o_carrier_id and
+	ol_deliver_d to non null return values to avoid an error thrown by
+	the ODBC driver.
+
+2002-12-17 15:46  fimath
+
+	* common/transaction_data.c (1.2): Reformatted the dump of
+	order-status to make it more readable.
+
+2002-12-17 13:34  fimath
+
+	* scripts/sapdb/plan.sh (1.4): Updated the SQL to match the current
+	stored procedures.
+
+2002-12-17 09:26  fimath
+
+	* terminal/: driver.c (1.16), main.c (1.14): Do not run with a
+	thread per user by default. (mode_altered == 1)
+
+2002-12-16 15:02  fimath
+
+	* tools/results.c (1.11): Added code to count the number of
+	rollbacks that occur for each transaction.  Added code to display
+	the total number of transactions execute and the number of
+	rollbacks for each transaction.
+
+2002-12-16 15:01  fimath
+
+	* storedproc/sapdb/new_order.sql (1.6): Changed some SQL statements
+	from SELECT..INTO to SELECT, FETCH INTO.  Added code so that a
+	rollback flag can be passed back to the apllication when a rollback
+	occurs.
+
+2002-12-16 14:59  fimath
+
+	* interfaces/odbc/odbc_new_order.c (1.4): Reformatted a line. 
+	Added code to support an additional variable used to signal that a
+	rollback has occured in the stored procedure.
+
+2002-12-16 14:58  fimath
+
+	* interfaces/db.c (1.12): Added some code to handle the rollback
+	flag from the New Order transaction as a rollback.
+
+2002-12-16 14:57  fimath
+
+	* include/transaction_data.h (1.2): Added a variable so we can
+	signal that a rollback has occured for the New Order transaction.
+
+2002-12-16 14:57  fimath
+
+	* include/odbc_new_order.h (1.2): Updated the SQL statement so we
+	can pass back a flag signally a rollback.
+
+2002-12-16 12:12  fimath
+
+	* terminal/driver.c (1.15): Added ctype.h to avoid a compiler
+	warning.  Added #ifdef's around variables so that they aren't
+	declared when they aren't needed.  Added code to that rollbacks and
+	errors can be tracked in mix.log.
+
+2002-12-16 12:07  fimath
+
+	* interfaces/db.c (1.11): Added code so that the occurances of
+	rollbacks can be tracked.  Removed the reporting of rollbacks into
+	the error.log, since it can now be tracked by mix.log.
+
+2002-12-16 11:58  fimath
+
+	* include/transaction_queue.h (1.4): Renamed QUEUED and EXECUTING
+	due to conflicts with other parts of the code.
+
+2002-12-16 11:56  fimath
+
+	* include/common.h (1.12): Added a macro to signify when there is a
+	rollback called.
+
+2002-12-16 11:54  fimath
+
+	* client/transaction_queue.c (1.7): Renamed EXECUTING and QUEUED
+	macros due to conflicts with other parts of the code.
+
+2002-12-16 11:50  fimath
+
+	* client/db_threadpool.c (1.11): Renamed the EXECUTING macro
+	because it conflicts with one of the same name elsewhere in the
+	kit.
+
+2002-12-13 13:52  fimath
+
+	* scripts/sapdb/create_indexes.sh (1.8): Corrected the indexed on
+	orders which prevented inserts into the table.
+
+2002-12-13 09:12  fimath
+
+	* terminal/input_data_generator.c (1.11): Removed unused code.
+
+2002-12-12 15:55  fimath
+
+	* tools/results.c (1.10): Added code to handle an E in mix.log but
+	it's not counting it yet.
+
+2002-12-12 15:54  fimath
+
+	* terminal/input_data_generator.c (1.10): Removed the altered code.
+
+2002-12-12 15:53  fimath
+
+	* terminal/driver.c (1.14): Changed the code to record an E for an
+	interaction that returns an error.
+
+2002-12-12 15:52  fimath
+
+	* storedproc/sapdb/stock_level.sql (1.8): Added ISOLATION level
+	clauses to the select statements.
+
+2002-12-12 15:51  fimath
+
+	* storedproc/sapdb/payment.sql (1.5): Fixed a where clause in a
+	query a simplified part of the procedure.
+
+2002-12-12 15:48  fimath
+
+	* storedproc/sapdb/order_status.sql (1.5): Reordered a couple of
+	where clauses to match the indexes used.
+
+2002-12-12 15:32  fimath
+
+	* storedproc/sapdb/delivery_2.sql (1.4): Was calculating the order
+	total incorectly, fixed now.
+
+2002-12-12 15:11  fimath
+
+	* scripts/sapdb/create_tables.sql (1.5): Added s_quantity to the
+	primary key of the stock table.
+
+2002-12-12 14:59  fimath
+
+	* scripts/sapdb/create_indexes.sh (1.7): Fixed a typo by removing
+	an extra carriage return.
+
+2002-12-12 14:56  fimath
+
+	* scripts/sapdb/create_indexes.sh (1.6): Renamed i_orders2 to
+	i_orders and created a new index on the customer table.
+
+2002-12-12 14:49  fimath
+
+	* datagen/main.c (1.12): Wasn't generating the c_last column for
+	customer properly at all.  It was randomly picking a number from
+	1-1000.  Now it should match the specificiation.
+
+2002-12-10 12:59  fimath
+
+	* terminal/main.c (1.13): Added string.h to prevent a compiler
+	warning.
+
+2002-12-10 12:57  fimath
+
+	* terminal/input_data_generator.c (1.9): Previously forgot to
+	include driver.h to support the mode_altered flag.
+
+2002-12-10 11:50  fimath
+
+	* terminal/input_data_generator.c (1.8): Implemented a flag called
+	mode_altered to support the alternative way we've been running the
+	workload.
+
+2002-12-10 11:47  fimath
+
+	* terminal/driver.c (1.13), terminal/main.c (1.12),
+	include/driver.h (1.6): Implemented a flag called mode_altered to
+	support the alternative way we've been running the workload.
+
+2002-12-10 10:59  fimath
+
+	* tools/results.c (1.9): Added string.h to remove a compiler
+	warning.
+
+2002-12-10 10:51  fimath
+
+	* terminal/main.c (1.11): Display the correct command line
+	parameters when the driver is in STANDALONE mode.
+
+2002-12-10 10:46  fimath
+
+	* client/main.c (1.13): Added string.h to avoid compiler warnings.
+
+2002-12-06 14:42  fimath
+
+	* datagen/main.c (1.11): Made the data generation multi-processed.
+
+2002-12-06 13:46  fimath
+
+	* scripts/sapdb/create_db_sample.sh (1.8): Added a --migration
+	command line flag to set the database up for a migration.
+
+2002-12-05 11:00  fimath
+
+	* scripts/sapdb/: backup_db.sh (1.4), create_db_sample.sh (1.7),
+	restore_db.sh (1.5): Revised the scripts to make use of an
+	incremental backups and restores so that a restore of just DATA
+	doesn't require another full backup to get the database out of
+	read-only mode.
+
+2002-12-04 15:11  fimath
+
+	* scripts/sapdb/update_stats.sh (1.3): Fixed a path problem.
+
+2002-12-03 10:21  fimath
+
+	* scripts/sapdb/update_stats.sh (1.2): Added statement so that the
+	stock table statistics are updated.
+
+2002-12-02 15:35  fimath
+
+	* scripts/sapdb/db_create_stats/info/: stats_CUSTOMER (1.2),
+	stats_DISTRICT (1.2), stats_HISTORY (1.2), stats_ITEM (1.2),
+	stats_NEW_ORDER (1.2), stats_ORDERS (1.2), stats_ORDER_LINE (1.2),
+	stats_STOCK (1.2), stats_WAREHOUSE (1.2): Oops, wasn't supposed to
+	have checked in those files.
+
+2002-12-02 15:14  fimath
+
+	* scripts/sapdb/db_create_stats/: get_it_all.sh (1.1), runsql.sh
+	(1.1): Added scripts to calculate table size information and
+	statistics for SAP DB.
+
+2002-11-26 16:46  fimath
+
+	* storedproc/sapdb/stock_level.sql (1.7): Updated the query to be a
+	little neater.
+
+2002-11-20 17:39  fimath
+
+	* interfaces/db.c (1.10): Log an error message when a rollback
+	occurs for accounting purposes.
+
+2002-11-20 17:32  fimath
+
+	* terminal/driver.c (1.12): Changed the code to include the pid
+	into determining a random seed.  Added a comment.
+
+2002-11-20 11:24  fimath
+
+	* scripts/sapdb/restore_db.sh (1.4): Updated restore_db.sh to make
+	sure DATA_CACHE isn't set too high.  Now properly doing a restore
+	by using 'util_execute init config' and doing a backup afterwards
+	to media trash to force a checkpoint.
+
+2002-11-20 11:23  fimath
+
+	* scripts/sapdb/create_db_sample.sh (1.6): Added a new backup media
+	to fake a checkpoint, since we cannot do one explicitly with SAP
+	DB.
+
+2002-11-20 11:15  fimath
+
+	* scripts/sapdb/db_create_stats/: info/space_used_all.sh (1.1),
+	info/space_used_index.sh (1.1), info/space_used_leaf.sh (1.1),
+	info/stats_CUSTOMER (1.1), info/stats_DISTRICT (1.1),
+	info/stats_HISTORY (1.1), info/stats_ITEM (1.1),
+	info/stats_NEW_ORDER (1.1), info/stats_ORDERS (1.1),
+	info/stats_ORDER_LINE (1.1), info/stats_STOCK (1.1),
+	info/stats_WAREHOUSE (1.1), info/tableinfo.sh (1.1),
+	queries/doit.sh (1.1), queries/qCUSTOMER (1.1), queries/qDISTRICT
+	(1.1), queries/qHISTORY (1.1), queries/qITEM (1.1),
+	queries/qNEW_ORDER (1.1), queries/qORDERS (1.1),
+	queries/qORDER_LINE (1.1), queries/qSTOCK (1.1), queries/qWAREHOUSE
+	(1.1): Added scripts to calculate table size information and
+	statistics for SAP DB.
+
+2002-11-20 11:06  fimath
+
+	* scripts/sapdb/db_stats.sh (1.4): Saving a diff of database
+	parameters from the previously numbered run.  Added some comments.
+
+2002-11-20 10:56  fimath
+
+	* scripts/sapdb/drop_dbproc.sh (1.3): The stored procedure
+	stock_level2 for SAP DB doesn't exist anymore, so no need to drop
+	it.
+
+2002-11-19 11:44  fimath
+
+	* Makefile.in (1.2), configure (1.2), configure.in (1.2),
+	client/Makefile.standalone.in (1.1),
+	terminal/Makefile.standalone.in (1.1): Added a couple of Makefiles
+	and modified the autoconf stuff to build a standalone, single-tier,
+	driver.
+
+2002-11-19 11:42  fimath
+
+	* tools/results.c (1.8): Initialized previous_time to remove a
+	compiler warning.
+
+2002-11-19 10:16  fimath
+
+	* storedproc/sapdb/: delivery.sql (1.2), delivery_2.sql (1.3),
+	new_order.sql (1.5), new_order_2.sql (1.3), order_status.sql (1.4),
+	payment.sql (1.4), stock_level.sql (1.6): Updated the "comments"
+	formatting and removed the extra ";" at the end of each file to
+	make it compatible with SAP DB 7.3.0.29.  Now they are incompatible
+	for previous versions.
+
+2002-11-14 14:20  fimath
+
+	* scripts/sapdb/restore_db.sh (1.3): Force a checkpoint after a
+	restore, by backing up to /dev/null, since the database is restored
+	into a read-only state.
+
+2002-11-14 14:17  fimath
+
+	* scripts/sapdb/create_db_sample.sh (1.5): Created a trash medium
+	so we can backup to /dev/null to force a checkpoint.
+
+2002-11-14 10:15  fimath
+
+	* scripts/sapdb/: backup_db.sh (1.3), restore_db.sh (1.2): Updated
+	backup and restore scripts for SAP DB.
+
+2002-11-13 13:34  fimath
+
+	* scripts/sapdb/backup_db.sh (1.2): Updated the scripts to use
+	backup_start instead of backup_save.
+
+2002-11-11 15:30  klamath
+
+	* scripts/run_test.sh (1.3): Fix typo.
+
+2002-11-08 16:15  fimath
+
+	* scripts/sapdb/restore_db.sh (1.1): Script to restore the database
+	from the last backup.
+
+2002-11-08 16:15  fimath
+
+	* scripts/sapdb/stop_db.sh (1.1): Script to stop SAP DB.
+
+2002-11-08 16:14  fimath
+
+	* scripts/sapdb/start_db.sh (1.1): Script to start SAP DB.
+
+2002-11-08 16:09  klamath
+
+	* terminal/driver.c (1.11): Fix typo in error message.
+
+2002-11-08 15:46  klamath
+
+	* interfaces/odbc/odbc_common.c (1.4): Fix compiler warnings.
+
+2002-11-08 15:19  klamath
+
+	* client/db_threadpool.c (1.10), client/listener.c (1.8),
+	client/main.c (1.12), common/_socket.c (1.5),
+	common/client_interface.c (1.6), common/common.c (1.9),
+	common/logging.c (1.2), datagen/main.c (1.10),
+	include/db_threadpool.h (1.4), interfaces/db.c (1.9),
+	terminal/driver.c (1.10), terminal/input_data_generator.c (1.7),
+	terminal/main.c (1.10), tools/results.c (1.7),
+	tools/transaction_test.c (1.7): Fix compiler warnings.
+
+2002-11-08 15:17  klamath
+
+	* make.common.in (1.3): Add -Wall to default CFLAGS.
+
+2002-11-08 12:08  fimath
+
+	* interfaces/odbc/Makefile.in (1.2): Added dependencies for each
+	object.
+
+2002-11-08 11:55  klamath
+
+	* interfaces/odbc/Makefile.in (1.1): Add a simple Makefile.in so
+	this directory builds properly with the new autoconf setup.
+
+2002-11-08 11:42  fimath
+
+	* make.common.in (1.2): Patch from Neil Conway <neilc@samurai.com>.
+	 A better way to list the dependency to make.common.
+
+2002-11-08 11:41  fimath
+
+	* terminal/Makefile.in (1.2), tools/Makefile.in (1.2): Changed
+	references to commonk.mk to make.common.
+
+2002-11-06 15:59  fimath
+
+	* scripts/run_test.sh (1.2): Capture the SQL plans and force the
+	user to enter a comment about the test.
+
+2002-10-31 15:21  fimath
+
+	* Makefile.in (1.1), configure (1.1), configure.in (1.1),
+	client/Makefile.in (1.1), client/Makefile (1.10),
+	common/Makefile.in (1.1), common/Makefile (1.6),
+	datagen/Makefile.in (1.1), datagen/Makefile (1.5),
+	interfaces/Makefile.in (1.1), interfaces/Makefile (1.3),
+	terminal/Makefile.in (1.1), terminal/Makefile (1.7),
+	tools/Makefile.in (1.1), tools/Makefile (1.8),
+	interfaces/odbc/Makefile (1.4): Used autoconf to create makefiles
+	now.  Removed old makefiles.  Also greatly simplified each
+	makefile.  Might have overdone it...
+
+2002-10-31 15:15  fimath
+
+	* make.common.in (1.1): Renamed common.mk to make.common, for
+	clarity.
+
+2002-10-22 16:06  fimath
+
+	* scripts/sapdb/db_stats.sh (1.3): Recording the database
+	parameters, and data and log devspace statistics before and after
+	the run.
+
+2002-10-22 10:54  fimath
+
+	* scripts/run_test.sh (1.1): Initial version.  Script to run a
+	test.  Currently works for a single tier model.
+
+2002-10-22 09:16  fimath
+
+	* scripts/sapdb/db_stats.sh (1.2): Added lines to record space
+	usage for every data devspace, at the beginning and end of the data
+	collection.
+
+2002-10-22 09:15  fimath
+
+	* scripts/sysstats.sh (1.1): Initial version.  Probably should
+	removed hardcoded use of DBT2 and make it a command line paramter
+	to make the script more generic.
+
+2002-10-22 08:52  fimath
+
+	* scripts/sapdb/create_db_sample.sh (1.4): Set _RESTART_TIME to the
+	maximum allowed value since 0 does not disable savepoint
+	activities.
+
+2002-10-22 08:41  fimath
+
+	* client/Makefile (1.9), common/Makefile (1.5), interfaces/Makefile
+	(1.2), terminal/Makefile (1.6), tools/Makefile (1.7): Updated the
+	Makefiles to build against unixODBC.
+
+2002-10-21 17:32  fimath
+
+	* tools/results.c (1.6): Removed the code to generate output files
+	for transactions other than New-Order, since it didn't work...	May
+	fix later.
+
+2002-10-21 17:26  fimath
+
+	* terminal/main.c (1.9): Added code to run the driver in a
+	standalone mode.
+
+2002-10-21 17:24  fimath
+
+	* terminal/driver.c (1.9): Added code so that this driver can be
+	run without a client, or actually merged with parts of the client.
+
+2002-10-21 17:20  fimath
+
+	* interfaces/odbc/: odbc_delivery.c (1.2), odbc_new_order.c (1.3),
+	odbc_order_status.c (1.2), odbc_payment.c (1.3), odbc_stock_level.c
+	(1.2): Changed the code to check the status of SQLExecute() to use
+	the new check_odbc_rc() function.  May change the rest of the code
+	later.
+
+2002-10-21 17:18  fimath
+
+	* interfaces/odbc/odbc_common.c (1.3): Added check_odbc_rc() to
+	check the ODBC return code.
+	
+	Added a call to set the isolation level of the connection to
+	repeatable read.
+	
+	Added a call to set the ODBC version of the connection.
+
+2002-10-21 17:14  fimath
+
+	* interfaces/db.c (1.8): Changed the code to do commits/rollbacks
+	the propper ODBC way.
+
+2002-10-21 17:05  fimath
+
+	* include/odbc_common.h (1.4): Removed the header file WINDOWS.H
+	since I'm building against unixODBC libraries.
+	
+	Added a prototype for check_odbc_rc() to check ODBC return codes.
+
+2002-10-21 17:02  fimath
+
+	* include/driver.h (1.5): Added extern int terminals_per_warehouse;
+	to support controlling the number of terminals created per
+	warehouse.
+
+2002-10-21 17:01  fimath
+
+	* include/db_threadpool.h (1.3): Fixed a comment typo.	Added
+	extern int db_connections; to this header file.
+
+2002-10-21 16:48  fimath
+
+	* datagen/main.c (1.9): Changed fopen() to fopen64() so that the
+	datafile sizes can grow over 2GB if need be.
+
+2002-10-21 16:44  fimath
+
+	* client/main.c (1.11): Moved the db_connections variable into
+	db_threadpool.c.
+
+2002-10-21 16:43  fimath
+
+	* client/db_threadpool.c (1.9): Added code so that this file can be
+	compiled into a single program to drive the database.
+	
+	Moved the definition of db_connections into here.
+
+2002-10-21 09:21  fimath
+
+	* scripts/sapdb/create_indexes.sh (1.5): Removed the unique indexes
+	for columns that are now being defined as primary keys.
+
+2002-10-21 09:20  fimath
+
+	* scripts/sapdb/create_tables.sql (1.4): Defined primary keys in
+	the create table statements.  Previously used unique indexes, but
+	since SAP DB stored the tables a b-tree's, this makes more sense.
+
+2002-10-18 12:18  fimath
+
+	* scripts/sapdb/db_stats.sh (1.1): Scripts to collect data from the
+	monitor tables and lockstatistics table.
+
+2002-10-18 10:54  fimath
+
+	* tools/results.c (1.5): Fixed a bug where the input for the sample
+	length was not being used.  Modified so that a csv file for each
+	transaction is now generated.
+
+2002-10-18 09:36  fimath
+
+	* tools/results.c (1.4): Initialized elapsed_time so it is
+	calculated correctly.
+
+2002-10-17 13:12  fimath
+
+	* scripts/sapdb/plan.sh (1.3): Fixed a typo and removed a query
+	that is no longer run.
+
+2002-10-17 11:45  fimath
+
+	* scripts/sapdb/plan.sh (1.2): Updated the script to reflect the
+	SQL statements in the stored procedures.
+
+2002-10-15 08:47  fimath
+
+	* storedproc/sapdb/stock_level.sql (1.5): This stored procedure has
+	been fixed so that the Stock-Level transaction is not implemented
+	correctly.
+
+2002-10-15 08:46  fimath
+
+	* storedproc/sapdb/stock_level_2.sql (1.3): No longer needed, now
+	that the transaction has been implemented properly.
+
+2002-10-14 10:02  fimath
+
+	* storedproc/sapdb/stock_level_2.sql (1.2): Rewrote a SQL statement
+	slightly to be simpler.  Made up for it in the following IF
+	statement.  Removing one of the $rc checks for a second results
+	table probably fixed a problem that was there.
+
+2002-10-11 09:28  fimath
+
+	* scripts/sapdb/new_order.sql (1.2): Fixed a typo in the column
+	name definition.
+
+2002-10-11 09:28  fimath
+
+	* scripts/sapdb/create_indexes.sh (1.4): Fixed a typo in a create
+	index statement.
+
+2002-10-11 09:27  fimath
+
+	* storedproc/sapdb/payment.sql (1.3): Fixed a couple of SQL
+	statements where the WHERE clause was not correct.
+
+2002-10-11 09:27  fimath
+
+	* storedproc/sapdb/new_order_2.sql (1.2): Moved expessions out of
+	SQL statements.
+
+2002-10-11 09:24  fimath
+
+	* storedproc/sapdb/new_order.sql (1.4): Removed an expression from
+	a SQL statement.
+
+2002-10-10 13:45  fimath
+
+	* datagen/main.c (1.8): Enter a string NULL for the columns that
+	are to have a NULL inserted for that column.
+
+2002-10-10 13:44  fimath
+
+	* scripts/sapdb/: create_db_sample.sh (1.3), create_indexes.sh
+	(1.3), order_line.sql (1.2), orders.sql (1.2): Changed to script to
+	look for the string NULL when inserting a NULL into the table
+	during a load.	Previously, it was deciding to insert a NULL if the
+	column string was an empty string.
+
+2002-10-01 08:51  fimath
+
+	* scripts/sapdb/: drop_dbproc.sh (1.2), load_dbproc.sh (1.2):
+	Updated to handle the second new stock-level stored procedure.
+
+2002-10-01 08:51  fimath
+
+	* storedproc/sapdb/stock_level_2.sql (1.1): New second part of the
+	stock-level transaction.
+
+2002-10-01 08:50  fimath
+
+	* storedproc/sapdb/stock_level.sql (1.4): Broke up this stored
+	procedure into 2 files.  It now avoids a table scan that was
+	previously occuring.
+
+2002-09-16 09:16  fimath
+
+	* terminal/: driver.c (1.8), main.c (1.8): Added code so that the
+	number of terminals start per warehouse can be use defined.
+
+2002-09-11 11:14  fimath
+
+	* datagen/main.c (1.7): Fixed a bug where the symlinks where being
+	created properly if the -d flag is used.
+
+2002-09-10 12:55  fimath
+
+	* datagen/main.c (1.6): Added a flag to redirect the data files to
+	another directory.
+
+2002-09-05 09:37  fimath
+
+	* interfaces/odbc/odbc_common.c (1.2): Added code to turn
+	autocommit off after a database connection is established.
+
+2002-09-05 09:35  fimath
+
+	* interfaces/db.c (1.7): Added code to force a rollback/commit,
+	depending on the outcome of the stored procedure executiong.
+
+2002-09-05 09:32  fimath
+
+	* include/odbc_common.h (1.3): Added macros for COMMIT and ROLLBACK
+	statements.
+
+2002-09-04 14:23  fimath
+
+	* doc/tpc.sxw (1.2): More information has been provided.
+
+2002-08-30 13:52  fimath
+
+	* storedproc/sapdb/stock_level.sql (1.3): Increased the size of
+	low_stock so it would stop throwing this ODBC error: sqlstate 22003
+	: [SAP AG][LIBSQLOD SO][SAP DB]Numeric value out of range;-3019
+	POS(1) Invalid exponent.
+
+2002-08-29 15:31  fimath
+
+	* scripts/sapdb/create_indexes.sh (1.2): Renamed the indexes to
+	something a little more meaningful.  Plus, one of the names was too
+	long.
+
+2002-08-29 14:48  fimath
+
+	* scripts/sapdb/create_db_sample.sh (1.2): Set the default memory
+	cache to 16384 pages.  Added _IDXFILE_LIST_SIZE set to its maximum
+	value of 8192 to aid index creation.
+
+2002-08-29 14:06  fimath
+
+	* scripts/sapdb/plan.sh (1.1): Script to get the execution plans
+	for all the SELECT statements executed in the stored procedures.
+
+2002-08-29 14:05  fimath
+
+	* storedproc/sapdb/: delivery_2.sql (1.2), new_order.sql (1.3),
+	order_status.sql (1.3): Changed the order or some of the where
+	clauses, despite that lack of an effect they had on execution
+	plans.
+
+2002-08-29 14:04  fimath
+
+	* scripts/sapdb/create_indexes.sh (1.1): Script to create unique
+	indexes on all the tables where primary keys were defined.
+
+2002-08-29 10:38  fimath
+
+	* interfaces/: db.c (1.6), odbc/odbc_new_order.c (1.2): I have
+	finally fixed the code so that o_all_local is determined properly.
+
+2002-08-28 16:01  fimath
+
+	* common/common.c (1.8), datagen/main.c (1.5), include/common.h
+	(1.11), terminal/driver.c (1.7), terminal/main.c (1.7),
+	tools/transaction_test.c (1.6): Removed the ability to adjust the
+	stock table cardinality because it must match the item table
+	cardinality, so now it does.
+
+2002-08-28 15:50  fimath
+
+	* terminal/main.c (1.6): Fixed the formatting for the usage output.
+
+2002-08-28 15:50  fimath
+
+	* terminal/input_data_generator.c (1.6): Modified the data
+	generation for the payment transaction so that a customer is always
+	selected by c_id and never by c_last.
+
+2002-08-28 15:49  fimath
+
+	* terminal/driver.c (1.6): Added code to keep track of the state of
+	each terminal thread.
+	
+	Fixed a potential bug with the transaction mix selection if a
+	transaction was given 0%.
+
+2002-08-28 15:47  fimath
+
+	* terminal/Makefile (1.5): Updated dependencies.
+
+2002-08-28 15:47  fimath
+
+	* interfaces/odbc/odbc_payment.c (1.2): Did some reformatting for
+	easier reading.
+
+2002-08-28 15:47  fimath
+
+	* interfaces/db.c (1.5): process_transaction() now return the
+	return code of the respective execute_() function.
+
+2002-08-28 15:45  fimath
+
+	* include/driver.h (1.4): Added macros to help keep track of the
+	state of each thread in the driver.
+
+2002-08-28 15:44  fimath
+
+	* common/client_interface.c (1.5): Changed the logic for
+	receive_transaction_data() and send_transaction_data() returns the
+	number of bytes sent.
+
+2002-08-28 15:41  fimath
+
+	* common/_socket.c (1.4): I don't believe send() ever returns 0,
+	but I'm paranoid.
+
+2002-08-28 15:40  fimath
+
+	* client/transaction_queue.c (1.6): Fixed a potential deadlock bug.
+
+2002-08-28 15:33  fimath
+
+	* client/listener.c (1.7): Changed the logic for checking for
+	errors slightly.
+
+2002-08-28 15:30  fimath
+
+	* client/db_threadpool.c (1.8): Added code so that we can see what
+	state each database thread is in.
+
+2002-08-28 15:22  fimath
+
+	* client/Makefile (1.8): Updated dependencies.
+
+2002-08-28 15:21  fimath
+
+	* storedproc/sapdb/stock_level.sql (1.2): Fixed the logic so now
+	errors are returned by SQLExecute when 0 rows are returned by the
+	last query.
+
+2002-08-28 09:47  fimath
+
+	* scripts/sapdb/update_stats.sh (1.1): Script to update statistics
+	on all the tables.
+
+2002-08-22 14:59  fimath
+
+	* tools/results.c (1.3): Removed transaction_name[] because it is
+	in common.c now.
+
+2002-08-22 14:58  fimath
+
+	* tools/Makefile (1.6): Linking math libraries to results.
+
+2002-08-22 14:58  fimath
+
+	* terminal/main.c (1.5): Added a printf() to create an extra space
+	when outputing parameters.
+
+2002-08-22 14:57  fimath
+
+	* terminal/driver.c (1.5): Changed the code back to what it
+	originally was so that threads exit gracefully.  Changed some
+	variable names to accomidate changes so that keying time and
+	thinking time can be user defined.
+
+2002-08-22 14:55  fimath
+
+	* include/transaction_queue.h (1.3): Changed int *s to int s to
+	address a bug with tracking socket descriptors from terminals. 
+	Added some definitions to track the number of transactions queue,
+	executing, and their type.
+
+2002-08-22 14:54  fimath
+
+	* include/common.h (1.10): Added an extern to share the
+	transaction_name[] array.
+
+2002-08-22 14:53  fimath
+
+	* doc/sapdb_sizing.sxc (1.2): Added some calculations to determine
+	transaction rates.
+
+2002-08-22 14:52  fimath
+
+	* common/common.c (1.7): Added an array that can be use to get a
+	string name for a transaction.
+
+2002-08-22 14:51  fimath
+
+	* client/transaction_queue.c (1.5): Added code so that the number
+	of each transactions queued, executing, and type can be tracked.
+
+2002-08-22 14:49  fimath
+
+	* client/main.c (1.10): Added code to show the number of
+	transactions queue and executing, and which transactions those are.
+
+2002-08-22 14:40  fimath
+
+	* client/listener.c (1.6): Fixed a bug where the socket descriptor
+	from a terminal was overridden by a subsequent terminal connecting
+	to the client.
+
+2002-08-22 14:37  fimath
+
+	* client/db_threadpool.c (1.7): Added code to keep count of what
+	transactions are currently executing.  Made a minor change to
+	address a bug with keeping track of socket descriptors.
+
+2002-08-21 13:37  fimath
+
+	* ChangeLog (1.3): Updated changelog for release 0.4.
+
 2002-08-21 13:24  fimath
 
 	* terminal/main.c (1.4, release_0-4): Added parameters so that the
@@ -356,12 +1325,6 @@
 	release_0-2), tools/odbc_test.c (1.3): Made changes to support the
 	use of custom table cardinalities by using a global structure.
 
-2002-08-02 11:46  fimath
-
-	* scripts/sapdb/db_setup_sample.sh (1.2, release_0-4, release_0-3,
-	release_0-2): Updated script to use the correct command line
-	arguments for datagen.
-
 2002-08-02 11:12  fimath
 
 	* datagen/main.c (1.3), include/common.h (1.3): Move default table
@@ -393,10 +1356,9 @@
 
 2002-07-31 14:04  fimath
 
-	* common.mk (1.2, release_0-4, release_0-3, release_0-2),
-	client/Makefile (1.2), interfaces/odbc/Makefile (1.2, release_0-3,
-	release_0-2): Modified so the global rule for .c to .so is in the
-	common.mk file.
+	* client/Makefile (1.2), interfaces/odbc/Makefile (1.2,
+	release_0-3, release_0-2): Modified so the global rule for .c to
+	.so is in the common.mk file.
 
 2002-07-30 12:35  fimath
 
@@ -410,9 +1372,8 @@
 
 2002-07-30 11:58  fimath
 
-	* Makefile (1.2, release_0-4, release_0-3, release_0-2),
-	common/Makefile (1.2): Updated/added for the inclusion of new files
-	in the package.
+	* common/Makefile (1.2): Updated/added for the inclusion of new
+	files in the package.
 
 2002-07-30 11:57  fimath
 
@@ -460,11 +1421,11 @@
 
 2002-07-23 15:50  fimath
 
-	* LICENSE (1.1), Makefile (1.1), common.mk (1.1), common/Makefile
-	(1.1), common/common.c (1.1), common/transaction_data.c (1.1),
-	datagen/Makefile (1.1), datagen/main.c (1.1), doc/architecture.sxw
-	(1.1), doc/class.dia (1.1), doc/component.dia (1.1),
-	doc/maintenance.sxw (1.1), doc/html/architecture.html (1.1),
+	* LICENSE (1.1), common/Makefile (1.1), common/common.c (1.1),
+	common/transaction_data.c (1.1), datagen/Makefile (1.1),
+	datagen/main.c (1.1), doc/architecture.sxw (1.1), doc/class.dia
+	(1.1), doc/component.dia (1.1), doc/maintenance.sxw (1.1),
+	doc/html/architecture.html (1.1),
 	doc/html/architecture_html_m4ea89498.gif (1.1), include/common.h
 	(1.1), include/input_data_generator.h (1.1), include/odbc_common.h
 	(1.1), include/odbc_delivery.h (1.1), include/odbc_new_order.h
@@ -479,14 +1440,13 @@
 	interfaces/odbc/odbc_stock_level.c (1.1),
 	scripts/sapdb/create_db_sample.sh (1.1),
 	scripts/sapdb/create_tables.sql (1.1), scripts/sapdb/customer.sql
-	(1.1), scripts/sapdb/db_setup_sample.sh (1.1),
-	scripts/sapdb/district.sql (1.1), scripts/sapdb/drop_db.sh (1.1),
-	scripts/sapdb/drop_dbproc.sh (1.1), scripts/sapdb/history.sql
-	(1.1), scripts/sapdb/item.sql (1.1), scripts/sapdb/load_dbproc.sh
-	(1.1), scripts/sapdb/new_order.sql (1.1),
-	scripts/sapdb/order_line.sql (1.1), scripts/sapdb/orders.sql (1.1),
-	scripts/sapdb/stock.sql (1.1), scripts/sapdb/warehouse.sql (1.1),
-	storedproc/sapdb/delivery.sql (1.1),
+	(1.1), scripts/sapdb/district.sql (1.1), scripts/sapdb/drop_db.sh
+	(1.1), scripts/sapdb/drop_dbproc.sh (1.1),
+	scripts/sapdb/history.sql (1.1), scripts/sapdb/item.sql (1.1),
+	scripts/sapdb/load_dbproc.sh (1.1), scripts/sapdb/new_order.sql
+	(1.1), scripts/sapdb/order_line.sql (1.1), scripts/sapdb/orders.sql
+	(1.1), scripts/sapdb/stock.sql (1.1), scripts/sapdb/warehouse.sql
+	(1.1), storedproc/sapdb/delivery.sql (1.1),
 	storedproc/sapdb/delivery_2.sql (1.1),
 	storedproc/sapdb/new_order.sql (1.1),
 	storedproc/sapdb/new_order_2.sql (1.1),
@@ -499,15 +1459,15 @@
 2002-07-23 15:50  fimath
 
 	* LICENSE (1.1.1.1, release_0-4, release_0-3, release_0-2),
-	Makefile (1.1.1.1), common.mk (1.1.1.1), common/Makefile (1.1.1.1),
-	common/common.c (1.1.1.1), common/transaction_data.c (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), datagen/Makefile (1.1.1.1,
-	release_0-2), datagen/main.c (1.1.1.1), doc/architecture.sxw
-	(1.1.1.1, release_0-3, release_0-2), doc/class.dia (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), doc/component.dia (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), doc/maintenance.sxw
-	(1.1.1.1, release_0-4, release_0-3, release_0-2),
-	doc/html/architecture.html (1.1.1.1, release_0-3, release_0-2),
+	common/Makefile (1.1.1.1), common/common.c (1.1.1.1),
+	common/transaction_data.c (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), datagen/Makefile (1.1.1.1, release_0-2),
+	datagen/main.c (1.1.1.1), doc/architecture.sxw (1.1.1.1,
+	release_0-3, release_0-2), doc/class.dia (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), doc/component.dia (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), doc/maintenance.sxw (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), doc/html/architecture.html
+	(1.1.1.1, release_0-3, release_0-2),
 	doc/html/architecture_html_m4ea89498.gif (1.1.1.1, release_0-3,
 	release_0-2), include/common.h (1.1.1.1),
 	include/input_data_generator.h (1.1.1.1, release_0-4, release_0-3,
@@ -532,26 +1492,24 @@
 	scripts/sapdb/create_db_sample.sh (1.1.1.1, release_0-4,
 	release_0-3, release_0-2), scripts/sapdb/create_tables.sql
 	(1.1.1.1, release_0-2), scripts/sapdb/customer.sql (1.1.1.1,
-	release_0-4, release_0-3, release_0-2),
-	scripts/sapdb/db_setup_sample.sh (1.1.1.1),
-	scripts/sapdb/district.sql (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), scripts/sapdb/drop_db.sh (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), scripts/sapdb/drop_dbproc.sh (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), scripts/sapdb/history.sql
+	release_0-4, release_0-3, release_0-2), scripts/sapdb/district.sql
 	(1.1.1.1, release_0-4, release_0-3, release_0-2),
-	scripts/sapdb/item.sql (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), scripts/sapdb/load_dbproc.sh (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), scripts/sapdb/new_order.sql (1.1.1.1,
-	release_0-4, release_0-3, release_0-2),
-	scripts/sapdb/order_line.sql (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), scripts/sapdb/orders.sql (1.1.1.1, release_0-4,
-	release_0-3, release_0-2), scripts/sapdb/stock.sql (1.1.1.1,
-	release_0-4, release_0-3, release_0-2), scripts/sapdb/warehouse.sql
+	scripts/sapdb/drop_db.sh (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), scripts/sapdb/drop_dbproc.sh (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), scripts/sapdb/history.sql (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), scripts/sapdb/item.sql
 	(1.1.1.1, release_0-4, release_0-3, release_0-2),
-	storedproc/sapdb/delivery.sql (1.1.1.1, release_0-4, release_0-3,
-	release_0-2), storedproc/sapdb/delivery_2.sql (1.1.1.1,
+	scripts/sapdb/load_dbproc.sh (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), scripts/sapdb/new_order.sql (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), scripts/sapdb/order_line.sql (1.1.1.1,
+	release_0-4, release_0-3, release_0-2), scripts/sapdb/orders.sql
+	(1.1.1.1, release_0-4, release_0-3, release_0-2),
+	scripts/sapdb/stock.sql (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), scripts/sapdb/warehouse.sql (1.1.1.1, release_0-4,
+	release_0-3, release_0-2), storedproc/sapdb/delivery.sql (1.1.1.1,
 	release_0-4, release_0-3, release_0-2),
-	storedproc/sapdb/new_order.sql (1.1.1.1),
+	storedproc/sapdb/delivery_2.sql (1.1.1.1, release_0-4, release_0-3,
+	release_0-2), storedproc/sapdb/new_order.sql (1.1.1.1),
 	storedproc/sapdb/new_order_2.sql (1.1.1.1, release_0-4,
 	release_0-3, release_0-2), storedproc/sapdb/order_status.sql
 	(1.1.1.1, release_0-2), storedproc/sapdb/payment.sql (1.1.1.1,
