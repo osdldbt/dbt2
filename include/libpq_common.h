@@ -7,8 +7,8 @@
  * May 13 2003
  */
 
-#ifndef _LIGPQ_COMMON_H_
-#define _LIGPQ_COMMON_H_
+#ifndef _LIBPQ_COMMON_H_
+#define _LIBPQ_COMMON_H_
 
 #include "transaction_data.h"
 
@@ -27,4 +27,4 @@ extern char pgport[32];
 extern char pgoptions[32];
 extern char pgtty[32];
 
-#endif /* _LIGPQ_COMMON_H_ */
+#endif /* _LIBPQ_COMMON_H_ */
