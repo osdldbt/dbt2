@@ -13,25 +13,53 @@
 #include <common.h>
 #include <listener.h>
 #include <client_interface.h>
-#include <transaction_queue.h>
 
 void *listener_worker(void *data);
 
 sem_t listener_worker_count;
+sem_t free_count;
+struct transaction_queue_node_t *node_head, *node_tail;
+pthread_mutex_t mutex_node = PTHREAD_MUTEX_INITIALIZER;
 
 /* Can I come up with a neater way to share the global variables? */
 extern int exiting;
+
+struct transaction_queue_node_t *get_node()
+{
+	struct transaction_queue_node_t *node;
+
+	sem_wait(&free_count);
+	pthread_mutex_lock(&mutex_node);
+	node = node_head;
+	if (node_head == NULL)
+	{
+		return NULL;
+	}
+	else if (node_head->next == NULL)
+	{
+		node_head = node_tail = NULL;
+	}
+	pthread_mutex_unlock(&mutex_node);
+
+	return node;
+}
 
 void *init_listener(void *data)
 {
 	int *s = (int *) data; /* Listener socket. */
 	int sockfd; /* Socket to terminal. */
+	node_head = node_tail = NULL;
 
 	if (sem_init(&listener_worker_count, 0, 0) != 0)
 	{
 		LOG_ERROR_MESSAGE("cannot init listener_worker_count\n");
 		printf("cannot init listener_worker_count, exiting...\n");
 		exit(11);
+	}
+	if (sem_init(&free_count, 0, 0) != 0)
+	{
+		LOG_ERROR_MESSAGE("cannot init free_count");
+		exit(12);
 	}
 
 	while (!exiting)
@@ -58,15 +86,18 @@ void *listener_worker(void *data)
 {
 	int rc;
 
-	/* This thread should only handle one transaction at a time... */
-	struct transaction_queue_node_t node;
+	/* Create a chunk of memory for each worker that is started. */
+	struct transaction_queue_node_t *node;
+	node = (struct transaction_queue_node_t *)
+		malloc(sizeof(struct transaction_queue_node_t));
 
-	node.s = (int *) data;
+	node->s = (int *) data;
 	while (!exiting)
 	{
-		rc = receive_transaction_data(*node.s, &node.client_data);
+		rc = receive_transaction_data(*node->s, &node->client_data);
 		if (rc == ERROR_SOCKET_CLOSED)
 		{
+			LOG_ERROR_MESSAGE("exiting...");
 			/* Exit the thread when the socket has closed. */
 			sem_wait(&listener_worker_count);
 			pthread_exit(0);
@@ -78,6 +109,26 @@ void *listener_worker(void *data)
 		}
 
 		/* Queue up the transaction data to be processed. */
-		enqueue_transaction(&node);
+		enqueue_transaction(node);
+		node = get_node();
 	}
+}
+
+int recycle_node(struct transaction_queue_node_t *node)
+{
+	pthread_mutex_lock(&mutex_node);
+	node->next = NULL;
+	if (node_tail != NULL)
+	{
+		node_tail->next = node;
+		node_tail = node;
+	}
+	else
+	{
+		node_head = node_tail = node;
+	}
+	sem_post(&free_count);
+	pthread_mutex_unlock(&mutex_node);
+
+	return OK;
 }
