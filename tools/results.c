@@ -19,10 +19,12 @@ int main(int argc, char *argv[])
 	int i;
 	FILE *log_mix;
 	FILE *log_tps;
+	/*
 	FILE *log_dtps;
 	FILE *log_otps;
 	FILE *log_ptps;
 	FILE *log_stps;
+	*/
 	int sample_length;
 	int total_transaction_count = 0;
 	int current_transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
@@ -39,6 +41,7 @@ int main(int argc, char *argv[])
 	char filename_o[256];
 	char filename_p[256];
 	char filename_s[256];
+	int offset;
 
 	int transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
 	double transaction_response_time[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
@@ -63,18 +66,22 @@ int main(int argc, char *argv[])
 	if (argc == 4)
 	{
 		sprintf(filename, "%s/tps.csv", argv[3]);
+		/*
 		sprintf(filename_d, "%s/tps_d.csv", argv[3]);
 		sprintf(filename_o, "%s/tps_o.csv", argv[3]);
 		sprintf(filename_p, "%s/tps_p.csv", argv[3]);
 		sprintf(filename_s, "%s/tps_s.csv", argv[3]);
+		*/
 	}
 	else
 	{
 		strcpy(filename, "tps.csv");
+		/*
 		strcpy(filename, "tps_d.csv");
 		strcpy(filename, "tps_o.csv");
 		strcpy(filename, "tps_p.csv");
 		strcpy(filename, "tps_s.csv");
+		*/
 	}
 	log_tps = fopen(filename, "w");
 	if (log_tps == NULL)
@@ -82,30 +89,32 @@ int main(int argc, char *argv[])
 		printf("cannot open tps.csv\n");
 		return 3;
 	}
+/*
 	log_dtps = fopen(filename, "w");
-	if (log_tps == NULL)
+	if (log_dtps == NULL)
 	{
 		printf("cannot open tps.csv\n");
 		return 3;
 	}
 	log_otps = fopen(filename_o, "w");
-	if (log_tps == NULL)
+	if (log_otps == NULL)
 	{
 		printf("cannot open tps_o.csv\n");
 		return 3;
 	}
 	log_ptps = fopen(filename_p, "w");
-	if (log_tps == NULL)
+	if (log_ptps == NULL)
 	{
 		printf("cannot open tps_p.csv\n");
 		return 3;
 	}
 	log_stps = fopen(filename_s, "w");
-	if (log_tps == NULL)
+	if (log_stps == NULL)
 	{
 		printf("cannot open tps_s.csv\n");
 		return 3;
 	}
+*/
 
 	while (fscanf(log_mix, "%s", marker))
 	{
@@ -130,8 +139,10 @@ int main(int argc, char *argv[])
 		/* Output data to csv file for charting transaction per second. */
 		if (current_time > previous_time + sample_length)
 		{
-			fprintf(log_tps, "%d,%f\n", elapsed_time,
-				(double) current_transaction_count[NEW_ORDER] / sample_length);
+			fprintf(log_tps, "%d\t%f\t%f\n", elapsed_time,
+				(double) current_transaction_count[NEW_ORDER] / sample_length,
+				((double) current_transaction_count[NEW_ORDER] / sample_length) * 60.0);
+/*
 			fprintf(log_dtps, "%d,%f\n", elapsed_time,
 				(double) current_transaction_count[DELIVERY] / sample_length);
 			fprintf(log_otps, "%d,%f\n", elapsed_time,
@@ -140,6 +151,7 @@ int main(int argc, char *argv[])
 				(double) current_transaction_count[PAYMENT] / sample_length);
 			fprintf(log_stps, "%d,%f\n", elapsed_time,
 				(double) current_transaction_count[STOCK_LEVEL] / sample_length);
+*/
 
 			elapsed_time += sample_length;
 			previous_time = current_time;
@@ -191,10 +203,12 @@ int main(int argc, char *argv[])
 	}
 	fclose(log_mix);
 	fclose(log_tps);
+/*
 	fclose(log_dtps);
 	fclose(log_otps);
 	fclose(log_ptps);
 	fclose(log_stps);
+*/
 
 	/* Calculate the actual mix of transactions. */
 	printf("transaction\t%\tavg response time (s)\n");
