@@ -10,7 +10,7 @@ sql_execute create table new_order ( no_o_id fixed(8), no_d_id fixed(2), no_w_id
 
 sql_execute create table orders ( o_id fixed(8), o_d_id fixed(2), o_w_id fixed(9), o_c_id fixed(5), o_entry_d timestamp, o_carrier_id fixed(2), o_ol_cnt fixed(2), o_all_local fixed(1) )
 
-sql_execute create table order_line ( ol_o_id fixed(8), ol_d_id fixed(2), ol_w_id fixed(9), ol_number fixed(2), ol_i_id fixed(6), ol_supply_w_id fixed(9), ol_delivery_d timestamp, ol_quantity fixed(4, 2), ol_amount fixed (12, 6), ol_dist_info varchar(24) )
+sql_execute create table order_line ( ol_o_id fixed(8), ol_d_id fixed(2), ol_w_id fixed(9), ol_number fixed(2), ol_i_id fixed(6), ol_supply_w_id fixed(9), ol_delivery_d timestamp, ol_quantity fixed(4), ol_amount fixed (12, 6), ol_dist_info varchar(24) )
 
 sql_execute create table item ( i_id fixed(6), i_im_id fixed(6), i_name varchar(24), i_price fixed(10, 5), i_data varchar(50) )
 
