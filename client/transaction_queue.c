@@ -64,6 +64,7 @@ struct transaction_queue_node_t *dequeue_transaction()
 	node = transaction_head;
 	if (transaction_head == NULL)
 	{
+		pthread_mutex_unlock(&mutex_queue);
 		return NULL;
 	}
 	else if (transaction_head->next == NULL)
