@@ -135,12 +135,14 @@ int generate_payment_data(int w_id, struct payment_t *data)
 	data->d_id = get_random(D_ID_MAX) + 1;
 
 	/* Select a customer by last name 60%, byt c_id 40% of the time. */
+/*
 	if (get_random(100) < 60)
 	{
 		data->c_id = C_ID_UNKNOWN;
 		get_c_last(data->c_last, get_nurand(255, 0, 999));
 	}
 	else
+*/
 	{
 		data->c_id = get_nurand(1023, 1, 3000);
 	}
