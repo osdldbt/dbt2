@@ -75,9 +75,12 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 		data->order_line[i].ol_i_id = get_nurand(8191, 1, 100000);
 		if (table_cardinality.warehouses > 1)
 		{
+/* NO REMOTE W_ID
 			if (get_random(100) > 0)
 			{
+*/
 				data->order_line[i].ol_supply_w_id = w_id;
+/*
 			}
 			else
 			{
@@ -88,6 +91,7 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 					++data->order_line[i].ol_supply_w_id;
 				}
 			}
+*/
 		}
 		else
 		{
@@ -144,10 +148,13 @@ int generate_payment_data(int w_id, struct payment_t *data)
 		data->c_id = get_nurand(1023, 1, 3000);
 	}
 
+/* NO REMOTE W_ID
 	if (get_random(100) < 85)
 	{
+*/
 		data->c_w_id = w_id;
 		data->c_d_id = data->d_id;
+/*
 	}
 	else
 	{
@@ -165,6 +172,7 @@ int generate_payment_data(int w_id, struct payment_t *data)
 			data->c_w_id = 1;
 		}
 	}
+*/
 	data->h_amount = (double) (get_random(500000) + 100) / 100.0;
 
 	return OK;
