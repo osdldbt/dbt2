@@ -12,12 +12,16 @@
 #ifndef _TRANSACTION_QUEUE_H_
 #define _TRANSACTION_QUEUE_H_
 
+#include <pthread.h>
 #include <semaphore.h>
 #include <client_interface.h>
 
+#define QUEUED 0
+#define EXECUTING 1
+
 struct transaction_queue_node_t
 {
-	int *s;
+	int s;
 	int id;
 	struct client_transaction_t client_data;
 	struct transaction_queue_node_t *next;
@@ -28,5 +32,7 @@ int enqueue_transaction(struct transaction_queue_node_t *node);
 int init_transaction_queue();
 
 extern sem_t queue_length;
+extern int transaction_counter[2][TRANSACTION_MAX];
+extern pthread_mutex_t mutex_transaction_counter[2][TRANSACTION_MAX];
 
 #endif /* _TRANSACTION_QUEUE_H_ */
