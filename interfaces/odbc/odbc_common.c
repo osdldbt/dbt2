@@ -67,6 +67,14 @@ int odbc_connect(struct odbc_context_t *odbcc)
 		return ERROR;
 	}
 
+	rc = SQLSetConnectAttr(odbcc->hdbc, SQL_ATTR_AUTOCOMMIT,
+		SQL_AUTOCOMMIT_OFF, NULL);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
+	{
+	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+	        return ERROR;
+	}
+
 	/* allocate statement handle */
 	rc = SQLAllocHandle(SQL_HANDLE_STMT, odbcc->hdbc, &odbcc->hstmt);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
