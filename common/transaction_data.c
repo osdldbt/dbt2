@@ -85,18 +85,15 @@ int dump(FILE *fp, int type, void *data)
 			fprintf(fp, "o_carrier_id = %d\n", ptr.os->o_carrier_id);
 			fprintf(fp, "o_entry_d = %s\n", ptr.os->o_entry_d);
 			fprintf(fp, "o_ol_cnt = %d\n", ptr.os->o_ol_cnt);
+			fprintf(fp, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d\n");
 			for (i = 0; i < ptr.os->o_ol_cnt; i++)
 			{
-				fprintf(fp, "ol_i_id[%d] = %d\n", i,
-					 ptr.os->order_line[i].ol_i_id);
-				fprintf(fp, "ol_supply_w_id[%d] = %d\n", i,
-					 ptr.os->order_line[i].ol_supply_w_id);
-				fprintf(fp, "ol_quantity[%d] = %d\n", i,
-					 ptr.os->order_line[i].ol_quantity);
-				fprintf(fp, "ol_amount[%d] = %0.2f\n", i,
-					 ptr.os->order_line[i].ol_amount);
-				fprintf(fp, "ol_delivery_d[%d] = %s\n", i,
-					 ptr.os->order_line[i].ol_delivery_d);
+				fprintf(fp, "%2d  %7d  %14d  %11d  %9.2f  %s\n", i,
+					ptr.os->order_line[i].ol_i_id,
+					ptr.os->order_line[i].ol_supply_w_id,
+					ptr.os->order_line[i].ol_quantity,
+					ptr.os->order_line[i].ol_amount,
+					ptr.os->order_line[i].ol_delivery_d);
 			}
 			pthread_mutex_unlock(&mut);
 			break;
