@@ -145,6 +145,14 @@ int init_common()
 		a_string_char[j++] = (char) i;
 	}
 	
+	/* Open a file to log errors to. */
+	log_error = fopen(ERROR_LOG_NAME, "w");
+	if (log_error == NULL)
+	{
+		fprintf(stderr, "cannot open %s\n", ERROR_LOG_NAME);
+		return ERROR;
+	}
+
 	return OK;
 }
 
