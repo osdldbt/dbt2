@@ -14,6 +14,10 @@ COUNTER=0
 # put db info into the readme.txt file
 /opt/sapdb/depend/bin/dbmcli dbm_version >> $OUTPUT_DIR/readme.txt
 
+# record devspace space information before the test
+echo "info data (before test)" >> $OUTPUT_DIR/readme.txt
+/opt/sapdb/depend/bin/dbmcli d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data >> $OUTPUT_DIR/readme.txt
+
 # reset monitor tables
 echo "resetting monitor tables"
 /opt/sapdb/depend/bin/dbmcli -s -d $1 -u dba,dba -uSQL dbt,dbt "sql_execute monitor init"
@@ -37,3 +41,7 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 	let COUNTER=COUNTER+1
 	sleep $SAMPLE_LENGTH
 done
+
+# record devspace space information after the test
+echo "info data (after test)" >> $OUTPUT_DIR/readme.txt
+/opt/sapdb/depend/bin/dbmcli d DBT2 -u dbm,dbm -uSQL dbt,dbt -c info data >> $OUTPUT_DIR/readme.txt
