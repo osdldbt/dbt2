@@ -5,16 +5,10 @@ include ../make.common
 
 COMMON_OBJS =		$(TOPDIR)/common/common.so
 COMMON_OBJS2 =		$(COMMON_OBJS) $(TOPDIR)/common/logging.so \
-					$(TOPDIR)/common/transaction_data.so \
-					$(TOPDIR)/common/client_interface.so \
-					$(TOPDIR)/common/_socket.so
-INTERFACE_OBJS =	$(TOPDIR)/interfaces/db.so
-ODBC_OBJS =			$(TOPDIR)/interfaces/odbc/odbc_common.so \
-					$(TOPDIR)/interfaces/odbc/odbc_new_order.so \
-					$(TOPDIR)/interfaces/odbc/odbc_payment.so \
-					$(TOPDIR)/interfaces/odbc/odbc_order_status.so \
-					$(TOPDIR)/interfaces/odbc/odbc_delivery.so \
-					$(TOPDIR)/interfaces/odbc/odbc_stock_level.so
+			$(TOPDIR)/common/transaction_data.so \
+			$(TOPDIR)/common/client_interface.so \
+			$(TOPDIR)/common/_socket.so
+INTERFACE_OBJS =	$(TOPDIR)/interfaces/db.so $(DB_OBJS)
 TERMINAL_OBJS =		$(TOPDIR)/terminal/input_data_generator.so
 
 all: transaction_test results
@@ -23,9 +17,9 @@ results: ../make.common Makefile results.c
 	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS) $(LDFLAGS)
 
 transaction_test: ../make.common Makefile transaction_test.c \
-	$(COMMON_OBJS2) $(ODBC_OBJS) $(TERMINAL_OBJS) $(INTERFACE_OBJS)
-	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS2) $(ODBC_OBJS) $(TERMINAL_OBJS) \
-		$(INTERFACE_OBJS) $(LDFLAGS) 
+	$(COMMON_OBJS2) $(LIBPQ_OBJS) $(TERMINAL_OBJS) $(INTERFACE_OBJS)
+	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS2) \
+		$(TERMINAL_OBJS) $(INTERFACE_OBJS) $(LDFLAGS) 
 
 clean: 
 	rm -f transaction_test results
