@@ -1,0 +1,12 @@
+# Makefile
+# 13 May 2003
+
+include ../../make.common
+
+OBJS = libpq_common.so libpq_stock_level.so libpq_order_status.so \
+	libpq_delivery.so libpq_payment.so libpq_new_order.so
+
+all: $(OBJS)
+
+clean: 
+	rm -f $(OBJS)
