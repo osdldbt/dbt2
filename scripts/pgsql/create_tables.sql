@@ -15,3 +15,5 @@ create table order_line ( ol_o_id numeric(8), ol_d_id numeric(2), ol_w_id numeri
 create table item ( i_id numeric(6), i_im_id numeric(6), i_name varchar(24), i_price numeric(10, 5), i_data varchar(50), constraint pk_item primary key (i_id) );
 
 create table stock ( s_i_id numeric(6), s_w_id numeric(9), s_quantity numeric(4), s_dist_01 varchar(24), s_dist_02 varchar(24), s_dist_03 varchar(24), s_dist_04 varchar(24), s_dist_05 varchar(24), s_dist_06 varchar(24), s_dist_07 varchar(24), s_dist_08 varchar(24), s_dist_09 varchar(24), s_dist_10 varchar(24), s_ytd numeric(16, 8), s_order_cnt numeric(8, 4), s_remote_cnt numeric(8, 4), s_data varchar(50), constraint pk_stock primary key (s_w_id, s_i_id, s_quantity) );
+
+commit;

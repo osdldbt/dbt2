@@ -6,7 +6,7 @@ DB_HOSTNAME="localhost"
 POSTMASTER_PORT=5432
 SLEEPY=1
 
-while getopts "c:d:l:s:t:w:" opt; do
+while getopts "c:d:l:s:t:w:z:" opt; do
 	case $opt in
 	c)
 		DBCON=$OPTARG
@@ -22,6 +22,9 @@ while getopts "c:d:l:s:t:w:" opt; do
 		;;
 	w)
 		WAREHOUSES=$OPTARG
+		;;
+	z)
+		COMMENT=$OPTARG
 		;;
 	esac
 done
@@ -67,6 +70,7 @@ echo $RUN_NUMBER > .run_number
 
 # Create a readme file in the output directory and date it.
 date >> $OUTPUT_DIR/readme.txt
+echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
 uname -a >> $OUTPUT_DIR/readme.txt
 
 # Get any OS specific information.
@@ -78,14 +82,12 @@ echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
-STACKSIZE=2048
+STACKSIZE=512
 ulimit -s $STACKSIZE
 echo "ulimit -s $STACKSIZE" >> $OUTPUT_DIR/readme.txt
 
 bash $TOPDIR/scripts/pgsql/stop_db.sh
-sleep 1
 bash $TOPDIR/scripts/pgsql/start_db.sh
-sleep 1
 
 # Start the client.
 echo "Starting up client..."
@@ -131,5 +133,5 @@ cat notpm.csv | awk -F "," '{print $1, $2}' > notpm.out
 
 # Client doesn't go away by itself like the driver does and I nohup it.
 killall client
-/usr/local/pgsql/bin/vacuumdb -z -f -d $DB_NAME
+/usr/local/pgsql/bin/vacuumdb -z -f -d dbt2
 echo "Test completed."

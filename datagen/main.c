@@ -106,7 +106,7 @@ void print_timestamp(FILE *ofile, struct tm *date)
 void gen_customers()
 {
 	FILE *output;
-	int i, j, k;
+	int i, j, k, l;
 	char a_string[512];
 	struct tm *tm1;
 	time_t t1;
@@ -128,9 +128,14 @@ void gen_customers()
 
 	for (i = 0; i < warehouses; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
-			for (k = 0; k < customers; k++) {
+			/*
+			 * A poor way to work around some sort of memory
+			 * violation.  k gets clobbered, so I buffer l with it.
+			 * Help?
+			 */
+			for (k = 0, l = 0; k < customers; k++, l++) {
 				/* c_id */
-				FPRINTF(output, "%d", k + 1);
+				FPRINTF(output, "%d", l + 1);
 				fprintf(output, "%c", delimiter);
 
 				/* c_d_id */
@@ -152,8 +157,8 @@ void gen_customers()
 				fprintf(output, "%c", delimiter);
 
 				/* c_last Clause 4.3.2.7 */
-				if (k < 1000) {
-					get_c_last(a_string, k);
+				if (l < 1000) {
+					get_c_last(a_string, l);
 				} else {
 					get_c_last(a_string,
 						get_nurand(255, 0, 999));

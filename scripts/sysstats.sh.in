@@ -103,10 +103,16 @@ echo "starting system statistics data collection"
 @IOSTAT@ -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
 
 # collect vmstat data
-@VMSTAT@ -n $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/vmstat.out &
+VMSTAT_OUTPUT=$OUTPUT_DIR/vmstat.out
+@VMSTAT@ -n $SAMPLE_LENGTH $ITERATIONS >> $VMSTAT_OUTPUT &
 
 # Wait for the tools to finish before transforming data.
 wait
 
 echo "data gathering complete, transforming data..."
-${SHELL} ${PFX}/transform_sar.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR
+#${SHELL} ${PFX}/transform_sar.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR
+${SHELL} ${PFX}/transform_vmstat.sh $VMSTAT_OUTPUT
+cp -p cpu.input $OUTPUTDIR
+cd $OUTPUTDIR
+/usr/bin/gnuplot cpu.input
+cd -

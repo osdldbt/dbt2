@@ -13,4 +13,6 @@ DIR=`dirname $0`
 
 . ${DIR}/init_env.sh || exit
 
+sleep 1
 pg_ctl -D $PGDATA -l log start
+sleep 1

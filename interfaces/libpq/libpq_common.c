@@ -22,6 +22,9 @@ int commit_transaction(struct db_context_t *dbc)
 	PGresult *res;
 
 	res = PQexec(dbc->conn, "COMMIT");
+	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+	}
 	PQclear(res);
 
 	return OK;
@@ -68,6 +71,9 @@ int rollback_transaction(struct db_context_t *dbc)
 	PGresult *res;
 
 	res = PQexec(dbc->conn, "ROLLBACK");
+	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+	}
 	PQclear(res);
 
 	return STATUS_ROLLBACK;
