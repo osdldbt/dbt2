@@ -10,6 +10,7 @@
  */
 
 #include <stdio.h>
+#include <sys/time.h>
 #include <common.h>
 #include <listener.h>
 #include <logging.h>
@@ -39,7 +40,9 @@ extern pthread_mutex_t mutex_mix_log;
 
 void *db_worker(void *no_data)
 {
+#ifndef STANDALONE
 	int length;
+#endif /* STANDALONE */
 	struct transaction_queue_node_t *node;
 #ifdef ODBC
 	struct odbc_context_t odbcc;
@@ -69,9 +72,9 @@ void *db_worker(void *no_data)
 		if (node == NULL)
 		{
 			LOG_ERROR_MESSAGE("dequeue was null");
-			pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
-			--transaction_counter[EXECUTING][node->client_data.transaction];
-			pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+			pthread_mutex_lock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
+			--transaction_counter[REQ_EXECUTING][node->client_data.transaction];
+			pthread_mutex_unlock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
 			continue;
 		}
 #ifdef STANDALONE
@@ -117,9 +120,9 @@ void *db_worker(void *no_data)
 			 */
 		}
 #endif /* STANDALONE */
-		pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
-		--transaction_counter[EXECUTING][node->client_data.transaction];
-		pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+		pthread_mutex_lock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
+		--transaction_counter[REQ_EXECUTING][node->client_data.transaction];
+		pthread_mutex_unlock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
 		recycle_node(node);
 	}
 
