@@ -29,6 +29,10 @@
 #define THINK_TIME_PAYMENT 12000
 #define THINK_TIME_STOCK_LEVEL 5000
 
+#define EXECUTING 0
+#define KEYING 1
+#define THINKING 2
+
 struct key_time_t
 {
 	int delivery;
