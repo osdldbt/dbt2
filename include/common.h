@@ -12,14 +12,27 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 #define DB_USER "dbt"
 #define DB_PASS "dbt"
 
-#define DELIVERY 1
-#define NEW_ORDER 2
-#define ORDER_STATUS 3
-#define PAYMENT 4
-#define STOCK_LEVEL 5
+#define DELIVERY 0
+#define NEW_ORDER 1
+#define ORDER_STATUS 2
+#define PAYMENT 3
+#define STOCK_LEVEL 4
+#define TRANSACTION_MAX 5
+
+#define TABLE_WAREHOUSE 0
+#define TABLE_DISTRICT 1
+#define TABLE_CUSTOMER 2
+#define TABLE_ITEM 3
+#define TABLE_ORDER 4
+#define TABLE_STOCK 5
+#define TABLE_NEW_ORDER 6
 
 #define ERROR 0
 #define OK 1
@@ -94,7 +107,7 @@ struct table_cardinality_t
 };
 
 /* Prototypes */
-
+double difftimeval(struct timeval rt1, struct timeval rt0);
 void get_a_string(char *a_string, int x, int y);
 int get_c_last(char *c_last, int i);
 void get_l_string(char *l_string, int x, int y);
@@ -102,9 +115,11 @@ void get_n_string(char *n_string, int x, int y);
 int get_nurand(int a, int x, int y);
 double get_percentage();
 int get_random(int max);
+int get_think_time(int mean_think_time);
 int init_common();
 
 extern const char *c_last_syl[C_LAST_SYL_MAX];
 extern struct table_cardinality_t table_cardinality;
+extern const char transaction_short_name[TRANSACTION_MAX];
 
 #endif /* _COMMON_H_ */
