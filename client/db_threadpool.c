@@ -34,6 +34,7 @@ sem_t db_worker_count;
 
 void *db_worker(void *no_data)
 {
+	int length;
 	struct transaction_queue_node_t *node;
 #ifdef ODBC
 	struct odbc_context_t odbcc;
@@ -59,21 +60,26 @@ void *db_worker(void *no_data)
 		if (node == NULL)
 		{
 			LOG_ERROR_MESSAGE("dequeue was null");
+			pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+			--transaction_counter[EXECUTING][node->client_data.transaction];
+			pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
 			continue;
 		}
 #ifdef ODBC
 		if (process_transaction(node->client_data.transaction, &odbcc,
 			&node->client_data.transaction_data) != OK)
 		{
-			LOG_ERROR_MESSAGE("process_transaction() error on %d",
-				node->client_data.transaction);
+			LOG_ERROR_MESSAGE("process_transaction() error on %s",
+				transaction_name[node->client_data.transaction]);
 			/*
-			 * Assume this isn't a fatal error and try processing the next
+			 * Assume this isn't a fatal error, send the results back,
+			 * and try processing the next
 			 * transaction.
 			 */
-			continue;
 		}
-		if (send_transaction_data(node->s, &node->client_data) != OK)
+#endif /* ODBC */
+		length = send_transaction_data(node->s, &node->client_data);
+		if (length == ERROR)
 		{
 			LOG_ERROR_MESSAGE("send_transaction_data() error");
 			/*
@@ -81,12 +87,10 @@ void *db_worker(void *no_data)
 			 * transaction.
 			 */
 		}
-#endif /* ODBC */
-		recycle_node(node);
 		pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
 		--transaction_counter[EXECUTING][node->client_data.transaction];
 		pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
-
+		recycle_node(node);
 	}
 
 	/* Disconnect from the database. */
