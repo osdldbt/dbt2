@@ -4,7 +4,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
  *
  * 16 may 2002
  * Based on TPC-C Standard Specification Revision 5.0.
@@ -460,8 +460,7 @@ void gen_items()
 
 		/* i_data */
 		get_a_string(a_string, 26, 50);
-		if (get_percentage() < .10)
-		{
+		if (get_percentage() < .10) {
 			j = get_random(strlen(a_string) - 8);
 			strncpy(a_string + j, "ORIGINAL", 8);
 		}
@@ -937,8 +936,7 @@ int main(int argc, char *argv[])
 
 	init_common();
 
-	if (argc < 2)
-	{
+	if (argc < 2) {
 		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #] [-d <str>]\n", argv[0]);
 		printf("\n");
 		printf("-w #\n");
@@ -955,6 +953,10 @@ int main(int argc, char *argv[])
 			NEW_ORDER_CARDINALITY);
 		printf("-d <path>\n");
 		printf("\toutput path of data files\n");
+		printf("--sapdb\n");
+		printf("\tformat data for SAP DB\n");
+		printf("--pgsql\n");
+		printf("\tformat data for PostgreSQL\n");
 		return 1;
 	}
 
@@ -1000,8 +1002,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (warehouses == 0)
-	{
+	if (warehouses == 0) {
 		printf("-w must be used\n");
 		return 3;
 	}
@@ -1045,12 +1046,9 @@ int main(int argc, char *argv[])
 	 */
 	if (strlen(output_path) > 0
 		&& strcmp(output_path, "/tmp") != 0
-		&& strcmp(output_path, "/tmp/") != 0)
-	{
+		&& strcmp(output_path, "/tmp/") != 0) {
 		strcpy(pwd, output_path);
-	}
-	else
-	{
+	} else {
 		p = popen("pwd", "r");
 		fscanf(p, "%s", pwd);
 	}
