@@ -105,7 +105,7 @@ int db_threadpool_init()
 
 		if (pthread_create(&tid, NULL, &db_worker, NULL) != 0)
 		{
-			LOG_ERROR_MESSAGE("error creating thread\n");
+			LOG_ERROR_MESSAGE("error creating db thread");
 			return ERROR;
 		}
 
