@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include <common.h>
 #include <logging.h>
 #include <db_threadpool.h>
