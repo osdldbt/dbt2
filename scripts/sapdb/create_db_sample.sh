@@ -122,6 +122,7 @@ echo "set backup parameters..."
 _o=`cat <<EOF | dbmcli -d $SID -u dbm,dbm 2>&1
 backup_media_put data $HOME/$SID/datasave FILE DATA 0 8 YES
 backup_media_put auto $HOME/$SID/autosave FILE AUTO
+backup_media_put trash /dev/null FILE DATA 0 8 YES
 util_connect dbm,dbm
 backup_save data
 autosave_on
