@@ -518,6 +518,7 @@ void *gen_orders(void *data)
 		return ERROR;
 	}
 
+	filename[0] = '\0';
 	if (strlen(output_path) > 0)
 	{
 		strcpy(filename, output_path);
