@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	{
 		if (strlen(argv[i]) != 2)
 		{
-			printf("invalid flag: %s\n", argv[1]);
+			printf("invalid flag: %s\n", argv[i]);
 			return 2;
 		}
 		if (argv[i][1] == 'd')
