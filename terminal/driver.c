@@ -23,6 +23,7 @@
 #include <client_interface.h>
 #include <input_data_generator.h>
 #ifdef STANDALONE
+#include <db.h>
 #include <transaction_queue.h>
 #include <odbc_common.h>
 #include <db_threadpool.h>
@@ -263,6 +264,7 @@ int start_driver()
 	do
 	{
 		sem_getvalue(&terminal_count, &count);
+/*
 		printf("transaction\texec\tkeying\tthinking [%d]\n", count);
 		for (i = 0; i < TRANSACTION_MAX; i++)
 		{
@@ -277,6 +279,8 @@ int start_driver()
 		}
 		printf("\n");
 		sleep(1);
+*/
+		sleep(30);
 	}
 	while (count > 0);
 
@@ -296,6 +300,7 @@ void *terminal_worker(void *data)
 	double response_time;
 	extern int errno;
 	int sockfd;
+	int rc;
 
 #ifdef STANDALONE
 	struct odbc_context_t odbcc;
@@ -433,8 +438,9 @@ void *terminal_worker(void *data)
 			LOG_ERROR_MESSAGE("Cannot get a transaction node.\n");
 		}
 */
-		if (process_transaction(node->client_data.transaction, &odbcc,
-			&node->client_data.transaction_data) != OK)
+		rc = process_transaction(node->client_data.transaction, &odbcc,
+			&node->client_data.transaction_data);
+		if (rc != OK)
 		{
 			LOG_ERROR_MESSAGE("process_transaction() error on %s",
 			transaction_name[node->client_data.transaction]);
@@ -450,8 +456,8 @@ void *terminal_worker(void *data)
 		response_time = difftimeval(rt1, rt0);
 		pthread_mutex_lock(&mutex_mix_log);
 		fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
-			transaction_short_name[client_data.transaction], response_time,
-			pthread_self());
+			(rc == OK ? transaction_short_name[client_data.transaction] : 'E'),
+			response_time, pthread_self());
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
