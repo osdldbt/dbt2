@@ -33,8 +33,7 @@ $PSQL -d $DB_NAME -c "COPY orders FROM '$DBDATA/order.data' WITH NULL AS '';" ||
 echo "Loading stock table..."
 $PSQL -d $DB_NAME -c "COPY stock FROM '$DBDATA/stock.data' WITH NULL AS '';" || exit 1
 echo "Loading warehouse table..."
-$PSQL -d $DB_NAME -c "COPY warehouse FROM '$DBDATA/warehouse.data' WITH NULL AS
-'';" || exit 1
+$PSQL -d $DB_NAME -c "COPY warehouse FROM '$DBDATA/warehouse.data' WITH NULL AS '';" || exit 1
 
 bash create_indexes.sh || exit 1
 
@@ -47,10 +46,9 @@ fi
 
 $PSQL -d $DB_NAME -c "SELECT setseed(0);" || exit 1
 
-# VACUUM FULL ANALYZE
-#
-# Fully defragment tables, and build statistics
+# VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
+# tables. The VACUUM FULL is probably unnecessary; we want to scan the
+# heap and update the commit-hint bits on each new tuple, but a regular
+# VACUUM ought to suffice for that.
 $VACUUMDB -z -f -d $DB_NAME || exit 1
-
-$PSQL -d $DB_NAME -c "ANALYZE;" || exit 1
 

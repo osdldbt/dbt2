@@ -46,4 +46,4 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 done
 
 # Get the plans after the test.
-bash db_plans.sh -o $OUTPUT_DIR/plan1.out
+bash @abs_top_srcdir@/scripts/pgsql/db_plans.sh -o $OUTPUT_DIR/plan1.out

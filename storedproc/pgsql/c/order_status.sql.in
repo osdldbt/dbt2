@@ -4,4 +4,5 @@
  *
  * Copyright (C) 2003 Mark Wong & Open Source Development Lab, Inc.
  */
-CREATE OR REPLACE FUNCTION order_status (INTEGER, INTEGER, INTEGER, TEXT) RETURNS INTEGER AS '@abs_top_srcdir@/storedproc/pgsql/c/funcs' LANGUAGE 'c';
+CREATE TYPE status_info AS (ol_i_id INTEGER, ol_supply_w_id INTEGER, ol_quantity REAL, ol_amount REAL, ol_delivery_d TIMESTAMP);
+CREATE OR REPLACE FUNCTION order_status (INTEGER, INTEGER, INTEGER, TEXT) RETURNS SETOF status_info AS '@abs_top_srcdir@/storedproc/pgsql/c/funcs' LANGUAGE C STRICT;

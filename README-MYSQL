@@ -155,11 +155,4 @@ some of the usefull log files:
   scripts/output/<number>/driver/mix.log - info about performed transactions
   scripts/output/<number>/driver/results.out - results of the test
 
-TODO:
------
-  - to add possibility to check number of warehouses before starting of
-    driver. Because we will got wrong results in case someone will start
-    test with number of warehouses greater than exist in database.
-
-  - to adjust sysstat.sh 
 

@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <unistd.h>
 #include <sys/time.h>
 
@@ -31,7 +32,7 @@ int startup();
 
 /* Global Variables */
 int db_connections = 0;
-int db_conn_sleep = 1;
+int db_conn_sleep = 1000; /* milliseconds */
 int *worker_count;
 time_t *last_txn;
 
@@ -89,7 +90,7 @@ void *db_worker(void *data)
 
         if (!exiting && connect_to_db(&dbc) != OK) {
                 LOG_ERROR_MESSAGE("connect_to_db() error, terminating program");
-		printf("cannot connect to database(see details in error.log file, exiting...\n");
+                printf("cannot connect to database(see details in error.log file, exiting...\n");
                 exit(1);
         }
 
@@ -168,7 +169,10 @@ void *db_worker(void *data)
 
 int db_threadpool_init()
 {
+        struct timespec ts, rem;
         int i;
+        extern int errno;
+
         if (sem_init(&db_worker_count, 0, 0) != 0) {
                 LOG_ERROR_MESSAGE("cannot init db_worker_count\n");
                 return ERROR;
@@ -177,10 +181,16 @@ int db_threadpool_init()
         worker_count = (int *) malloc(sizeof(int) * db_connections);
         bzero(worker_count, sizeof(int) * db_connections);
 
+        ts.tv_sec = (time_t) db_conn_sleep / 1000;
+        ts.tv_nsec = (long) (db_conn_sleep % 1000) * 1000000;
+
         last_txn = (time_t *) malloc(sizeof(time_t) * db_connections);
 
         for (i = 0; i < db_connections; i++) {
+                int ret;
                 pthread_t tid;
+                pthread_attr_t attr;
+                size_t stacksize = 262144; /* 256 kilobytes. */
 
                 /*
                  * Initialize the last_txn array with the time right before
@@ -192,20 +202,40 @@ int db_threadpool_init()
                 /*
                  * Is it possible for i to change before db_worker can copy it?
                  */
-                if (pthread_create(&tid, NULL, &db_worker, &i) != 0) {
+                if (pthread_attr_init(&attr) != 0) {
+                        LOG_ERROR_MESSAGE("could not init pthread attr");
+                        return ERROR;
+                }
+                if (pthread_attr_setstacksize(&attr, stacksize) != 0) {
+                        LOG_ERROR_MESSAGE("could not set pthread stack size");
+                        return ERROR;
+                }
+                ret = pthread_create(&tid, &attr, &db_worker, &i);
+                if (ret != 0) {
                         LOG_ERROR_MESSAGE("error creating db thread");
+                        if (ret == EAGAIN) {
+                                LOG_ERROR_MESSAGE(
+                                        "not enough system resources");
+                        } else if (ret == EAGAIN) {
+                                LOG_ERROR_MESSAGE(
+                                        "more than PTHREAD_THREADS_MAX");
+                        }
                         return ERROR;
                 }
 
                 /* Keep a count of how many DB worker threads have started. */
                 sem_post(&db_worker_count);
 
-                /* Don't let the database connection attempts occur too fast. */
-#ifdef DELAY_IN_MILISECONDS
-          	usleep(db_conn_sleep*1000);
-#else
-                sleep(db_conn_sleep);
-#endif
+                /* Don't let the database connection attempts occur too fast. */                while (nanosleep(&ts, &rem) == -1) {
+                        if (errno == EINTR) {
+                                memcpy(&ts, &rem, sizeof(struct timespec));
+                        } else {
+                                LOG_ERROR_MESSAGE(
+                                        "sleep time invalid %d s %ls ns",
+                                        ts.tv_sec, ts.tv_nsec);
+                                break;
+                        }
+                }
         }
         return OK;
 }

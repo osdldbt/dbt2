@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
                 printf("-altered [0/1]\n");
                 printf("\trun with a thread per user, -altered 1\n");
                 printf("-sleep #\n");
-                printf("\tnumber of seconds to sleep between terminal creation\n");
+                printf("\tnumber of milliseconds to sleep between terminal creation\n");
                 printf("-spread #\n");
                 printf("\tfancy warehouse skipping trick for low i/o runs\n");
 

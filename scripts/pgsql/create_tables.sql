@@ -1,19 +1,117 @@
-create table warehouse ( w_id integer, w_name varchar(10), w_street_1 varchar(20), w_street_2 varchar(20), w_city varchar(20), w_state char(2), w_zip char(9), w_tax real, w_ytd numeric(24, 12), constraint pk_warehouse primary key (w_id) );
+CREATE TABLE warehouse (
+    w_id INTEGER,
+    w_name VARCHAR(10),
+    w_street_1 VARCHAR(20),
+    w_street_2 VARCHAR(20),
+    w_city VARCHAR(20),
+    w_state char(2),
+    w_zip char(9),
+    w_tax REAL,
+    w_ytd NUMERIC(24, 12),
+    CONSTRAINT pk_warehouse PRIMARY KEY (w_id) );
 
-create table district ( d_id integer, d_w_id integer, d_name varchar(10), d_street_1 varchar(20), d_street_2 varchar(20), d_city varchar(20), d_state char(2), d_zip char(9), d_tax real, d_ytd numeric(24, 12), d_next_o_id integer, constraint pk_district primary key (d_w_id, d_id) );
+CREATE TABLE district (
+    d_id INTEGER,
+    d_w_id INTEGER,
+    d_name VARCHAR(10),
+    d_street_1 VARCHAR(20),
+    d_street_2 VARCHAR(20),
+    d_city VARCHAR(20),
+    d_state char(2),
+    d_zip char(9),
+    d_tax REAL,
+    d_ytd NUMERIC(24, 12),
+    d_next_o_id INTEGER,
+    CONSTRAINT pk_district PRIMARY KEY (d_w_id, d_id) );
 
-create table customer ( c_id integer, c_d_id integer, c_w_id integer, c_first varchar(16), c_middle char(2), c_last varchar(16), c_street_1 varchar(20), c_street_2 varchar(20), c_city varchar(20), c_state char(2), c_zip char(9), c_phone char(16), c_since timestamp, c_credit char(2), c_credit_lim numeric(24, 12), c_discount real, c_balance numeric(24, 12), c_ytd_payment numeric(24, 12), c_payment_cnt real, c_delivery_cnt real, c_data varchar(500), constraint pk_customer primary key (c_w_id, c_d_id, c_id) );
+CREATE TABLE customer (
+    c_id INTEGER,
+    c_d_id INTEGER,
+    c_w_id INTEGER,
+    c_first VARCHAR(16),
+    c_middle char(2),
+    c_last VARCHAR(16),
+    c_street_1 VARCHAR(20),
+    c_street_2 VARCHAR(20),
+    c_city VARCHAR(20),
+    c_state char(2),
+    c_zip char(9),
+    c_phone char(16),
+    c_since TIMESTAMP,
+    c_credit char(2),
+    c_credit_lim NUMERIC(24, 12),
+    c_discount REAL,
+    c_balance NUMERIC(24, 12),
+    c_ytd_payment NUMERIC(24, 12),
+    c_payment_cnt REAL,
+    c_delivery_cnt REAL,
+    c_data VARCHAR(500),
+    CONSTRAINT pk_customer PRIMARY KEY (c_w_id, c_d_id, c_id) );
 
-create table history ( h_c_id integer, h_c_d_id integer, h_c_w_id integer, h_d_id integer, h_w_id integer, h_date timestamp, h_amount real, h_data varchar(24) );
+CREATE TABLE history (
+    h_c_id INTEGER,
+    h_c_d_id INTEGER,
+    h_c_w_id INTEGER,
+    h_d_id INTEGER,
+    h_w_id INTEGER,
+    h_date TIMESTAMP,
+    h_amount REAL,
+    h_data VARCHAR(24) );
 
-create table new_order ( no_o_id integer, no_d_id integer, no_w_id integer, constraint pk_new_order primary key (no_w_id, no_d_id, no_o_id) );
+CREATE TABLE new_order (
+    no_o_id INTEGER,
+    no_d_id INTEGER,
+    no_w_id INTEGER,
+    CONSTRAINT pk_new_order PRIMARY KEY (no_w_id, no_d_id, no_o_id) );
 
-create table orders ( o_id integer, o_d_id integer, o_w_id integer, o_c_id integer, o_entry_d timestamp, o_carrier_id integer, o_ol_cnt integer, o_all_local real, constraint pk_orders primary key (o_w_id, o_d_id, o_id) );
+CREATE TABLE orders (
+    o_id INTEGER,
+    o_d_id INTEGER,
+    o_w_id INTEGER,
+    o_c_id INTEGER,
+    o_entry_d TIMESTAMP,
+    o_carrier_id INTEGER,
+    o_ol_cnt INTEGER,
+    o_all_local REAL,
+    CONSTRAINT pk_orders PRIMARY KEY (o_w_id, o_d_id, o_id) );
 
-create table order_line ( ol_o_id integer, ol_d_id integer, ol_w_id integer, ol_number integer, ol_i_id integer, ol_supply_w_id integer, ol_delivery_d timestamp, ol_quantity real, ol_amount real, ol_dist_info varchar(24), constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_number) );
+CREATE TABLE order_line (
+    ol_o_id INTEGER,
+    ol_d_id INTEGER,
+    ol_w_id INTEGER,
+    ol_number INTEGER,
+    ol_i_id INTEGER,
+    ol_supply_w_id INTEGER,
+    ol_delivery_d TIMESTAMP,
+    ol_quantity REAL,
+    ol_amount REAL,
+    ol_dist_info VARCHAR(24),
+    CONSTRAINT pk_order_line PRIMARY KEY (ol_w_id, ol_d_id, ol_o_id, ol_number) );
 
-create table item ( i_id integer, i_im_id integer, i_name varchar(24), i_price real, i_data varchar(50), constraint pk_item primary key (i_id) );
+CREATE TABLE item (
+    i_id INTEGER,
+    i_im_id INTEGER,
+    i_name VARCHAR(24),
+    i_price REAL,
+    i_data VARCHAR(50),
+    CONSTRAINT pk_item PRIMARY KEY (i_id) );
 
-create table stock ( s_i_id integer, s_w_id integer, s_quantity real, s_dist_01 varchar(24), s_dist_02 varchar(24), s_dist_03 varchar(24), s_dist_04 varchar(24), s_dist_05 varchar(24), s_dist_06 varchar(24), s_dist_07 varchar(24), s_dist_08 varchar(24), s_dist_09 varchar(24), s_dist_10 varchar(24), s_ytd numeric(16, 8), s_order_cnt real, s_remote_cnt real, s_data varchar(50), constraint pk_stock primary key (s_w_id, s_i_id, s_quantity) );
-
-commit;
+CREATE TABLE stock (
+    s_i_id INTEGER,
+    s_w_id INTEGER,
+    s_quantity REAL,
+    s_dist_01 VARCHAR(24),
+    s_dist_02 VARCHAR(24),
+    s_dist_03 VARCHAR(24),
+    s_dist_04 VARCHAR(24),
+    s_dist_05 VARCHAR(24),
+    s_dist_06 VARCHAR(24),
+    s_dist_07 VARCHAR(24),
+    s_dist_08 VARCHAR(24),
+    s_dist_09 VARCHAR(24),
+    s_dist_10 VARCHAR(24),
+    s_ytd NUMERIC(16, 8),
+    s_order_cnt REAL,
+    s_remote_cnt REAL,
+    s_data VARCHAR(50),
+    CONSTRAINT pk_stock PRIMARY KEY (s_w_id, s_i_id, s_quantity) );

@@ -1,8 +1,8 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.in 1209 2005-03-04 06:14:59Z fimath $)
+AC_REVISION($Id: configure.in 1211 2005-03-04 06:28:07Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(dbt2, 0.22, osdldbt-general@lists.sourceforge.net)
+AC_INIT(dbt2, 0.25, osdldbt-general@lists.sourceforge.net)
 AM_INIT_AUTOMAKE
 AH_TOP([
 #ifndef __CONFIG_H__
@@ -261,6 +261,13 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$VACUUMDB" ; then
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
+  dnl check for pg_autovacuum
+  AC_PATH_PROGS(PG_AUTOVACUUM, pg_autovacuum, ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PG_AUTOVACUUM" ; then
+    AC_MSG_ERROR([*** pg_autovacuum is required])
+  fi
 
   dnl check if the user has specified path for pgsql
   if test "$pgsql_path" != ""; then
@@ -359,7 +366,6 @@ elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
   fi
 
   AC_DEFINE(ODBC, 1, [using ODBC to SAPDB])
-  AC_DEFINE(DELAY_IN_MILISECONDS, 1, [to use delays in msec])
 
   DBC_CORE="odbc"
   DBC_FUNCTIONS="odbc"
@@ -386,7 +392,6 @@ elif test "$database_to_use" == "mysql"; then
   DBC_FUNCTIONS="mysql"
 
   AC_DEFINE(LIBMYSQL, 1, [using MySQL])
-  AC_DEFINE(DELAY_IN_MILISECONDS, 1, [to use delays in msec])
 
   SP_DIR=""        
 else
@@ -417,7 +422,10 @@ AC_SYS_LARGEFILE
 
 AC_SUBST(DBC_CORE)
 AC_SUBST(DBC_FUNCTIONS)
+
+dnl stored procedure subdir
 AC_SUBST(SP_DIR)
+AC_SUBST(database_to_use)
 
 
 AC_OUTPUT([
@@ -432,6 +440,7 @@ scripts/sysstats.sh                 \
 scripts/transform_sar.sh            \
 scripts/run_workload.sh             \
 scripts/pgsql/init_env.sh           \
+scripts/pgsql/db_stat.sh            \
 scripts/Linux/get_os_info.sh        \
 scripts/SunOS/get_os_info.sh        \
 storedproc/pgsql/c/delivery.sql     \

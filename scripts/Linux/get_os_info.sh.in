@@ -8,4 +8,5 @@ while getopts "o:" opt; do
 	esac
 done
 
-@SYSCTL@ -a | sort > $OUTPUT_DIR/proc.out
+# I don't think capturing error messages is important here.
+@SYSCTL@ -a 2> /dev/null | sort > $OUTPUT_DIR/proc.out

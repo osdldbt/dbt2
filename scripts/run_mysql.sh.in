@@ -348,13 +348,10 @@ fi
 echo ''
 echo "Stage 4. Processing of results..."
 
-$abs_top_srcdir/src/results $DRIVER_OUTPUT_DIR/mix.log 60 $DRIVER_OUTPUT_DIR | tee $DRIVER_OUTPUT_DIR/results.out
-
 #Make graphs
 cp -p notpm.input $DRIVER_OUTPUT_DIR
 cd $DRIVER_OUTPUT_DIR
-cat notpm.csv | awk -F "," '{print $1, $2}' > notpm.out 2>gnuplot.out
-if [ -s "notpm.out" ]; then
+if [ -s "notpm.data" ]; then
   /usr/bin/gnuplot notpm.input >>gnuplot.out 2>&1
 else
   echo "Unable to make a graph"
@@ -367,6 +364,8 @@ if [ -n "$CLIENT_PID" ]; then
   echo "Shutdown clients. Send TERM signal to $CLIENT_PID."
   kill "$CLIENT_PID" 
 fi
+
+perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out | tee $DRIVER_OUTPUT_DIR/results.out
 
 echo "Test completed."
 EXIT_OK=1

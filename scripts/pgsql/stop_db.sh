@@ -12,6 +12,10 @@
 DIR=`dirname $0`
 . ${DIR}/init_env.sh || exit
 
-sleep 1
-$PGCTL -D $PGDATA stop $1
-sleep 1
+# We only need to stop the database if it's running.
+if [ -f $PGDATA/postmaster.pid ]; then
+	killall $PG_AUTOVACUUM
+	sleep 1
+	$PGCTL -D $PGDATA stop $1
+	sleep 1
+fi

@@ -87,7 +87,7 @@ fi
 # create the output directory in case it doesn't exist
 mkdir -p $OUTPUT_DIR
 
-read RN < .run_number
+read RN < run_number
 CURRENT_NUM=`expr $RN - 1`
 PREV_NUM=`expr $RN - 2`
 
@@ -113,7 +113,7 @@ wait
 echo "data gathering complete, transforming data..."
 @SAR@ -f $OUTPUT_DIR/sar_raw.out -A > $OUTPUT_DIR/sar.out
 ${SHELL} ${PFX}/transform_vmstat.sh $VMSTAT_OUTPUT
-cp -p cpu.input $OUTPUTDIR
-cd $OUTPUTDIR
-/usr/bin/gnuplot cpu.input
+cp -p cpu.input $OUTPUT_DIR
+cd $OUTPUT_DIR
+/usr/bin/gnuplot -noraise cpu.input
 cd -

@@ -1,3 +1,17 @@
+v0.25
+
+- PostgreSQL requires pg_autovacuum now, but you could edit the kit so it can
+  still run without it.
+- Removed results and moved its functionality into mix_analyzer.pl.
+- Now you don't need to modify pg_config_manual.h in order to use the kit with
+  PostgreSQL.
+- Various little script fixes and enhancements.
+- Fixed a problem with getting plans for PostgreSQL during the run.
+- Stock setting stack size in the shell scripts.  Setting the stack size where
+  appropriate in the C programs.
+- gen_html.sh is now used automatically to generate results in HTML.
+- Other misc. script fixes and enhancements for PostgreSQL.
+
 v0.24
 
 - Changed the format of the vmstat data files that are graphed.

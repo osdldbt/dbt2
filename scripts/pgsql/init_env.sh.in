@@ -19,6 +19,7 @@ PGRESTORE=@PGRESTORE@; export PGRESTORE
 PGCTL=@PGCTL@; export PGCTL
 PSQL=@PSQL@; export PSQL
 VACUUMDB=@VACUUMDB@; export VACUUMDB
+PG_AUTOVACUUM=@PG_AUTOVACUUM@; export PG_AUTOVACUUM
 
 # Our database will be named dbt2
 DB_NAME=dbt2; export DB_NAME

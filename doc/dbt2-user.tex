@@ -109,12 +109,12 @@ obtained from their website at: \\
 \indent http://www.postgresql.org/
 
 \noindent
-With PostgreSQL 7.3, it need to be built with a change in pg\_config.h.in where
+With PostgreSQL 7.3, it needs to be built with a change in pg\_config.h.in where
 INDEX\_MAX\_KEYS must be set to 64.  Be sure to make this change before running
 the configure script for PostgreSQL.
 
 \noindent
-With PostgreSQL 7.4, it need to be built with a change in src/include/pg\_config\_manual.h
+With PostgreSQL 7.4, it needs to be built with a change in src/include/pg\_config\_manual.h
 where INDEX\_MAX\_KEYS must be set to 64.
 
 \noindent
@@ -161,7 +161,7 @@ installation dir> --with-getopt=<getopt installation dir> \\
 
 Note, --with-getopt may not be needed for Linux system, but might be needed for
 Solaris. And ``make install'' is optional, can also choose to run everything
-(binary and scripts) from the source directory. (Currently, it is recommended
+(binary and scripts) from the source directory. Currently, it is recommended
 not to ``make install'' and run everything from your build directory.
 
 \paragraph{SAP DB}
@@ -229,6 +229,8 @@ postmaster running. You can just create the database manually.
 -t	& The duration of the test in seconds. \\
 -w	& Then number of warehouses in the database. \\
 \end{tabular}
+
+driver sleeps 1 second by default between each terminal creation.
 
 \paragraph{SAP DB}
 

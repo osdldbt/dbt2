@@ -13,11 +13,6 @@ For PostgreSQL 7.4 edit the line in postgresql.conf that says
 
 -----
 
-PostgreSQL needs to be built with a change in pg_config.h.in to set
-INDEX_MAX_KEYS to 64.
-
------
-
 Contrary to the documentation, run 'make' instead of 'make standalone' and
 run the kit in a multi-tier environment for PostgreSQL.
 
@@ -37,32 +32,49 @@ avoid SIGPIPE handling for the multi-thread dbt2 client program.
 
 -----
 
+The kit now requires pg_autovacuum to be install from the PostgreSQL source.
+It's in contrib/pg_autovacuum.  Not sure which beta it was released in, but
+it's in 8.0 now, and current releases of 7.4 if you insist on using that
+release.
+
+-----
+
 A quick howto run the test (Thanks Min!):
 
-small db 2 warehouse; big db 20 warehouse, tiny db, 500 warehouse
+small db 2 warehouse;
+big db 20 warehouse,
+tiny db 500 warehouse (scaling other factors)
 
 generated from: (tpcc only allow scaling warehouse)
 mkdir DB.small
-./src/datagen --pgsql -w 20 -d DB.small -c 300 -i 10000 -o 300 -n 90
+./src/datagen --pgsql -w 2 -d DB.small -c 300 -i 10000 -o 300 -n 90
+mkdir DB.big
+./src/datagen --pgsql -w 20 -d DB.big -c 300 -i 10000 -o 300 -n 90
 
 # scaling the other factor
-./src/datagen --pgsql -w 500 -d DB.500warehouse -c 3 -i 10 -o 3 -n 9
+mkdir DB.tiny
+./src/datagen --pgsql -w 500 -d DB.tiny -c 3 -i 10 -o 3 -n 9
 
-can get # of warehouse from psql: select count(*) from warehouse;
+You can get # of warehouse from psql: select count(*) from warehouse;
 
-run "client" program manually, can monitor the query length too
+Then load database data using load_db.sh, make sure DBDATA variable
+is pointing to the correct directory you just generated above.
+
+Then run "client" program manually,
+you can monitor the query queue length by type "status" command.
 
 cd <dbt2_home>/scripts/pgsql
 ../../src/client -d localhost -c 2 -l 5432 -o ../output/0
 
-run "driver" program manually, control tpw (terminal per warehouse)
+Then run "driver" program manually,
+you can control tpw (terminal per warehouse) and think time etc.
 
 ../../src/driver -d localhost -l 360 -wmin 1 -wmax 20 -w 20 \
   -c 3 -i 10 -o 3 -n 9 \
   -ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 \
   -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 -tpw 80 -outdir ../output/0
 
-empty ../output/0 after each run
+Finally, look in ../output/0 directory for the possible error output
 
 tuning:
 
@@ -76,7 +88,8 @@ tuning:
 
   Note the tpc-c model: company scales with # of warehouses;
     each warehouse supports 10 districts;
-    each district serve 3000 customers;
-    each warehouse maintain stock level of 100,000 items;
+    each district serves 3000 customers;
+    each warehouse maintains stock level of 100,000 items;
     require ~10% orders are fullfilled from other warehouses due to not have
       all items in the company's catalog;
+

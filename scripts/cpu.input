@@ -3,7 +3,7 @@ plot "vmstat.out.data" using 1:6 title "total" with lines, \
      "vmstat.out.data" using 1:3 title "system" with lines, \
      "vmstat.out.data" using 1:4 title "idle" with lines, \
      "vmstat.out.data" using 1:5 title "wait" with lines
-set xlabel "Elapsed Time (s)"
+set xlabel "Elapsed Time (Minutes)"
 set ylabel "% Utilized"
 set term png small
 set output "cpu.png"

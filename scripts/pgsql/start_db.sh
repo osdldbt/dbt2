@@ -9,9 +9,19 @@
 #
 # 15 May 2003
 
+FLAG=$1
+
 DIR=`dirname $0`
 . ${DIR}/init_env.sh || exit
 
+# We need the sleeps just in case we start pg_ctl commands too closely
+# together.  Only start pg_autovacuum if explicitly called.
+
 sleep 1
 $PGCTL -D $PGDATA -l log start
-sleep 1
+sleep 2
+if [ ! -z $FLAG ]; then
+	echo Waiting for database to start before starting pg_autovacuum...
+	sleep 10
+	$PG_AUTOVACUUM -D
+fi

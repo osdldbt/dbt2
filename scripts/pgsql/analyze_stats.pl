@@ -14,11 +14,11 @@ use Getopt::Long;
 my $stats_dir;
 
 GetOptions(
-	"if=s" => \$stats_dir
+	"dir=s" => \$stats_dir
 );
 
 unless ( $stats_dir ) {
-	print "usage: analyze_stats.pl --if <directory>\n";
+	print "usage: analyze_stats.pl --dir <directory>\n";
 	exit 1;
 }
 
@@ -83,7 +83,7 @@ sub process {
 	}
 	print FILE "\"$filename\" using 1:" . ($i + 1) .
 		" title \"$names[ $i ]\" with lines\n";
-	print FILE "set xlabel \"Elapsed Time (s)\"\n";
+	print FILE "set xlabel \"Elapsed Time (Minutes)\"\n";
 	print FILE "set ylabel \"$ylabel\"\n";
 	print FILE "set term png small\n";
 	print FILE "set output \"$png_filename\"\n";

@@ -29,11 +29,26 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	PQclear(res);
 
 	/*
-	 * Create the query and execute it, yes you better recompile PostgreSQL
-	 * with INDEX_MAX_KEYS to 64.
+	 * Create the query and execute it.
 	 */
 	sprintf(stmt,
-		"DECLARE mycursor CURSOR FOR SELECT new_order(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
+		"DECLARE mycursor CURSOR FOR SELECT new_order("
+                "%d, %d, %d, %d, %d, "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d), "
+                "make_new_order_info(%d, %d, %d) )",
 		data->w_id, data->d_id, data->c_id, data->o_all_local,
 		data->o_ol_cnt,
 		data->order_line[0].ol_i_id,

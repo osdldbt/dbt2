@@ -255,7 +255,7 @@ mv mix.log $OUTPUT_DIR/
 mv error.log $OUTPUT_DIR/
 exit;
 # analyze the results of mix.log
-../tools/results $OUTPUT_DIR/mix.log $SAMPLE_LENGTH $OUTPUT_DIR
+perl mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
 
 echo "run complete"
 

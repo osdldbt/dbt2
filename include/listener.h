@@ -13,6 +13,7 @@
 #define _LISTERNE_H_
 
 #include <_semaphore.h>
+
 #include <transaction_queue.h>
 
 void *init_listener(void *data);

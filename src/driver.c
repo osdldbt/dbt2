@@ -49,7 +49,7 @@ int w_id_min = 0, w_id_max = 0;
 int terminals_per_warehouse = 0;
 int mode_altered = 0;
 unsigned int seed = -1;
-int client_conn_sleep = 1;
+int client_conn_sleep = 1000; /* milliseconds */
 int spread = 1;
 int threads_start_time= 0;
 
@@ -73,6 +73,26 @@ pthread_mutex_t mutex_terminal_state[3][TRANSACTION_MAX] = {
                 PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
                 PTHREAD_MUTEX_INITIALIZER }
 };
+
+int create_pid_file()
+{
+  FILE * fpid;
+  char pid_filename[1024];
+
+  sprintf(pid_filename, "%s/%s", output_path, DRIVER_PID_FILENAME);
+
+  fpid = fopen(pid_filename,"w");
+  if (!fpid)
+  {
+    printf("cann't create pid file: %s\n", pid_filename);
+    return ERROR;
+  }
+
+  fprintf(fpid,"%d", getpid());
+  fclose(fpid);
+
+  return OK;
+}
 
 int init_driver()
 {
@@ -110,6 +130,44 @@ int init_driver_logging()
         }
 
         return OK;
+}
+
+int integrity_terminal_worker()
+{
+        int length;
+        int sockfd;
+
+        struct client_transaction_t client_data;
+        extern int errno;
+
+        /* Connect to the client program. */
+        sockfd = connect_to_client(hostname, client_port);
+        if (sockfd < 1) {
+                LOG_ERROR_MESSAGE(
+                        "connect_to_client() failed, thread exiting...");
+                printf("connect_to_client() failed, thread exiting...");
+                pthread_exit(NULL);
+        }
+
+        client_data.transaction = INTEGRITY;
+        generate_input_data(client_data.transaction,
+                            &client_data.transaction_data, table_cardinality.warehouses);
+
+#ifdef DEBUG
+        printf("executing transaction %c\n", 
+                 transaction_short_name[client_data.transaction]);
+        fflush(stdout);
+
+                LOG_ERROR_MESSAGE("executing transaction %c", 
+                        transaction_short_name[client_data.transaction]);
+#endif /* DEBUG */
+
+        length = send_transaction_data(sockfd, &client_data);
+        length = receive_transaction_data(sockfd, &client_data);
+        close(sockfd);
+
+        return client_data.status;
+
 }
 
 int recalculate_mix()
@@ -223,7 +281,10 @@ int set_transaction_mix(int transaction, double mix)
 int start_driver()
 {
         int i, j;
+        struct timespec ts, rem;
 
+        ts.tv_sec = (time_t) (client_conn_sleep / 1000);
+        ts.tv_nsec = (long) (client_conn_sleep % 1000) * 1000000;
 #ifdef STANDALONE
         /* Open database connectiosn. */
 /*
@@ -235,13 +296,8 @@ int start_driver()
 #endif /* STANDALONE */
 
         /* Caulculate when the test should stop. */
-        threads_start_time = client_conn_sleep * terminals_per_warehouse *
-                             (w_id_max - w_id_min);
-
-#ifdef DELAY_IN_MILISECONDS
-        /* to measure delay in miliseconds*/
-        threads_start_time = (threads_start_time / 1000) + 1;
-#endif
+        threads_start_time = client_conn_sleep / 1000 *
+                terminals_per_warehouse * (w_id_max - w_id_min);
 
         stop_time = time(NULL) + duration + threads_start_time;
         /* allocate g_tid */
@@ -251,25 +307,52 @@ int start_driver()
                 g_tid[i] = (pthread_t*)
                         malloc(sizeof(pthread_t) * terminals_per_warehouse);
                 for (j = 0; j < terminals_per_warehouse; j++) {
+                        int ret;
+                        pthread_attr_t attr;
+                        size_t stacksize = 262144; /* 256 kilobytes. */
                         struct terminal_context_t *tc;
 
                         tc = (struct terminal_context_t *)
                                 malloc(sizeof(struct terminal_context_t));
                         tc->w_id = i;
                         tc->d_id = j + 1;
-                        if (pthread_create(&g_tid[i][j], NULL,
-                                &terminal_worker, (void *) tc) != 0) {
+                        if (pthread_attr_init(&attr) != 0) {
+                                LOG_ERROR_MESSAGE(
+                                        "could not init pthread attr");
+                                return ERROR;
+                        }
+                        if (pthread_attr_setstacksize(&attr, stacksize) != 0) {
+                                LOG_ERROR_MESSAGE(
+                                        "could not set pthread stack size");
+                                return ERROR;
+                        }
+                        ret = pthread_create(&g_tid[i][j], &attr,
+                                &terminal_worker, (void *) tc);
+                        if (ret != 0) {
                                 LOG_ERROR_MESSAGE(
                                         "error creating terminal thread");
+                                if (ret == EAGAIN) {
+                                        LOG_ERROR_MESSAGE(
+                                                "not enough system resources");
+                                } else if (ret == EAGAIN) {
+                                        LOG_ERROR_MESSAGE(
+                                                "more than PTHREAD_THREADS_MAX");
+                                }
                                 return ERROR;
                         }
 
                         /* Sleep for between starting terminals. */
-#ifdef DELAY_IN_MILISECONDS
-                        usleep(client_conn_sleep*1000);
-#else
-                        sleep(client_conn_sleep);
-#endif
+                        while (nanosleep(&ts, &rem) == -1) {
+                                if (errno == EINTR) {
+                                        memcpy(&ts, &rem,
+                                                sizeof(struct timespec));
+                                } else {
+                                        LOG_ERROR_MESSAGE(
+                                                "sleep time invalid %d s %ls ns",
+                                                ts.tv_sec, ts.tv_nsec);
+                                        break;
+                                }
+                        }
                 }
 
                 if (mode_altered == 1) {
@@ -345,7 +428,7 @@ void *terminal_worker(void *data)
 #endif /* LIBPQ */
 
 #ifdef LIBMYSQL
-	extern char dbt2_mysql_port[32];
+        extern char dbt2_mysql_port[32];
 #endif /* LIBMYSQL */
 
 #endif /* STANDALONE */
@@ -375,7 +458,7 @@ void *terminal_worker(void *data)
 #endif /* LIBPQ */
 #ifdef LIBMYSQL
         printf("CONNECTED TO DB |%s| |%s| |%s|\n", DB_NAME, sname, dbt2_mysql_port);
-	db_init(sname, "", dbt2_mysql_port);
+        db_init(sname, "", dbt2_mysql_port);
 #endif /* LIBMYSQL */
 
         if (!exiting && connect_to_db(&dbc) != OK) {
@@ -562,62 +645,3 @@ void *terminal_worker(void *data)
         pthread_mutex_unlock(&mutex_mix_log);
         return NULL;        /* keep the compiler quiet */
 }
-
-int create_pid_file()
-{
-  FILE * fpid;
-  char pid_filename[1024];
-
-  sprintf(pid_filename, "%s/%s", output_path, DRIVER_PID_FILENAME);
-
-  fpid = fopen(pid_filename,"w");
-  if (!fpid)
-  {
-    printf("cann't create pid file: %s\n", pid_filename);
-    return ERROR;
-  }
-
-  fprintf(fpid,"%d", getpid());
-  fclose(fpid);
-
-  return OK;
-}
-
-int integrity_terminal_worker()
-{
-        int length;
-        int sockfd;
-
-        struct client_transaction_t client_data;
-        extern int errno;
-
-        /* Connect to the client program. */
-        sockfd = connect_to_client(hostname, client_port);
-        if (sockfd < 1) {
-                LOG_ERROR_MESSAGE(
-                        "connect_to_client() failed, thread exiting...");
-                printf("connect_to_client() failed, thread exiting...");
-                pthread_exit(NULL);
-        }
-
-        client_data.transaction = INTEGRITY;
-        generate_input_data(client_data.transaction,
-                            &client_data.transaction_data, table_cardinality.warehouses);
-
-#ifdef DEBUG
-        printf("executing transaction %c\n", 
-                 transaction_short_name[client_data.transaction]);
-        fflush(stdout);
-
-                LOG_ERROR_MESSAGE("executing transaction %c", 
-                        transaction_short_name[client_data.transaction]);
-#endif /* DEBUG */
-
-        length = send_transaction_data(sockfd, &client_data);
-        length = receive_transaction_data(sockfd, &client_data);
-        close(sockfd);
-
-        return client_data.status;
-
-}
-

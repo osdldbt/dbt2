@@ -1,7 +1,0 @@
-plot "pk_customer.index_scan.data" title "pk_customer" with lines, "pk_order_line.index_scan.data" title "pk_order_line" with lines, "pk_district.index_scan.data" title "pk_district" with lines, "pk_orders.index_scan.data" title "pk_orders" with lines, "pk_item.index_scan.data" title "pk_item" with lines, "pk_warehouse.index_scan.data" title "pk_warehouse" with lines, "pk_new_order.index_scan.data" title "pk_new_order" with lines, "pk_stock.index_scan.data" title "pk_stock" with lines, "i_customer.index_scan.data" title "i_customer" with lines, "i_orders.index_scan.data" title "i_orders" with lines
-set xlabel "Elapsed Time (Minutes)"
-set ylabel "Index Scans"
-set term png small color
-set output "index_scans.png"
-set yrange [0:]
-replot

@@ -1,10 +1,14 @@
+General
+-------
+
+MySQL
+-----
+  - to add possibility to check number of warehouses before starting of
+    driver. Because we will got wrong results in case someone will start
+    test with number of warehouses greater than exist in database.
+
+  - to adjust sysstat.sh 
+
 PostgreSQL
 ----------
 
-1. Make the stored functions return the data that they're supposed to.  It's
-   really not needed for how the workload is driven, but it would be nice to
-   be a little more proper.
-
-2. Make use of arrays for passing data into a stored function.  That way we
-   don't have to recompile PostgreSQL to support more than 32 parameters for
-   the stored functions.

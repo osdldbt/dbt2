@@ -41,7 +41,6 @@ storedproc/sapdb/order_status.sql \
 storedproc/sapdb/payment.sql \
 storedproc/sapdb/stock_level.sql \
 storedproc/mysql/delivery.sql \
-storedproc/mysql/delivery_2.sql \
 storedproc/mysql/new_order.sql \
 storedproc/mysql/new_order_2.sql \
 storedproc/mysql/order_status.sql \
@@ -66,9 +65,6 @@ scripts/pgsql/restore.sh \
 scripts/pgsql/start_db.sh \
 scripts/pgsql/stop_db.sh \
 scripts/pgsql/analyze_stats.pl \
-scripts/pgsql/table_info.input \
-scripts/pgsql/index_info.input \
-scripts/pgsql/index_scan.input \
 scripts/sapdb/db_create_stats/info/space_used_all.sh \
 scripts/sapdb/db_create_stats/info/space_used_index.sh \
 scripts/sapdb/db_create_stats/info/space_used_leaf.sh \
@@ -119,12 +115,10 @@ scripts/notpm.input \
 scripts/run_test.sh.in \
 scripts/run_workload.sh.in \
 scripts/sysstats.sh.in \
-scripts/tps.input \
 scripts/transform_iostat.pl \
 scripts/transform_sar.sh.in \
 scripts/transform_vmstat.sh \
 scripts/run_mysql.sh \
-scripts/load.sh \
 scripts/run_test.sh \
 scripts/sysstats.sh \
 doc/Makefile \

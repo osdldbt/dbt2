@@ -1,31 +1,67 @@
 #!/bin/sh
 
 abs_top_srcdir=@abs_top_srcdir@
+DBDIR=@database_to_use@
+
+trap 'echo "Test was interrupted by Control-C."; \
+	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' INT
+trap 'echo "Test was interrupted. Got TERM signal."; \
+	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' TERM
+
+usage()
+{
+	if [ "$1" != "" ]; then
+		echo
+		echo "error: $1"
+	fi
+}
+
+validate_parameter()
+{
+	if [ "$2" != "$3" ]; then
+		usage "wrong argument '$2' for parameter '-$1'"
+		exit 1
+	fi
+}
 
 DB_HOSTNAME="localhost"
-POSTMASTER_PORT=5432
-SLEEPY=1
+DB_PORT=5432
+SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
+THREADS_PER_WAREHOUSE=10
 
-while getopts "c:d:l:o:s:t:w:z:" opt; do
+while getopts "c:d:l:nos:t:w:z:" opt; do
 	case $opt in
 	c)
-		DBCON=$OPTARG
+		# Check for numeric value
+		DBCON=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DBCON
+		;;
+	d)
+		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DURATION
 		;;
 	l)
-		POSTMASTER_PORT=$OPTARG
+		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DB_PORT
+		;;
+	n)
+		NO_THINK="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
 		;;
 	o)
-		USE_OPROFILE=$OPTARG
+		USE_OPROFILE=1
 		;;
 	s)
-		SLEEPY=$OPTARG
+		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $SLEEPY
 		;;
 	t)
-		DURATION=$OPTARG
+		THREADS_PER_WAREHOUSE=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $THREADS_PER_WAREHOUSE
 		;;
 	w)
-		WAREHOUSES=$OPTARG
+		WAREHOUSES=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $WAREHOUSES
 		;;
 	z)
 		COMMENT=$OPTARG
@@ -37,16 +73,21 @@ done
 
 if [ "$DBCON" == "" ]; then
 	echo "specify the number of database connections using -c #"
-	exit 1;
+	exit 1
 fi
 
 if [ "$DURATION" == "" ]; then
 	echo "specify the duration of the test in seconds using -t #"
-	exit 1;
+	exit 1
 fi
 
 if [ "$WAREHOUSES" == "" ]; then
 	echo "specify the number of warehouses using -w #"
+	exit 1
+fi
+
+if [ $(( $THREADS_PER_WAREHOUSE*1 )) -lt 1 -o $(( $THREADS_PER_WAREHOUSE*1 )) -gt 10 ]; then
+	usage "-t value should be in range [1..10]. Please specify correct value"
 	exit 1;
 fi
 
@@ -87,28 +128,24 @@ echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
-STACKSIZE=256
-ulimit -s $STACKSIZE
-echo "ulimit -s $STACKSIZE" >> $OUTPUT_DIR/readme.txt
-
-bash $abs_top_srcdir/scripts/pgsql/stop_db.sh
-bash $abs_top_srcdir/scripts/pgsql/start_db.sh
+bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+bash $abs_top_srcdir/scripts/${DBDIR}/start_db.sh 1
 
 # Start the client.
-echo "Starting up client..."
-nohup $abs_top_srcdir/src/client -f -d $DB_HOSTNAME -c $DBCON -l $POSTMASTER_PORT -s $SLEEPY -o $CLIENT_OUTPUT_DIR > $OUTPUT_DIR/client.out 2>&1 &
+echo "Starting client: $DBCON database connection(s), 1 connection per $SLEEPY milliseconds..."
+$abs_top_srcdir/src/client -f -d $DB_HOSTNAME -c $DBCON -l $DB_PORT -s $SLEEPY -o $CLIENT_OUTPUT_DIR > $OUTPUT_DIR/client.out 2>&1 &
 
 # Sleep long enough for all the client database connections to be established.
-SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY ))
+SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY/1000 ))
 sleep $SLEEPYTIME
 
 # Start collecting data before we start the test.
-SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY) ))
+SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-nohup bash $abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
-nohup bash $abs_top_srcdir/scripts/pgsql/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
+bash $abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
+bash $abs_top_srcdir/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ $USE_OPROFILE -eq 1 ]
@@ -120,8 +157,10 @@ then
         sudo opcontrol --start
 fi
 
-echo "Starting up driver..."
-nohup $abs_top_srcdir/src/driver -d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR > $OUTPUT_DIR/driver.out 2>&1 &
+DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
+echo "Starting driver: $DRIVERS driver(s), 1 driver starting every $SLEEPY milliseconds..."
+$abs_top_srcdir/src/driver -d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR -tpw $THREADS_PER_WAREHOUSE $NO_THINK > $OUTPUT_DIR/driver.out 2>&1 &
+echo "Results will be written to: $OUTPUT_DIR"
 
 sleep $SLEEP_RAMPUP
 
@@ -153,6 +192,17 @@ then
 	sudo opcontrol --dump
 	sudo opreport -l -o $OUTPUT_DIR/oprofile.txt
 	sudo opcontrol --stop
+fi
+
+# Run some post processing analysese.
+perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
+cp -p notpm.input $DRIVER_OUTPUT_DIR
+cd $DRIVER_OUTPUT_DIR
+@GNUPLOT@ notpm.input
+cd -
+
+if [ $USE_OPROFILE -eq 1 ]
+then
 	mkdir -p $OUTPUT_DIR/oprofile/
 	mkdir -p $OUTPUT_DIR/oprofile/annotate
 	cp -pR /var/lib/oprofile/samples/current $OUTPUT_DIR/oprofile/
@@ -160,22 +210,24 @@ then
 	sudo opannotate --source --output-dir=$OUTPUT_DIR/oprofile/annotate
 fi
 
-# Run some post processing analysese.
-$abs_top_srcdir/src/results $DRIVER_OUTPUT_DIR/mix.log 60 $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
-perl $abs_top_srcdir/scripts/mix_analyzer.pl --if $DRIVER_OUTPUT_DIR/mix.log > $DRIVER_OUTPUT_DIR/distribution.out
-cp -p notpm.input $DRIVER_OUTPUT_DIR
-cd $DRIVER_OUTPUT_DIR
-cat notpm.csv | awk -F "," '{print $1, $2}' > notpm.out
-@GNUPLOT@ notpm.input
-cd -
+# Client doesn't go away by itself like the driver does, so kill it.
+echo "Killing client..."
+killall client driver 2> /dev/null
 
-# Client doesn't go away by itself like the driver does and I nohup it.
-killall client driver
-#/usr/local/pgsql/bin/vacuumdb -f -d dbt2
+bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
 
-# Move the log file.
-bash $abs_top_srcdir/scripts/pgsql/stop_db.sh
+# Move the database log.  (No, not the transaction log.)
 chmod 644 $abs_top_srcdir/scripts/log
 mv $abs_top_srcdir/scripts/log $DB_OUTPUT_DIR
 
+# Postprocessing of Database Statistics
+$abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
+
+# Create summary in HTML.
+$abs_top_srcdir/scripts/gen_html.sh $OUTPUT_DIR
+
 echo "Test completed."
+echo "Results are in: $OUTPUT_DIR"
+echo
+
+cat $DRIVER_OUTPUT_DIR/results.out

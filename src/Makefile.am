@@ -9,6 +9,14 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 INCLUDES = -I../include
 
+COMMON_SRCS=\
+  common.c \
+  logging.c \
+  _socket.c \
+  client_interface.c \
+  transaction_data.c \
+  _semaphore.c 
+
 INTERFACE_SRCS=\
   @DBC_CORE@/dbc_common.c \
   @DBC_FUNCTIONS@/dbc_new_order.c \
@@ -18,34 +26,27 @@ INTERFACE_SRCS=\
   @DBC_FUNCTIONS@/dbc_stock_level.c \
   @DBC_FUNCTIONS@/dbc_integrity.c
 
-if NONSP 
-NONSP_SRCS=@DBC_FUNCTIONS@/dbc_nonsp.c
+if NONSP
+INTERFACE_SRCS+=@DBC_FUNCTIONS@/dbc_nonsp.c
 endif
 
-COMMON_SRCS=\
-  common.c \
-  logging.c \
-  _socket.c \
-  client_interface.c \
-  transaction_data.c \
-  _semaphore.c 
-
-bin_PROGRAMS = client datagen driver results transaction_test
+bin_PROGRAMS = client datagen driver transaction_test
 
 client_SOURCES = client.c transaction_queue.c listener.c db_threadpool.c db.c \
-                 $(COMMON_SRCS) $(INTERFACE_SRCS) $(NONSP_SRCS)
+                 $(COMMON_SRCS)
+nodist_client_SOURCES = $(INTERFACE_SRCS)
 
 datagen_SOURCES = datagen.c common.c
 
 driver_SOURCES = driver_main.c driver.c input_data_generator.c \
                  $(COMMON_SRCS)
 
-results_SOURCES = results.c common.c
-
 transaction_test_SOURCES = transaction_test.c db.c input_data_generator.c \
-                           $(COMMON_SRCS) $(INTERFACE_SRCS) $(NONSP_SRCS)
+                           $(COMMON_SRCS)
+nodist_transaction_test_SOURCES = $(INTERFACE_SRCS)
 
-EXTRA_DIST = ../include/libpq_common.h \
+EXTRA_DIST = ../include/libpq_integrity.h \
+             ../include/libpq_common.h \
              ../include/odbc_common.h \
              ../include/mysql_common.h \
              ../include/_socket.h \
@@ -81,16 +82,26 @@ EXTRA_DIST = ../include/libpq_common.h \
              odbc/dbc_order_status.c \
              odbc/dbc_delivery.c \
              odbc/dbc_payment.c \
+             odbc/dbc_integrity.c \
              libpq/dbc_new_order.c \
              libpq/dbc_stock_level.c \
              libpq/dbc_common.c \
              libpq/dbc_order_status.c \
              libpq/dbc_delivery.c \
              libpq/dbc_payment.c \
+             libpq/dbc_integrity.c \
              mysql/dbc_new_order.c \
              mysql/dbc_stock_level.c \
              mysql/dbc_common.c \
              mysql/dbc_order_status.c \
              mysql/dbc_delivery.c \
-             mysql/dbc_payment.c
+             mysql/dbc_payment.c \
+             mysql/dbc_integrity.c \
+             nonsp/dbc_new_order.c \
+             nonsp/dbc_stock_level.c \
+             nonsp/dbc_nonsp.c \
+             nonsp/dbc_order_status.c \
+             nonsp/dbc_delivery.c \
+             nonsp/dbc_payment.c \
+             nonsp/dbc_integrity.c
 

@@ -1,3 +1,6 @@
+#
+# Min: should this file be removed?
+#
 To configure:
 
 export CPPFLAGS="$CPPFLAGS -I/usr/local/include"
