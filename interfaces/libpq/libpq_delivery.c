@@ -7,9 +7,7 @@
  * 13 May 2003
  */
 
-#include <pthread.h>
 #include <stdio.h>
-#include <postgresql/libpq-fe.h>
 
 #include "common.h"
 #include "logging.h"
