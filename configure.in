@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 1060 2003-06-03 16:24:28Z fimath $)
+AC_REVISION($Id: configure.in 1061 2003-06-03 16:30:00Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
@@ -101,7 +101,7 @@ AC_CHECK_FUNCS(gettimeofday socket)
 dnl> Large file support?
 AC_SYS_LARGEFILE
 
-dnl> Configuration options for different databases.
+dnl> Configuration options for different databases, PostgreSQL is default.
 database_to_use="pgsql"
 AC_ARG_WITH(postgres,
 	[  --with-postgresql       default, using libpq],
@@ -110,6 +110,7 @@ AC_ARG_WITH(sapdb,
 	[  --with-sapdb            using ODBC],
 	database_to_use="sapdb")
 
+dnl> Set up rules depending on what database is selected.
 if test "x$database_to_use" = "xpgsql"; then
 	AC_CHECK_HEADERS(postgresql/libpq-fe.h,
 		[],
@@ -118,6 +119,7 @@ if test "x$database_to_use" = "xpgsql"; then
 		pq,
 		,
 		AC_MSG_ERROR([libpq required]))
+	database_interface="interfaces/libpq/Makefile"
 elif test "x$database_to_use" = "xsapdb"; then
 	dnl>
 	dnl> ODBC Library (required)
@@ -130,6 +132,7 @@ elif test "x$database_to_use" = "xsapdb"; then
 		odbc iodbc,
 		,
 		AC_MSG_ERROR([unixODBC or iODBC required]))
+	database_interface="interfaces/odbc/Makefile"
 else
 	AC_MSG_ERROR('You stink at autoconf!')
 fi
@@ -141,8 +144,7 @@ AC_SUBST(TOPDIR)
 AC_OUTPUT([
 make.common
 Makefile
-interfaces/odbc/Makefile
-interfaces/libpq/Makefile
+$database_interface
 common/Makefile
 datagen/Makefile
 tools/Makefile
