@@ -15,13 +15,13 @@
 #include "logging.h"
 #include "libpq_payment.h"
 
-int execute_payment(PGconn *conn, struct payment_t *data)
+int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 {
 	PGresult *res;
 	char stmt[128];
 
 	/* Start a transaction block. */
-	res = PQexec(conn, "BEGIN");
+	res = PQexec(dbc->conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("BEGIN command failed.\n");
 		PQclear(res);
@@ -33,7 +33,7 @@ int execute_payment(PGconn *conn, struct payment_t *data)
 	sprintf(stmt, "SELECT payment(%d, %d, %d, %d %d, '%s', %f)",
 		data->w_id, data->d_id, data->c_id, data->c_w_id, data->c_w_id,
 		data->c_last, data->h_amount);
-	res = PQexec(conn, stmt);
+	res = PQexec(dbc->conn, stmt);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("SELECT failed\n");
 		PQclear(res);
@@ -42,7 +42,7 @@ int execute_payment(PGconn *conn, struct payment_t *data)
 	PQclear(res);
 
 	/* Commit the transaction. */
-	res = PQexec(conn, "COMMIT");
+	res = PQexec(dbc->conn, "COMMIT");
 	PQclear(res);
 
 	return OK;

@@ -15,13 +15,13 @@
 #include "logging.h"
 #include "libpq_delivery.h"
 
-int execute_delivery(PGconn *conn, struct delivery_t *data)
+int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 {
 	PGresult *res;
 	char stmt[128];
 
 	/* Start a transaction block. */
-	res = PQexec(conn, "BEGIN");
+	res = PQexec(dbc->conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("BEGIN command failed.\n");
 		PQclear(res);
@@ -32,7 +32,7 @@ int execute_delivery(PGconn *conn, struct delivery_t *data)
 	/* Create the query and execute it. */
 	sprintf(stmt, "SELECT delivery(%d, %d)",
 		data->w_id, data->o_carrier_id);
-	res = PQexec(conn, stmt);
+	res = PQexec(dbc->conn, stmt);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("SELECT failed\n");
 		PQclear(res);
@@ -41,7 +41,7 @@ int execute_delivery(PGconn *conn, struct delivery_t *data)
 	PQclear(res);
 
 	/* Commit the transaction. */
-	res = PQexec(conn, "COMMIT");
+	res = PQexec(dbc->conn, "COMMIT");
 	PQclear(res);
 
 	return OK;

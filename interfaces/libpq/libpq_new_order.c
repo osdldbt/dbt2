@@ -16,7 +16,7 @@
 #include "logging.h"
 #include "libpq_new_order.h"
 
-int execute_new_order(PGconn *conn, struct new_order_t *data)
+int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 {
 	PGresult *res;
 	char stmt[128];
@@ -24,7 +24,7 @@ int execute_new_order(PGconn *conn, struct new_order_t *data)
 	int i;
 
 	/* Start a transaction block. */
-	res = PQexec(conn, "BEGIN");
+	res = PQexec(dbc->conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("BEGIN command failed.\n");
 		PQclear(res);
@@ -48,7 +48,7 @@ int execute_new_order(PGconn *conn, struct new_order_t *data)
 		strcat(stmt, ", ''");
 	}
 	strcat(stmt, ")");
-	res = PQexec(conn, stmt);
+	res = PQexec(dbc->conn, stmt);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("SELECT failed\n");
 		PQclear(res);
@@ -57,7 +57,7 @@ int execute_new_order(PGconn *conn, struct new_order_t *data)
 	PQclear(res);
 
 	/* Commit the transaction. */
-	res = PQexec(conn, "COMMIT");
+	res = PQexec(dbc->conn, "COMMIT");
 	PQclear(res);
 
 	return OK;

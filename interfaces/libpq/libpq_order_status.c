@@ -15,13 +15,13 @@
 #include "logging.h"
 #include "libpq_order_status.h"
 
-int execute_order_status(PGconn *conn, struct order_status_t *data)
+int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 {
 	PGresult *res;
 	char stmt[128];
 
 	/* Start a transaction block. */
-	res = PQexec(conn, "BEGIN");
+	res = PQexec(dbc->conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("BEGIN command failed.\n");
 		PQclear(res);
@@ -32,7 +32,7 @@ int execute_order_status(PGconn *conn, struct order_status_t *data)
 	/* Create the query and execute it. */
 	sprintf(stmt, "SELECT stock_level(%d, %d, %d, '%s')",
 		data->c_id, data->c_w_id, data->c_d_id, data->c_last);
-	res = PQexec(conn, stmt);
+	res = PQexec(dbc->conn, stmt);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("SELECT failed\n");
 		PQclear(res);
@@ -41,7 +41,7 @@ int execute_order_status(PGconn *conn, struct order_status_t *data)
 	PQclear(res);
 
 	/* Commit the transaction. */
-	res = PQexec(conn, "COMMIT");
+	res = PQexec(dbc->conn, "COMMIT");
 	PQclear(res);
 
 	return OK;

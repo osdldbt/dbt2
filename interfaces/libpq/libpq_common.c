@@ -15,51 +15,49 @@
 #include "logging.h"
 #include "libpq_common.h"
 
-/* Open a connection to the database. */
-int libpq_connect(struct ligpq_context_t *pqc, PGconn *conn)
-{
-	conn = PQsetdb(pqc->pghost, pqc->pgport, pqc->pgoptions, pqc->pgtty,
-		pqc->dbname);
+char dbname[32] = "";
+char pghost[32] = "";
+char pgport[32] = "";
+char pgoptions[32] = "";
+char pgtty[32] = "";
 
-	if (PQstatus(conn) == CONNECTION_BAD) {
+/* Open a connection to the database. */
+int libpq_connect(struct db_context_t *dbc)
+{
+	dbc->conn = PQsetdb(pghost, pgport, pgoptions, pgtty, dbname);
+
+	if (PQstatus(dbc->conn) == CONNECTION_BAD) {
 		LOG_ERROR_MESSAGE("Connection to database '%s' failed.",
-			pqc->dbname);
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(conn));
-		PQfinish(conn);
+			dbname);
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		PQfinish(dbc->conn);
 		return ERROR;
 	}
 	return OK;
 }
 
 /* Disconnect from the database and free the connection handle. */
-int libpq_disconnect(PGconn *conn)
+int libpq_disconnect(struct db_context_t *dbc)
 {
-	PQfinish(conn);
+	PQfinish(dbc->conn);
 	return OK;
 }
 
-int lipq_init(struct ligpq_context_t *pqc, char *dbname, char *pghost,
-	char *pgport, char *pgoptions, char *pgtty)
+int lipq_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
+	char *_pgtty)
 {
-	/* Initialize the data structure. */
-	pqc->dbname[0] = '\0';
-	pqc->pghost[0] = '\0';
-	pqc->pgport[0] = '\0';
-	pqc->pgoptions[0] = '\0';
-	pqc->pgtty[0] = '\0';
-
 	/* Copy values only if it's not NULL. */
-	if (pghost != NULL) {
-		strcpy(pqc->pghost, pghost);
+	if (_pghost != NULL) {
+		strcpy(pghost, _pghost);
 	}
-	if (pgport != NULL) {
-		strcpy(pqc->pgport, pgport);
+	if (_pgport != NULL) {
+		strcpy(pgport, _pgport);
 	}
-	if (pgoptions != NULL) {
-		strcpy(pqc->pgoptions, pgoptions);
+	if (_pgoptions != NULL) {
+		strcpy(pgoptions, _pgoptions);
 	}
-	if (pgtty != NULL) {
-		strcpy(pqc->pgtty, pgtty);
+	if (_pgtty != NULL) {
+		strcpy(pgtty, _pgtty);
 	}
 	return OK;
 }
