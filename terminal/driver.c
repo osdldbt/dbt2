@@ -222,17 +222,12 @@ int start_driver()
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);
 
-/*
 	do
 	{
 		sem_getvalue(&terminal_count, &count);
 		sleep(1);
 	}
 	while (count > 0);
-*/
-/* A dramatic stop to the run. */
-sleep(stop_time - time(NULL));
-exit(1);
 
 	return OK;
 }
@@ -265,7 +260,7 @@ void *terminal_worker(void *data)
 		pthread_exit(NULL);
 	}
 
-	while (time(NULL) < stop_time)
+	do
 	{
 		/*
 		 * Determine which transaction to execute, minimum keying time, and
@@ -321,7 +316,14 @@ void *terminal_worker(void *data)
 		}
 
 		/* Keying time... */
-		sleep(keying_time);
+		if (time(NULL) < stop_time)
+		{
+			sleep(keying_time);
+		}
+		else
+		{
+			break;
+		}
 
 		/* Execute transaction and record the response time. */
 		if (gettimeofday(&rt0, NULL) == -1)
@@ -343,32 +345,35 @@ void *terminal_worker(void *data)
 		pthread_mutex_unlock(&mutex_mix_log);
 
 		/* Thinking time... */
-		thinking_time.tv_nsec = (long) get_think_time(mean_think_time);
-		thinking_time.tv_sec = (time_t) (thinking_time.tv_nsec / 1000);
-		thinking_time.tv_nsec = (thinking_time.tv_nsec % 1000) * 1000000;
-		while (nanosleep(&thinking_time, &rem) == -1)
+		if (time(NULL) < stop_time)
 		{
-			if (errno == EINTR)
+			thinking_time.tv_nsec = (long) get_think_time(mean_think_time);
+			thinking_time.tv_sec = (time_t) (thinking_time.tv_nsec / 1000);
+			thinking_time.tv_nsec = (thinking_time.tv_nsec % 1000) * 1000000;
+			while (nanosleep(&thinking_time, &rem) == -1)
 			{
-				memcpy(&thinking_time, &rem, sizeof (struct timespec));
-			}
-			else
-			{
-				LOG_ERROR_MESSAGE("sleep time invalid %d s %ls ns",
-					thinking_time.tv_sec, thinking_time.tv_nsec);
-				break;
+				if (errno == EINTR)
+				{
+					memcpy(&thinking_time, &rem, sizeof (struct timespec));
+				}
+				else
+				{
+					LOG_ERROR_MESSAGE("sleep time invalid %d s %ls ns",
+						thinking_time.tv_sec, thinking_time.tv_nsec);
+					break;
+				}
 			}
 		}
 	}
+	while (time(NULL) < stop_time);
+
 	LOG_ERROR_MESSAGE("exiting...");
 
 	/* Note when each thread has exited. */
-/*
 	pthread_mutex_lock(&mutex_mix_log);
 	fprintf(log_mix, "TERMINATED %d\n", pthread_self());
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);
-*/
 
 	/* Update the terminal count. */
 	sem_wait(&terminal_count);
