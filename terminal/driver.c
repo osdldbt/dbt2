@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include <ctype.h>
 #include <common.h>
 #include <logging.h>
 #include <driver.h>
@@ -289,7 +290,9 @@ int start_driver()
 
 void *terminal_worker(void *data)
 {
+#ifndef STANDALONE
 	int length;
+#endif /* STANDALONE */
 	struct terminal_context_t *tc;
 	struct client_transaction_t client_data;
 	double threshold;
@@ -299,7 +302,9 @@ void *terminal_worker(void *data)
 	struct timeval rt0, rt1;
 	double response_time;
 	extern int errno;
+#ifndef STANDALONE
 	int sockfd;
+#endif /* STANDALONE */
 	int rc;
 
 #ifdef STANDALONE
@@ -440,7 +445,7 @@ void *terminal_worker(void *data)
 */
 		rc = process_transaction(node->client_data.transaction, &odbcc,
 			&node->client_data.transaction_data);
-		if (rc != OK)
+		if (rc == ERROR)
 		{
 			LOG_ERROR_MESSAGE("process_transaction() error on %s",
 			transaction_name[node->client_data.transaction]);
@@ -455,9 +460,23 @@ void *terminal_worker(void *data)
 		}
 		response_time = difftimeval(rt1, rt0);
 		pthread_mutex_lock(&mutex_mix_log);
-		fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
-			(rc == OK ? transaction_short_name[client_data.transaction] : 'E'),
-			response_time, pthread_self());
+		if (rc == OK)
+		{
+			fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
+				transaction_short_name[client_data.transaction],
+				response_time, pthread_self());
+		}
+		else if (rc == STATUS_ROLLBACK)
+		{
+			fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
+				toupper(transaction_short_name[client_data.transaction]),
+				response_time, pthread_self());
+		}
+		else if (rc == ERROR)
+		{
+			fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
+				'E', response_time, pthread_self());
+		}
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
