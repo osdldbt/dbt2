@@ -21,3 +21,5 @@ echo "Creating database..."
 initdb -D $PGDATA
 postmaster -i -D $PGDATA
 createdb $DB_NAME
+
+createlang plpgsql $DB_NAME
