@@ -13,12 +13,7 @@ COMMON_OBJS =	$(TOPDIR)/common/common.so \
 		$(TOPDIR)/client/transaction_queue.so \
 		$(TOPDIR)/client/listener.so \
 		$(TOPDIR)/interfaces/db.so \
-		$(TOPDIR)/interfaces/odbc/odbc_common.so \
-		$(TOPDIR)/interfaces/odbc/odbc_new_order.so \
-		$(TOPDIR)/interfaces/odbc/odbc_payment.so \
-		$(TOPDIR)/interfaces/odbc/odbc_order_status.so \
-		$(TOPDIR)/interfaces/odbc/odbc_delivery.so \
-		$(TOPDIR)/interfaces/odbc/odbc_stock_level.so
+		$(DB_OBJS)
 CFLAGS =	-Wall -I$(TOPDIR)/include @CFLAGS@ @DEFS@ -DSTANDALONE
 
 all: driver $(OBJS)
