@@ -102,9 +102,10 @@ void *listener_worker(void *data)
 			LOG_ERROR_MESSAGE("exiting...");
 			/* Exit the thread when the socket has closed. */
 			sem_wait(&listener_worker_count);
+			free(node);
 			pthread_exit(0);
 		}
-		else if (rc != OK)
+		else if (rc == ERROR)
 		{
 			LOG_ERROR_MESSAGE("receive_transaction_data() error");
 			continue;
