@@ -31,7 +31,8 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 	sprintf(stmt, "SELECT stock_level(%d, %d, %d)",
 		data->w_id, data->d_id, data->threshold);
 	res = PQexec(dbc->conn, stmt);
-	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
+	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
+		PQresultStatus(res) != PGRES_TUPLES_OK)) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;

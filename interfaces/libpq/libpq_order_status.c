@@ -31,7 +31,8 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	sprintf(stmt, "SELECT stock_level(%d, %d, %d, '%s')",
 		data->c_id, data->c_w_id, data->c_d_id, data->c_last);
 	res = PQexec(dbc->conn, stmt);
-	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
+	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
+		PQresultStatus(res) != PGRES_TUPLES_OK)) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;

@@ -32,7 +32,8 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 		data->w_id, data->d_id, data->c_id, data->c_w_id, data->c_w_id,
 		data->c_last, data->h_amount);
 	res = PQexec(dbc->conn, stmt);
-	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
+	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
+		PQresultStatus(res) != PGRES_TUPLES_OK)) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;

@@ -31,7 +31,8 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 	sprintf(stmt, "SELECT delivery(%d, %d)",
 		data->w_id, data->o_carrier_id);
 	res = PQexec(dbc->conn, stmt);
-	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
+	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
+		PQresultStatus(res) != PGRES_TUPLES_OK)) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;

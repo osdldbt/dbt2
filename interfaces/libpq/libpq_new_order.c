@@ -47,7 +47,8 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	}
 	strcat(stmt, ")");
 	res = PQexec(dbc->conn, stmt);
-	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
+	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
+		PQresultStatus(res) != PGRES_TUPLES_OK)) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;
