@@ -15,6 +15,12 @@
 #include <logging.h>
 #include <client_interface.h>
 #include <driver.h>
+#ifdef STANDALONE
+#include <db_threadpool.h>
+
+char sname[32] = "";
+int exiting = 0;
+#endif /* STANDALONE */
 
 int parse_arguments(int argc, char *argv[]);
 
@@ -304,6 +310,16 @@ int parse_arguments(int argc, char *argv[])
 		{
 			terminals_per_warehouse = atoi(argv[i + 1]);
 		}
+#ifdef STANDALONE
+		else if (strcmp(flag, "dbc") == 0)
+		{
+			db_connections = atoi(argv[i + 1]);
+		}
+		else if (strcmp(flag, "dbname") == 0)
+		{
+			strcpy(sname, argv[i + 1]);
+		}
+#endif /* STANDALONE */
 		else
 		{
 			printf("invalid flag: %s\n", argv[i]);
