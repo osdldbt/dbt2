@@ -1,6 +1,10 @@
 #!/bin/sh
+if [ $# -ne 1 ]; then
+	echo "usage: db_setup_sample.sh <warehouses>"
+	exit
+fi
 
-WAREHOUSES=1
+WAREHOUSES=$1
 SID=DBT2
 
 echo This is a sample script to create a database with $WAREHOUSES warehouses.
@@ -8,7 +12,7 @@ echo
 
 echo Generating data...
 cd ../../datagen
-./datagen -w $WAREHOUSES
+./datagen -w $WAREHOUSES -d /tmp/data
 cd -
 echo
 

@@ -56,11 +56,13 @@ param_put MAXDATADEVSPACES 5
 param_put MAXDATAPAGES 4096000
 param_put _PACKET_SIZE 131072
 param_put _IDXFILE_LIST_SIZE 8192
+param_put MAXLOCKS 5000
+param_put MAXCPU 1
 param_checkall
 param_commitsession
 param_adddevspace 1 SYS  $HOME/$SID/SYS_001   F
 param_adddevspace 1 DATA $HOME/$SID/DATA_001 F 81920
-param_adddevspace 1 LOG  $HOME/$SID/LOG_001  F 8192
+param_adddevspace 1 LOG  $HOME/$SID/LOG_001  F 40960
 quit
 EOF`
 _test=`echo $_o | grep OK`
