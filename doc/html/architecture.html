@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.0  (Linux)">
 	<META NAME="AUTHOR" CONTENT="Mark Wong">
 	<META NAME="CREATED" CONTENT="20020612;14132200">
-	<META NAME="CHANGED" CONTENT="20020617;14154900">
+	<META NAME="CHANGED" CONTENT="20020816;12470200">
 	<STYLE>
 	<!--
 		@page { margin-left: 3.18cm; margin-right: 3.18cm; margin-top: 2.54cm; margin-bottom: 2.54cm }
@@ -19,12 +19,27 @@
 		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
 		H2.cjk { font-size: 14pt; font-style: italic }
 		H2.ctl { font-size: 14pt; font-style: italic }
+		H3 { margin-bottom: 0.21cm }
+		H3.western { font-family: "Albany", sans-serif }
 		P.sdfootnote { margin-left: 0.5cm; text-indent: -0.5cm; margin-bottom: 0cm; font-size: 10pt }
 		A.sdfootnoteanc { font-size: 57% }
 	-->
 	</STYLE>
 </HEAD>
 <BODY LANG="en-US">
+<DIV ID="Frame2" STYLE="position: absolute; top: 0cm; left: 0cm; width: 14.04cm; height: 4.89cm; border: none; padding: 0cm; background: #ffffff">
+	<P STYLE="margin-bottom: 0cm"><IMG SRC="architecture_html_e3a83bc.jpg" NAME="Graphic2" ALIGN=LEFT WIDTH=103 HEIGHT=164 BORDER=0><BR>
+	</P>
+	<P STYLE="margin-bottom: 0cm"><BR>
+	</P>
+	<P STYLE="margin-bottom: 0cm"><BR>
+	</P>
+	<P STYLE="margin-bottom: 0cm"><B>Open Source Development Lab,
+	Inc.<BR></B>15275 SW Koll Parkway, Suite H<BR>Beaverton, OR 97006 
+	</P>
+	<P ALIGN=LEFT STYLE="margin-bottom: 0cm">Phone: (503) 626-2455<BR>Fax:
+	(503) 626-2436 <BR>Email: info@osdl.org</P>
+</DIV>
 <P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
@@ -45,55 +60,86 @@
 </P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0cm">OSDL-DBT-2</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=5><B>Open
+Source Development Lab</B></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.42cm; page-break-after: avoid"><FONT FACE="Albany, sans-serif"><FONT SIZE=5><B>Database
+Test 2</B></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.42cm; page-break-after: avoid"><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.42cm; font-style: normal; page-break-after: avoid">
+<FONT FACE="Arial, sans-serif"><FONT SIZE=6 STYLE="font-size: 22pt"><B>Architecture</B></FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT FACE="Arial, sans-serif"><FONT SIZE=4><B>Version
+0.3</B></FONT></FONT></P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0cm">An On-Line Transaction
-Processing Test Kit</P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0cm">Architecture</P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><FONT FACE="Arial, sans-serif"><FONT SIZE=5><SDFIELD TYPE=DOCINFO SUBTYPE=CREATE FORMAT=DATE SDNUM="1033;1033;MMMM D, YYYY">June 12, 2002</SDFIELD></FONT></FONT></P>
 <P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0cm">Version 0.2</P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0cm">June 17, 2002</P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
-</P>
+<P STYLE="page-break-before: always">Copyright (c) 2002 by The Open
+Source Development Laboratory, Inc. This material may be distributed
+only subject to the terms and conditions set forth in the Open
+Publication License, v1.0 or later (the latest version is currently
+available at <FONT COLOR="#000080"><A HREF="http://www.opencontent.org/openpub/"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">http://www.opencontent.org/openpub/</FONT></SPAN></A></FONT><FONT COLOR="#000000">).</FONT>
+Distribution of substantively modified versions of this document is
+prohibited without the explicit permission of the copyright holder.</P>
+<P>Other company, product or service names may be trademarks or
+service marks of others.</P>
+<P>Contributors to this white paper include:</P>
+<P>	Mark Wong (OSDL)</P>
+<P>	Jenny Zhang (OSDL)</P>
+<P>	Craig Thomas (OSDL)</P>
+<P ALIGN=LEFT>	Bryan Olmstead (OSDL)</P>
+<P ALIGN=LEFT>	Cliff White (OSDL)</P>
 <DIV ID="Table of Contents1">
 	<DIV ID="Table of Contents1_Head">
 		<P STYLE="margin-top: 0.42cm; page-break-before: always; page-break-after: avoid">
 		<FONT FACE="Albany, sans-serif"><FONT SIZE=4 STYLE="font-size: 16pt"><B>Table
 		of Contents</B></FONT></FONT></P>
 	</DIV>
-	<P STYLE="margin-bottom: 0cm">Introduction	3</P>
-	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">TPC-C	3</P>
-	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">OSDL-DBT-2	3</P>
-	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Improper
-	Comparisons	3</P>
-	<P STYLE="margin-bottom: 0cm">Design	4</P>
-	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Database	4</P>
-	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Remove Terminal
-	Emulators	4</P>
-	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">Clients	4</P>
+	<P STYLE="margin-bottom: 0cm">1Introduction	4</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">1.1TPC-C	4</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">1.2OSDL-DBT-2	4</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">1.3Improper
+	Comparisons	4</P>
+	<P STYLE="margin-bottom: 0cm">2Design	5</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">2.1Database	5</P>
+	<P STYLE="margin-left: 1cm; margin-bottom: 0cm">2.1.1New-Order
+	Transaction	5</P>
+	<P STYLE="margin-left: 1cm; margin-bottom: 0cm">2.1.2Payment
+	Transaction	5</P>
+	<P STYLE="margin-left: 1cm; margin-bottom: 0cm">2.1.3Order-Status
+	Transaction	5</P>
+	<P STYLE="margin-left: 1cm; margin-bottom: 0cm">2.1.4Delivery
+	Transaction	5</P>
+	<P STYLE="margin-left: 1cm; margin-bottom: 0cm">2.1.5Stock-Level
+	Transaction	5</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">2.2Remote Terminal
+	Emulators	5</P>
+	<P STYLE="margin-left: 0.5cm; margin-bottom: 0cm">2.3Clients	6</P>
 </DIV>
 <P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
 </P>
-<H1 CLASS="western" STYLE="page-break-before: always">Introduction</H1>
-<P>This document gives a brief description of the Transaction
-Processing Performance Council Benchmark C (TPC-C<FONT FACE="Times New Roman">&trade;</FONT>),
-what the OSDL-DBT-2 test kit is, and an overview of the architecture
-of the test kit.</P>
-<H2 CLASS="western">TPC-C</H2>
+<H1 CLASS="western" STYLE="page-break-before: always">1Introduction</H1>
+<P>This document gives an overview of the OSDL Database Test
+2(OSDL-DBT-2) test kit.  The OSDL-DBT-2 test kit is a derivative of a
+benchmark specification released by the Transaction Processing
+Performance Council (TPC).  The TPC Benchmark C (TPC-C), which this
+kit is derived from, is briefly described.</P>
+<H2 CLASS="western">1.1TPC-C</H2>
 <P>The TPC-C Standard Specification<A CLASS="sdfootnoteanc" NAME="sdfootnote1anc" HREF="#sdfootnote1sym"><SUP>1</SUP></A>
 does an excellent job at describing itself:</P>
 <P><BR><BR>
 </P>
-<P STYLE="margin-left: 0.99cm; margin-right: 1.02cm">&ldquo;TPC
-Benchmark C (TPC-C) is an OLTP workload. It is a mixture of read-only
-and update intensive transactions that simulate the activities found
-in complex OLTP application environments.&rdquo;</P>
+<P STYLE="margin-left: 0.99cm; margin-right: 1.02cm">TPC Benchmark C
+(TPC-C) is an OLTP workload. It is a mixture of read-only and update
+intensive transactions that simulate the activities found in complex
+OLTP application environments.&rdquo;</P>
 <P><BR><BR>
 </P>
 <P>The benchmark simulates a workload that represents and activities
@@ -107,66 +153,104 @@ These transactions exorcises a database's ability to maintain
 transaction integrity, access data of varying sizes and attributes
 through primary and secondary keys, and handle contention on accesses
 and updates.  The transactions are called New-Order, Payment,
-Order-Status,</P>
-<P>Delivery, and Stock-Level.  The New-Order transaction enters a
-complete order.  The Payment transaction updates a customer's balance
-and reflects the payment on the district and warehouse sales
-statistics.  The Order-Status transaction looks up the status of a
-customer's most recent order.  The Delivery transaction processes a
-batch of up to ten undelivered orders.  The Stock-Level transaction
-determines the number of recently sold items that have a stock level
-belows a given threshold.</P>
-<H2 CLASS="western">OSDL-DBT-2</H2>
-<P>OSDL-DBT-2 is a derivative of the TPC-C designed to produce a
-workload similar to the TPC-C to stress the Linux operation system
-without the complexity and expense of running a TPC compliant
-benchmark.</P>
+Order-Status, Delivery, and Stock-Level.</P>
 <P><BR><BR>
 </P>
-<P>The Transaction Processing Performance Council (TPC) benchmarks
-are intended as competitive marketing tools.  The TPC requires all
-published results to comply with strict publication and auditing
-rules to ensure fair comparisons between competitors.  The TPC also
-requires the general availability and disclosure of the pricing for
-all products used for the benchmark.  It is impractical for open
-source development projects to adhere to these rules; thus, the
-results reported by the OSDL-DBT-2 test kit do not constitute a TPC-C
-result, and are incomparable with any TPC-C benchmark.</P>
-<H2 CLASS="western">Improper Comparisons</H2>
+<P>For more information on the TPC, see their web site at:
+<A HREF="http://www.tpc.org/"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">http://www.tpc.org</FONT></SPAN></A>.
+ Further information on the TPC-C can be found on the web at:
+http://www.tpc.org/tpcc/default.asp.</P>
+<H2 CLASS="western">1.2OSDL-DBT-2</H2>
+<P>OSDL-DBT-2 is a derivative of the TPC-C designed to produce a
+real-world on-line OLTP workload, similar to the TPC-C, to stress the
+Linux operation system without the complexity and expense of running
+a TPC compliant benchmark.</P>
+<P><BR><BR>
+</P>
+<P>TPC benchmarks are intended as competitive marketing tools.  The
+TPC requires all published results to comply with strict publication
+and auditing rules to ensure fair comparisons between competitors. 
+The TPC also requires the general availability and disclosure of the
+pricing for all products used for the benchmark.  It is impractical
+for open source development projects to adhere to these rules; thus,
+the results reported by the OSDL-DBT-2 test kit do not constitute a
+TPC-C result, and are incomparable with any TPC-C benchmark.</P>
+<H2 CLASS="western">1.3Improper Comparisons</H2>
 <P>If you discover any usage of DBT-2 in drawing conclusions about
 TPC-C performance, this inappropriate usage should be reported to
 both the TPC and to the OSDL:</P>
 <P>	TPC - <A HREF="mailto:admin@tpc.org"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">admin@tpc.org</FONT></SPAN></A></P>
 <P>	OSDL- <A HREF="mailto:wookie@osdl.org"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">wookie@osdl.org</FONT></SPAN></A></P>
-<H1 CLASS="western">Design</H1>
+<H1 CLASS="western">2Design</H1>
 <P>This kit is composed of three main components, as illustrated in
 Figure 1: a database, remote terminal emulators, and clients.  Each
-component is explained in the following sub-sections.</P>
-<P ALIGN=CENTER><IMG SRC="architecture_html_m1a0a852f.gif" NAME="Frame1" ALT="Frame1" ALIGN=BOTTOM></P>
-<H2 CLASS="western">Database</H2>
-<P>The database consists of nine tables with stored procedures to
-support five transactions.  The data represents a company that is a
-wholesale supplier with a number of distributed sales districts and
-associated warehouses covering a wide geographic range.  A warehouse
-covers 10 districts, each district serving 3,000 customers, with each
-warehouse maintaining stock for the complete inventory of 100,000
-items.</P>
-<H2 CLASS="western">Remote Terminal Emulators</H2>
+component is described in the following sub-sections.</P>
+<P ALIGN=CENTER><SPAN ID="Frame1" STYLE="float: left; width: 14.65cm; height: 2.92cm; border: none; padding: 0cm; background: #ffffff">
+	<P STYLE="margin-top: 0.21cm"><FONT SIZE=2><I><IMG SRC="architecture_html_1cc6167d.png" NAME="Graphic1" ALIGN=MIDDLE WIDTH=100% BORDER=0>Figure
+	1Component Diagram</I></FONT></P>
+</SPAN><BR><BR>
+</P>
+<H2 CLASS="western">2.1Database</H2>
+<P>The database consists of nine tables with stored procedures,
+currently only for SAP DB, to support five transactions.  The data
+represents a company that is a wholesale supplier with a number of
+distributed sales districts and associated warehouses covering a wide
+geographic range.  A warehouse covers 10 districts, each district
+serving 3,000 customers, with each warehouse maintaining stock for a
+complete inventory of 100,000 items.</P>
+<H3 CLASS="western">2.1.1New-Order Transaction</H3>
+<P>The New-Order transaction is a a mid-weight, read-write single
+database transaction designed to reflect on-line databas e activity
+typically found in production environments.  The transaction performs
+seven to seventeen row selections, six to sixteen row selections with
+updates, and seven to seventeen row insertions, and is executed 45%
+of the time.</P>
+<H3 CLASS="western">2.1.2Payment Transaction</H3>
+<P>The Payment transaction is a light-weight, read-write database
+transaction that updates a customer's balance and reflects payment on
+a district's and warehouse's sales statistics.  The transaction
+performs an average of two row selections, six row selections with
+updates, and two row insertions, and is executed 43% of the time.</P>
+<H3 CLASS="western">2.1.3Order-Status Transaction</H3>
+<P>The Order-Status transaction is a mid-weight read-only data
+transation that queries the status of a customer's most recent order.
+ The transaction performs two row selections and nine to nineteen row
+selections with updates, and is executed 4% of the time.</P>
+<H3 CLASS="western">2.1.4Delivery Transaction</H3>
+<P>The Delivery transaction is a database transaction that processes
+up to ten new orders.  The transaction performs two row selections,
+six to sixteen row selections with updates, and one row delection,
+and is executed 4% of the time.</P>
+<H3 CLASS="western">2.1.5Stock-Level Transaction</H3>
+<P>The Stock-Level transaction is a heavy read-only database
+transaction that determines the number of recently sold items that
+have a stock level below a specific threshold.  The transaction
+performs up to 900 row selections  and is executed 4% of the time.</P>
+<H2 CLASS="western">2.2Remote Terminal Emulators</H2>
 <P>A remote terminal emulator (RTE) simulates the activities of a
 person at a terminal console executing one of the five transactions
 supported by the database.  The RTE is designed to either connect to
 a client system in order to access the database  in a three-tier
-model or to connect to the database directly in a two-tier model. 
-The three-tire model is intended to be used for executing the kit to
-stress a system, while the two-tier is provided for functional
-testing purposes.</P>
-<H2 CLASS="western">Clients</H2>
-<P>The client is a terminal concentrator that allows more than one
-RTE to share a connection to the database system.  The terminal
-concentrator also provides some transaction management functionality.</P>
+model.  The RTE is also designed so that it can be controlled by an
+external process.  The external process is a monitoring program that
+manages multiple drivers across several systems.</P>
+<P><BR><BR>
+</P>
+<P>The RTE is designed as a multi-threaded program where each thread
+of activity represents a single terminal accessing the database.</P>
+<H2 CLASS="western">2.3Clients</H2>
+<P>The clients are terminal concentrators that allows more than one
+RTE to share a connection to the database system.  The client program
+starts up a listener to hand terminal requests and a pool of threads
+to processes transaction requests.  A new thread is created for each
+terminal connecting to the client to queue the incoming transaction
+requests.</P>
 <DIV ID="sdfootnote1">
 	<P CLASS="sdfootnote"><A CLASS="sdfootnotesym" NAME="sdfootnote1sym" HREF="#sdfootnote1anc">1</A>TPC
 	Benchmark C Standard Specification Revision 5.0, February 26, 2001.</P>
+</DIV>
+<DIV TYPE=FOOTER>
+	<P ALIGN=CENTER STYLE="margin-top: 0.5cm; margin-bottom: 0cm"><SDFIELD TYPE=PAGE SUBTYPE=RANDOM FORMAT=PAGE>4</SDFIELD></P>
 </DIV>
 </BODY>
 </HTML>
