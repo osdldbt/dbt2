@@ -10,7 +10,6 @@
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,14 +30,14 @@
 
 #define DELIMITER ','
 
-void *gen_customers(void *data);
-void *gen_districts(void *data);
-void *gen_history(void *data);
-void *gen_items(void *data);
-void *gen_new_order(void *data);
-void *gen_orders(void *data);
-void *gen_stock(void *data);
-void *gen_warehouses(void *data);
+void gen_customers();
+void gen_districts();
+void gen_history();
+void gen_items();
+void gen_new_order();
+void gen_orders();
+void gen_stock();
+void gen_warehouses();
 
 char output_path[512] = "";
 
@@ -49,7 +48,7 @@ int orders = ORDER_CARDINALITY;
 int new_orders = NEW_ORDER_CARDINALITY;
 
 /* Clause 4.3.3.1 */
-void *gen_customers(void *data)
+void gen_customers()
 {
 	FILE *output;
 	int i, j, k;
@@ -71,7 +70,7 @@ void *gen_customers(void *data)
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", CUSTOMER_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < warehouses; i++)
@@ -171,7 +170,7 @@ void *gen_customers(void *data)
 				fprintf(output, "%c", DELIMITER);
 
 				/* c_discount */
-				fprintf(output, "\"0.%04d\"", get_random(5001));
+				fprintf(output, "\"0.%04d\"", get_random(5000));
 				fprintf(output, "%c", DELIMITER);
 
 				/* c_balance */
@@ -200,11 +199,11 @@ void *gen_customers(void *data)
 	}
 	fclose(output);
 	printf("Finished customer table data...\n");
-	return NULL;
+	return;
 }
 
 /* Clause 4.3.3.1 */
-void *gen_districts(void *data)
+void gen_districts()
 {
 	FILE *output;
 	int i, j;
@@ -224,7 +223,7 @@ void *gen_districts(void *data)
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", DISTRICT_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < warehouses; i++)
@@ -270,7 +269,7 @@ void *gen_districts(void *data)
 			fprintf(output, "%c", DELIMITER);
 
 			/* d_tax */
-			fprintf(output, "\"0.%04d\"", get_random(2001));
+			fprintf(output, "\"0.%04d\"", get_random(2000));
 			fprintf(output, "%c", DELIMITER);
 
 			/* d_ytd */
@@ -285,11 +284,11 @@ void *gen_districts(void *data)
 	}
 	fclose(output);
 	printf("Finished district table data...\n");
-	return NULL;
+	return;
 }
 
 /* Clause 4.3.3.1 */
-void *gen_history(void *data)
+void gen_history()
 {
 	FILE *output;
 	int i, j, k;
@@ -311,7 +310,7 @@ void *gen_history(void *data)
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", HISTORY_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < warehouses; i++)
@@ -366,11 +365,11 @@ void *gen_history(void *data)
 	}
 	fclose(output);
 	printf("Finished history table data...\n");
-	return NULL;
+	return;
 }
 
 /* Clause 4.3.3.1 */
-void *gen_items(void *data)
+void gen_items()
 {
 	FILE *output;
 	int i;
@@ -391,7 +390,7 @@ void *gen_items(void *data)
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", ITEM_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < items; i++)
@@ -401,7 +400,7 @@ void *gen_items(void *data)
 		fprintf(output, "%c", DELIMITER);
 
 		/* i_im_id */
-		fprintf(output, "\"%d\"", get_random(10000) + 1);
+		fprintf(output, "\"%d\"", get_random(9999) + 1);
 		fprintf(output, "%c", DELIMITER);
 
 		/* i_name */
@@ -410,14 +409,14 @@ void *gen_items(void *data)
 		fprintf(output, "%c", DELIMITER);
 
 		/* i_price */
-		fprintf(output, "\"%0.2f\"", ((double) get_random(9901) + 100) / 100.0);
+		fprintf(output, "\"%0.2f\"", ((double) get_random(9900) + 100) / 100.0);
 		fprintf(output, "%c", DELIMITER);
 
 		/* i_data */
 		get_a_string(a_string, 26, 50);
 		if (get_percentage() < .10)
 		{
-			j = get_random(strlen(a_string) - 7);
+			j = get_random(strlen(a_string) - 8);
 			strncpy(a_string + j, "ORIGINAL", 8);
 		}
 		fprintf(output, "\"%s\"", a_string);
@@ -426,11 +425,11 @@ void *gen_items(void *data)
 	}
 	fclose(output);
 	printf("Finished item table data...\n");
-	return NULL;
+	return;
 }
 
 /* Clause 4.3.3.1 */
-void *gen_new_orders(void *data)
+void gen_new_orders()
 {
 	FILE *output;
 	int i, j, k;
@@ -449,7 +448,7 @@ void *gen_new_orders(void *data)
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", NEW_ORDER_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < warehouses; i++)
@@ -476,11 +475,11 @@ void *gen_new_orders(void *data)
 	}
 	fclose(output);
 	printf("Finished new-order table data...\n");
-	return NULL;
+	return;
 }
 
 /* Clause 4.3.3.1 */
-void *gen_orders(void *data)
+void gen_orders()
 {
 	FILE *order, *order_line;
 	int i, j, k, l;
@@ -515,7 +514,7 @@ void *gen_orders(void *data)
 	if (order == NULL)
 	{
 		printf("cannot open %s\n", ORDER_DATA);
-		return ERROR;
+		return;
 	}
 
 	filename[0] = '\0';
@@ -529,7 +528,7 @@ void *gen_orders(void *data)
 	if (order_line == NULL)
 	{
 		printf("cannot open %s\n", ORDER_LINE_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < warehouses; i++)
@@ -547,8 +546,11 @@ void *gen_orders(void *data)
 			{
 				current = prev = head;
 
-				/* Find a random place in the list to insert a number. */
-				iter = get_random(k);
+				/*
+				 * Find a random place in the list to insert a
+				 * number.
+				 */
+				iter = get_random(k - 1);
 				while (iter > 0)
 				{
 					prev = current;
@@ -608,14 +610,15 @@ void *gen_orders(void *data)
 				time(&t1);
 				tm1 = localtime(&t1);
 				fprintf(order, "\"%04d%02d%02d%02d%02d%02d000000\"",
-					tm1->tm_year + 1900, tm1->tm_mon + 1, tm1->tm_mday,
-					tm1->tm_hour, tm1->tm_min, tm1->tm_sec);
+					tm1->tm_year + 1900, tm1->tm_mon + 1,
+					tm1->tm_mday, tm1->tm_hour,
+					tm1->tm_min, tm1->tm_sec);
 				fprintf(order, "%c", DELIMITER);
 
 				/* o_carrier_id */
 				if (k < 2101)
 				{
-					fprintf(order, "\"%d\"", get_random(10) + 1);
+					fprintf(order, "\"%d\"", get_random(9) + 1);
 				}
 				else
 				{
@@ -624,7 +627,7 @@ void *gen_orders(void *data)
 				fprintf(order, "%c", DELIMITER);
 
 				/* o_ol_cnt */
-				o_ol_cnt = get_random(11) + 5;
+				o_ol_cnt = get_random(10) + 5;
 				fprintf(order, "\"%d\"", o_ol_cnt);
 				fprintf(order, "%c", DELIMITER);
 
@@ -654,7 +657,7 @@ void *gen_orders(void *data)
 
 					/* ol_i_id */
 					fprintf(order_line, "\"%d\"",
-						get_random(ITEM_CARDINALITY) + 1);
+						get_random(ITEM_CARDINALITY - 1) + 1);
 					fprintf(order_line, "%c", DELIMITER);
 
 					/* ol_supply_w_id */
@@ -693,7 +696,7 @@ void *gen_orders(void *data)
 					else
 					{
 						fprintf(order_line, "\"%f\"",
-							(double) (get_random(999999) + 1) / 100.0);
+							(double) (get_random(999998) + 1) / 100.0);
 					}
 					fprintf(order_line, "%c", DELIMITER);
 
@@ -709,11 +712,11 @@ void *gen_orders(void *data)
 	fclose(order);
 	fclose(order_line);
 	printf("Finished order and order-line table data...\n");
-	return NULL;
+	return;
 }
 
 /* Clause 4.3.3.1 */
-void *gen_stock(void *data)
+void gen_stock()
 {
 	FILE *output;
 	int i, j, k;
@@ -733,7 +736,7 @@ void *gen_stock(void *data)
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", STOCK_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < warehouses; i++)
@@ -749,7 +752,7 @@ void *gen_stock(void *data)
 			fprintf(output, "%c", DELIMITER);
 
 			/* s_quantity */
-			fprintf(output, "\"%d\"", get_random(91) + 10);
+			fprintf(output, "\"%d\"", get_random(90) + 10);
 			fprintf(output, "%c", DELIMITER);
 
 			/* s_dist_01 */
@@ -818,7 +821,7 @@ void *gen_stock(void *data)
 			get_a_string(a_string, 26, 50);
 			if (get_percentage() < .10)
 			{
-				k = get_random(strlen(a_string) - 7);
+				k = get_random(strlen(a_string) - 8);
 				strncpy(a_string + k, "ORIGINAL", 8);
 			}
 			fprintf(output, "\"%s\"", a_string);
@@ -828,11 +831,11 @@ void *gen_stock(void *data)
 	}
 	fclose(output);
 	printf("Finished stock table data...\n");
-	return NULL;
+	return;
 }
 
 /* Clause 4.3.3.1 */
-void *gen_warehouses(void *data)
+void gen_warehouses()
 {
 	FILE *output;
 	int i;
@@ -852,7 +855,7 @@ void *gen_warehouses(void *data)
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", WAREHOUSE_DATA);
-		return ERROR;
+		return;
 	}
 
 	for (i = 0; i < warehouses; i++)
@@ -892,7 +895,7 @@ void *gen_warehouses(void *data)
 		fprintf(output, "%c", DELIMITER);
 
 		/* w_tax */
-		fprintf(output, "\"0.%04d\"", get_random(2001));
+		fprintf(output, "\"0.%04d\"", get_random(2000));
 		fprintf(output, "%c", DELIMITER);
 
 		/* w_ytd */
@@ -902,7 +905,7 @@ void *gen_warehouses(void *data)
 	}
 	fclose(output);
 	printf("Finished warehouse table data...\n");
-	return NULL;
+	return;
 }
 
 int main(int argc, char *argv[])
@@ -911,7 +914,6 @@ int main(int argc, char *argv[])
 	FILE *p;
 	char pwd[256];
 	char cmd[256];
-	pthread_t t1, t2, t3, t4, t5, t6, t7, t8;
 
 	init_common();
 
@@ -922,13 +924,15 @@ int main(int argc, char *argv[])
 		printf("-w #\n");
 		printf("\twarehouse cardinality\n");
 		printf("-c #\n");
-		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
+		printf("\tcustomer cardinality, default %d\n",
+			CUSTOMER_CARDINALITY);
 		printf("-i #\n");
 		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
 		printf("-o #\n");
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
 		printf("-n #\n");
-		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
+		printf("\tnew-order cardinality, default %d\n",
+			NEW_ORDER_CARDINALITY);
 		printf("-d <path>\n");
 		printf("\toutput path of data files\n");
 		return 1;
@@ -993,59 +997,18 @@ int main(int argc, char *argv[])
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 
-	if (pthread_create(&t1, NULL, gen_items, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-	if (pthread_create(&t2, NULL, gen_warehouses, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-	if (pthread_create(&t3, NULL, gen_stock, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-	if (pthread_create(&t4, NULL, gen_districts, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-	if (pthread_create(&t5, NULL, gen_customers, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-	if (pthread_create(&t6, NULL, gen_history, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-	if (pthread_create(&t7, NULL, gen_orders, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-	if (pthread_create(&t8, NULL, gen_new_orders, NULL) != 0)
-	{
-		perror("pthread_create");
-	}
-
-    /* I'm silly so I'll just go through each pthread handle. */
-    pthread_join(t1, NULL);
-    pthread_join(t2, NULL);
-    pthread_join(t3, NULL);
-    pthread_join(t4, NULL);
-    pthread_join(t5, NULL);
-    pthread_join(t6, NULL);
-    pthread_join(t7, NULL);
-    pthread_join(t8, NULL);
+	gen_items();
+	gen_warehouses();
+	gen_stock();
+	gen_districts();
+	gen_customers();
+	gen_history();
+	gen_orders();
+	gen_new_orders();
 
 	/*
-	 * In my environment, I don't have enough /tmp space to put the data files
-	 * in /tmp.
+	 * In my environment, I don't have enough /tmp space to put the data
+	 * files in /tmp.
 	 */
 	if (strlen(output_path) > 0)
 	{
@@ -1062,7 +1025,8 @@ int main(int argc, char *argv[])
 	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, ITEM_DATA, ITEM_DATA);
 	popen(cmd, "r");
 
-	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, WAREHOUSE_DATA, WAREHOUSE_DATA);
+	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, WAREHOUSE_DATA,
+		WAREHOUSE_DATA);
 	popen(cmd, "r");
 
 	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, STOCK_DATA, STOCK_DATA);
@@ -1080,10 +1044,12 @@ int main(int argc, char *argv[])
 	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, ORDER_DATA, ORDER_DATA);
 	popen(cmd, "r");
 
-	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, ORDER_LINE_DATA, ORDER_LINE_DATA);
+	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, ORDER_LINE_DATA,
+		ORDER_LINE_DATA);
 	popen(cmd, "r");
 
-	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, NEW_ORDER_DATA, NEW_ORDER_DATA);
+	sprintf(cmd, "ln -fs %s/%s /tmp/%s", pwd, NEW_ORDER_DATA,
+		NEW_ORDER_DATA);
 	popen(cmd, "r");
 
 	return 0;
