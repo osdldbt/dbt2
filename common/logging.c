@@ -1,12 +1,10 @@
 /*
- * logging.c
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
  *
- * 19 august 2002
+ * 19 August 2002
  */
 
 #include <pthread.h>
@@ -23,7 +21,7 @@ pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
 int edump(int type, void *data)
 {
 	pthread_mutex_lock(&mutex_error_log);
-	fprintf(log_error, "[%d]\n", pthread_self());
+	fprintf(log_error, "[%d]\n", (int) pthread_self());
 	dump(log_error, type, data);
 	pthread_mutex_unlock(&mutex_error_log);
 
@@ -34,8 +32,7 @@ int init_logging()
 {
 	/* Open a file to log errors to. */
 	log_error = fopen(ERROR_LOG_NAME, "w");
-	if (log_error == NULL)
-	{
+	if (log_error == NULL) {
 		fprintf(stderr, "cannot open %s\n", ERROR_LOG_NAME);
 		return ERROR;
 	}
@@ -54,7 +51,8 @@ int log_error_message(char *filename, int line, const char *fmt, ...)
 	va_start(fmtargs, fmt);
 
 	pthread_mutex_lock(&mutex_error_log);
-	fprintf(of, "%stid:%d %s:%d\n", ctime(&t), pthread_self(), filename, line);
+	fprintf(of, "%stid:%d %s:%d\n", ctime(&t), (int) pthread_self(),
+		filename, line);
 	va_start(fmtargs, fmt);
 	vfprintf(of, fmt, fmtargs);
 	va_end(fmtargs);

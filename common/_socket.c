@@ -1,13 +1,11 @@
 /*
- * _socket.c
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002 Mark Wong & Jenny Zhang &
- *                    Open Source Development Lab, Inc.
+ *                    Open Source Development Labs, Inc.
  *
- * 20 march 2002
+ * 20 March 2002
  */
 
 #include <string.h>
@@ -26,9 +24,8 @@ int _accept(int *s)
 	return sockfd;
 }
 
-int _connect(char *address, unsigned short port)
-{
-	int sockfd;
+int _connect(char *address, unsigned short port) {
+	int sockfd = -1;
 	struct sockaddr_in sa;
 	struct hostent *he;
 	in_addr_t addr;
@@ -37,18 +34,15 @@ int _connect(char *address, unsigned short port)
 
 	sa.sin_family = AF_INET;
 	sa.sin_port = htons(port);
-	if (sa.sin_port == 0)
-	{
+	if (sa.sin_port == 0) {
 		return -1;
 	}
 
 	/* Assume that an IP address is used. */
 	addr = inet_addr(address);
-	if (addr == INADDR_NONE)
-	{
+	if (addr == INADDR_NONE) {
 		/* If it is not an IP address, assume it is a hostname. */
-		if ((he = gethostbyname(address)) == NULL)
-		{
+		if ((he = gethostbyname(address)) == NULL) {
 			close(sockfd);
 			return -1;
 		}
@@ -56,8 +50,8 @@ int _connect(char *address, unsigned short port)
 	else
 	{
 		/* Continue the assumption that an IP address is used. */
-		if ((he = gethostbyaddr((char *) (&addr), sizeof(addr), AF_INET)) == NULL)
-		{
+		if ((he = gethostbyaddr((char *) (&addr), sizeof(addr),
+			AF_INET)) == NULL) {
 			close(sockfd);
 			return -1;
 		}
@@ -66,13 +60,12 @@ int _connect(char *address, unsigned short port)
 	memcpy(&sa.sin_addr, he->h_addr_list[0], he->h_length);
 
 	sockfd = socket(PF_INET, SOCK_STREAM, resolveproto("tcp"));
-	if (sockfd == -1)
-	{
+	if (sockfd == -1) {
 		return sockfd;
 	}
 
-	if (connect(sockfd, (struct sockaddr *) &sa, sizeof(struct sockaddr_in)) == -1)
-	{
+	if (connect(sockfd, (struct sockaddr *) &sa,
+		sizeof(struct sockaddr_in)) == -1) {
 		return -1;
 	}
 
@@ -84,15 +77,11 @@ int _receive(int s, void *data, int length)
 	int received, total, remaining;
 	remaining = length;
 	total = 0;
-	do
-	{
+	do {
 		received = recv(s, data, remaining, 0);
-		if (received == -1)
-		{
+		if (received == -1) {
 			return -1;
-		}
-		else if (received == 0)
-		{
+		} else if (received == 0) {
 			return 0;
 		}
 		total += received;
@@ -107,15 +96,11 @@ int _send(int s, void *data, int length)
 {
 	int sent = 0;
 	int remaining = length;
-	do
-	{
+	do {
 		sent = send(s, (void *) data, remaining, 0);
-		if (sent == -1)
-		{
+		if (sent == -1) {
 			return -1;
-		}
-		else if (sent == 0)
-		{
+		} else if (sent == 0) {
 			return 0;
 		}
 		data += sent;
@@ -135,18 +120,16 @@ int _listen(int port)
 	sa.sin_addr.s_addr = INADDR_ANY;
 	sa.sin_port = htons((unsigned short) port);
 	sockfd = socket(PF_INET, SOCK_STREAM, resolveproto("TCP"));
-	if (sockfd < 0) 
-	{
+	if (sockfd < 0) {
 		return ERR_SOCKET_CREATE;
 	}
 
-	if (bind(sockfd, (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) < 0)
-	{
+	if (bind(sockfd, (struct sockaddr *)&sa,
+		sizeof(struct sockaddr_in)) < 0) {
 		return ERR_SOCKET_BIND;
 	}
 
-	if (listen(sockfd, 1) < 0)
-	{
+	if (listen(sockfd, 1) < 0) {
 		return ERR_SOCKET_LISTEN;
 	}
 	return sockfd;
@@ -157,8 +140,7 @@ int resolveproto(const char *proto)
 	struct protoent *protocol;
 
 	protocol = getprotobyname(proto);
-	if (!protocol)
-	{
+	if (!protocol) {
 		return ERR_SOCKET_RESOLVPROTO;
 	}
 
