@@ -14,7 +14,8 @@
 #include <odbc_common.h>
 #include <client_interface.h>
 
-int process_transaction(int transaction, struct db_context_t *odbcc,
+int connect_to_db(struct db_context_t *dbc);
+int process_transaction(int transaction, struct db_context_t *dbc,
 	union transaction_data_t *odbct);
 #endif /* ODBC */
 
