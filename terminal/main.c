@@ -343,7 +343,7 @@ int parse_arguments(int argc, char *argv[])
 		}
 		else if (strcmp(flag, "altered") == 0)
 		{
-			mode_altered = 0;
+			mode_altered = atoi(argv[i + 1]);
 		}
 #ifdef STANDALONE
 		else if (strcmp(flag, "dbc") == 0)
