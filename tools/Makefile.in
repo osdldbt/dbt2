@@ -25,7 +25,7 @@ results: ../make.common Makefile results.c
 transaction_test: ../make.common Makefile transaction_test.c \
 	$(COMMON_OBJS2) $(ODBC_OBJS) $(TERMINAL_OBJS) $(INTERFACE_OBJS)
 	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS2) $(ODBC_OBJS) $(TERMINAL_OBJS) \
-		$(INTERFACE_OBJS) $(TOPDIR)/terminal/driver.so $(LDFLAGS) 
+		$(INTERFACE_OBJS) $(LDFLAGS) 
 
 clean: 
 	rm -f transaction_test results

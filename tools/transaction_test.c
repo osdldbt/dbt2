@@ -32,10 +32,12 @@ union txn_data_t
 	struct stock_level_t stock_level;
 };
 
+char sname[32] = "";
+int mode_altered = 0;
+
 int main(int argc, char *argv[])
 {
 	int i;
-	char sname[32] = "";
 	int transaction = -1;
 	struct odbc_context_t odbcc;
 	union txn_data_t txn_data;
