@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <math.h>
 #include <common.h>
+#include <transaction_data.h>
 
 char a_string_char[A_STRING_CHAR_LEN];
 const char *n_string_char = "0123456789";
@@ -38,6 +39,16 @@ double difftimeval(struct timeval rt1, struct timeval rt0)
 {
 	return (rt1.tv_sec - rt0.tv_sec) +
 		(double) (rt1.tv_usec - rt0.tv_usec) / 1000000.00;
+}
+
+int edump(int type, void *data)
+{
+	pthread_mutex_lock(&mutex_error_log);
+	fprintf(log_error, "[%d]\n", pthread_self());
+	dump(log_error, type, data);
+	pthread_mutex_unlock(&mutex_error_log);
+
+	return OK;
 }
 
 /* Clause 4.3.2.2.  */
