@@ -1,0 +1,143 @@
+exit
+Check list of various things to do
+
+Note:  These steps are detailed for a RedHat system and we realize other
+distributions may be set up slightly differently, but we leave that as an
+exercise for the reader.
+
+1  Enable sudo for sapdb:
+
+ Run
+visudo
+
+add the following line for sapdb:
+sapdb    ALL=(ALL) NOPASSWD: ALL
+
+
+2 Install stats for OSDL
+ Stats can be a challedge for developing kernels.  The last section below
+	includes our notes for updates and original sources
+ The following description is good for 2.5.64
+ Check the readme and FAQ files included in some
+ Dont install over the 2.4 stats  
+ Put the stats in /home/sapdb (READMEs tell you how)
+
+2a vmstat
+ procps-3.1.6.tar.gz
+
+Install in /home/sapdb
+Create as a static file (see README)
+Make the scripts point to /home/sapdb/usr/bin/vmstat
+
+2b sar
+ sysstat-4.1.2.tar.gz with patches patch-4.1.2-2
+
+ create a directory /home/sapdb/sysstat and use that to install
+ change the scripts to collect with /home/sapdb/sysstat/bin/sadc and to format with the local sar
+
+2c iostat (ziostat)
+
+install in /usr/local/bin as iostat2.5.64
+
+ ziostat.tar.gz
+
+2.d readprofile
+
+kernel utils  
+
+
+2.e  cut and pasted from our wiki page:
+
+Places of popular things to get for linux 2.5:
+
+    * sysstats - sar, iostat, mpstat
+        o project homepage - http://perso.wanadoo.fr/sebastien.godard/
+    	o patch to use sysfs on linux 2.5 - 
+		http://oss.software.ibm.com/linux/patches/?patch_id=723
+    * procps - uptime, tload, free, w, top, vmstat, watch, skill, snice, 
+	pmap, pgrep, pkill, sysctl, ps
+        o project homepage - http://procps.sourceforge.net/
+        o special linux 2.5 version http://www.surriel.com/procps/
+    * modutils - insmod, lsmod, modinfo, modprob, rmmod, depmod
+        o http://www.kernel.org/pub/linux/utils/kernel/modutils/v2.4
+        o locally - 
+	osdlab:/osdl/software/mirrors/ftp.kernel.org/pub/linux/utils/kernel/modutils/v2.4)
+        o special linux 2.5 version - 
+	http://www.kernel.org/pub/linux/kernel/people/rusty/modules
+        o locally - 
+	osdlab:/osdl/software/mirrors/ftp.kernel.org/pub/linux/kernel/people/rusty/modules)
+    * ziostat (alternate version of iostat by Zlatko Calusic 
+	<zlatko@iskon.hr> ) and the preferred version by some
+        o found in common_tools of DBT cvs on sourceforge for 2.5 kernels,
+            + http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/osdldbt/commontools/ziostat/
+        o a patch for 2.5.63+ is needed since /sysfs/block was added
+            + (note need 755 permissions on /sysfs for all users to run 
+		this iostat,
+            + which isn't necessarily the case on all systems).
+
++++ NOTE: this patch does not appear to work for 2.5.64, tested OK on 2.5.63, 2.5.65
+
+            + Patch or patched version should be on sourceforce DBT 
+		project as well
+           + http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/osdldbt/commontools
+
+
+3 Permissions check
+
+ After installing all the new stats, for 2.5.64 and greater check /sysfs 
+has 755 permissions so that sapdb can run ziostat
+
+4 Stats for SAPDB
+
+4.1 x_cons
+cp -p /opt/sapdb/indep_prog/bin/x_server /opt/sapdb/indep_prog/bin/x_cons 
+
+
+5. Set kernel.shmmax = 3705032704 
+
+If you are running older redhat versions, take care that sometimes the 
+/sbin/sysctl parameter in /etc/rc.sysinit may not work.  Some of the older
+versions need /sbin/sysctl -a rather than /svin/sysctl -e (-e works on 8.0)
+
+Insert kernel.shmmax = 3705032704 into /etc/sysctl.conf and reboot.
+ 
+6. We used raw devices for data files and logging.  Here is an example of the
+rawme.sh file we used to define them:
+
+raw /dev/raw/raw1 /dev/rd/c0d11p1
+raw /dev/raw/raw2 /dev/rd/c0d12p1
+raw /dev/raw/raw3 /dev/rd/c0d13p1
+raw /dev/raw/raw4 /dev/rd/c0d1p1
+raw /dev/raw/raw5 /dev/rd/c0d2p1
+raw /dev/raw/raw6 /dev/rd/c0d3p1
+raw /dev/raw/raw7 /dev/rd/c0d4p1
+raw /dev/raw/raw8 /dev/rd/c0d5p1
+raw /dev/raw/raw9 /dev/rd/c0d6p1
+raw /dev/raw/raw10 /dev/rd/c0d7p1
+raw /dev/raw/raw11 /dev/rd/c0d8p1
+raw /dev/raw/raw12 /dev/rd/c0d9p1
+raw /dev/raw/raw13 /dev/rd/c0d10p1
+raw /dev/raw/raw14 /dev/rd/c1d15p1
+raw /dev/raw/raw15 /dev/rd/c1d16p1
+raw /dev/raw/raw16 /dev/rd/c1d17p1
+raw /dev/raw/raw17 /dev/rd/c1d18p1
+raw /dev/raw/raw18 /dev/rd/c1d19p1
+raw /dev/raw/raw19 /dev/rd/c1d20p1
+raw /dev/raw/raw20 /dev/rd/c1d21p1
+raw /dev/raw/raw21 /dev/rd/c1d22p1
+raw /dev/raw/raw22 /dev/rd/c1d23p1
+raw /dev/raw/raw23 /dev/rd/c1d24p1
+raw /dev/raw/raw24 /dev/rd/c1d25p1
+raw /dev/raw/raw25 /dev/rd/c1d26p1
+
+
+To redefine raw devices at startup:
+
+update /etc/sysconfig/rawdevices with basically the contents of 
+rawme.sh without the "raw" commands.
+~                             
+7. For SAPDB to start the listener at boot:
+
+in /etc/rc.d/rc.local add the line:
+
+/opt/sapdb/indep_prog/bin/x_server start > /dev/null 2>&1
