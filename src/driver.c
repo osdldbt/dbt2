@@ -296,10 +296,15 @@ int start_driver()
 #endif /* STANDALONE */
 
         /* Caulculate when the test should stop. */
-        threads_start_time = client_conn_sleep / 1000 *
-                terminals_per_warehouse * (w_id_max - w_id_min);
+        threads_start_time = (int) ((double) client_conn_sleep / 1000.0 *
+                        (double) terminals_per_warehouse *
+			(double) (w_id_max - w_id_min));
 
         stop_time = time(NULL) + duration + threads_start_time;
+	printf("driver is starting to ramp up at time %d\n", time(NULL));
+	printf("driver will ramp up in  %d seconds\n", threads_start_time);
+	printf("will stop test at time %d\n", stop_time);
+
         /* allocate g_tid */
         g_tid = (pthread_t**)
                 malloc(sizeof(pthread_t*) * (w_id_max+1)/spread);
@@ -309,7 +314,7 @@ int start_driver()
                 for (j = 0; j < terminals_per_warehouse; j++) {
                         int ret;
                         pthread_attr_t attr;
-                        size_t stacksize = 262144; /* 256 kilobytes. */
+                        size_t stacksize = 131072; /* 128 kilobytes. */
                         struct terminal_context_t *tc;
 
                         tc = (struct terminal_context_t *)
@@ -330,13 +335,11 @@ int start_driver()
                                 &terminal_worker, (void *) tc);
                         if (ret != 0) {
                                 LOG_ERROR_MESSAGE(
-                                        "error creating terminal thread");
+                                        "error creating terminal thread: %d",
+						(i + j + 1) * terminals_per_warehouse);
                                 if (ret == EAGAIN) {
                                         LOG_ERROR_MESSAGE(
                                                 "not enough system resources");
-                                } else if (ret == EAGAIN) {
-                                        LOG_ERROR_MESSAGE(
-                                                "more than PTHREAD_THREADS_MAX");
                                 }
                                 return ERROR;
                         }
@@ -353,6 +356,7 @@ int start_driver()
                                         break;
                                 }
                         }
+			pthread_attr_destroy(&attr);
                 }
 
                 if (mode_altered == 1) {
@@ -520,10 +524,10 @@ void *terminal_worker(void *data)
                         mean_think_time = think_time.stock_level;
                 }
 
+#ifdef DEBUG
                 printf("executing transaction %c\n", 
                         transaction_short_name[client_data.transaction]);
                 fflush(stdout);
-#ifdef DEBUG
                 LOG_ERROR_MESSAGE("executing transaction %c", 
                         transaction_short_name[client_data.transaction]);
 #endif /* DEBUG */
