@@ -23,7 +23,7 @@ int parse_command(char *command);
 /* Global Variables */
 char sname[32] = "";
 int db_connections = 0;
-int port = 30000;
+int port = CLIENT_PORT;
 int sockfd;
 int exiting = 0;
 
@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
 		printf("-c #\n");
 		printf("\tnumber of database connections\n");
 		printf("-p #\n");
-		printf("\tport to listen for incoming connections, default %d\n", port);
+		printf("\tport to listen for incoming connections, default %d\n",
+			CLIENT_PORT);
 		return 1;
 	}
 

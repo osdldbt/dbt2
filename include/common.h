@@ -77,6 +77,8 @@
 #define O_OL_CNT_MAX 15
 #define O_CARRIER_ID_MAX 10
 
+#define CLIENT_PORT 30000
+
 #define ERROR_LOG_NAME "error.log"
 #define LOG_ERROR_MESSAGE(arg...) log_error_message(__FILE__, __LINE__, ## arg)
 
