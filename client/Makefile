@@ -36,7 +36,7 @@ client: Makefile main.c \
 	../interfaces/odbc/odbc_delivery.so \
 	../interfaces/odbc/odbc_stock_level.so \
 	../include/listener.h listener.so
-	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) main.c -o client \
+	$(CC) $(CFLAGS) -L/usr/local/lib main.c -o client \
 		db_threadpool.so \
 		listener.so \
 		../common/common.so \
@@ -52,7 +52,7 @@ client: Makefile main.c \
 		../interfaces/odbc/odbc_order_status.so \
 		../interfaces/odbc/odbc_delivery.so \
 		../interfaces/odbc/odbc_stock_level.so \
-		$(ODBCLIBDIR)/libsqlod.so \
+		-lodbc \
 		-lpthread -lm
 
 db_threadpool.so: Makefile db_threadpool.c ../include/db_threadpool.h \

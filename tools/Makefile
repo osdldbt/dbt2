@@ -33,7 +33,7 @@ transaction_test: ../Makefile ../common.mk Makefile \
 	../common/client_interface.c \
 	../common/client_interface.so \
 	transaction_test.c
-	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) transaction_test.c -o transaction_test \
+	$(CC) $(CFLAGS) -L /usr/local/lib transaction_test.c -o transaction_test \
 		../common/common.so ../terminal/input_data_generator.so \
 		../common/logging.so \
 		../common/transaction_data.so ../interfaces/odbc/odbc_common.so \
@@ -45,7 +45,7 @@ transaction_test: ../Makefile ../common.mk Makefile \
 		../interfaces/odbc/odbc_stock_level.so \
 		../common/client_interface.so \
 		../common/_socket.so \
-		$(ODBCLIBDIR)/libsqlod.so -lpthread -lm
+		-lodbc -lpthread -lm
 
 clean: 
 	rm -f transaction_test results

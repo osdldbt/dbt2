@@ -45,7 +45,7 @@ driver: ../Makefile \
 	../include/input_data_generator.h \
 	input_data_generator.so \
 	input_data_generator.c
-	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) main.c -o driver \
+	$(CC) $(CFLAGS) main.c -o driver \
 		../common/common.so \
 		../common/logging.so \
 		../common/_socket.so \
@@ -54,7 +54,6 @@ driver: ../Makefile \
 		driver.so \
 		input_data_generator.so \
 		-lpthread -lm
-	
 
 clean: 
 	rm -f *.so driver

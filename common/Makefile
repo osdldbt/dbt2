@@ -18,7 +18,7 @@ transaction_data.so: ../common.mk Makefile common.c ../include/common.h \
 client_interface.so: ../common.mk Makefile \
 	client_interface.c \
 	../include/client_interface.h
-	$(CC) -c -shared -fpic $(CFLAGS) -I$(ODBCINCLUDEDIR) -o $@ $<
+	$(CC) -c -shared -fpic $(CFLAGS) -o $@ $<
 
 clean: 
 	rm -f *.so

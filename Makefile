@@ -28,3 +28,4 @@ clean:
 	cd interfaces/odbc; $(MAKE) clean
 	cd tools; $(MAKE) clean
 	cd terminal; $(MAKE) clean
+	cd client; $(MAKE) clean
