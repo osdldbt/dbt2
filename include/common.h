@@ -1,10 +1,8 @@
 /*
- * common.h
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
  *
  * 16 may 2002
  */
@@ -18,8 +16,13 @@
 #include <time.h>
 #include <sys/time.h>
 
+#ifdef ODBC
 #define DB_USER "dbt"
 #define DB_PASS "dbt"
+#endif /* ODBC */
+#ifdef LIBPQ
+#define DB_NAME "dbt2"
+#endif /* LIBPQ */
 
 #define DELIVERY 0
 #define NEW_ORDER 1
@@ -95,8 +98,7 @@
 
 #define CLIENT_PORT 30000
 
-struct table_cardinality_t
-{
+struct table_cardinality_t {
 	int warehouses;
 	int districts;
 	int customers;
