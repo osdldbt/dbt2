@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 1062 2003-06-03 16:43:03Z fimath $)
+AC_REVISION($Id: configure.in 1064 2003-06-03 17:40:45Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
@@ -119,8 +119,10 @@ if test "x$database_to_use" = "xpgsql"; then
 		pq,
 		,
 		AC_MSG_ERROR([libpq required]))
+	AC_DEFINE(LIBPQ)
 	database_interface="interfaces/libpq/Makefile"
 	INTERFACE_OBJ="libpq_obj"
+	DB_OBJS="LIBPQ_OBJS"
 elif test "x$database_to_use" = "xsapdb"; then
 	dnl>
 	dnl> ODBC Library (required)
@@ -133,12 +135,15 @@ elif test "x$database_to_use" = "xsapdb"; then
 		odbc iodbc,
 		,
 		AC_MSG_ERROR([unixODBC or iODBC required]))
+	AC_DEFINE(ODBC)
 	database_interface="interfaces/odbc/Makefile"
 	INTERFACE_OBJ="odbc_obj"
+	DB_OBJS="ODBC_OBJS"
 else
 	AC_MSG_ERROR('You stink at autoconf!')
 fi
 AC_SUBST(INTERFACE_OBJ)
+AC_SUBST(DB_OBJS)
 
 
 TOPDIR=`pwd`
