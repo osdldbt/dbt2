@@ -13,6 +13,7 @@
 #include <string.h>
 #include <common.h>
 #include <transaction_data.h>
+#include <driver.h>
 
 int generate_delivery_data(int w_id, struct delivery_t *data);
 int generate_new_order_data(int w_id, struct new_order_t *data);
