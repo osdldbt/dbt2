@@ -22,6 +22,6 @@
 	"?, ?, ?, ?, ?, ?, " \
 	"?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
-int execute_payment(struct odbc_context_t *odbcc, struct payment_t *data);
+int execute_payment(struct db_context_t *odbcc, struct payment_t *data);
 
 #endif /* _ODBC_PAYMENT_H_ */

@@ -1,10 +1,8 @@
 /*
- * odbc_common.h
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *  
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
  *
  * 11 june 2002
  */
@@ -12,9 +10,6 @@
 #ifndef _ODBC_COMMON_H_
 #define _ODBC_COMMON_H_
 
-/*
-#include <WINDOWS.H>
-*/
 #include <sql.h>
 #include <sqlext.h>
 #include <sqltypes.h>
@@ -28,14 +23,12 @@
 #define COMMIT "COMMIT"
 #define ROLLBACK "ROLLBACK"
 
-struct odbc_context_t
-{
+struct db_context_t {
 	SQLHDBC hdbc;
 	SQLHSTMT hstmt;
 };
 
-union odbc_transaction_t
-{
+union odbc_transaction_t {
 	struct delivery_t delivery;
 	struct new_order_t new_order;
 	struct order_status_t order_status;
@@ -46,8 +39,8 @@ union odbc_transaction_t
 int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc);
 int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
 	SQLHANDLE handle);
-int odbc_connect(struct odbc_context_t *odbcc);
-int odbc_disconnect(struct odbc_context_t *odbcc);
+int odbc_connect(struct db_context_t *odbcc);
+int odbc_disconnect(struct db_context_t *odbcc);
 int odbc_init(char *sname, char *uname, char *auth);
 
 #endif /* _ODBC_COMMON_H_ */

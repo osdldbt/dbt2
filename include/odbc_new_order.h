@@ -37,6 +37,6 @@
 	"?, ?, " \
 	"?, ?, ?, ?)"
 
-int execute_new_order(struct odbc_context_t *odbcc, struct new_order_t *data);
+int execute_new_order(struct db_context_t *odbcc, struct new_order_t *data);
 
 #endif /* _ODBC_NEW_ORDER_H_ */

@@ -37,7 +37,7 @@
 	"?, ?, ?, ?, ?, " \
 	"?, ?, ?, ?, ?)"
 
-int execute_order_status(struct odbc_context_t *odbcc,
+int execute_order_status(struct db_context_t *odbcc,
 	struct order_status_t *data);
 
 #endif /* _ODBC_ORDER_STATUS_H_ */
