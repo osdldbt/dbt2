@@ -10,6 +10,8 @@
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
+#define _LARGEFILE64_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -56,7 +58,7 @@ int gen_customers(int warehouses, int customers)
 		strcat(filename, "/");
 	}
 	strcat(filename, CUSTOMER_DATA);
-	output = fopen(filename, "w");
+	output = fopen64(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", CUSTOMER_DATA);
@@ -200,7 +202,7 @@ int gen_districts(int warehouses)
 		strcat(filename, "/");
 	}
 	strcat(filename, DISTRICT_DATA);
-	output = fopen(filename, "w");
+	output = fopen64(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", DISTRICT_DATA);
@@ -285,7 +287,7 @@ int gen_history(int warehouses, int customers)
 		strcat(filename, "/");
 	}
 	strcat(filename, HISTORY_DATA);
-	output = fopen(filename, "w");
+	output = fopen64(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", HISTORY_DATA);
@@ -363,7 +365,7 @@ int gen_items(int items)
 		strcat(filename, "/");
 	}
 	strcat(filename, ITEM_DATA);
-	output = fopen(filename, "w");
+	output = fopen64(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", ITEM_DATA);
@@ -419,7 +421,7 @@ int gen_new_orders(int warehouses, int orders, int new_orders)
 		strcat(filename, "/");
 	}
 	strcat(filename, NEW_ORDER_DATA);
-	output = fopen(filename, "w");
+	output = fopen64(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", NEW_ORDER_DATA);
@@ -484,7 +486,7 @@ int gen_orders(int warehouses, int customers, int orders)
 		strcat(filename, "/");
 	}
 	strcat(filename, ORDER_DATA);
-	order = fopen(filename, "w");
+	order = fopen64(filename, "w");
 	if (order == NULL)
 	{
 		printf("cannot open %s\n", ORDER_DATA);
@@ -497,7 +499,7 @@ int gen_orders(int warehouses, int customers, int orders)
 		strcat(filename, "/");
 	}
 	strcat(filename, ORDER_LINE_DATA);
-	order_line = fopen(filename, "w");
+	order_line = fopen64(filename, "w");
 	if (order_line == NULL)
 	{
 		printf("cannot open %s\n", ORDER_LINE_DATA);
@@ -699,7 +701,7 @@ int gen_stock(int warehouses, int stock)
 		strcat(filename, "/");
 	}
 	strcat(filename, STOCK_DATA);
-	output = fopen(filename, "w");
+	output = fopen64(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", STOCK_DATA);
@@ -816,7 +818,7 @@ int gen_warehouses(int warehouses)
 		strcat(filename, "/");
 	}
 	strcat(filename, WAREHOUSE_DATA);
-	output = fopen(filename, "w");
+	output = fopen64(filename, "w");
 	if (output == NULL)
 	{
 		printf("cannot open %s\n", WAREHOUSE_DATA);
