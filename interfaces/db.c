@@ -22,6 +22,7 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 {
 	int rc;
 	int i;
+	int status;
 
 	switch (transaction)
 	{
@@ -68,20 +69,20 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 	{
 		/* Commit. */
 		i = SQLEndTran(SQL_HANDLE_DBC, odbcc->hdbc, SQL_COMMIT);
+		status = OK;
 	}
 	else
 	{
 		/* Rollback. */
 		i = SQLEndTran(SQL_HANDLE_DBC, odbcc->hdbc, SQL_ROLLBACK);
-		LOG_ERROR_MESSAGE("rollback occured for %s\n",
-			transaction_name[transaction]);
+		status = STATUS_ROLLBACK;
 	}
 	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO)
 	{
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
-		return ERROR;
+		status = ERROR;
 	}
 
-	return OK;
+	return status;
 }
 #endif /* ODBC */
