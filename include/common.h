@@ -38,6 +38,7 @@
 #define OK 1
 #define EXIT_CODE 2
 #define ERROR_SOCKET_CLOSED 3
+#define STATUS_ROLLBACK 4
 
 #define A_STRING_CHAR_LEN 128
 #define L_STRING_CHAR_LEN 52
