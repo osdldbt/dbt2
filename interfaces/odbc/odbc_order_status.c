@@ -167,7 +167,7 @@ int execute_order_status(struct odbc_context_t *odbcc,
 
 	/* Execute stored procedure. */
 	rc = SQLExecute(odbcc->hstmt);
-	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
+	if (check_odbc_rc(SQL_HANDLE_STMT, odbcc->hstmt, rc) == ERROR)
 	{
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
 		return ERROR;
