@@ -34,17 +34,17 @@
 #define STOCK_CARDINALITY 100000
 #define NEW_ORDER_CARDINALITY 900
 
-int gen_customers(int warehouses);
+int gen_customers(int warehouses, int customers);
 int gen_districts(int warehouses);
-int gen_history(int warehouses);
-int gen_items();
-int gen_new_order(int warehouses);
-int gen_orders(int warehouses);
-int gen_stock(int warehouses);
+int gen_history(int warehouses, int customers);
+int gen_items(int items);
+int gen_new_order(int warehouses, int orders, int new_orders);
+int gen_orders(int warehouses, int customers, int orders);
+int gen_stock(int warehouses, int stock);
 int gen_warehouses(int warehouses);
 
 /* Clause 4.3.3.1 */
-int gen_customers(int warehouses)
+int gen_customers(int warehouses, int customers)
 {
 	FILE *output;
 	int i, j, k;
@@ -65,7 +65,7 @@ int gen_customers(int warehouses)
 	{
 		for (j = 0; j < DISTRICT_CARDINALITY; j++)
 		{
-			for (k = 0; k < CUSTOMER_CARDINALITY; k++)
+			for (k = 0; k < customers; k++)
 			{
 				/* c_id */
 				fprintf(output, "\"%d\"", k + 1);
@@ -259,7 +259,7 @@ int gen_districts(int warehouses)
 }
 
 /* Clause 4.3.3.1 */
-int gen_history(int warehouses)
+int gen_history(int warehouses, int customers)
 {
 	FILE *output;
 	int i, j, k;
@@ -280,7 +280,7 @@ int gen_history(int warehouses)
 	{
 		for (j = 0; j < DISTRICT_CARDINALITY; j++)
 		{
-			for (k = 0; k < CUSTOMER_CARDINALITY; k++)
+			for (k = 0; k < customers; k++)
 			{
 				/* h_c_id */
 				fprintf(output, "\"%d\"", k + 1);
@@ -331,7 +331,7 @@ int gen_history(int warehouses)
 }
 
 /* Clause 4.3.3.1 */
-int gen_items()
+int gen_items(int items)
 {
 	FILE *output;
 	int i;
@@ -347,7 +347,7 @@ int gen_items()
 		return ERROR;
 	}
 
-	for (i = 0; i < ITEM_CARDINALITY; i++)
+	for (i = 0; i < items; i++)
 	{
 		/* i_id */
 		fprintf(output, "\"%d\"", i + 1);
@@ -382,7 +382,7 @@ int gen_items()
 }
 
 /* Clause 4.3.3.1 */
-int gen_new_orders(int warehouses)
+int gen_new_orders(int warehouses, int orders, int new_orders)
 {
 	FILE *output;
 	int i, j, k;
@@ -400,8 +400,8 @@ int gen_new_orders(int warehouses)
 	{
 		for (j = 0; j < DISTRICT_CARDINALITY; j++)
 		{
-			for (k = ORDER_CARDINALITY - NEW_ORDER_CARDINALITY;
-				k < ORDER_CARDINALITY; k++)
+			for (k = orders - new_orders;
+				k < orders; k++)
 			{
 				/* no_o_id */
 				fprintf(output, "\"%d\"", k + 1);
@@ -422,8 +422,9 @@ int gen_new_orders(int warehouses)
 
 	return OK;
 }
+
 /* Clause 4.3.3.1 */
-int gen_orders(int warehouses)
+int gen_orders(int warehouses, int customers, int orders)
 {
 	FILE *order, *order_line;
 	int i, j, k, l;
@@ -464,11 +465,14 @@ int gen_orders(int warehouses)
 	{
 		for (j = 0; j < DISTRICT_CARDINALITY; j++)
 		{
-			/* Create a random list of numbers from 1 to 3000 for o_c_id. */
+			/*
+			 * Create a random list of numbers from 1 to customers for
+			 * o_c_id.
+			 */
 			head = (struct node_t *) malloc(sizeof(struct node_t));
 			head->value = 1;
 			head->next = NULL;
-			for (k = 2; k <= 3000; k++)
+			for (k = 2; k <= customers; k++)
 			{
 				current = prev = head;
 
@@ -504,7 +508,7 @@ int gen_orders(int warehouses)
 				new_node->value = k;
 			}
 
-			for (k = 0; k < ORDER_CARDINALITY; k++)
+			for (k = 0; k < orders; k++)
 			{
 				/* o_id */
 				fprintf(order, "\"%d\"", k + 1);
@@ -637,7 +641,7 @@ int gen_orders(int warehouses)
 }
 
 /* Clause 4.3.3.1 */
-int gen_stock(int warehouses)
+int gen_stock(int warehouses, int stock)
 {
 	FILE *output;
 	int i, j, k;
@@ -654,7 +658,7 @@ int gen_stock(int warehouses)
 
 	for (i = 0; i < warehouses; i++)
 	{
-		for (j = 0; j < STOCK_CARDINALITY; j++)
+		for (j = 0; j < stock; j++)
 		{
 			/* s_i_id */
 			fprintf(output, "\"%d\"", j + 1);
@@ -813,30 +817,104 @@ int gen_warehouses(int warehouses)
 
 int main(int argc, char *argv[])
 {
+	int i;
 	FILE *p;
-	int warehouses;
+	int warehouses = 0;
+	int customers = CUSTOMER_CARDINALITY;
+	int items = ITEM_CARDINALITY;
+	int orders = ORDER_CARDINALITY;
+	int stock = STOCK_CARDINALITY;
+	int new_orders = NEW_ORDER_CARDINALITY;
 	char pwd[256];
 	char cmd[256];
 
-	if (argc != 2)
+	if (argc < 2)
 	{
-		printf("usage: %s <warehouses>\n", argv[0]);
+		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #]\n", argv[0]);
+		printf("\n");
+		printf("-w #\n");
+		printf("\twarehouse cardinality\n");
+		printf("-c #\n");
+		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
+		printf("-i #\n");
+		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
+		printf("-o #\n");
+		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
+		printf("-s #\n");
+		printf("\tstock cardinality, default %d\n", STOCK_CARDINALITY);
+		printf("-n #\n");
+		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		return 1;
 	}
 
+	/* Parse command line arguments. */
+	for (i = 1; i < argc; i += 2)
+	{
+		/* Check for exact length of a flag: i.e. -c */
+		if (strlen(argv[i]) != 2)
+		{
+			printf("invalid flag: %s\n", argv[i]);
+			return 2;
+		}
+
+		/* Handle the recognized flags. */
+		if (argv[i][1] == 'w')
+		{
+			warehouses = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'c')
+		{
+			customers = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'i')
+		{
+			items = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'o')
+		{
+			orders = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 's')
+		{
+			stock = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'n')
+		{
+			new_orders = atoi(argv[i + 1]);
+		}
+		else
+		{
+			printf("invalid flag: %s\n", argv[i]);
+			return 2;
+		}
+	}
+
+	if (warehouses == 0)
+	{
+		printf("-w must be used\n");
+		return 3;
+	}
+
+	printf("warehouses = %d\n", warehouses);
+	printf("districts = %d\n", DISTRICT_CARDINALITY);
+	printf("customers = %d\n", customers);
+	printf("items = %d\n", items);
+	printf("orders = %d\n", orders);
+	printf("stock = %d\n", stock);
+	printf("new_orders = %d\n", new_orders);
+	printf("\n");
+
 	init_common();
 
-	warehouses = atoi(argv[1]);
-
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
-	gen_items();
+	gen_items(items);
 	gen_warehouses(warehouses);
-	gen_stock(warehouses);
+	gen_stock(warehouses, stock);
 	gen_districts(warehouses);
-	gen_customers(warehouses);
-	gen_history(warehouses);
-	gen_orders(warehouses);
-	gen_new_orders(warehouses);
+	gen_customers(warehouses, customers);
+	gen_history(warehouses, customers);
+	gen_orders(warehouses, customers, orders);
+	gen_new_orders(warehouses, orders, new_orders);
 
 	/*
 	 * In my environment, I don't have enough /tmp space to put the data files
