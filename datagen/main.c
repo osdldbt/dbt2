@@ -51,6 +51,7 @@ int new_orders = NEW_ORDER_CARDINALITY;
 
 int mode_string = MODE_SAPDB;
 char delimiter = ',';
+char null_str[16] = "\"NULL\"";
 
 /* Oh my gosh, is there a better way to do this? */
 #define FPRINTF(a, b, c) \
@@ -65,12 +66,22 @@ char delimiter = ',';
 	} else if (mode_string == MODE_PGSQL) { \
 		fprintf(a, b); \
 	}
-#define FPRINTF3(a, b, c, d, e, f, g, h) \
-	if (mode_string == MODE_SAPDB) { \
-		fprintf(a, "\""b"\"", c, d, e, f, g, h); \
-	} else if (mode_string == MODE_PGSQL) { \
-		fprintf(a, b, c, d, e, f, g, h); \
+
+void print_timestamp(FILE *ofile, struct tm *date)
+{
+	if (mode_string == MODE_SAPDB) {
+		fprintf(ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
+			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
+			date->tm_hour, date->tm_min, date->tm_sec);
+	} else if (mode_string == MODE_PGSQL) {
+		fprintf(ofile, "%04d-%02d-%02d %02d:%02d:%02d",
+			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
+			date->tm_hour, date->tm_min, date->tm_sec);
+	} else {
+		printf("unknown string mode: %d\n", mode_string);
+		exit(1);
 	}
+}
 
 /* Clause 4.3.3.1 */
 void gen_customers()
@@ -168,11 +179,7 @@ void gen_customers()
 				 */
 				time(&t1);
 				tm1 = localtime(&t1);
-				FPRINTF3(output,
-					"%04d%02d%02d%02d%02d%02d000000",
-					tm1->tm_year + 1900, tm1->tm_mon + 1,
-					tm1->tm_mday, tm1->tm_hour,
-					tm1->tm_min, tm1->tm_sec);
+				print_timestamp(output, tm1);
 				fprintf(output, "%c", delimiter);
 
 				/* c_credit */
@@ -356,11 +363,7 @@ void gen_history()
 				 */
 				time(&t1);
 				tm1 = localtime(&t1);
-				FPRINTF3(output,
-					"%04d%02d%02d%02d%02d%02d000000",
-					tm1->tm_year + 1900, tm1->tm_mon + 1,
-					tm1->tm_mday, tm1->tm_hour,
-					tm1->tm_min, tm1->tm_sec);
+				print_timestamp(output, tm1);
 				fprintf(output, "%c", delimiter);
 
 				/* h_amount */
@@ -579,13 +582,6 @@ void gen_orders()
 				FPRINTF(order, "%d", k + 1);
 				fprintf(order, "%c", delimiter);
 
-				/* o_c_id */
-				current = head;
-				head = head->next;
-				FPRINTF(order, "%d", current->value);
-				fprintf(order, "%c", delimiter);
-				free(current);
-
 				/* o_d_id */
 				FPRINTF(order, "%d", j + 1);
 				fprintf(order, "%c", delimiter);
@@ -593,6 +589,13 @@ void gen_orders()
 				/* o_w_id */
 				FPRINTF(order, "%d", i + 1);
 				fprintf(order, "%c", delimiter);
+
+				/* o_c_id */
+				current = head;
+				head = head->next;
+				FPRINTF(order, "%d", current->value);
+				fprintf(order, "%c", delimiter);
+				free(current);
 
 				/* o_entry_d */
 				/*
@@ -602,18 +605,14 @@ void gen_orders()
 				 */
 				time(&t1);
 				tm1 = localtime(&t1);
-				FPRINTF3(order,
-					"%04d%02d%02d%02d%02d%02d000000",
-					tm1->tm_year + 1900, tm1->tm_mon + 1,
-					tm1->tm_mday, tm1->tm_hour,
-					tm1->tm_min, tm1->tm_sec);
+				print_timestamp(order, tm1);
 				fprintf(order, "%c", delimiter);
 
 				/* o_carrier_id */
 				if (k < 2101) {
 					FPRINTF(order, "%d", get_random(9) + 1);
 				} else {
-					FPRINTF2(order, "NULL");
+					fprintf(order, "%s", null_str);
 				}
 				fprintf(order, "%c", delimiter);
 
@@ -667,16 +666,10 @@ void gen_orders()
 						 */
 						time(&t1);
 						tm1 = localtime(&t1);
-						FPRINTF3(order_line,
-							"%04d%02d%02d%02d%02d%02d000000",
-							tm1->tm_year + 1900,
-							tm1->tm_mon + 1,
-							tm1->tm_mday,
-							tm1->tm_hour,
-							tm1->tm_min,
-							tm1->tm_sec);
+						print_timestamp(order_line, tm1);
 					} else {
-						FPRINTF2(order_line, "NULL");
+						fprintf(order_line, "%s",
+							null_str);
 					}
 					fprintf(order_line, "%c", delimiter);
 
@@ -976,8 +969,10 @@ int main(int argc, char *argv[])
 	/* Set the correct delimiter. */
 	if (mode_string == MODE_SAPDB) {
 		delimiter = ',';
+		strcpy(null_str, "\"NULL\"");
 	} else if (mode_string == MODE_PGSQL) {
 		delimiter = '\t';
+		strcpy(null_str, "\\NULL");
 	}
 
 	printf("warehouses = %d\n", warehouses);
