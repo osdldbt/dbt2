@@ -17,7 +17,10 @@
 #include "logging.h"
 #include "transaction_data.h"
 
-char sname[32] = "";
+char connect_str[32] = "";
+#ifdef LIBPQ
+char postmaster_port[32];
+#endif /* LIBPQ */
 int mode_altered = 0;
 
 int main(int argc, char *argv[])
@@ -35,14 +38,24 @@ int main(int argc, char *argv[])
 	init_logging();
 
 	if (argc < 3) {
-		printf("usage: %s -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-n #] [-p #]\n",
+		printf("usage: %s -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-n #] [-p #]",
 			argv[0]);
-		printf("\n");
+#ifdef LIBPQ
+		printf(" -l #");
+#endif /* LIBPQ */
+		printf("\n\n");
 		printf("-d <connect string>\n");
+#ifdef ODBC
 		printf("\tdatabase connect string\n");
-		printf("-t d/n/o/p/s\n");
-		printf("\td = Delivery. n = New-Order. o = Order-Status\n");
-		printf("\tp = Payment. s = Stock-Level\n");
+#endif /* ODBC */
+#ifdef LIBPQ
+		printf("\tdatabase hostname\n");
+		printf("-l #\n");
+		printf("\tport of the postmaster\n");
+#endif /* LIBPQ */
+		printf("-t (d|n|o|p|s)\n");
+		printf("\td = Delivery, n = New-Order, o = Order-Status,\n");
+		printf("\tp = Payment, s = Stock-Level\n");
 		printf("-w #\n");
 		printf("\tnumber of warehouses, default 1\n");
 		printf("-c #\n");
@@ -56,8 +69,8 @@ int main(int argc, char *argv[])
 		printf("\tnew-order cardinality, default %d\n",
 			NEW_ORDER_CARDINALITY);
 		printf("-p #\n");
-		printf("\tport of client program, if used -d takes the address\n");
-		printf("\tof the client program\n");
+		printf("\tport of client program, if -d is used, -d takes the address\n");
+		printf("\tof the client program host system\n");
 		return 1;
 	}
 
@@ -67,7 +80,7 @@ int main(int argc, char *argv[])
 			return 2;
 		}
 		if (argv[i][1] == 'd') {
-			strcpy(sname, argv[i + 1]);
+			strcpy(connect_str, argv[i + 1]);
 		} else if (argv[i][1] == 't') {
 			if (argv[i + 1][0] == 'd') {
 				transaction = DELIVERY;
@@ -96,13 +109,17 @@ int main(int argc, char *argv[])
 			table_cardinality.new_orders = atoi(argv[i + 1]);
 		} else if (argv[i][1] == 'p') {
 			port = atoi(argv[i + 1]);
+#ifdef LIBPQ
+		} else if (argv[i][1] == 'l') {
+			strcpy(postmaster_port, argv[i + 1]);
+#endif /* LIBPQ */
 		} else {
 			printf("invalid flag: %s\n", argv[i]);
 			return 2;
 		}
 	}
 
-	if (strlen(sname) == 0) {
+	if (strlen(connect_str) == 0) {
 		printf("-d flag was not used.\n");
 		return 4;
 	}
@@ -163,10 +180,10 @@ int main(int argc, char *argv[])
 		printf("connecting directly to the database...\n");
 		bzero(&transaction_data, sizeof(union transaction_data_t));
 #ifdef ODBC
-		db_init(sname, DB_USER, DB_PASS);
+		db_init(connect_str, DB_USER, DB_PASS);
 #endif /* ODBC */
 #ifdef LIBPQ
-		db_init("dbt2", "localhost", "5432", "", "");
+		db_init(DB_NAME, connect_str, postmaster_port);
 #endif /* LIBPQ */
 		if (connect_to_db(&dbc) != OK) {
 			printf("cannot establish a database connection\n");
@@ -183,7 +200,7 @@ int main(int argc, char *argv[])
 		/* Process transaction by connecting to the client program. */
 		printf("connecting to client program on port %d...\n", port);
 
-		sockfd = connect_to_client(sname, port);
+		sockfd = connect_to_client(connect_str, port);
 		if (sockfd > 0) {
 			printf("connected to client\n");
 		}
