@@ -82,12 +82,12 @@ struct transaction_queue_node_t *dequeue_transaction()
 #endif /* DEBUG */
 	pthread_mutex_unlock(&mutex_queue);
 
-	pthread_mutex_lock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
-	--transaction_counter[QUEUED][node->client_data.transaction];
-	pthread_mutex_unlock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
-	pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
-	++transaction_counter[EXECUTING][node->client_data.transaction];
-	pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
+	pthread_mutex_lock(&mutex_transaction_counter[REQ_QUEUED][node->client_data.transaction]);
+	--transaction_counter[REQ_QUEUED][node->client_data.transaction];
+	pthread_mutex_unlock(&mutex_transaction_counter[REQ_QUEUED][node->client_data.transaction]);
+	pthread_mutex_lock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
+	++transaction_counter[REQ_EXECUTING][node->client_data.transaction];
+	pthread_mutex_unlock(&mutex_transaction_counter[REQ_EXECUTING][node->client_data.transaction]);
 
 	return node;
 }
@@ -95,9 +95,9 @@ struct transaction_queue_node_t *dequeue_transaction()
 /* Enqueue to the tail. */
 int enqueue_transaction(struct transaction_queue_node_t *node)
 {
-	pthread_mutex_lock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
-	++transaction_counter[QUEUED][node->client_data.transaction];
-	pthread_mutex_unlock(&mutex_transaction_counter[QUEUED][node->client_data.transaction]);
+	pthread_mutex_lock(&mutex_transaction_counter[REQ_QUEUED][node->client_data.transaction]);
+	++transaction_counter[REQ_QUEUED][node->client_data.transaction];
+	pthread_mutex_unlock(&mutex_transaction_counter[REQ_QUEUED][node->client_data.transaction]);
 
 	pthread_mutex_lock(&mutex_queue);
 	node->next = NULL;
