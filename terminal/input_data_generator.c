@@ -70,7 +70,7 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 	for (i = 0; i < data->o_ol_cnt; i++)
 	{
 		data->order_line[i].ol_i_id = get_nurand(8191, 1, 100000);
-		if (w_id_max > 1)
+		if (table_cardinality.warehouses > 1)
 		{
 			if (get_random(100) > 0)
 			{
@@ -79,7 +79,7 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 			else
 			{
 				data->order_line[i].ol_supply_w_id =
-					get_random(w_id_max - 1) + 1;
+					get_random(table_cardinality.warehouses - 1) + 1;
 				if (data->order_line[i].ol_supply_w_id >= w_id)
 				{
 					++data->order_line[i].ol_supply_w_id;
@@ -149,9 +149,9 @@ int generate_payment_data(int w_id, struct payment_t *data)
 	else
 	{
 		data->c_d_id = get_random(D_ID_MAX) + 1;
-		if (w_id_max > 1)
+		if (table_cardinality.warehouses > 1)
 		{
-			data->c_w_id = get_random(w_id_max - 1) + 1;
+			data->c_w_id = get_random(table_cardinality.warehouses - 1) + 1;
 			if (data->c_w_id >= w_id)
 			{
 				++data->c_w_id;

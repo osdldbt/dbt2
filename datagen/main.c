@@ -821,6 +821,8 @@ int main(int argc, char *argv[])
 	char pwd[256];
 	char cmd[256];
 
+	init_common();
+
 	if (argc < 2)
 	{
 		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #]\n", argv[0]);
@@ -896,8 +898,6 @@ int main(int argc, char *argv[])
 	printf("stock = %d\n", stock);
 	printf("new_orders = %d\n", new_orders);
 	printf("\n");
-
-	init_common();
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 	gen_items(items);

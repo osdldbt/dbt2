@@ -79,6 +79,17 @@
 #define ERROR_LOG_NAME "error.log"
 #define LOG_ERROR_MESSAGE(arg...) log_error_message(__FILE__, __LINE__, ## arg)
 
+struct table_cardinality_t
+{
+	int warehouses;
+	int districts;
+	int customers;
+	int items;
+	int orders;
+	int stock;
+	int new_orders;
+};
+
 /* Prototypes */
 
 void get_a_string(char *a_string, int x, int y);
@@ -91,6 +102,6 @@ int get_random(int max);
 int init_common();
 
 extern const char *c_last_syl[C_LAST_SYL_MAX];
-extern int w_id_max;
+extern struct table_cardinality_t table_cardinality;
 
 #endif /* _COMMON_H_ */

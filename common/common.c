@@ -30,7 +30,7 @@ const char *c_last_syl[C_LAST_SYL_MAX] =
 FILE *log_error;
 pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
 
-int w_id_max;
+struct table_cardinality_t table_cardinality;
 
 /* Clause 4.3.2.2.  */
 void get_a_string(char *a_string, int x, int y)
@@ -125,6 +125,15 @@ int init_common()
 	int i, j;
 
 	srand(1);
+
+	/* Initialize struct to have default table cardinalities. */
+	table_cardinality.warehouses = 1;
+	table_cardinality.districts = DISTRICT_CARDINALITY;
+	table_cardinality.customers = CUSTOMER_CARDINALITY;
+	table_cardinality.items = ITEM_CARDINALITY;
+	table_cardinality.orders = ORDER_CARDINALITY;
+	table_cardinality.stock = STOCK_CARDINALITY;
+	table_cardinality.new_orders = NEW_ORDER_CARDINALITY;
 
 	/*
 	 * Initialize a-string character set to 128 ascii characters.

@@ -25,19 +25,33 @@ int main(int argc, char *argv[])
 	struct odbc_context_t odbcc;
 	union odbc_transaction_t odbc_data;
 
+	init_common();
+
 	if (argc < 5)
 	{
-		printf("usage: %s -d <connect string> -t <transaction> [-w w_id_max]\n",
+		printf("usage: %s -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-s #] [-n #]\n",
 			argv[0]);
-		printf("  <transaction>:  d - Delivery\n");
-		printf("                  n - New-Order\n");
-		printf("                  o - Order-Status\n");
-		printf("                  p - Payment\n");
-		printf("                  s - Stock-Level\n");
+		printf("\n");
+		printf("-d <connect string>\n");
+		printf("\tdatabase connect string\n");
+		printf("-t d/n/o/p/s\n");
+		printf("\td = Delivery. n = New-Order. o = Order-Status\n");
+		printf("\tp = Payment. s = Stock-Level\n");
+		printf("-w #\n");
+		printf("\tNumber of warehouses,  default 1\n");
+		printf("-c #\n");
+		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
+		printf("-i #\n");
+		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
+		printf("-o #\n");
+		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
+		printf("-s #\n");
+		printf("\tstock cardinality, default %d\n", STOCK_CARDINALITY);
+		printf("-n #\n");
+		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		return 1;
 	}
 
-	w_id_max = 1;
 	for (i = 1; i < argc; i += 2)
 	{
 		if (strlen(argv[i]) != 2)
@@ -79,7 +93,27 @@ int main(int argc, char *argv[])
 		}
 		else if (argv[i][1] == 'w')
 		{
-			w_id_max = atoi(argv[i + 1]);
+			table_cardinality.warehouses = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'c')
+		{
+			table_cardinality.customers = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'i')
+		{
+			table_cardinality.items = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'o')
+		{
+			table_cardinality.orders = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 's')
+		{
+			table_cardinality.stock = atoi(argv[i + 1]);
+		}
+		else if (argv[i][1] == 'n')
+		{
+			table_cardinality.new_orders = atoi(argv[i + 1]);
 		}
 		else
 		{
@@ -100,10 +134,18 @@ int main(int argc, char *argv[])
 		return 5;
 	}
 
-	init_common();
-	bzero(&odbc_data, sizeof(union odbc_transaction_t));
+	/* Double check database table cardinality. */
+	printf("warehouses = %d\n", table_cardinality.warehouses);
+	printf("districts = %d\n", table_cardinality.districts);
+	printf("customers = %d\n", table_cardinality.customers);
+	printf("items = %d\n", table_cardinality.items);
+	printf("orders = %d\n", table_cardinality.orders);
+	printf("stock = %d\n", table_cardinality.stock);
+	printf("new-orders = %d\n", table_cardinality.new_orders);
+
 	srand(time(NULL));
 #ifdef ODBC
+	bzero(&odbc_data, sizeof(union odbc_transaction_t));
 	odbc_init(sname, DB_USER, DB_PASS);
 	if (odbc_connect(&odbcc) != OK)
 	{
@@ -114,24 +156,25 @@ int main(int argc, char *argv[])
 	{
 		case DELIVERY:
 			generate_input_data(DELIVERY, (void *) &odbc_data.delivery,
-				get_random(w_id_max) + 1);
+				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case NEW_ORDER:
 			generate_input_data(NEW_ORDER, (void *) &odbc_data.new_order,
-				get_random(w_id_max) + 1);
+				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case ORDER_STATUS:
 			generate_input_data(ORDER_STATUS,
 				(void *) &odbc_data.order_status,
-				get_random(w_id_max) + 1);
+				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case PAYMENT:
 			generate_input_data(PAYMENT, (void *) &odbc_data.payment,
-				get_random(w_id_max) + 1);
+				get_random(table_cardinality.warehouses) + 1);
 			break;
 		case STOCK_LEVEL:
 			generate_input_data2(STOCK_LEVEL, (void *) &odbc_data.stock_level,
-				get_random(w_id_max) + 1, get_random(D_ID_MAX) + 1);
+				get_random(table_cardinality.warehouses) + 1,
+				get_random(table_cardinality.districts) + 1);
 			break;
 	}
 	process_transaction(transaction, &odbcc, &odbc_data);

@@ -31,6 +31,8 @@ int main(int argc, char *argv[])
 	int count;
 	char command[128];
 
+	init_common();
+
 	if (parse_arguments(argc, argv) != OK)
 	{
 		printf("usage: %s -d <db_name> -c # [-p #]\n", argv[0]);
@@ -163,8 +165,6 @@ int startup()
 {
 	int i;
 	pthread_t tid;
-
-	init_common();
 
 	sockfd = _listen(port);
 	if (sockfd < 1)
