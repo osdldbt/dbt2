@@ -18,13 +18,12 @@ BEGIN
     BEGIN
       FETCH INTO :ol_i_id;
       SELECT s_quantity
+      INTO :s_quantity
       FROM dbt.stock
       WHERE s_i_id = :ol_i_id
-        AND s_w_id = :w_id
-        AND s_quantity < :threshold;
-      IF $rc = 0 THEN
+        AND s_w_id = :w_id;
+      IF s_quantity < threshold THEN
         BEGIN
-          FETCH INTO :s_quantity;
           SET low_stock = low_stock + s_quantity;
         END;
     END;
