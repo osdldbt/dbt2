@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 	struct client_transaction_t client_txn;
 
 	init_common();
+	init_logging();
 
 	if (argc < 3)
 	{
