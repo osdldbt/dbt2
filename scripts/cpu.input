@@ -1,0 +1,7 @@
+plot "cpu_all.out" title "all" with lines, "cpu_user.out" title "user" with lines, "cpu_system.out" title "system" with lines, "cpu_nice.out" title "nice" with lines
+set xlabel "Elapsed Time (s)"
+set ylabel "% Utilized"
+set term png small color
+set output "cpu.png"
+set yrange [0:100]
+replot
