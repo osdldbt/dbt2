@@ -131,11 +131,11 @@ int parse_arguments(int argc, char *argv[])
 		}
 		if (argv[i][1] == 'd')
 		{
-			strcpy(hostname, argv[i + 1]);
+			set_client_hostname(argv[i + 1]);
 		}
 		else if (argv[i][1] == 'p')
 		{
-			port = atoi(argv[i + 1]);
+			set_client_port(atoi(argv[i + 1]));
 		}
 		else if (argv[i][1] == 'u')
 		{
