@@ -16,8 +16,8 @@
 #include <semaphore.h>
 #include <client_interface.h>
 
-#define QUEUED 0
-#define EXECUTING 1
+#define REQ_QUEUED 0
+#define REQ_EXECUTING 1
 
 struct transaction_queue_node_t
 {
