@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.in 1243 2005-03-11 06:39:55Z fimath $)
+AC_REVISION($Id: configure.in 1248 2005-03-11 19:07:16Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.25, osdldbt-general@lists.sourceforge.net)
@@ -439,7 +439,7 @@ scripts/run_mysql.sh                \
 scripts/sysstats.sh                 \
 scripts/transform_sar.sh            \
 scripts/run_workload.sh             \
-scripts/pgsql/pgsql_profile.in      \
+scripts/pgsql/pgsql_profile         \
 scripts/pgsql/db_stat.sh            \
 scripts/Linux/get_os_info.sh        \
 scripts/SunOS/get_os_info.sh        \
