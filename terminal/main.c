@@ -164,6 +164,7 @@ int main(int argc, char *argv[])
 	printf("order-status thinking time %d ms\n", think_time.order_status);
 	printf("payment thinking time %d ms\n", think_time.payment);
 	printf("stock-level thinking time %d ms\n", think_time.stock_level);
+	printf("\n");
 
 	printf("w_id range %d to %d\n", w_id_min, w_id_max);
 	printf("\n");
