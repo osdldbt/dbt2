@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include <common.h>
 
 #define CUSTOMER_DATA "customer.data"
@@ -886,6 +887,7 @@ int main(int argc, char *argv[])
 	int new_orders = NEW_ORDER_CARDINALITY;
 	char pwd[256];
 	char cmd[256];
+	pid_t child_pid;
 
 	init_common();
 
@@ -966,13 +968,48 @@ int main(int argc, char *argv[])
 	printf("\n");
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
-	gen_items(items);
-	gen_warehouses(warehouses);
-	gen_stock(warehouses, items);
-	gen_districts(warehouses);
-	gen_customers(warehouses, customers);
-	gen_history(warehouses, customers);
-	gen_orders(warehouses, customers, orders);
+	child_pid = fork();
+	if (child_pid != 0)
+	{
+		gen_items(items);
+		return 0;
+	}
+	child_pid = fork();
+	if (child_pid != 0)
+	{
+		gen_warehouses(warehouses);
+		return 0;
+	}
+	child_pid = fork();
+	if (child_pid != 0)
+	{
+		gen_stock(warehouses, items);
+		return 0;
+	}
+	child_pid = fork();
+	if (child_pid != 0)
+	{
+		gen_districts(warehouses);
+		return 0;
+	}
+	child_pid = fork();
+	if (child_pid != 0)
+	{
+		gen_customers(warehouses, customers);
+		return 0;
+	}
+	child_pid = fork();
+	if (child_pid != 0)
+	{
+		gen_history(warehouses, customers);
+		return 0;
+	}
+	child_pid = fork();
+	if (child_pid != 0)
+	{
+		gen_orders(warehouses, customers, orders);
+		return 0;
+	}
 	gen_new_orders(warehouses, orders, new_orders);
 
 	/*
