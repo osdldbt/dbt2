@@ -35,6 +35,7 @@ int duration = 0;
 int stop_time;
 sem_t terminal_count;
 int w_id_min, w_id_max;
+int terminals_per_warehouse;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
@@ -56,6 +57,8 @@ pthread_mutex_t mutex_terminal_state[3][TRANSACTION_MAX] =
 
 int init_driver()
 {
+	terminals_per_warehouse = table_cardinality.districts;
+
 	transaction_mix.delivery_actual = MIX_DELIVERY;
 	transaction_mix.order_status_actual = MIX_ORDER_STATUS;
 	transaction_mix.payment_actual = MIX_PAYMENT;
@@ -209,7 +212,7 @@ int start_driver()
 		table_cardinality.districts);
 	for (i = 0; i < warehouse_count; i++)
 	{
-		for (j = 0; j < table_cardinality.districts; j++)
+		for (j = 0; j < terminals_per_warehouse; j++)
 		{
 			pthread_t tid;
 			struct terminal_context_t *tc;
@@ -236,7 +239,8 @@ int start_driver()
 
 	do
 	{
-		printf("transaction\texec\tkeying\tthinking\n");
+		sem_getvalue(&terminal_count, &count);
+		printf("transaction\texec\tkeying\tthinking [%d]\n", count);
 		for (i = 0; i < TRANSACTION_MAX; i++)
 		{
 			printf("%s", transaction_name[i]);
@@ -249,7 +253,6 @@ int start_driver()
 			printf("\n");
 		}
 		printf("\n");
-		sem_getvalue(&terminal_count, &count);
 		sleep(1);
 	}
 	while (count > 0);

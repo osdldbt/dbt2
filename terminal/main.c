@@ -20,6 +20,7 @@ int parse_arguments(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
+	/* Initialize various components. */
 	init_common();
 	init_logging();
 	init_driver();
@@ -91,6 +92,10 @@ int main(int argc, char *argv[])
 		printf("-tts #\n");
 		printf("\tstock-level thinking time, default %d ms\n",
 			THINK_TIME_STOCK_LEVEL);
+		printf("\n");
+		printf("-tpw #\n");
+		printf("\tterminals started per warehouse, default 10\n");
+
 		return 1;
 	}
 
@@ -167,6 +172,9 @@ int main(int argc, char *argv[])
 	printf("\n");
 
 	printf("w_id range %d to %d\n", w_id_min, w_id_max);
+	printf("\n");
+
+	printf("%d terminals per warehouse\n", terminals_per_warehouse);
 	printf("\n");
 
 	start_driver();
@@ -291,6 +299,10 @@ int parse_arguments(int argc, char *argv[])
 		else if (strcmp(flag, "tts") == 0)
 		{
 			think_time.stock_level = atoi(argv[i + 1]);
+		}
+		else if (strcmp(flag, "tpw") == 0)
+		{
+			terminals_per_warehouse = atoi(argv[i + 1]);
 		}
 		else
 		{
