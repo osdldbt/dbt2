@@ -1,7 +1,7 @@
 # Makefile.in
 # 31 October 2002
 
-# $Id: Makefile.in 880 2003-04-01 19:18:36Z fimath $
+# $Id: Makefile.in 1063 2003-06-03 16:43:32Z fimath $
 
 # Source directory is current directory
 srcdir=$(PWD)
@@ -20,9 +20,9 @@ MAKE_STANDALONE=	Makefile.standalone
 
 ## BUILD
 
-all: $(ALWAYS_DEPEND) $(COMMON_OBJ) $(SPECIAL_OBJ) db_obj odbc_obj tools_obj
+all: $(ALWAYS_DEPEND) $(COMMON_OBJ) $(SPECIAL_OBJ) db_obj @INTERFACE_OBJ@ tools_obj
 
-standalone:	 $(ALWAYS_DEPEND) $(COMMON_OBJ) $(STANDALONE_OBJ) db_obj odbc_obj tools_obj
+standalone:	 $(ALWAYS_DEPEND) $(COMMON_OBJ) $(STANDALONE_OBJ) db_obj @INTERFACE_OBJ@ tools_obj
 
 $(COMMON_OBJ) $(SPECIAL_OBJ):
 	cd $(srcdir)/$(patsubst %_obj,%,$@) && $(MAKE)
@@ -32,6 +32,9 @@ $(STANDALONE_OBJ):
 
 db_obj:
 	cd $(srcdir)/interfaces && $(MAKE)
+
+libpq_obj:
+	cd $(srcdir)/interfaces/libpq && $(MAKE)
 
 odbc_obj:
 	cd $(srcdir)/interfaces/odbc && $(MAKE)
@@ -43,7 +46,7 @@ tools_obj:
 ## CLEAN
 clean:
 	for dir in $(patsubst %_obj,%,$(COMMON_OBJ)) $(patsubst %_obj,%,$(SPECIAL_OBJ)) \
-			 tools interfaces interfaces/odbc ; \
+			 tools interfaces interfaces/odbc interfaces/libpq ; \
 	do \
 		cd $(srcdir)/$${dir} && $(MAKE) clean ; \
 	done
