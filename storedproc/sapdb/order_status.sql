@@ -144,18 +144,18 @@ SUBTRANS BEGIN;
       SELECT c_first, c_middle, c_last, c_balance, c_id
       INTO :c_first, :c_middle, :c_last, :c_balance, :c_id
       FROM dbt.customer
-      WHERE c_last = :c_last
-        AND c_w_id = :c_w_id
-        AND c_d_id = :c_d_id;
+      WHERE c_w_id = :c_w_id
+        AND c_d_id = :c_d_id
+        AND c_last = :c_last;
     END
   ELSE
     BEGIN
       SELECT c_first, c_middle, c_last, c_balance
       INTO :c_first, :c_middle, :c_last, :c_balance
       FROM dbt.customer
-      WHERE c_id = :c_id
-        AND c_w_id = :c_w_id
-        AND c_d_id = :c_d_id;
+      WHERE c_w_id = :c_w_id
+        AND c_d_id = :c_d_id
+        AND c_id = :c_id;
     END;
   SELECT o_id, o_carrier_id, CHAR(o_entry_d, ISO)
   FROM dbt.orders
