@@ -3,9 +3,9 @@
 
 include ../common.mk
 
-all: odbc_test
+all: transaction_test
 
-odbc_test: ../common.mk Makefile ../common/common.c ../include/common.h \
+transaction_test: ../common.mk Makefile ../common/common.c ../include/common.h \
 	../terminal/input_data_generator.c ../terminal/input_data_generator.so \
 	../include/input_data_generator.h ../common/transaction_data.c \
 	../common/transaction_data.so ../include/transaction_data.h \
@@ -21,8 +21,8 @@ odbc_test: ../common.mk Makefile ../common/common.c ../include/common.h \
 	../interfaces/odbc/odbc_delivery.c \
 	../interfaces/odbc/odbc_delivery.so \
 	../interfaces/odbc/odbc_stock_level.so \
-	odbc_test.c
-	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) odbc_test.c -o odbc_test \
+	transaction_test.c
+	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) transaction_test.c -o transaction_test \
 		../common/common.so ../terminal/input_data_generator.so \
 		../common/transaction_data.so ../interfaces/odbc/odbc_common.so \
 		../interfaces/db.so \
