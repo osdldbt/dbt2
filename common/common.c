@@ -11,9 +11,8 @@
  */
 
 #include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdarg.h>
+#include <math.h>
 #include <common.h>
 
 char a_string_char[A_STRING_CHAR_LEN];
@@ -27,10 +26,19 @@ const char *c_last_syl[C_LAST_SYL_MAX] =
 	"EING"
 };
 
+const char transaction_short_name[TRANSACTION_MAX] =
+	{ 'd', 'n', 'o', 'p', 's' };
+
 FILE *log_error;
 pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
 
 struct table_cardinality_t table_cardinality;
+
+double difftimeval(struct timeval rt1, struct timeval rt0)
+{
+	return (rt1.tv_sec - rt0.tv_sec) +
+		(double) (rt1.tv_usec - rt0.tv_usec) / 1000000.00;
+}
 
 /* Clause 4.3.2.2.  */
 void get_a_string(char *a_string, int x, int y)
@@ -118,6 +126,19 @@ double get_percentage()
 int get_random(int max)
 {
 	return (int) (get_percentage() * (double) max);
+}
+
+/*
+ * Clause 5.2.5.4
+ * Calculate and return a think time using a negative exponential function.
+ * think_time = -ln(r) * m
+ * return: think time, in milliseconds
+ * r: random number, where 0 < r <= 1
+ * mean_think_time = mean think time, in milliseconds
+ */
+int get_think_time(int mean_think_time)
+{
+	return (-1.0 * log(get_percentage() + 0.000001) * mean_think_time);
 }
 
 int init_common()
