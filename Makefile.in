@@ -1,43 +1,62 @@
 # Makefile.in
 # 31 October 2002
 
-all:		common_obj datagen_obj odbc_obj db_obj terminal_obj \
-		tools_obj client_obj
-standalone:	common_obj datagen_obj odbc_obj db_obj client_standalone_obj \
-		terminal_standalone_obj tools_obj client_standalone_obj
+# $Id: Makefile.in 867 2003-03-31 17:16:07Z fimath $
 
-client_obj:
-	cd client; $(MAKE)
+# Source directory is current directory
+srcdir=$(PWD)
 
-client_standalone_obj:
-	cd client; $(MAKE) -f Makefile.standalone
+## Object Files
+COMMON_OBJ=	common_obj datagen_obj
+SPECIAL_OBJ=	terminal_obj client_obj
+STANDALONE_OBJ=	$(patsubst %_obj,%_standalone_obj,$(SPECIAL_OBJ))
 
-common_obj:
-	cd common; $(MAKE)
+# Files to simply ensure that the system is functioning properly
+# Clean is excepted from these
+ALWAYS_DEPEND=	configure make.common Makefile
 
-datagen_obj:
-	cd datagen; $(MAKE)
+## Make files
+MAKE_STANDALONE=	Makefile.standalone
+
+## BUILD
+
+all: $(ALWAYS_DEPEND) $(COMMON_OBJ) $(SPECIAL_OBJ) db_obj odbc_obj
+
+standalone:	 $(ALWAYS_DEPEND) $(COMMON_OBJ) $(STANDALONE_OBJ) tools_obj db_obj odbc_obj
+
+$(COMMON_OBJ) $(SPECIAL_OBJ):
+	cd $(srcdir)/$(patsubst %_obj,%,$@) && $(MAKE)
+
+$(STANDALONE_OBJ):
+	cd $(srcdir)/($patsubst %_standalone_obj,%,$@) && $(MAKE) -f $(MAKE_STANDALONE)
 
 db_obj:
-	cd interfaces; $(MAKE)
+	cd $(srcdir)/interfaces && $(MAKE)
 
 odbc_obj:
-	cd interfaces/odbc; $(MAKE)
+	cd $(srcdir)/interfaces/odbc && $(MAKE)
 
-tools_obj:
-	cd tools; $(MAKE)
 
-terminal_obj:
-	cd terminal; $(MAKE)
-
-terminal_standalone_obj:
-	cd terminal; $(MAKE) -f Makefile.standalone
-
+## CLEAN
 clean:
-	cd common; $(MAKE) clean
-	cd datagen; $(MAKE) clean
-	cd interfaces; $(MAKE) clean
-	cd interfaces/odbc; $(MAKE) clean
-	cd tools; $(MAKE) clean
-	cd terminal; $(MAKE) clean
-	cd client; $(MAKE) clean
+	for dir in $(patsubst %_obj,%,$(COMMON_OBJ)) $(patsubst %_obj,%,$(SPECIAL_OBJ)) \
+			 tools interfaces interfaces/odbc ; \
+	do \
+		cd $(srcdir)/$${dir} && $(MAKE) clean ; \
+	done
+
+
+####
+# Build and Run configure files when configure or a template is updated.
+
+configure: configure.in
+	autoconf
+
+make.common: configure make.common.in
+	cd $(srcdir) && ./configure
+
+# Fix my makefile, then execute myself
+Makefile : Makefile.in configure
+	cd $(srcdir) && ./configure
+	echo "Please run $(MAKE) again"
+	false

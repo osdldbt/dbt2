@@ -1,0 +1,7 @@
+To configure:
+
+export CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+export CFLAGS="$CFLAGS -I/usr/local/include"
+export LDFLAGS="$LDFLAGS -L/usr/local/lib"
+
+./configure

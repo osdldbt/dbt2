@@ -1,3 +1,6 @@
+AC_PREREQ(2.53)
+AC_REVISION($Id: configure.in 867 2003-03-31 17:16:07Z fimath $)
+
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
 
@@ -45,7 +48,7 @@ dnl> ODBC Library (required)
 dnl> check for `odbcinit' in -lodbc, -liodbc
 dnl>
 AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h,[],[
-	AC_MSG_ERROR([could not locate SQL headers])
+	AC_MSG_ERROR([unixODBC or iODBC required])
 ])
 AC_SEARCH_LIBS(SQLDriverConnect, odbc iodbc, , AC_MSG_ERROR([unixODBC or iODBC required]))
 
