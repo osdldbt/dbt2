@@ -94,21 +94,34 @@ mkdir -p $OUTPUT_DIR
 
 # create a readme with general information
 date >> $OUTPUT_DIR/readme.txt
+
 uname -a >> $OUTPUT_DIR/readme.txt
 echo "sample length: $SAMPLE_LENGTH seconds" >> $OUTPUT_DIR/readme.txt
 echo "iterations: $ITERATIONS" >> $OUTPUT_DIR/readme.txt
 
+# capture kernel settings
+/sbin/sysctl -a | sort > $OUTPUT_DIR/proc.out
+
+read RN < .run_number
+CURRENT_NUM=`expr $RN - 1`
+PREV_NUM=`expr $RN - 2`
+
+CURRENT_DIR=output/$CURRENT_NUM
+PREV_DIR=output/$PREV_NUM
+
+echo >> $OUTPUT_DIR/readme.txt
+echo "Changed Linux kernel parameters:" >> $OUTPUT_DIR/readme.txt
+diff -U 0 $CURRENT_DIR/proc.out $PREV_DIR/proc.out >> $OUTPUT_DIR/readme.txt
+echo >> $OUTPUT_DIR/readme.txt
 
 echo "starting system data collection"
 
 # collect cpu data per cpu
-sar -u -U ALL $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/cpu.out &
-
-# collect network traffic data per device
-sar -n DEV $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/network.out &
+sar -o $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $ITERATIONS &
 
 # collect i/o data per logical device
-iostat -d -x $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
+#iostat -d -x $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
+iostat -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
 
 
 # collect database statistics
@@ -119,4 +132,4 @@ fi
 
 
 echo "data gathering complete, transforming data..."
-grep all $OUTPUT_DIR/cpu.out | grep -v Average | awk '{ print NR","$4","$5","$6 }' > $OUTPUT_DIR/cpu_all.csv
+./transform.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR
