@@ -11,7 +11,9 @@
 #include <fmgr.h>
 #include <executor/spi.h>
 
+/*
 #define DEBUG
+*/
 
 #define DELIVERY_1 \
 	"SELECT no_o_id\n" \

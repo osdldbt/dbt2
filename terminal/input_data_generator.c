@@ -1,6 +1,4 @@
 /*
- * input_data_generator.c
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
@@ -26,22 +24,22 @@ extern int mode_altered;
 /* This function generates data for all transactions except Stock-Level. */
 int generate_input_data(int type, void *data, int w_id)
 {
-	switch (type)
-	{
-		case DELIVERY:
-			generate_delivery_data(w_id, (struct delivery_t *) data);
-			break;
-		case NEW_ORDER:
-			generate_new_order_data(w_id, (struct new_order_t *) data);
-			break;
-		case ORDER_STATUS:
-			generate_order_status_data(w_id, (struct order_status_t *) data);
-			break;
-		case PAYMENT:
-			generate_payment_data(w_id, (struct payment_t *) data);
-			break;
-		default:
-			return ERROR;
+	switch (type) {
+	case DELIVERY:
+		generate_delivery_data(w_id, (struct delivery_t *) data);
+		break;
+	case NEW_ORDER:
+		generate_new_order_data(w_id, (struct new_order_t *) data);
+		break;
+	case ORDER_STATUS:
+		generate_order_status_data(w_id,
+			(struct order_status_t *) data);
+		break;
+	case PAYMENT:
+		generate_payment_data(w_id, (struct payment_t *) data);
+		break;
+	default:
+		return ERROR;
 	}
 	return OK;
 }
@@ -73,35 +71,26 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 	data->d_id = get_random(D_ID_MAX) + 1;
 	data->c_id = get_nurand(1023, 1, 3000);
 	data->o_ol_cnt = get_random(10) + 6;
-	for (i = 0; i < data->o_ol_cnt; i++)
-	{
+	for (i = 0; i < data->o_ol_cnt; i++) {
 		data->order_line[i].ol_i_id = get_nurand(8191, 1, 100000);
-		if (table_cardinality.warehouses > 1)
-		{
-			if (mode_altered == 1 || get_random(100) > 0)
-			{
+		if (table_cardinality.warehouses > 1) {
+			if (mode_altered == 1 || get_random(100) > 0) {
 				data->order_line[i].ol_supply_w_id = w_id;
-			}
-			else
-			{
+			} else {
 				data->order_line[i].ol_supply_w_id =
 					get_random(table_cardinality.warehouses) + 1;
-				if (data->order_line[i].ol_supply_w_id >= w_id)
-				{
+				if (data->order_line[i].ol_supply_w_id >= w_id) {
 					++data->order_line[i].ol_supply_w_id;
 				}
 			}
-		}
-		else
-		{
+		} else {
 			data->order_line[i].ol_supply_w_id = 1;
 		}
 		data->order_line[i].ol_quantity = get_random(10) + 1;
 	}
 
 	/* Use an invalid i_id 1% of the time. */
-	if (get_random(100) == 0)
-	{
+	if (get_random(100) == 0) {
 		data->order_line[data->o_ol_cnt - 1].ol_i_id = 0;
 	}
 
@@ -116,13 +105,10 @@ int generate_order_status_data(int w_id, struct order_status_t *data)
 	data->c_d_id = get_random(D_ID_MAX) + 1;
 
 	/* Select a customer by last name 60%, byt c_id 40% of the time. */
-	if (get_random(100) < 60)
-	{
+	if (get_random(100) < 60) {
 		data->c_id = C_ID_UNKNOWN;
 		get_c_last(data->c_last, get_nurand(255, 0, 999));
-	}
-	else
-	{
+	} else {
 		data->c_id = get_nurand(1023, 1, 3000);
 	}
 
@@ -137,34 +123,25 @@ int generate_payment_data(int w_id, struct payment_t *data)
 	data->d_id = get_random(D_ID_MAX) + 1;
 
 	/* Select a customer by last name 60%, byt c_id 40% of the time. */
-	if (get_random(100) < 60)
-	{
+	if (get_random(100) < 60) {
 		data->c_id = C_ID_UNKNOWN;
 		get_c_last(data->c_last, get_nurand(255, 0, 999));
-	}
-	else
-	{
+	} else {
 		data->c_id = get_nurand(1023, 1, 3000);
 	}
 
-	if (mode_altered == 1 || get_random(100) < 85)
-	{
+	if (mode_altered == 1 || get_random(100) < 85) {
 		data->c_w_id = w_id;
 		data->c_d_id = data->d_id;
-	}
-	else
-	{
+	} else {
 		data->c_d_id = get_random(D_ID_MAX) + 1;
-		if (table_cardinality.warehouses > 1)
-		{
-			data->c_w_id = get_random(table_cardinality.warehouses) + 1;
-			if (data->c_w_id >= w_id)
-			{
+		if (table_cardinality.warehouses > 1) {
+			data->c_w_id =
+				get_random(table_cardinality.warehouses) + 1;
+			if (data->c_w_id >= w_id) {
 				++data->c_w_id;
 			}
-		}
-		else
-		{
+		} else {
 			data->c_w_id = 1;
 		}
 	}

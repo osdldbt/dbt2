@@ -19,7 +19,9 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	PGresult *res;
 	char stmt[512];
 	char tmp[64];
-	int i;
+	int i, j;
+	int fields;
+	int rollback;
 
 	/* Start a transaction block. */
 	res = PQexec(dbc->conn, "BEGIN");
@@ -32,7 +34,7 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 
 	/* Create the query and execute it. */
 	sprintf(stmt,
-		"SELECT new_order(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
+		"DECLARE mycursor CURSOR FOR SELECT new_order(%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
 		data->w_id, data->d_id, data->c_id, data->o_all_local,
 		data->o_ol_cnt,
 		data->order_line[0].ol_i_id,
@@ -88,6 +90,21 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		return ERROR;
 	}
 	PQclear(res);
+
+	res = PQexec(dbc->conn, "FETCH ALL IN mycursor");
+	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		PQclear(res);
+		return ERROR;
+	}
+	rollback = atoi(PQgetvalue(res, 0, 0));
+	PQclear(res);
+	res = PQexec(dbc->conn, "CLOSE mycursor");
+	PQclear(res);
+
+	if (rollback == -1) {
+		return ERROR;
+	}
 
 	return OK;
 }
