@@ -4,9 +4,9 @@ abs_top_srcdir=@abs_top_srcdir@
 DBDIR=@database_to_use@
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' INT
+	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; ${SHELL} $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' TERM
+	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${SHELL} $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' TERM
 
 usage()
 {
@@ -121,15 +121,15 @@ uname -a >> $OUTPUT_DIR/readme.txt
 
 # Get any OS specific information.
 OS_DIR=`uname`
-bash $abs_top_srcdir/scripts/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
+${SHELL} $abs_top_srcdir/scripts/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
 
 # Output run information into the readme.txt.
 echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
-bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
-bash $abs_top_srcdir/scripts/${DBDIR}/start_db.sh 1
+${SHELL} $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+${SHELL} $abs_top_srcdir/scripts/${DBDIR}/start_db.sh 1
 
 # Start the client.
 echo "Starting client: $DBCON database connection(s), 1 connection per $SLEEPY milliseconds..."
@@ -144,8 +144,8 @@ SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-bash $abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
-bash $abs_top_srcdir/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
+${SHELL} $abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
+${SHELL} $abs_top_srcdir/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ $USE_OPROFILE -eq 1 ]
@@ -214,17 +214,17 @@ fi
 echo "Killing client..."
 killall client driver 2> /dev/null
 
-bash $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+${SHELL} $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
 
 # Move the database log.  (No, not the transaction log.)
 chmod 644 $abs_top_srcdir/scripts/log
 mv $abs_top_srcdir/scripts/log $DB_OUTPUT_DIR
 
 # Postprocessing of Database Statistics
-$abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
+perl $abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
 
 # Create summary in HTML.
-$abs_top_srcdir/scripts/gen_html.sh $OUTPUT_DIR
+${SHELL} $abs_top_srcdir/scripts/gen_html.sh $OUTPUT_DIR
 
 echo "Test completed."
 echo "Results are in: $OUTPUT_DIR"
