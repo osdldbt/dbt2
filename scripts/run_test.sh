@@ -186,6 +186,9 @@ if ! [ -z $TPW ]; then
 	CMD="$CMD -tpw $TPW"
 fi
 
+# start oprofile 
+sudo ./oprof.sh /vmlinux 300000 $DURATION oprofile $OUTPUT_DIR &
+
 # start the driver
 $CMD
 
