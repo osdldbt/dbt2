@@ -121,26 +121,13 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 		LOG_ERROR_MESSAGE("unknown transaction type %d", transaction);
 		return ERROR;
 	}
-#ifdef ODBC
-	if (rc == OK) {
-		/* Commit. */
-		i = SQLEndTran(SQL_HANDLE_DBC, dbc->hdbc, SQL_COMMIT);
-		status = OK;
-	} else {
-		/* Rollback. */
-		i = SQLEndTran(SQL_HANDLE_DBC, dbc->hdbc, SQL_ROLLBACK);
-		status = STATUS_ROLLBACK;
-	}
-	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO) {
-		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
-		status = ERROR;
-	}
-#endif /* ODBC */
 
-#ifdef LIBPQ
-	/* Placeholder until I figure out how to handle rollbacks. */
-	status = OK;
-#endif /* LIBPQ */
+	/* Commit or rollback the transaction. */
+	if (rc == OK) {
+		status = commit_transaction(dbc);
+	} else {
+		status = rollback_transaction(dbc);
+	}
 
 	return status;
 }
