@@ -1,6 +1,0 @@
-plot "notpm.csv" with lines
-set xlabel "Elapsed Time (seconds)"
-set ylabel "New-Order Transactions"
-set term jpeg medium size 640,480
-set output "not.jpg"
-replot

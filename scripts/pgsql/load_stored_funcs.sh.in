@@ -1,7 +1,0 @@
-#!/bin/sh
-
-/usr/local/pgsql/bin/psql -d dbt2 -f @TOPDIR@/storedproc/pgsql/c/delivery.sql
-/usr/local/pgsql/bin/psql -d dbt2 -f @TOPDIR@/storedproc/pgsql/c/new_order.sql
-/usr/local/pgsql/bin/psql -d dbt2 -f @TOPDIR@/storedproc/pgsql/c/order_status.sql
-/usr/local/pgsql/bin/psql -d dbt2 -f @TOPDIR@/storedproc/pgsql/c/payment.sql
-/usr/local/pgsql/bin/psql -d dbt2 -f @TOPDIR@/storedproc/pgsql/c/stock_level.sql
