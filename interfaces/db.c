@@ -52,6 +52,6 @@ int process_transaction(int transaction, struct odbc_context_t *odbcc,
 		edump(transaction, (void *) &odbct->delivery);
 	}
 
-	return OK;
+	return rc;
 }
 #endif /* ODBC */
