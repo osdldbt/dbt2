@@ -28,7 +28,7 @@ else
 	$INITDB -D $PGDATA --locale=C || exit 1
 fi
 
-$PGCTL -D $PGDATA -l log start
+${SHELL} ${DIR}/start_db.sh
 
 # Give the database a few seconds to get going
 sleep 4

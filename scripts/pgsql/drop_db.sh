@@ -10,12 +10,10 @@
 DIR=`dirname $0`
 . ${DIR}/pgsql_profile || exit
 
-$DROPDB ${DB_NAME}
-
 # Double check we have a value for PGDATA
 if [ -z ${PGDATA} ] ; then
 	echo "PGDATA environment variable is unset"
 	exit 1
 fi
 
-$PGCTL -D ${PGDATA} stop
+$DROPDB ${DB_NAME}

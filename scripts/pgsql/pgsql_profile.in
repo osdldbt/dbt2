@@ -26,8 +26,8 @@ DB_NAME=dbt2; export DB_NAME
 
 # Data instance path.  Storage location for this instance of the database
 # should be within the working directory
-PGDATA=/scratch/pgsql/data; export PGDATA
+PGDATA=/mnt/pgdata/${DB_NAME}; export PGDATA
 
 # Path of database data
-DBDATA=/scratch/pgsql/src/dbt2_bk/dbt2/DB; export DBDATA
+DBDATA=/tmp; export DBDATA
 
