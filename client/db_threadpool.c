@@ -31,6 +31,11 @@ sem_t db_worker_count;
 #ifdef STANDALONE
 extern FILE *log_mix;
 extern pthread_mutex_t mutex_mix_log;
+
+#ifdef LIBPQ
+extern char postmaster_port[32];
+#endif /* LIBPQ */
+
 #endif /* STANDALONE */
 
 void *db_worker(void *no_data)
@@ -46,7 +51,12 @@ void *db_worker(void *no_data)
 #endif /* STANDALONE */
 
 	/* Open a connection to the database. */
+#ifdef ODBC
 	db_init(sname, DB_USER, DB_PASS);
+#endif /* ODBC */
+#ifdef LIBPQ
+	db_init(DB_NAME, sname, postmaster_port);
+#endif /* LIBPQ */
 	if (!exiting && connect_to_db(&dbc) != OK) {
 		LOG_ERROR_MESSAGE("connect_to_db() error, terminating program");
 		printf("cannot connect to database, exiting...\n");
