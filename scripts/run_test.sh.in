@@ -43,7 +43,7 @@ do
 		optarg=`echo $option | sed -e 's/^[^=]*=//'`
 		arguments="$arguments $option"
 		;;
-	--sample | --duration | --wmin | --wmax | -w | --ktd | --ktn | --kto | --ktp | --kts | --ttd | --ttn | --tto | --ttp | --tts | --tpw)
+	--sample | --duration | --wmin | --wmax | --warehouses | --ktd | --ktn | --kto | --ktp | --kts | --ttd | --ttn | --tto | --ttp | --tts | --tpw)
 		optarg=$1
 		shift
 		arguments="$arguments $option=$optarg"
@@ -66,7 +66,7 @@ do
 	--wmax)
 		WMAX=$optarg
 		;;
-	--w)
+	--warehouses)
 		W=$optarg
 		;;
 	--ktd)
