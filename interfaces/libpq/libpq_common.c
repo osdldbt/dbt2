@@ -16,16 +16,10 @@
 char dbname[32] = "dbt2";
 char pghost[32] = "localhost";
 char pgport[32] = "5432";
-char pgoptions[32] = "";
-char pgtty[32] = "";
 
 /* Open a connection to the database. */
 int _connect_to_db(struct db_context_t *dbc)
 {
-/*
-	dbc->conn = PQsetdbLogin(pghost, pgport, NULL, NULL, dbname,
-		"postgres", "postgres");
-*/
 	dbc->conn = PQsetdb(pghost, pgport, NULL, NULL, dbname);
 	if (PQstatus(dbc->conn) == CONNECTION_BAD) {
 		LOG_ERROR_MESSAGE("Connection to database '%s' failed.",
@@ -44,8 +38,7 @@ int _disconnect_from_db(struct db_context_t *dbc)
 	return OK;
 }
 
-int _db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
-	char *_pgtty)
+int _db_init(char *_dbname, char *_pghost, char *_pgport)
 {
 	/* Copy values only if it's not NULL. */
 	if (_dbname != NULL) {
@@ -56,12 +49,6 @@ int _db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
 	}
 	if (_pgport != NULL) {
 		strcpy(pgport, _pgport);
-	}
-	if (_pgoptions != NULL) {
-		strcpy(pgoptions, _pgoptions);
-	}
-	if (_pgtty != NULL) {
-		strcpy(pgtty, _pgtty);
 	}
 	return OK;
 }
