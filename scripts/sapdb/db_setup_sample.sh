@@ -1,8 +1,6 @@
 #!/bin/sh
 
-if [ $# -gt 0 ]; then
-	WAREHOUSES=$1
-fi
+WAREHOUSES=$1
 SID=DBT2
 
 echo This is a sample script to create a database with $WAREHOUSES warehouses.
@@ -44,8 +42,10 @@ echo Loading stored procedures...
 ./load_dbproc.sh
 echo
 
-echo Updating database statistics...
-./update_stats.sh
+echo Loading TABLESTATISTICS and extracting table and sizing information
+cd ./db_create_stats
+bash get_it_all.sh > TABLE_SIZING_INFO.txt 2>&1
+cd ..
 
 echo Backing up database...
 ./backup_db.sh
