@@ -1,12 +1,30 @@
 # Makefile.in
-# November 5, 2002
+# 31 October 2002
 
 include ../../make.common
 
-OBJS =				odbc_common.so odbc_delivery.so odbc_new_order.so \
-					odbc_order_status.so odbc_stock_level.so odbc_payment.so
+OBJS =	odbc_common.so odbc_new_order.so odbc_payment.so \
+		odbc_order_status.so odbc_delivery.so odbc_stock_level.so
 
 all: $(OBJS)
+
+odbc_common.so: $(INCLUDEDIR)/odbc_common.h $(INCLUDEDIR)/common.h \
+	$(INCLUDEDIR)/logging.h 
+
+odbc_delivery.so: $(INCLUDEDIR)/odbc_common.h $(INCLUDEDIR)/common.h \
+	$(INCLUDEDIR)/odbc_delivery.h
+
+odbc_new_order.so: $(INCLUDEDIR)/odbc_common.h $(INCLUDEDIR)/common.h \
+	$(INCLUDEDIR)/odbc_new_order.h
+
+odbc_order_status.so: $(INCLUDEDIR)/odbc_common.h $(INCLUDEDIR)/common.h \
+	$(INCLUDEDIR)/odbc_order_status.h
+
+odbc_payment.so: $(INCLUDEDIR)/odbc_common.h $(INCLUDEDIR)/common.h \
+	$(INCLUDEDIR)/odbc_payment.h
+
+odbc_stock_level.so: $(INCLUDEDIR)/odbc_common.h $(INCLUDEDIR)/common.h \
+	$(INCLUDEDIR)/odbc_stock_level.h
 
 clean: 
 	rm -f $(OBJS)
