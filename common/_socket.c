@@ -14,13 +14,13 @@
 
 int resolveproto(const char *proto);
 
-int _accept(int s)
+int _accept(int *s)
 {
 	socklen_t addrlen;
 	struct sockaddr_in sa;
 	int sockfd;
 
-	sockfd = accept(s, (struct sockaddr *) &sa, &addrlen);
+	sockfd = accept(*s, (struct sockaddr *) &sa, &addrlen);
 	return sockfd;
 }
 
