@@ -19,10 +19,10 @@ TERMINAL_OBJS =		$(TOPDIR)/terminal/input_data_generator.so
 
 all: transaction_test results
 
-results: ../common.mk Makefile results.c
+results: ../make.common Makefile results.c
 	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS) $(LDFLAGS)
 
-transaction_test: ../common.mk Makefile transaction_test.c \
+transaction_test: ../make.common Makefile transaction_test.c \
 	$(COMMON_OBJS2) $(ODBC_OBJS) $(TERMINAL_OBJS) $(INTERFACE_OBJS)
 	$(CC) $(CFLAGS) $@.c -o $@ $(COMMON_OBJS2) $(ODBC_OBJS) $(TERMINAL_OBJS) \
 		$(INTERFACE_OBJS) $(LDFLAGS) 

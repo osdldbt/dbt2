@@ -17,7 +17,7 @@ driver.so: $(INCLUDEDIR)/common.h $(INCLUDEDIR)/driver.h
 input_data_generator.so: $(INCLUDEDIR)/common.h \
 	$(INCLUDEDIR)/transaction_data.h $(INCLUDEDIR)/input_data_generator.h
 
-driver: ../common.mk Makefile main.c $(OBJS) $(COMMON_OBJS)
+driver: ../make.common Makefile main.c $(OBJS) $(COMMON_OBJS)
 	$(CC) $(CFLAGS) main.c -o $@ $(OBJS) $(COMMON_OBJS) $(LDFLAGS)
 
 clean: 
