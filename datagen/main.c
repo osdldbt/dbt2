@@ -12,11 +12,13 @@
 
 #define _LARGEFILE64_SOURCE
 
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <semaphore.h>
 #include <common.h>
 
 #define CUSTOMER_DATA "customer.data"
@@ -31,19 +33,27 @@
 
 #define DELIMITER ','
 
-int gen_customers(int warehouses, int customers);
-int gen_districts(int warehouses);
-int gen_history(int warehouses, int customers);
-int gen_items(int items);
-int gen_new_order(int warehouses, int orders, int new_orders);
-int gen_orders(int warehouses, int customers, int orders);
-int gen_stock(int warehouses, int stock);
-int gen_warehouses(int warehouses);
+void *gen_customers(void *data);
+void *gen_districts(void *data);
+void *gen_history(void *data);
+void *gen_items(void *data);
+void *gen_new_order(void *data);
+void *gen_orders(void *data);
+void *gen_stock(void *data);
+void *gen_warehouses(void *data);
 
 char output_path[512] = "";
 
+int warehouses = 0;
+int customers = CUSTOMER_CARDINALITY;
+int items = ITEM_CARDINALITY;
+int orders = ORDER_CARDINALITY;
+int new_orders = NEW_ORDER_CARDINALITY;
+
+sem_t sem;
+
 /* Clause 4.3.3.1 */
-int gen_customers(int warehouses, int customers)
+void *gen_customers(void *data)
 {
 	FILE *output;
 	int i, j, k;
@@ -52,6 +62,7 @@ int gen_customers(int warehouses, int customers)
 	time_t t1;
 	char filename[1024];
 
+	sem_post(&sem);
 	printf("Generating customer table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -192,17 +203,20 @@ int gen_customers(int warehouses, int customers)
 		}
 	}
 	fclose(output);
-	return OK;
+	printf("Finished customer table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 /* Clause 4.3.3.1 */
-int gen_districts(int warehouses)
+void *gen_districts(void *data)
 {
 	FILE *output;
 	int i, j;
 	char a_string[32];
 	char filename[1024];
 
+	sem_post(&sem);
 	printf("Generating district table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -275,11 +289,13 @@ int gen_districts(int warehouses)
 		}
 	}
 	fclose(output);
-	return OK;
+	printf("Finished district table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 /* Clause 4.3.3.1 */
-int gen_history(int warehouses, int customers)
+void *gen_history(void *data)
 {
 	FILE *output;
 	int i, j, k;
@@ -288,6 +304,7 @@ int gen_history(int warehouses, int customers)
 	time_t t1;
 	char filename[1024];
 
+	sem_post(&sem);
 	printf("Generating history table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -354,11 +371,13 @@ int gen_history(int warehouses, int customers)
 		}
 	}
 	fclose(output);
-	return OK;
+	printf("Finished history table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 /* Clause 4.3.3.1 */
-int gen_items(int items)
+void *gen_items(void *data)
 {
 	FILE *output;
 	int i;
@@ -366,6 +385,7 @@ int gen_items(int items)
 	int j;
 	char filename[1024];
 
+	sem_post(&sem);
 	printf("Generating item table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -412,16 +432,19 @@ int gen_items(int items)
 		fprintf(output, "\n");
 	}
 	fclose(output);
-	return OK;
+	printf("Finished item table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 /* Clause 4.3.3.1 */
-int gen_new_orders(int warehouses, int orders, int new_orders)
+void *gen_new_orders(void *data)
 {
 	FILE *output;
 	int i, j, k;
 	char filename[1024];
 
+	sem_post(&sem);
 	printf("Generating new-order table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -460,12 +483,13 @@ int gen_new_orders(int warehouses, int orders, int new_orders)
 		}
 	}
 	fclose(output);
-
-	return OK;
+	printf("Finished new-order table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 /* Clause 4.3.3.1 */
-int gen_orders(int warehouses, int customers, int orders)
+void *gen_orders(void *data)
 {
 	FILE *order, *order_line;
 	int i, j, k, l;
@@ -487,6 +511,7 @@ int gen_orders(int warehouses, int customers, int orders)
 
 	int o_ol_cnt;
 
+	sem_post(&sem);
 	printf("Generating order and order-line table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -691,17 +716,20 @@ int gen_orders(int warehouses, int customers, int orders)
 	}
 	fclose(order);
 	fclose(order_line);
-	return OK;
+	printf("Finished order and order-line table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 /* Clause 4.3.3.1 */
-int gen_stock(int warehouses, int stock)
+void *gen_stock(void *data)
 {
 	FILE *output;
 	int i, j, k;
 	char a_string[64];
 	char filename[1024];
 
+	sem_post(&sem);
 	printf("Generating stock table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -719,7 +747,7 @@ int gen_stock(int warehouses, int stock)
 
 	for (i = 0; i < warehouses; i++)
 	{
-		for (j = 0; j < stock; j++)
+		for (j = 0; j < items; j++)
 		{
 			/* s_i_id */
 			fprintf(output, "\"%d\"", j + 1);
@@ -808,17 +836,20 @@ int gen_stock(int warehouses, int stock)
 		}
 	}
 	fclose(output);
-	return OK;
+	printf("Finished stock table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 /* Clause 4.3.3.1 */
-int gen_warehouses(int warehouses)
+void *gen_warehouses(void *data)
 {
 	FILE *output;
 	int i;
 	char a_string[32];
 	char filename[1024];
 
+	sem_post(&sem);
 	printf("Generating warehouse table data...\n");
 
 	if (strlen(output_path) > 0)
@@ -880,21 +911,20 @@ int gen_warehouses(int warehouses)
 		fprintf(output, "\n");
 	}
 	fclose(output);
-	return OK;
+	printf("Finished warehouse table data...\n");
+	sem_wait(&sem);
+	return NULL;
 }
 
 int main(int argc, char *argv[])
 {
 	int i;
 	FILE *p;
-	int warehouses = 0;
-	int customers = CUSTOMER_CARDINALITY;
-	int items = ITEM_CARDINALITY;
-	int orders = ORDER_CARDINALITY;
-	int new_orders = NEW_ORDER_CARDINALITY;
 	char pwd[256];
 	char cmd[256];
-	pid_t child_pid;
+	pthread_t t1, t2, t3, t4, t5, t6, t7, t8;
+
+	int sem_val;
 
 	init_common();
 
@@ -975,49 +1005,59 @@ int main(int argc, char *argv[])
 	printf("\n");
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
-	child_pid = fork();
-	if (child_pid != 0)
+
+	if (sem_init(&sem, 0, 0) != 0)
 	{
-		gen_items(items);
-		return 0;
+		perror("sem_init");
+		return 1;
 	}
-	child_pid = fork();
-	if (child_pid != 0)
+
+	if (pthread_create(&t1, NULL, gen_items, NULL) != 0)
 	{
-		gen_warehouses(warehouses);
-		return 0;
+		perror("pthread_create");
 	}
-	child_pid = fork();
-	if (child_pid != 0)
+
+	if (pthread_create(&t2, NULL, gen_warehouses, NULL) != 0)
 	{
-		gen_stock(warehouses, items);
-		return 0;
+		perror("pthread_create");
 	}
-	child_pid = fork();
-	if (child_pid != 0)
+
+	if (pthread_create(&t3, NULL, gen_stock, NULL) != 0)
 	{
-		gen_districts(warehouses);
-		return 0;
+		perror("pthread_create");
 	}
-	child_pid = fork();
-	if (child_pid != 0)
+
+	if (pthread_create(&t4, NULL, gen_districts, NULL) != 0)
 	{
-		gen_customers(warehouses, customers);
-		return 0;
+		perror("pthread_create");
 	}
-	child_pid = fork();
-	if (child_pid != 0)
+
+	if (pthread_create(&t5, NULL, gen_customers, NULL) != 0)
 	{
-		gen_history(warehouses, customers);
-		return 0;
+		perror("pthread_create");
 	}
-	child_pid = fork();
-	if (child_pid != 0)
+
+	if (pthread_create(&t6, NULL, gen_history, NULL) != 0)
 	{
-		gen_orders(warehouses, customers, orders);
-		return 0;
+		perror("pthread_create");
 	}
-	gen_new_orders(warehouses, orders, new_orders);
+
+	if (pthread_create(&t7, NULL, gen_orders, NULL) != 0)
+	{
+		perror("pthread_create");
+	}
+
+	if (pthread_create(&t8, NULL, gen_new_orders, NULL) != 0)
+	{
+		perror("pthread_create");
+	}
+
+	do
+	{
+		sleep(10);
+		sem_getvalue(&sem, &sem_val);
+	} while (sem_val > 0);
+	sem_destroy(&sem);
 
 	/*
 	 * In my environment, I don't have enough /tmp space to put the data files
