@@ -13,11 +13,28 @@ client: Makefile main.c \
 	../include/logging.h \
 	../common/logging.c \
 	../common/logging.so \
-	../include/_socket.h ../common/_socket.so \
+	../include/_socket.h ../common/_socket.c ../common/_socket.so \
 	../include/transaction_data.h ../common/transaction_data.so \
-	../include/client_interface.h ../common/client_interface.so \
-	../include/transaction_queue.h transaction_queue.so \
-	../include/db.h ../interfaces/db.so \
+	../include/client_interface.h ../common/client_interface.c \
+	../common/client_interface.so \
+	../include/transaction_queue.h transaction_queue.c transaction_queue.so \
+	../include/db_threadpool.h db_threadpool.so db_threadpool.c \
+	../include/db.h ../interfaces/db.c ../interfaces/db.so \
+	../include/odbc_new_order.h \
+	../include/odbc_payment.h \
+	../include/odbc_order_status.h \
+	../include/odbc_delivery.h \
+	../include/odbc_stock_level.h \
+	../interfaces/odbc/odbc_new_order.c \
+	../interfaces/odbc/odbc_payment.c \
+	../interfaces/odbc/odbc_order_status.c \
+	../interfaces/odbc/odbc_delivery.c \
+	../interfaces/odbc/odbc_stock_level.c \
+	../interfaces/odbc/odbc_new_order.c \
+	../interfaces/odbc/odbc_payment.c \
+	../interfaces/odbc/odbc_order_status.so \
+	../interfaces/odbc/odbc_delivery.so \
+	../interfaces/odbc/odbc_stock_level.so \
 	../include/listener.h listener.so
 	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) main.c -o client \
 		db_threadpool.so \
