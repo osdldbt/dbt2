@@ -209,18 +209,30 @@ int main(int argc, char *argv[])
 		else if (transaction == 'P')
 		{
 			++rollback_count[PAYMENT];
+			++transaction_count[PAYMENT];
+			transaction_response_time[PAYMENT] += response_time;
+			++current_transaction_count[PAYMENT];
 		}
 		else if (transaction == 'O')
 		{
 			++rollback_count[ORDER_STATUS];
+			++transaction_count[ORDER_STATUS];
+			transaction_response_time[ORDER_STATUS] += response_time;
+			++current_transaction_count[ORDER_STATUS];
 		}
 		else if (transaction == 'D')
 		{
 			++rollback_count[DELIVERY];
+			++transaction_count[DELIVERY];
+			transaction_response_time[DELIVERY] += response_time;
+			++current_transaction_count[DELIVERY];
 		}
 		else if (transaction == 'S')
 		{
 			++rollback_count[STOCK_LEVEL];
+			++transaction_count[STOCK_LEVEL];
+			transaction_response_time[STOCK_LEVEL] += response_time;
+			++current_transaction_count[STOCK_LEVEL];
 		}
 		else if (transaction == 'E')
 		{
@@ -249,7 +261,7 @@ int main(int argc, char *argv[])
 			(double) transaction_count[i] / (double) total_transaction_count * 100.0,
 			transaction_response_time[i] / (double) transaction_count[i],
 			transaction_count[i], rollback_count[i],
-			(double) rollback_count[i] / (double) total_transaction_count * 100.0);
+			(double) rollback_count[i] / (double) transaction_count[i] * 100.0);
 	}
 
 	/* Calculated the number of transactions per second. */
