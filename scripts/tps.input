@@ -1,5 +1,5 @@
 plot "tps.csv" with lines
-set xlabel "Elapsed Time"
+set xlabel "Elapsed Time (s)"
 set ylabel "Bogotransactions per Second"
 set term png small color
 set output "tps.png"
