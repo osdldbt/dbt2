@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <common.h>
+#include <logging.h>
 #include <client_interface.h>
 #include <driver.h>
 
@@ -20,6 +21,7 @@ int parse_arguments(int argc, char *argv[]);
 int main(int argc, char *argv[])
 {
 	init_common();
+	init_logging();
 	init_driver();
 
 	if (parse_arguments(argc, argv) != OK)
