@@ -25,12 +25,16 @@ void *db_worker(void *no_data);
 int startup();
 
 /* Global Variables */
-extern int db_connections;
+int db_connections = 0;
 
 /* These should probably be handled differently. */
 extern char sname[32];
 extern int exiting;
 sem_t db_worker_count;
+#ifdef STANDALONE
+extern FILE *log_mix;
+extern pthread_mutex_t mutex_mix_log;
+#endif /* STANDALONE */
 
 void *db_worker(void *no_data)
 {
@@ -39,6 +43,10 @@ void *db_worker(void *no_data)
 #ifdef ODBC
 	struct odbc_context_t odbcc;
 #endif /* ODBC */
+#ifdef STANDALONE
+	struct timeval rt0, rt1;
+	double response_time;
+#endif /* STANDALONE */
 
 	/* Open a connection to the database. */
 #ifdef ODBC
@@ -65,6 +73,12 @@ void *db_worker(void *no_data)
 			pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
 			continue;
 		}
+#ifdef STANDALONE
+		if (gettimeofday(&rt0, NULL) == -1)
+		{
+			perror("gettimeofday");
+		}
+#endif /* STANDALONE */
 #ifdef ODBC
 		if (process_transaction(node->client_data.transaction, &odbcc,
 			&node->client_data.transaction_data) != OK)
@@ -78,6 +92,20 @@ void *db_worker(void *no_data)
 			 */
 		}
 #endif /* ODBC */
+#ifdef STANDALONE
+		if (gettimeofday(&rt1, NULL) == -1)
+		{
+			perror("gettimeofday");
+		}
+		response_time = difftimeval(rt1, rt0);
+		pthread_mutex_lock(&mutex_mix_log);
+		fprintf(log_mix, "%d,%c,%f,%d\n", time(NULL),
+		transaction_short_name[node->client_data.transaction], response_time,
+			pthread_self());
+			fflush(log_mix);
+		pthread_mutex_unlock(&mutex_mix_log);
+#endif /* STANDALONE */
+#ifndef STANDALONE
 		length = send_transaction_data(node->s, &node->client_data);
 		if (length == ERROR)
 		{
@@ -87,6 +115,7 @@ void *db_worker(void *no_data)
 			 * transaction.
 			 */
 		}
+#endif /* STANDALONE */
 		pthread_mutex_lock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
 		--transaction_counter[EXECUTING][node->client_data.transaction];
 		pthread_mutex_unlock(&mutex_transaction_counter[EXECUTING][node->client_data.transaction]);
