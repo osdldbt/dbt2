@@ -61,6 +61,18 @@ int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
 	return OK;
 }
 
+int commit_transaction(struct db_context_t *dbc)
+{
+	int i;
+
+	i = SQLEndTran(SQL_HANDLE_DBC, dbc->hdbc, SQL_COMMIT);
+	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+		return ERROR;
+	}
+	return OK;
+}
+
 /* Open an ODBC connection to the database. */
 int _connect_to_db(struct db_context_t *odbcc)
 {
@@ -160,5 +172,17 @@ int _db_init(char *sname, char *uname, char *auth)
 	strcpy(servername, sname);
 	strcpy(username, uname);
 	strcpy(authentication, auth);
+	return OK;
+}
+
+int rollback_transaction(struct db_context_t *dbc)
+{
+	int i;
+
+	i = SQLEndTran(SQL_HANDLE_DBC, dbc->hdbc, SQL_ROLLBACK);
+	if (i != SQL_SUCCESS && i != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+		return ERROR;
+	}
 	return OK;
 }

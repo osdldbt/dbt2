@@ -17,6 +17,16 @@ char dbname[32] = "dbt2";
 char pghost[32] = "localhost";
 char pgport[32] = "5432";
 
+int commit_transaction(struct db_context_t *dbc)
+{
+	PGresult *res;
+
+	res = PQexec(dbc->conn, "COMMIT");
+	PQclear(res);
+
+	return OK;
+}
+
 /* Open a connection to the database. */
 int _connect_to_db(struct db_context_t *dbc)
 {
@@ -50,5 +60,15 @@ int _db_init(char *_dbname, char *_pghost, char *_pgport)
 	if (_pgport != NULL) {
 		strcpy(pgport, _pgport);
 	}
+	return OK;
+}
+
+int rollback_transaction(struct db_context_t *dbc)
+{
+	PGresult *res;
+
+	res = PQexec(dbc->conn, "ROLLBACK");
+	PQclear(res);
+
 	return OK;
 }
