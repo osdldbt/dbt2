@@ -114,6 +114,10 @@ int _send(int s, void *data, int length)
 		{
 			return -1;
 		}
+		else if (sent == 0)
+		{
+			return 0;
+		}
 		data += sent;
 		remaining -= sent;
 	}
