@@ -162,12 +162,22 @@ int main(int argc, char *argv[])
 		 */
 		printf("connecting directly to the database...\n");
 		bzero(&transaction_data, sizeof(union transaction_data_t));
+#ifdef ODBC
 		db_init(sname, DB_USER, DB_PASS);
+#endif /* ODBC */
+#ifdef LIBPQ
+		db_init("dbt2", "localhost", "5432", "", "");
+#endif /* LIBPQ */
 		if (connect_to_db(&dbc) != OK) {
+			printf("cannot establish a database connection\n");
 			return 6;
 		}
-		process_transaction(transaction, &dbc,
-			(void *) &transaction_data);
+		if (process_transaction(transaction, &dbc,
+			(void *) &transaction_data) != OK) {
+			disconnect_from_db(&dbc);
+			printf("transaction failed\n");
+			return 11;
+		}
 		disconnect_from_db(&dbc);
 	} else {
 		/* Process transaction by connecting to the client program. */
