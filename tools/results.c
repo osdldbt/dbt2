@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
 	int sample_length;
 	int total_transaction_count = 0;
 	int current_transaction_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
+	int rollback_count[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
 	double response_time, total_response_time = 0;
 	time_t start_time = -1;
 	time_t previous_time = 0; /* Initialized to remove compiler warning. */
@@ -198,6 +199,26 @@ int main(int argc, char *argv[])
 			transaction_response_time[STOCK_LEVEL] += response_time;
 			++current_transaction_count[STOCK_LEVEL];
 		}
+		else if (transaction == 'N')
+		{
+			++rollback_count[NEW_ORDER];
+		}
+		else if (transaction == 'P')
+		{
+			++rollback_count[PAYMENT];
+		}
+		else if (transaction == 'O')
+		{
+			++rollback_count[ORDER_STATUS];
+		}
+		else if (transaction == 'D')
+		{
+			++rollback_count[DELIVERY];
+		}
+		else if (transaction == 'S')
+		{
+			++rollback_count[STOCK_LEVEL];
+		}
 		else if (transaction == 'E')
 		{
 			/* Eventually count errors. */
@@ -218,12 +239,13 @@ int main(int argc, char *argv[])
 */
 
 	/* Calculate the actual mix of transactions. */
-	printf("transaction\t%%\tavg response time (s)\n");
+	printf("transaction\t%%\tavg response time (s)\ttotal\trollbacks\n");
 	for (i = 0; i < TRANSACTION_MAX; i++)
 	{
-		printf("%s\t%2.2f\t%0.3f\n", transaction_name[i],
+		printf("%s\t%2.2f\t%0.3f\t\t\t%d\t%d\n", transaction_name[i],
 			(double) transaction_count[i] / (double) total_transaction_count * 100.0,
-			transaction_response_time[i] / (double) transaction_count[i]);
+			transaction_response_time[i] / (double) transaction_count[i],
+			transaction_count[i], rollback_count[i]);
 	}
 
 	/* Calculated the number of transactions per second. */
