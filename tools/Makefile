@@ -5,7 +5,7 @@ include ../common.mk
 
 all: transaction_test results
 
-results: ../common.mk ../Makefile Makefile
+results: ../common.mk ../Makefile Makefile results.c
 	$(CC) $(CFLAGS) results.c -o results
 
 transaction_test: ../Makefile ../common.mk Makefile \
@@ -48,4 +48,4 @@ transaction_test: ../Makefile ../common.mk Makefile \
 		$(ODBCLIBDIR)/libsqlod.so -lpthread -lm
 
 clean: 
-	rm -f odbc_test
+	rm -f transaction_test results
