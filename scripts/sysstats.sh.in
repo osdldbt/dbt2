@@ -1,6 +1,4 @@
 #!/bin/sh
-
-# sysstats.sh
 #
 # This file is released under the terms of the Artistic License.  Please see
 # the file LICENSE, included in this package, for details.
@@ -10,15 +8,13 @@
 # 17 october 2002
 
 if [ $# -lt 1 ]; then
-    echo "usage: sysstats.sh --db <database> --dbname <database_name> --outdir <output_dir> --iter <iterations> -sample <sample_length>"
+    echo "usage: sysstats.sh --outdir <output_dir> --iter <iterations> -sample <sample_length>"
     echo "	<output_dir> will be created if it doesn't exist"
     exit
 fi
 
 # Set the relative execution prefix
 PFX=`dirname $0`
-
-
 
 COUNTER=0
 
@@ -73,22 +69,16 @@ do
 	esac
 done
 
-if [ -z $DBTYPE ]; then
-	echo "use --db"
-	exit
-fi
-if [ -z $DBTYPE_NAME ]; then
-	echo "use --dbname"
-	exit
-fi
 if [ -z $OUTPUT_DIR ]; then
 	echo "use --outdir"
 	exit
 fi
+
 if [ -z $ITERATIONS ]; then
 	echo "use --iter"
 	exit
 fi
+
 if [ -z $SAMPLE_LENGTH ]; then
 	echo "use --sample"
 	exit
@@ -97,16 +87,6 @@ fi
 # create the output directory in case it doesn't exist
 mkdir -p $OUTPUT_DIR
 
-# create a readme with general information
-date >> $OUTPUT_DIR/readme.txt
-
-uname -a >> $OUTPUT_DIR/readme.txt
-echo "sample length: $SAMPLE_LENGTH seconds" >> $OUTPUT_DIR/readme.txt
-echo "iterations: $ITERATIONS" >> $OUTPUT_DIR/readme.txt
-
-# capture kernel settings
-@SYSCTL@ -a | sort > $OUTPUT_DIR/proc.out
-
 read RN < .run_number
 CURRENT_NUM=`expr $RN - 1`
 PREV_NUM=`expr $RN - 2`
@@ -114,27 +94,19 @@ PREV_NUM=`expr $RN - 2`
 CURRENT_DIR=output/$CURRENT_NUM
 PREV_DIR=output/$PREV_NUM
 
-echo >> $OUTPUT_DIR/readme.txt
-echo "Changed Linux kernel parameters:" >> $OUTPUT_DIR/readme.txt
-diff -U 0 $CURRENT_DIR/proc.out $PREV_DIR/proc.out >> $OUTPUT_DIR/readme.txt
-echo >> $OUTPUT_DIR/readme.txt
+echo "starting system statistics data collection"
 
-echo "starting system data collection"
-
-# collect cpu data per cpu
+# collect all sar data in binary form
 @SAR@ -o $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $ITERATIONS &
 
-# collect i/o data per logical device
-#iostat -d -x $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
+# collect i/o data per physical device
 @IOSTAT@ -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
 
+# collect vmstat data
+@VMSTAT@ -n $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/vmstat.out &
 
-# collect database statistics
-echo "starting database statistics gathering"
-if [ $DBTYPE = "sapdb" ]; then
-	${SHELL} ${PFX}/sapdb/db_stats.sh DBT2 $OUTPUT_DIR $ITERATIONS $SAMPLE_LENGTH
-fi
-
+# Wait for the tools to finish before transforming data.
+wait
 
 echo "data gathering complete, transforming data..."
 ${SHELL} ${PFX}/transform_sar.sh $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $OUTPUT_DIR

@@ -29,6 +29,7 @@ char sname[32] = "";
 int port = CLIENT_PORT;
 int sockfd;
 int exiting = 0;
+int force_sleep = 0;
 #ifdef LIBPQ
 char postmaster_port[32];
 #endif /* LIBPQ */
@@ -41,7 +42,6 @@ int main(int argc, char *argv[])
 	char command[128];
 
 	init_common();
-	init_logging();
 
 	if (parse_arguments(argc, argv) != OK) {
 		printf("usage: %s -d <db_name> -c # [-p #]\n", argv[0]);
@@ -77,6 +77,8 @@ int main(int argc, char *argv[])
 	}
 
 	/* Ok, let's get started! */
+	init_logging();
+
 	printf("opening %d conenction(s) to %s...\n", db_connections, sname);
 	if (startup() != OK) {
 		LOG_ERROR_MESSAGE("startup() failed\n");
@@ -87,6 +89,10 @@ int main(int argc, char *argv[])
 
 	/* Wait for command line input. */
 	do {
+		if (force_sleep == 1) {
+			sleep(600);
+			continue;
+		}
 		scanf("%s", command);
 		if (parse_command(command) == EXIT_CODE) {
 			break;
@@ -128,7 +134,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:l:p:s:",
+		c = getopt_long(argc, argv, "c:d:l:o:p:s:f",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -143,8 +149,14 @@ int parse_arguments(int argc, char *argv[])
 		case 'd':
 			strcpy(sname, optarg);
 			break;
+		case 'f':
+			force_sleep=1;
+			break;
 		case 'l':
 			strcpy(postmaster_port, optarg);
+			break;
+		case 'o':
+			strcpy(output_path, optarg);
 			break;
 		case 'p':
 			port = atoi(optarg);

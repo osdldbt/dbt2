@@ -30,10 +30,15 @@ int edump(int type, void *data)
 
 int init_logging()
 {
+	char log_filename[1024];
 	/* Open a file to log errors to. */
-	log_error = fopen(ERROR_LOG_NAME, "w");
+	if (output_path[0] != '\0') {
+		strcat(output_path, "/");
+	}
+	sprintf(log_filename, "%s%s", output_path, ERROR_LOG_NAME);
+	log_error = fopen(log_filename, "w");
 	if (log_error == NULL) {
-		fprintf(stderr, "cannot open %s\n", ERROR_LOG_NAME);
+		fprintf(stderr, "cannot open %s\n", log_filename);
 		return ERROR;
 	}
 

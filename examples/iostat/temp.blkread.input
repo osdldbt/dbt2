@@ -1,0 +1,7 @@
+plot  "iostat.out.rd!c0d13.blkread.data" with lines , "iostat.out.rd!c0d27.blkread.data" with lines , "iostat.out.rd!c1d13.blkread.data" with lines , "iostat.out.rd!c1d27.blkread.data" with lines 
+set xlabel "Elapsed Time (Minutes)"
+set ylabel "Blocks Read"
+set term png small color
+set output "temp.blkread.png"
+set yrange [0:]
+replot

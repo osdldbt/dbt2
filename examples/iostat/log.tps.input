@@ -1,0 +1,7 @@
+plot  "iostat.out.sde.tps.data" with lines , "iostat.out.sdf.tps.data" with lines , "iostat.out.sdg.tps.data" with lines , "iostat.out.sdh.tps.data" with lines , "iostat.out.sdi.tps.data" with lines , "iostat.out.sdj.tps.data" with lines , "iostat.out.sdk.tps.data" with lines , "iostat.out.sdl.tps.data" with lines , "iostat.out.sdm.tps.data" with lines , "iostat.out.sdn.tps.data" with lines , "iostat.out.sdo.tps.data" with lines , "iostat.out.sdp.tps.data" with lines , "iostat.out.sdq.tps.data" with lines , "iostat.out.sdr.tps.data" with lines
+set xlabel "Elapsed Time (Minutes)"
+set ylabel "Transactions per Second"
+set term png small color
+set output "log_tps.png"
+set yrange [0:]
+replot

@@ -17,6 +17,7 @@
 #include <common.h>
 #include <transaction_data.h>
 
+char output_path[256] = "";
 char a_string_char[A_STRING_CHAR_LEN];
 const char *n_string_char = "0123456789";
 const char *l_string_char =

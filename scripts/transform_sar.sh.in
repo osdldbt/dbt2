@@ -13,6 +13,7 @@ OUTPUTDIR=$3
 	@AWK@ '{ print (NR - 1) * '$SAMPLE_LENGTH', $5 }' > $OUTPUTDIR/cpu_nice.out
 @SAR@ -f $SAROUTPUT -u | @EGREP@ all | @EGREP@ -v Average | \
 	@AWK@ '{ print (NR - 1) * '$SAMPLE_LENGTH', $6 }' > $OUTPUTDIR/cpu_system.out
+cp -p cpu.input $OUTPUTDIR
 cd $OUTPUTDIR
-@GNUPLOT@ ../../cpu.input
+@GNUPLOT@ cpu.input
 cd -

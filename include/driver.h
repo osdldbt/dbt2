@@ -81,6 +81,7 @@ struct think_time_t
 };
 
 int init_driver();
+int init_driver_logging();
 int recalculate_mix();
 int set_client_hostname(char *addr);
 int set_client_port(int port);

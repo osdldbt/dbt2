@@ -1,0 +1,7 @@
+plot  "iostat.out.sde.blkwrtnps.data" with lines , "iostat.out.sdf.blkwrtnps.data" with lines , "iostat.out.sdg.blkwrtnps.data" with lines , "iostat.out.sdh.blkwrtnps.data" with lines , "iostat.out.sdi.blkwrtnps.data" with lines , "iostat.out.sdj.blkwrtnps.data" with lines , "iostat.out.sdk.blkwrtnps.data" with lines , "iostat.out.sdl.blkwrtnps.data" with lines , "iostat.out.sdm.blkwrtnps.data" with lines , "iostat.out.sdn.blkwrtnps.data" with lines , "iostat.out.sdo.blkwrtnps.data" with lines , "iostat.out.sdp.blkwrtnps.data" with lines , "iostat.out.sdq.blkwrtnps.data" with lines , "iostat.out.sdr.blkwrtnps.data" with lines
+set xlabel "Elapsed Time (Minutes)"
+set ylabel "Blocks Written per Second"
+set term png small color
+set output "log_blkwrtnps.png"
+set yrange [0:]
+replot

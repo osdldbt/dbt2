@@ -85,7 +85,7 @@ void *db_worker(void *data)
 		node->client_data.status =
 			process_transaction(node->client_data.transaction,
 			&dbc, &node->client_data.transaction_data);
-		if (node->client_data.status != OK) {
+		if (node->client_data.status == ERROR) {
 			LOG_ERROR_MESSAGE("process_transaction() error on %s",
 				transaction_name[
 				node->client_data.transaction]);

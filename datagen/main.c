@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <getopt.h>
 
-#include "common.h"
+#include <common.h>
 
 #define CUSTOMER_DATA "customer.data"
 #define DISTRICT_DATA "district.data"
@@ -40,8 +40,6 @@ void gen_new_order();
 void gen_orders();
 void gen_stock();
 void gen_warehouses();
-
-char output_path[512] = "";
 
 int warehouses = 0;
 int customers = CUSTOMER_CARDINALITY;

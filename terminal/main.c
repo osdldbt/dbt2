@@ -34,15 +34,16 @@ int main(int argc, char *argv[])
 {
 	/* Initialize various components. */
 	init_common();
-	init_logging();
 	init_driver();
 
 	if (parse_arguments(argc, argv) != OK) {
 		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0]",
 			argv[0]);
+#ifdef STANDALONE
 #ifdef LIBPQ
 		printf(" -z #");
 #endif /* LIBPQ */
+#endif /* STANDALONE */
 		printf("\n\n");
 #ifdef STANDALONE
 		printf("-dbname <connect_string>\n");
@@ -124,6 +125,8 @@ int main(int argc, char *argv[])
 		printf("\trandom number seed\n");
 		printf("-altered [0/1]\n");
 		printf("\trun with a thread per user, -altered 1\n");
+		printf("-sleep #\n");
+		printf("\tnumber of seconds to sleep between terminal creation\n");
 
 #ifdef STANDALONE
 		printf("\nDriver is in STANDALONE mode.\n");
@@ -131,6 +134,9 @@ int main(int argc, char *argv[])
 
 		return 1;
 	}
+
+	init_logging();
+	init_driver_logging();
 
 	/* Sanity check on the parameters. */
 	if (w_id_min > w_id_max) {
@@ -311,6 +317,8 @@ int parse_arguments(int argc, char *argv[])
 		} else if (strcmp(flag, "dbname") == 0) {
 			strcpy(sname, argv[i + 1]);
 #endif /* STANDALONE */
+		} else if (strcmp(flag, "outdir") == 0) {
+			strcpy(output_path, argv[i + 1]);
 		} else {
 			printf("invalid flag: %s\n", argv[i]);
 			exit(1);

@@ -1,7 +1,7 @@
 # Makefile.in
 # 31 October 2002
 
-# $Id: Makefile.in 1185 2003-08-19 18:47:31Z fimath $
+# $Id: Makefile.in 1187 2003-09-04 18:24:54Z fimath $
 
 # Source directory is current directory
 srcdir=$(PWD)
@@ -35,6 +35,9 @@ db_obj:
 
 libpq_obj:
 	cd $(srcdir)/interfaces/libpq && $(MAKE)
+
+cfuncs_obj:
+	cd $(srcdir)/storedproc/pgsql/c && $(MAKE)
 
 odbc_obj:
 	cd $(srcdir)/interfaces/odbc && $(MAKE)

@@ -121,6 +121,7 @@ int get_random(int max);
 int get_think_time(int mean_think_time);
 int init_common();
 
+extern char output_path[256];
 extern const char *c_last_syl[C_LAST_SYL_MAX];
 extern struct table_cardinality_t table_cardinality;
 extern const char transaction_short_name[TRANSACTION_MAX];

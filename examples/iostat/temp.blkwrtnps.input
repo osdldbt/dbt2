@@ -1,0 +1,7 @@
+plot  "iostat.out.rd!c0d13.blkwrtnps.data" with lines , "iostat.out.rd!c0d27.blkwrtnps.data" with lines , "iostat.out.rd!c1d13.blkwrtnps.data" with lines , "iostat.out.rd!c1d27.blkwrtnps.data" with lines 
+set xlabel "Elapsed Time (Minutes)"
+set ylabel "Blocks Written per Second"
+set term png small color
+set output "temp.blkwrtnps.png"
+set yrange [0:]
+replot

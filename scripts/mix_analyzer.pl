@@ -17,6 +17,11 @@ GetOptions(
 	"if=s" => \$mix_log
 );
 
+unless ( $mix_log ) {
+	print "usage: mix_analyzer.pl --if mix.log\n";
+	exit 1;
+}
+
 print "analyzing $mix_log\n";
 
 # Open a file handle to mix.log.
@@ -58,6 +63,8 @@ my $mean = $stat->mean();
 my $var  = $stat->variance();
 my $stddev = $stat->standard_deviation();
 my $median = $stat->median();
+my $min = $stat->min();
+my $max = $stat->max();
 
 # Display the data.
 printf( "%9s %4s %12s\n", "---------", "-----", "------------ ------" );
@@ -75,6 +82,8 @@ print "Statistics:\n";
 printf( "run length = %d seconds\n", $current_time - $start_time );
 printf( "count = %d\n", $count );
 printf( "mean = %4.2f\n", $mean );
+printf( "min = %4.2f\n", $min );
+printf( "max = %4.2f\n", $max );
 printf( "median = %4.2f\n", $median );
 printf( "standard deviation = %4.2f\n", $stddev ) if ( $count > 1 );
 

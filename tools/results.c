@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 	double transaction_response_time[TRANSACTION_MAX] = { 0, 0, 0, 0, 0 };
 
 	if (argc < 3) {
-		printf("Usage: %s <filename> <sample>\n", argv[0]);
+		printf("Usage: %s <filename> <sample> [output_dir]\n", argv[0]);
 		return 1;
 	}
 

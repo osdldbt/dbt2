@@ -1,0 +1,7 @@
+plot  "iostat.out.rd!c0d13.tps.data" with lines , "iostat.out.rd!c0d27.tps.data" with lines , "iostat.out.rd!c1d13.tps.data" with lines , "iostat.out.rd!c1d27.tps.data" with lines 
+set xlabel "Elapsed Time (Minutes)"
+set ylabel "Transactions per Second"
+set term png small color
+set output "temp.tps.png"
+set yrange [0:]
+replot

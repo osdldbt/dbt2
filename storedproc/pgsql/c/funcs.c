@@ -88,7 +88,7 @@
 	"  AND c_id = %d"
 
 #define NEW_ORDER_5 \
-	"INSERT INTO new_order (no_o_id, no_d_id, no_w_id)\n" \
+	"INSERT INTO new_order (no_o_id, no_w_id, no_d_id)\n" \
         "VALUES (%s, %d, %d)"
 
 #define NEW_ORDER_6 \

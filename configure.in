@@ -1,5 +1,5 @@
 AC_PREREQ(2.53)
-AC_REVISION($Id: configure.in 1185 2003-08-19 18:47:31Z fimath $)
+AC_REVISION($Id: configure.in 1187 2003-09-04 18:24:54Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(tools/results.c)
@@ -13,6 +13,13 @@ AC_PATH_PROGS([EGREP], ['grep -E'], ,
 if test -z "$EGREP"
 then
  AC_MSG_ERROR([*** grep -E is required])
+fi
+
+AC_PATH_PROGS([VMSTAT], [vmstat], ,
+             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+if test -z "$VMSTAT"
+then
+ AC_MSG_ERROR([*** vmstat is required])
 fi
 
 AC_PATH_PROGS([IOSTAT], [iostat], ,
@@ -36,12 +43,19 @@ then
  AC_MSG_ERROR([*** sar is required])
 fi
 
-#AC_PATH_PROGS([SYSCTL], [sysctl], ,
-#             [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
-#if test -z "$SYSCTL"
-#then
-# AC_MSG_ERROR([*** sysctl is required])
-#fi
+AC_PATH_PROGS([SYSCTL], [sysctl], ,
+             [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
+if test -z "$SYSCTL"
+then
+ AC_MSG_ERROR([*** sysctl is required])
+fi
+
+AC_PATH_PROGS([PSQL], [psql], ,
+             [$PATH:/usr/local/bin:/usr/bin:/bin:/usr/local/pgsql/bin])
+if test -z "$PSQL"
+then
+ AC_MSG_ERROR([*** psql is required])
+fi
 
 dnl>
 dnl> Thread Library (required)
@@ -124,8 +138,8 @@ if test "x$database_to_use" = "xpgsql"; then
 		,
 		AC_MSG_ERROR([libpq libs required]))
 	AC_DEFINE(LIBPQ)
-	database_interface="interfaces/libpq/Makefile storedproc/pgsql/c/Makefile storedproc/pgsql/c/delivery.sql storedproc/pgsql/c/new_order.sql storedproc/pgsql/c/order_status.sql storedproc/pgsql/c/payment.sql storedproc/pgsql/c/stock_level.sql scripts/pgsql/load_stored_funcs.sh"
-	INTERFACE_OBJ="libpq_obj"
+	database_interface="interfaces/libpq/Makefile storedproc/pgsql/c/Makefile storedproc/pgsql/c/delivery.sql storedproc/pgsql/c/new_order.sql storedproc/pgsql/c/order_status.sql storedproc/pgsql/c/payment.sql storedproc/pgsql/c/stock_level.sql scripts/pgsql/load_stored_funcs.sh scripts/pgsql/db_stat.sh scripts/pgsql/db_plans.sh scripts/pgsql/load_db.sh scripts/pgsql/create_indexes.sh"
+	INTERFACE_OBJ="libpq_obj cfuncs_obj"
 	DB_OBJS="LIBPQ_OBJS"
 elif test "x$database_to_use" = "xsapdb"; then
 	dnl>
@@ -169,4 +183,6 @@ scripts/Makefile
 scripts/run_test.sh
 scripts/sysstats.sh
 scripts/transform_sar.sh
+scripts/run_workload.sh
+scripts/Linux/get_os_info.sh
 ])

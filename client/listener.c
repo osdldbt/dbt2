@@ -96,7 +96,9 @@ void *listener_worker(void *data)
 	while (!exiting) {
 		rc = receive_transaction_data(node->s, &node->client_data);
 		if (rc == ERROR_SOCKET_CLOSED) {
+/*
 			LOG_ERROR_MESSAGE("exiting...");
+*/
 			/* Exit the thread when the socket has closed. */
 			sem_wait(&listener_worker_count);
 			free(node);

@@ -18,15 +18,15 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#include "common.h"
-#include "logging.h"
-#include "driver.h"
-#include "client_interface.h"
-#include "input_data_generator.h"
+#include <common.h>
+#include <logging.h>
+#include <driver.h>
+#include <client_interface.h>
+#include <input_data_generator.h>
 #ifdef STANDALONE
-#include "db.h"
-#include "transaction_queue.h"
-#include "db_threadpool.h"
+#include <db.h>
+#include <transaction_queue.h>
+#include <db_threadpool.h>
 #endif /* STANDALONE */
 
 #define MIX_LOG_NAME "mix.log"
@@ -95,9 +95,17 @@ int init_driver()
 		return ERROR;
 	}
 
-	log_mix = fopen(MIX_LOG_NAME, "w");
+	return OK;
+}
+
+int init_driver_logging()
+{
+	char log_filename[1024];
+
+	sprintf(log_filename, "%s%s", output_path, MIX_LOG_NAME);
+	log_mix = fopen(log_filename, "w");
 	if (log_mix == NULL) {
-		fprintf(stderr, "cannot open %s\n", MIX_LOG_NAME);
+		fprintf(stderr, "cannot open %s\n", log_filename);
 		return ERROR;
 	}
 
@@ -160,7 +168,6 @@ int set_client_port(int port)
 int set_duration(int seconds)
 {
 	duration = seconds;
-	stop_time = time(NULL) + duration;
 	return OK;
 }
 
@@ -228,6 +235,10 @@ int start_driver()
 */
 #endif /* STANDALONE */
 
+	/* Caulculate when the test should stop. */
+	stop_time = time(NULL) + duration + client_conn_sleep *
+                terminals_per_warehouse * (w_id_max - w_id_min);
+
 	for (i = w_id_min; i < w_id_max + 1; i++) {
 		for (j = 0; j < terminals_per_warehouse; j++) {
 			pthread_t tid;
@@ -286,6 +297,7 @@ int start_driver()
 		sleep(30);
 	}
 	while (count > 0);
+	printf("driver is exiting normally\n");
 
 	return OK;
 }
@@ -524,8 +536,9 @@ void *terminal_worker(void *data)
 #ifdef STANDALONE
 	/*recycle_node(node);*/
 #endif /* STANDALONE */
-
+/*
 	LOG_ERROR_MESSAGE("exiting normally...");
+*/
 
 	/* Note when each thread has exited. */
 	pthread_mutex_lock(&mutex_mix_log);

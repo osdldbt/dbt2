@@ -264,4 +264,4 @@ ${DBTYPE}/stop_db.sh
 
 # draw graphs
 cd $OUTPUT_DIR
-@GNUPLOT@ ../../bt.input
+@GNUPLOT@ ../../notpm.input
