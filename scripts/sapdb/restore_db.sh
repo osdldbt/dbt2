@@ -5,6 +5,8 @@ SAPDBBINDIR=/opt/sapdb/depend/bin
 export PATH=$PATH:$SAPDBBINDIR
 DATA_CACHE=10000
 
+set -x
+
 echo "changing data_cache to $DATA_CACHE"
 _o=`cat <<EOF |  dbmcli -d $SID -u dbm,dbm 2>&1
 param_startsession

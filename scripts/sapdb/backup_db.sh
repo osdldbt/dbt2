@@ -3,6 +3,8 @@
 SAPDBBINDIR=/opt/sapdb/depend/bin
 export PATH=$PATH:$SAPDBBINDIR
 
+set -x
+
 _o=`cat <<EOF | dbmcli -d DBT2 -u dbm,dbm 2>&1
 util_connect dbm,dbm
 backup_start data migration
