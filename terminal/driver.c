@@ -39,6 +39,21 @@ int w_id_min, w_id_max;
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
 
+int terminal_state[3][TRANSACTION_MAX] =
+	{ { 0, 0, 0, 0, 0 },
+	  { 0, 0, 0, 0, 0 },
+	  { 0, 0, 0, 0, 0 } };
+pthread_mutex_t mutex_terminal_state[3][TRANSACTION_MAX] =
+	{ { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	    PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	    PTHREAD_MUTEX_INITIALIZER },
+	  { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	    PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	    PTHREAD_MUTEX_INITIALIZER },
+	  { PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	    PTHREAD_MUTEX_INITIALIZER, PTHREAD_MUTEX_INITIALIZER,
+	    PTHREAD_MUTEX_INITIALIZER } };
+
 int init_driver()
 {
 	transaction_mix.delivery_actual = MIX_DELIVERY;
@@ -224,6 +239,19 @@ int start_driver()
 
 	do
 	{
+		printf("transaction\texec\tkeying\tthinking\n");
+		for (i = 0; i < TRANSACTION_MAX; i++)
+		{
+			printf("%s", transaction_name[i]);
+			for (j = 0; j < 3; j++)
+			{
+				pthread_mutex_lock(&mutex_terminal_state[j][i]);
+				printf("\t%d", terminal_state[j][i]);
+				pthread_mutex_unlock(&mutex_terminal_state[j][i]);
+			}
+			printf("\n");
+		}
+		printf("\n");
 		sem_getvalue(&terminal_count, &count);
 		sleep(1);
 	}
@@ -234,6 +262,7 @@ int start_driver()
 
 void *terminal_worker(void *data)
 {
+	int length;
 	struct terminal_context_t *tc;
 	struct client_transaction_t client_data;
 	double threshold;
@@ -273,19 +302,22 @@ void *terminal_worker(void *data)
 			keying_time = key_time.new_order;
 			mean_think_time = think_time.new_order;
 		}
-		else if (threshold < transaction_mix.payment_threshold)
+		else if (transaction_mix.payment_actual != 0 &&
+			threshold < transaction_mix.payment_threshold)
 		{
 			client_data.transaction = PAYMENT;
 			keying_time = key_time.payment;
 			mean_think_time = think_time.payment;
 		}
-		else if (threshold < transaction_mix.order_status_threshold)
+		else if (transaction_mix.order_status_actual != 0 &&
+			threshold < transaction_mix.order_status_threshold)
 		{
 			client_data.transaction = ORDER_STATUS;
 			keying_time = key_time.order_status;
 			mean_think_time = think_time.order_status;
 		}
-		else if (threshold < transaction_mix.delivery_threshold)
+		else if (transaction_mix.delivery_actual != 0 &&
+			threshold < transaction_mix.delivery_threshold)
 		{
 			client_data.transaction = DELIVERY;
 			keying_time = key_time.delivery;
@@ -316,6 +348,9 @@ void *terminal_worker(void *data)
 		}
 
 		/* Keying time... */
+		pthread_mutex_lock(&mutex_terminal_state[KEYING][client_data.transaction]);
+		++terminal_state[KEYING][client_data.transaction];
+		pthread_mutex_unlock(&mutex_terminal_state[KEYING][client_data.transaction]);
 		if (time(NULL) < stop_time)
 		{
 			sleep(keying_time);
@@ -324,14 +359,20 @@ void *terminal_worker(void *data)
 		{
 			break;
 		}
+		pthread_mutex_lock(&mutex_terminal_state[KEYING][client_data.transaction]);
+		--terminal_state[KEYING][client_data.transaction];
+		pthread_mutex_unlock(&mutex_terminal_state[KEYING][client_data.transaction]);
 
+		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
+		++terminal_state[EXECUTING][client_data.transaction];
+		pthread_mutex_unlock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
 		/* Execute transaction and record the response time. */
 		if (gettimeofday(&rt0, NULL) == -1)
 		{
 			perror("gettimeofday");
 		}
-		send_transaction_data(sockfd, &client_data);
-		receive_transaction_data(sockfd, &client_data);
+		length = send_transaction_data(sockfd, &client_data);
+		length = receive_transaction_data(sockfd, &client_data);
 		if (gettimeofday(&rt1, NULL) == -1)
 		{
 			perror("gettimeofday");
@@ -343,8 +384,14 @@ void *terminal_worker(void *data)
 			pthread_self());
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
+		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
+		--terminal_state[EXECUTING][client_data.transaction];
+		pthread_mutex_unlock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
 
 		/* Thinking time... */
+		pthread_mutex_lock(&mutex_terminal_state[THINKING][client_data.transaction]);
+		++terminal_state[THINKING][client_data.transaction];
+		pthread_mutex_unlock(&mutex_terminal_state[THINKING][client_data.transaction]);
 		if (time(NULL) < stop_time)
 		{
 			thinking_time.tv_nsec = (long) get_think_time(mean_think_time);
@@ -364,6 +411,9 @@ void *terminal_worker(void *data)
 				}
 			}
 		}
+		pthread_mutex_lock(&mutex_terminal_state[THINKING][client_data.transaction]);
+		--terminal_state[THINKING][client_data.transaction];
+		pthread_mutex_unlock(&mutex_terminal_state[THINKING][client_data.transaction]);
 	}
 	while (time(NULL) < stop_time);
 
