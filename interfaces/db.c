@@ -31,9 +31,22 @@ int connect_to_db(struct db_context_t *dbc) {
 	return OK;
 }
 
+int disconnect_from_db(struct db_context_t *dbc) {
+	int rc;
+
 #ifdef ODBC
+	rc = odbc_disconnect(&dbc);
+#endif /* ODBC */
+
+	if (rc != OK) {
+		return ERROR;
+	}
+
+	return OK;
+}
+
 int process_transaction(int transaction, struct db_context_t *dbc,
-	union transaction_data_t *odbct)
+	union transaction_data_t *td)
 {
 	int rc;
 	int i;
@@ -41,41 +54,41 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 
 	switch (transaction) {
 	case DELIVERY:
-		rc = execute_delivery(dbc, &odbct->delivery);
+		rc = execute_delivery(dbc, &td->delivery);
 		break;
 	case NEW_ORDER:
-		odbct->new_order.o_all_local = 1;
-		for (i = 0; i < odbct->new_order.o_ol_cnt; i++) {
-			if (odbct->new_order.order_line[i].ol_supply_w_id !=
-					odbct->new_order.w_id) {
-				odbct->new_order.o_all_local = 0;
+		td->new_order.o_all_local = 1;
+		for (i = 0; i < td->new_order.o_ol_cnt; i++) {
+			if (td->new_order.order_line[i].ol_supply_w_id !=
+					td->new_order.w_id) {
+				td->new_order.o_all_local = 0;
 				break;
 			}
 		}
-		rc = execute_new_order(dbc, &odbct->new_order);
-		if (odbct->new_order.rollback == 0) {
+		rc = execute_new_order(dbc, &td->new_order);
+		if (td->new_order.rollback == 0) {
 			/*
 			 * Calculate the adjusted total_amount here to work
 			 * around an issue with SAP DB stored procedures that
 			 * does not allow any statements to execute after a
 			 * SUBTRANS ROLLBACK without throwing an error.
 	 		 */
-			odbct->new_order.total_amount =
-				odbct->new_order.total_amount *
-				(1 - odbct->new_order.c_discount) *
-				(1 + odbct->new_order.w_tax + odbct->new_order.d_tax);
+			td->new_order.total_amount =
+				td->new_order.total_amount *
+				(1 - td->new_order.c_discount) *
+				(1 + td->new_order.w_tax + td->new_order.d_tax);
 		} else {
 			rc = ERROR;
 		}
 		break;
 	case ORDER_STATUS:
-		rc = execute_order_status(dbc, &odbct->order_status);
+		rc = execute_order_status(dbc, &td->order_status);
 		break;
 	case PAYMENT:
-		rc = execute_payment(dbc, &odbct->payment);
+		rc = execute_payment(dbc, &td->payment);
 		break;
 	case STOCK_LEVEL:
-		rc = execute_stock_level(dbc, &odbct->stock_level);
+		rc = execute_stock_level(dbc, &td->stock_level);
 		break;
 	default:
 		LOG_ERROR_MESSAGE("unknown transaction type %d", transaction);
@@ -97,4 +110,3 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 
 	return status;
 }
-#endif /* ODBC */

@@ -13,10 +13,11 @@
 #ifdef ODBC
 #include <odbc_common.h>
 #include <client_interface.h>
+#endif /* ODBC */
 
 int connect_to_db(struct db_context_t *dbc);
+int disconnect_from_db(struct db_context_t *dbc);
 int process_transaction(int transaction, struct db_context_t *dbc,
 	union transaction_data_t *odbct);
-#endif /* ODBC */
 
 #endif /* _DB_H_ */
