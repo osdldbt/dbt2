@@ -11,6 +11,7 @@
 
 #include <pthread.h>
 #include <common.h>
+#include <logging.h>
 #include <transaction_queue.h>
 
 #ifdef DEBUG

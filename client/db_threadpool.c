@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <common.h>
+#include <logging.h>
 #include <client_interface.h>
 #include <transaction_queue.h>
 #include <db_threadpool.h>

@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <common.h>
+#include <logging.h>
 #include <db_threadpool.h>
 #include <listener.h>
 #include <_socket.h>

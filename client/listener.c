@@ -11,6 +11,7 @@
 
 #include <pthread.h>
 #include <common.h>
+#include <logging.h>
 #include <listener.h>
 #include <client_interface.h>
 
