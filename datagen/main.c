@@ -976,8 +976,15 @@ int main(int argc, char *argv[])
 	 * In my environment, I don't have enough /tmp space to put the data files
 	 * in /tmp.
 	 */
-	p = popen("pwd", "r");
-	fscanf(p, "%s", pwd);
+	if (strlen(output_path) > 0)
+	{
+		strcpy(pwd, output_path);
+	}
+	else
+	{
+		p = popen("pwd", "r");
+		fscanf(p, "%s", pwd);
+	}
 
 	printf("creating links in /tmp to data files...\n");
 
