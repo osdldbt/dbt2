@@ -28,14 +28,6 @@ struct db_context_t {
 	SQLHSTMT hstmt;
 };
 
-union odbc_transaction_t {
-	struct delivery_t delivery;
-	struct new_order_t new_order;
-	struct order_status_t order_status;
-	struct payment_t payment;
-	struct stock_level_t stock_level;
-};
-
 int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc);
 int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
 	SQLHANDLE handle);
