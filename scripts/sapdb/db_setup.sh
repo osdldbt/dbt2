@@ -46,10 +46,10 @@ echo Creating indexes...
 ./create_indexes.sh
 echo
 
-echo Loading TABLESTATISTICS and extracting table and sizing information
-cd ./db_create_stats
-bash get_it_all.sh > TABLE_SIZING_INFO.txt 2>&1
-cd -
+#echo Loading TABLESTATISTICS and extracting table and sizing information
+#cd ./db_create_stats
+#bash get_it_all.sh > TABLE_SIZING_INFO.txt 2>&1
+#cd -
 
 echo Update table statistics
 ./update_stats.sh
