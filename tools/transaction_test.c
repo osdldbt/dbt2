@@ -17,19 +17,6 @@
 #include "logging.h"
 #include "transaction_data.h"
 
-#ifdef ODBC
-#include "odbc_common.h"
-#endif /* ODBC */
-
-union txn_data_t
-{
-	struct delivery_t delivery;
-	struct new_order_t new_order;
-	struct order_status_t order_status;
-	struct payment_t payment;
-	struct stock_level_t stock_level;
-};
-
 char sname[32] = "";
 int mode_altered = 0;
 
@@ -37,9 +24,8 @@ int main(int argc, char *argv[])
 {
 	int i;
 	int transaction = -1;
-	struct db_context_t odbcc;
-	union txn_data_t txn_data;
-	union odbc_transaction_t odbc_data;
+	struct db_context_t dbc;
+	union transaction_data_t transaction_data;
 
 	int port = 0;
 	int sockfd;
@@ -60,13 +46,15 @@ int main(int argc, char *argv[])
 		printf("-w #\n");
 		printf("\tnumber of warehouses, default 1\n");
 		printf("-c #\n");
-		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
+		printf("\tcustomer cardinality, default %d\n",
+			CUSTOMER_CARDINALITY);
 		printf("-i #\n");
 		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
 		printf("-o #\n");
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
 		printf("-n #\n");
-		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
+		printf("\tnew-order cardinality, default %d\n",
+			NEW_ORDER_CARDINALITY);
 		printf("-p #\n");
 		printf("\tport of client program, if used -d takes the address\n");
 		printf("\tof the client program\n");
@@ -92,7 +80,8 @@ int main(int argc, char *argv[])
 			} else if (argv[i + 1][0] == 's') {
 				transaction = STOCK_LEVEL;
 			} else {
-				printf("unknown transaction: %s\n", argv[i + 1]);
+				printf("unknown transaction: %s\n",
+					argv[i + 1]);
 				return 3;
 			}
 		} else if (argv[i][1] == 'w') {
@@ -138,28 +127,30 @@ int main(int argc, char *argv[])
 	srand(time(NULL));
 
 	/* Generate input data. */
-	bzero(&txn_data, sizeof(union txn_data_t));
+	bzero(&transaction_data, sizeof(union transaction_data_t));
 	switch (transaction) {
 	case DELIVERY:
-		generate_input_data(DELIVERY, (void *) &txn_data.delivery,
+		generate_input_data(DELIVERY,
+			(void *) &transaction_data.delivery,
 			get_random(table_cardinality.warehouses) + 1);
 		break;
 	case NEW_ORDER:
-		generate_input_data(NEW_ORDER, (void *) &txn_data.new_order,
+		generate_input_data(NEW_ORDER,
+			(void *) &transaction_data.new_order,
 			get_random(table_cardinality.warehouses) + 1);
 		break;
 	case ORDER_STATUS:
 		generate_input_data(ORDER_STATUS,
-			(void *) &txn_data.order_status,
+			(void *) &transaction_data.order_status,
 			get_random(table_cardinality.warehouses) + 1);
 		break;
 	case PAYMENT:
-		generate_input_data(PAYMENT, (void *) &txn_data.payment,
+		generate_input_data(PAYMENT, (void *) &transaction_data.payment,
 			get_random(table_cardinality.warehouses) + 1);
 		break;
 	case STOCK_LEVEL:
 		generate_input_data2(STOCK_LEVEL,
-			(void *) &txn_data.stock_level,
+			(void *) &transaction_data.stock_level,
 			get_random(table_cardinality.warehouses) + 1,
 			get_random(table_cardinality.districts) + 1);
 		break;
@@ -170,17 +161,14 @@ int main(int argc, char *argv[])
 		 * Process transaction by connecting directly to the database.
 		 */
 		printf("connecting directly to the database...\n");
-#ifdef ODBC
-		bzero(&odbc_data, sizeof(union odbc_transaction_t));
-		odbc_init(sname, DB_USER, DB_PASS);
-		if (odbc_connect(&odbcc) != OK) {
+		bzero(&transaction_data, sizeof(union transaction_data_t));
+		db_init(sname, DB_USER, DB_PASS);
+		if (connect_to_db(&dbc) != OK) {
 			return 6;
 		}
-		memcpy(&odbc_data, &txn_data, sizeof(union txn_data_t));
-		process_transaction(transaction, &odbcc, (void *) &odbc_data);
-		memcpy(&txn_data, &odbc_data, sizeof(union txn_data_t));
-		odbc_disconnect(&odbcc);
-#endif /* ODBC */
+		process_transaction(transaction, &dbc,
+			(void *) &transaction_data);
+		disconnect_from_db(&dbc);
 	} else {
 		/* Process transaction by connecting to the client program. */
 		printf("connecting to client program on port %d...\n", port);
@@ -191,8 +179,8 @@ int main(int argc, char *argv[])
 		}
 
 		client_txn.transaction = transaction;
-		memcpy(&client_txn.transaction_data, &txn_data,
-			sizeof(union txn_data_t));
+		memcpy(&client_txn.transaction_data, &transaction_data,
+			sizeof(union transaction_data_t));
 		printf("sending transaction data...\n");
 		if (send_transaction_data(sockfd, &client_txn) != OK) {
 			printf("send_transaction_data() error\n");
@@ -205,11 +193,11 @@ int main(int argc, char *argv[])
 			return 8;
 		}
 
-		memcpy(&txn_data, &client_txn.transaction_data,
-			sizeof(union txn_data_t));
+		memcpy(&transaction_data, &client_txn.transaction_data,
+			sizeof(union transaction_data_t));
 	}
 
-	dump(stdout, transaction, (void *) &txn_data);
+	dump(stdout, transaction, (void *) &transaction_data);
 	printf("\ndone.\n");
 
 	return 0;
