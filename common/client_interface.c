@@ -15,6 +15,9 @@
 int connect_to_client(char *addr, int port)
 {
 	int sockfd;
+
+	sockfd = _connect(addr, port);
+
 	return sockfd;
 }
 
