@@ -20,13 +20,10 @@ struct db_context_t {
 
 int _connect_to_db(struct db_context_t *dbc);
 int _disconnect_from_db(struct db_context_t *dbc);
-int _db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
-	char *_pgtty);
+int _db_init(char *_dbname, char *_pghost, char *_pgport);
 
 extern char dbname[32];
 extern char pghost[32];
 extern char pgport[32];
-extern char pgoptions[32];
-extern char pgtty[32];
 
 #endif /* _LIBPQ_COMMON_H_ */

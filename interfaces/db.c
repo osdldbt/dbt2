@@ -41,8 +41,7 @@ int connect_to_db(struct db_context_t *dbc) {
 int db_init(char *sname, char *uname, char *auth)
 #endif /* ODBC */
 #ifdef LIBPQ
-int db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
-	char *_pgtty)
+int db_init(char *_dbname, char *_pghost, char *_pgport)
 #endif /* LIBPQ */
 {
 	int rc;
@@ -52,7 +51,7 @@ int db_init(char *_dbname, char *_pghost, char *_pgport, char *_pgoptions,
 #endif /* ODBC */
 
 #ifdef LIBPQ
-	rc = _db_init(_dbname, _pghost, _pgport, _pgoptions, _pgtty);
+	rc = _db_init(_dbname, _pghost, _pgport);
 #endif /* LIBPQ */
 
 	return OK;
