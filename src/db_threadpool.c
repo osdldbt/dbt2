@@ -216,9 +216,6 @@ int db_threadpool_init()
                         if (ret == EAGAIN) {
                                 LOG_ERROR_MESSAGE(
                                         "not enough system resources");
-                        } else if (ret == EAGAIN) {
-                                LOG_ERROR_MESSAGE(
-                                        "more than PTHREAD_THREADS_MAX");
                         }
                         return ERROR;
                 }
@@ -236,6 +233,7 @@ int db_threadpool_init()
                                 break;
                         }
                 }
+		pthread_attr_destroy(&attr);
         }
         return OK;
 }
