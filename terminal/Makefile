@@ -28,6 +28,8 @@ driver: ../Makefile \
 	main.c \
 	../include/common.h \
 	../common/common.so \
+	../include/logging.h \
+	../common/logging.so \
 	../include/_socket.h \
 	../common/_socket.c \
 	../common/_socket.so \
@@ -44,6 +46,7 @@ driver: ../Makefile \
 	input_data_generator.c
 	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) main.c -o driver \
 		../common/common.so \
+		../common/logging.so \
 		../common/_socket.so \
 		../common/client_interface.so \
 		../common/transaction_data.so \
