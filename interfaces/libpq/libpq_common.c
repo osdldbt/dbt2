@@ -22,8 +22,11 @@ char pgtty[32] = "";
 /* Open a connection to the database. */
 int _connect_to_db(struct db_context_t *dbc)
 {
+/*
 	dbc->conn = PQsetdbLogin(pghost, pgport, NULL, NULL, dbname,
-		DB_USER, DB_PASS);
+		"postgres", "postgres");
+*/
+	dbc->conn = PQsetdb(pghost, pgport, NULL, NULL, dbname);
 	if (PQstatus(dbc->conn) == CONNECTION_BAD) {
 		LOG_ERROR_MESSAGE("Connection to database '%s' failed.",
 			dbname);
