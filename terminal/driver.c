@@ -47,6 +47,7 @@ sem_t terminal_count;
 int w_id_min, w_id_max;
 int terminals_per_warehouse;
 int mode_altered = 1;
+unsigned int seed = -1;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
@@ -318,7 +319,13 @@ void *terminal_worker(void *data)
 
 	tc = (struct terminal_context_t *) data;
 	/* Each thread needs to seed in Linux. */
-	srand(time(NULL) * pthread_self() * getpid());
+	if (seed == -1)
+	{
+		seed = time(NULL) * pthread_self() * getpid();
+	}
+	printf("seed: %u\n", seed);
+	fflush(stdout);
+	srand(seed);
 
 	/* Keep a count of how many terminals are being emulated. */
 	sem_post(&terminal_count);
