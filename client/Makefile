@@ -3,22 +3,22 @@
 
 include ../common.mk
 
-all: db_thread_pool.so client
+all: db_threadpool.so client
 
 client: Makefile main.c \
 	../Makefile ../common.mk \
 	../include/common.h \
 	../include/_socket.h ../common/_socket.so
 	$(CC) $(CFLAGS) -I$(ODBCINCLUDEDIR) main.c -o client \
-		db_thread_pool.so \
+		db_threadpool.so \
 		../common/common.so \
 		../common/_socket.so \
 		../interfaces/odbc/odbc_common.so \
 		$(ODBCLIBDIR)/libsqlod.so \
 		-lpthread -lm
 
-db_thread_pool.so: Makefile db_thread_pool.c ../include/db_thread_pool.h \
+db_threadpool.so: Makefile db_threadpool.c ../include/db_threadpool.h \
 	../Makefile ../common.mk
 
 clean: 
-	rm -f client *.log
+	rm -f client *.log *.so

@@ -9,20 +9,14 @@
  * 25 june 2002
  */
 
-#include <pthread.h>
 #include <stdio.h>
-#include <semaphore.h>
 #include <common.h>
+#include <db_threadpool.h>
 #include <_socket.h>
-#ifdef ODBC
-#include <odbc_common.h>
-#endif /* ODBC */
 
 /* Function Prototypes */
-void *db_worker(void *no_data);
 int parse_arguments(int argc, char *argv[]);
 int parse_command(char *command);
-int startup();
 
 /* Global Variables */
 char sname[32] = "";
@@ -30,8 +24,6 @@ int db_connections = 0;
 int port = 30000;
 int sockfd;
 int exiting = 0;
-
-sem_t db_worker_count;
 
 int main(int argc, char *argv[])
 {
@@ -93,39 +85,6 @@ int main(int argc, char *argv[])
 	printf("exiting...\n");
 
 	return 0;
-}
-
-void *db_worker(void *no_data)
-{
-#ifdef ODBC
-	struct odbc_context_t odbcc;
-#endif /* ODBC */
-
-	/* Open a connection to the database. */
-#ifdef ODBC
-	odbc_init(sname, DB_USER, DB_PASS);
-	if (!exiting && odbc_connect(&odbcc) != OK)
-	{
-		LOG_ERROR_MESSAGE("odbc_connect() error, terminating program");
-		printf("cannot connect to database, exiting...\n");
-		exit(1);
-	}
-#endif /* ODBC */
-	while (1 && !exiting);
-	{
-		/* Remove the sleep when we actually are doing something. */
-		sleep(1);
-	}
-
-	/* Disconnect from the database. */
-#ifdef ODBC
-	/* The program is halting on the odbc_disconnect(). */
-/*
-	odbc_disconnect(&odbcc);
-*/
-#endif /* ODBC */
-
-	sem_wait(&db_worker_count);
 }
 
 int parse_arguments(int argc, char *argv[])
@@ -197,12 +156,6 @@ int startup()
 
 	init_common();
 
-	if (sem_init(&db_worker_count, 0, 0) != 0)
-	{
-		LOG_ERROR_MESSAGE("cannot init running_eu_count\n");
-		return ERROR;
-	}
-
 	sockfd = _listen(port);
 	if (sockfd < 1)
 	{
@@ -211,18 +164,10 @@ int startup()
 	}
 	printf("listening to port %d\n", port);
 
-	for (i = 0; i < db_connections; i++)
+	if (db_threadpool_init() != OK)
 	{
-		pthread_t tid;
-
-		if (pthread_create(&tid, NULL, &db_worker, NULL) != 0)
-		{
-			LOG_ERROR_MESSAGE("error creating thread\n");
-			return ERROR;
-		}
-
-		/* Keep a count of how many DB worker threads have started. */
-		sem_post(&db_worker_count);
+		LOG_ERROR_MESSAGE("db_thread_pool_init() failed");
+		return ERROR;
 	}
 
 	return OK;
