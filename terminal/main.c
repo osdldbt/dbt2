@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 	if (parse_arguments(argc, argv) != OK)
 	{
-		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%]\n",
+		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-altered 0]\n",
 			argv[0]);
 		printf("\n");
 #ifdef STANDALONE
@@ -107,6 +107,10 @@ int main(int argc, char *argv[])
 		printf("\n");
 		printf("-tpw #\n");
 		printf("\tterminals started per warehouse, default 10\n");
+
+		printf("\n");
+		printf("-altered 0\n");
+		printf("\trun with a thread per user\n");
 
 #ifdef STANDALONE
 		printf("\nDriver is in STANDALONE mode.\n");
@@ -322,7 +326,7 @@ int parse_arguments(int argc, char *argv[])
 		}
 		else if (strcmp(flag, "altered") == 0)
 		{
-			mode_altered = 1;
+			mode_altered = 0;
 		}
 #ifdef STANDALONE
 		else if (strcmp(flag, "dbc") == 0)

@@ -45,7 +45,7 @@ int stop_time;
 sem_t terminal_count;
 int w_id_min, w_id_max;
 int terminals_per_warehouse;
-int mode_altered = 0;
+int mode_altered = 1;
 
 FILE *log_mix;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;
