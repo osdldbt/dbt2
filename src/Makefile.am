@@ -7,7 +7,7 @@
 
 AUTOMAKE_OPTIONS = no-dependencies
 
-INCLUDES = -I../include
+INCLUDES = -Iinclude
 
 COMMON_SRCS=\
   common.c \
