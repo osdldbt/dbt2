@@ -1,13 +1,11 @@
 #!/bin/sh
 
-# init_env.sh
 #
-# This file is released under the terms of the Artistic License.  Please see
-# the file LICENSE, included in this package, for details.
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
 #
-# 01 May 2003
 
 TOP_DIR=@abs_top_srcdir@
 
@@ -16,18 +14,17 @@ CREATEDB=@CREATEDB@; export CREATEDB
 DROPDB=@DROPDB@; export DROPDB
 CREATELANG=@CREATELANG@; export CREATELANG
 PGRESTORE=@PGRESTORE@; export PGRESTORE
-PGCTL=@PGCTL@; export PGCTL
+PG_CTL=@PG_CTL@; export PG_CTL
 PSQL=@PSQL@; export PSQL
 VACUUMDB=@VACUUMDB@; export VACUUMDB
 PG_AUTOVACUUM=@PG_AUTOVACUUM@; export PG_AUTOVACUUM
 
 # Our database will be named dbt2
-DB_NAME=dbt2; export DB_NAME
+DBNAME=dbt2; export DBNAME
 
 # Data instance path.  Storage location for this instance of the database
 # should be within the working directory
-PGDATA=/mnt/pgdata/${DB_NAME}; export PGDATA
+PGDATA=/mnt/pgdata; export PGDATA
 
 # Path of database data
 DBDATA=/tmp; export DBDATA
-
