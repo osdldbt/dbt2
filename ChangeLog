@@ -1,3 +1,9 @@
+v0.26
+
+- Improved configure.in to set executable permission onfiles it generated.
+- More fixes related to setting the stack size in the C programs.
+- Added headers to files where previously missing.
+
 v0.25
 
 - PostgreSQL requires pg_autovacuum now, but you could edit the kit so it can
