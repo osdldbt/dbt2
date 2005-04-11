@@ -1,3 +1,10 @@
+--
+-- This file is released under the terms of the Artistic License.
+-- Please see the file LICENSE, included in this package, for details.
+--
+-- Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+--
+
 CREATE TABLE warehouse (
     w_id INTEGER,
     w_name VARCHAR(10),

@@ -1,12 +1,11 @@
 #!/usr/bin/perl -w
 
-# This file is released under the terms of the Artistic License.  Please see
-# the file LICENSE, included in this package, for details.
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2003 Mark Wong & Open Source Development Lab, Inc.
 #
-# 4 September 2003
-# 5 November 2004 with help from Ken Brush
 
 use strict;
 use Getopt::Long;

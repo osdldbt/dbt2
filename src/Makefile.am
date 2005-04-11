@@ -1,9 +1,9 @@
-# This file is released under the terms of the Artistic License.  Please see
-# the file LICENSE, included in this package, for details.
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
 #
-# 18 March 2004
 
 AUTOMAKE_OPTIONS = no-dependencies
 
