@@ -11,7 +11,7 @@ autoheader || exit
 autoconf || exit
 automake || exit
 
-./configure --with-prefix=/scratch/pgsql --with-getopt=/s/getopt-0 --with-postgresql=/scratch/pgsql || exit
-make dist
+#./configure --with-prefix=/scratch/pgsql --with-getopt=/s/getopt-0 --with-postgresql=/scratch/pgsql || exit
+#make dist
 
 

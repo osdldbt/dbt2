@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.in 1248 2005-03-11 19:07:16Z fimath $)
+AC_REVISION($Id: configure.in 1290 2005-04-11 15:13:30Z fimath $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.25, osdldbt-general@lists.sourceforge.net)
@@ -20,10 +20,14 @@ AC_CANONICAL_BUILD
 case $build in
 *-*-solaris*)
   AC_DEFINE(SOLARIS, 1, [Build for solaris])
+  AC_CONFIG_FILES([scripts/SunOS/get_os_info.sh],
+      [chmod +x scripts/SunOS/get_os_info.sh])
   ;;
 *-*-linux*)
   AC_DEFINE(LINUX, 1, [Build for Linux])
   AC_DEFINE(BROKEN_SEMAPHORES, 1, [Pthread semaphores are broken])
+  AC_CONFIG_FILES([scripts/Linux/get_os_info.sh],
+      [chmod +x scripts/Linux/get_os_info.sh])
   ;;
 *-*-darwin*)
   AC_DEFINE(DARWIN, 1, [Build for DARWIN])
@@ -41,14 +45,14 @@ AC_PROG_CC
 
 dnl Replace below with this in future release AC_PROG_EGREP
 AC_PATH_PROGS([EGREP], ['grep -E'], ,
-             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+    [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$EGREP"
 then
   AC_MSG_ERROR([*** grep -E is required])
 fi
 
 AC_PATH_PROGS([VMSTAT], [vmstat], ,
-             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+    [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$VMSTAT"
 then
   AC_MSG_WARN([*** vmstat not found some scripts may not be usable])
@@ -56,7 +60,7 @@ then
 fi
 
 AC_PATH_PROGS([IOSTAT], [iostat], ,
-             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+    [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$IOSTAT"
 then
   AC_MSG_WARN([*** iostat not found some scripts may not be usable])
@@ -64,7 +68,7 @@ then
 fi
 
 AC_PATH_PROGS([GNUPLOT], [gnuplot], ,
-             [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+    [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$GNUPLOT"
 then
   AC_MSG_WARN([*** gnuplot not found some scripts may not be usable])
@@ -80,7 +84,7 @@ then
 fi
 
 AC_PATH_PROGS([SYSCTL], [sysctl], ,
-             [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
+    [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
 if test -z "$SYSCTL"
 then
   AC_MSG_WARN([*** sysctl not found some scripts may not be usable])
@@ -92,14 +96,14 @@ dnl Thread Library (required)
 dnl check for `pthread_create' in -lpthread
 dnl
 AC_CHECK_HEADERS(semaphore.h pthread.h,[],[
-	AC_MSG_ERROR([could not locate threading headers])
+    AC_MSG_ERROR([could not locate threading headers])
 ])
 AC_CHECK_LIB(pthread, pthread_create)
 if test ".`echo $LIBS | grep pthread`" != .; then
 dnl
 dnl check for `sem_init' in -lposix4
 dnl
-   AC_CHECK_LIB(posix4, sem_init)
+  AC_CHECK_LIB(posix4, sem_init)
 else
   AC_CHECK_LIB(pthreads, pthread_create)
   if test ".`echo $LIBS | grep pthread`" != .; then
@@ -132,11 +136,11 @@ CFLAGS="-Wall $CFLAGS"
 
 dnl Argument for GNU getopt
 AC_ARG_WITH(getopt,
-  [AC_HELP_STRING([--with-getopt=DIR],
-    [Set this to GNU getopt's installation directory, or leave it unset if it
-     is in compiler's default search paths.])],
-  [default_getopt="$withval"],
-  [default_getopt="default"]
+    [AC_HELP_STRING([--with-getopt=DIR],
+        [Set this to GNU getopt's installation directory, or leave it unset if
+            it is in compiler's default search paths.])],
+    [default_getopt="$withval"],
+    [default_getopt="default"]
 )
 if test "$default_getopt" != default; then
   CPPFLAGS="-I${default_getopt}/include $CPPFLAGS"
@@ -156,10 +160,9 @@ dnl Configuration options for different databases, PostgreSQL is default.
 # PostgreSQL
 AC_ARG_WITH(postgresql,
   [AC_HELP_STRING([--with-postgresql=DIR],
-    [Default on. Set to the path of the PostgreSQL's installation, or leave
-     unset if the path is already in the compiler search path.])],
-  [pgsql_path=$withval
-  database_to_use="pgsql"],
+      [Default on. Set to the path of the PostgreSQL's installation, or leave
+          unset if the path is already in the compiler search path.])],
+  [pgsql_path=$withval database_to_use="pgsql"],
   [database_to_use="pgsql"]
 )
 
@@ -181,25 +184,24 @@ AC_ARG_WITH(odbc,
 # MySQL
 AC_ARG_WITH(mysql,
   [AC_HELP_STRING([--with-mysql=DIR],
-    [Build C based version of dbt2 test. Set to the path of the MySQL's 
-     installation, or leave unset if the path is already in the search 
-     path])],
-  [ ac_cv_use_mysql=$withval
-    database_to_use="mysql"],
+  [Build C based version of dbt2 test. Set to the path of the MySQL's 
+      installation, or leave unset if the path is already in the search 
+      path])],
+  [ ac_cv_use_mysql=$withval database_to_use="mysql"],
   [],
 )
 
 AC_ARG_ENABLE(nonsp,
   [AC_HELP_STRING([--enable-nonsp],
-    [Force to build pure C based version of dbt2 test (default is no)]
-  )], 
+      [Force to build pure C based version of dbt2 test (default is no)]
+      )], 
   NONSP="yes"
 )
 
 AC_ARG_ENABLE(debug_query,
   [AC_HELP_STRING([--enable-debug-query],
-    [Turn on debug info for nonsp version of test dbt2 test (default is no)]
-  )], 
+      [Turn on debug info for nonsp version of test dbt2 test (default is no)]
+      )], 
   CFLAGS="$CFLAGS -DDEBUG_QUERY"
 )
 
@@ -212,6 +214,7 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$INITDB" ; then
     AC_MSG_ERROR([*** initdb is required])
   fi
+
   dnl check for createdb
   AC_PATH_PROGS(CREATEDB, createdb, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
@@ -219,6 +222,7 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$CREATEDB" ; then
     AC_MSG_ERROR([*** createdb is required])
   fi
+
   dnl check for dropdb
   AC_PATH_PROGS(DROPDB, dropdb, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
@@ -226,6 +230,7 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$DROPDB" ; then
     AC_MSG_ERROR([*** dropdb is required])
   fi
+
   dnl check for pg_restore
   AC_PATH_PROGS(PGRESTORE, pg_restore, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
@@ -233,6 +238,7 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$PGRESTORE" ; then
     AC_MSG_ERROR([*** pg_restore is required])
   fi
+
   dnl check for createlang
   AC_PATH_PROGS(CREATELANG, createlang, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
@@ -240,13 +246,15 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$CREATELANG" ; then
     AC_MSG_ERROR([*** createlang is required])
   fi
+
   dnl check for pg_ctl
-  AC_PATH_PROGS(PGCTL, pg_ctl, ,
+  AC_PATH_PROGS(PG_CTL, pg_ctl, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
   )
-  if test -z "$PGCTL" ; then
+  if test -z "$PG_CTL" ; then
     AC_MSG_ERROR([*** pg_ctl is required])
   fi
+
   dnl check for psql
   AC_PATH_PROGS(PSQL, psql, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
@@ -254,6 +262,7 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$PSQL" ; then
     AC_MSG_ERROR([*** psql is required])
   fi
+
   dnl check for vacuumdb
   AC_PATH_PROGS(VACUUMDB, vacuumdb, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
@@ -261,6 +270,7 @@ if test "$database_to_use" == "pgsql"; then
   if test -z "$VACUUMDB" ; then
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
+
   dnl check for pg_autovacuum
   AC_PATH_PROGS(PG_AUTOVACUUM, pg_autovacuum, ,
     [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
@@ -285,6 +295,16 @@ if test "$database_to_use" == "pgsql"; then
 
   SP_DIR="pgsql"
 
+  AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
+      [chmod +x scripts/pgsql/db_stat.sh])
+  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
+  AC_CONFIG_FILES([storedproc/pgsql/Makefile])
+  AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
+  AC_CONFIG_FILES([storedproc/pgsql/c/delivery.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/new_order.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/order_status.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/payment.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/stock_level.sql])
 elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
   dnl ODBC Library (required)
   dnl check for `odbcinit' in -lodbc, -liodbc
@@ -296,7 +316,7 @@ elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
   
   AC_ARG_WITH([unixodbc],
     [AC_HELP_STRING([--with-unixodbc=DIR],
-      [path to UnixODBC installation root])],
+        [path to UnixODBC installation root])],
     [unixodbc_root=$withval]
   )
 
@@ -394,6 +414,8 @@ elif test "$database_to_use" == "mysql"; then
   AC_DEFINE(LIBMYSQL, 1, [using MySQL])
 
   SP_DIR=""        
+
+  AC_CONFIG_FILES([scripts/run_mysql.sh], [chmod +x scripts/run_mysql.sh])
 else
   AC_MSG_ERROR('Please choose DBMS. ./configure --with-(postgresql|sapdb|mysql)!')
 fi
@@ -427,25 +449,11 @@ dnl stored procedure subdir
 AC_SUBST(SP_DIR)
 AC_SUBST(database_to_use)
 
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([src/Makefile])
+AC_CONFIG_FILES([storedproc/Makefile])
+AC_CONFIG_FILES([scripts/sysstats.sh], [chmod +x scripts/sysstats.sh])
+AC_CONFIG_FILES([scripts/transform_sar.sh], [chmod +x scripts/transform_sar.sh])
+AC_CONFIG_FILES([scripts/run_workload.sh], [chmod +x scripts/run_workload.sh])
 
-AC_OUTPUT([
-Makefile                            \
-src/Makefile                        \
-storedproc/Makefile                 \
-storedproc/pgsql/Makefile           \
-storedproc/pgsql/c/Makefile         \
-scripts/run_test.sh                 \
-scripts/run_mysql.sh                \
-scripts/sysstats.sh                 \
-scripts/transform_sar.sh            \
-scripts/run_workload.sh             \
-scripts/pgsql/pgsql_profile         \
-scripts/pgsql/db_stat.sh            \
-scripts/Linux/get_os_info.sh        \
-scripts/SunOS/get_os_info.sh        \
-storedproc/pgsql/c/delivery.sql     \
-storedproc/pgsql/c/new_order.sql    \
-storedproc/pgsql/c/order_status.sql \
-storedproc/pgsql/c/payment.sql      \
-storedproc/pgsql/c/stock_level.sql  \
-])
+AC_OUTPUT

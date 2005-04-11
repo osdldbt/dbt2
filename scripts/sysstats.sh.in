@@ -1,11 +1,11 @@
 #!/bin/sh
+
 #
-# This file is released under the terms of the Artistic License.  Please see
-# the file LICENSE, included in this package, for details.
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
 #
-# 17 october 2002
 
 if [ $# -lt 1 ]; then
     echo "usage: sysstats.sh --outdir <output_dir> --iter <iterations> -sample <sample_length>"

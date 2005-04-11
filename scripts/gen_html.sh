@@ -1,4 +1,11 @@
-#!/bin/bash
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2004 Mark Wong & Open Source Development Lab, Inc.
+#
 
 if [ $# -ne 1 ]; then
 	echo "usage: gen_html.sh <results directory>"
