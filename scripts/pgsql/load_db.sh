@@ -8,38 +8,63 @@
 #
 
 DIR=`dirname $0`
+BACKGROUND=no
 . ${DIR}/pgsql_profile || exit 1
 
-# Create tables
-${PSQL} -e -d ${DBNAME} -f create_tables.sql || exit 1
+while getopts "bd:t" OPT; do
+	case ${OPT} in
+	b)
+		BACKGROUND=yes
+		;;
+	d)
+		DBDATA=${OPTARG}
+		;;
+	t)
+		TABLESPACES_FLAG="-t"
+		;;
+	esac
+done
 
 # Load tables
-echo "Loading customer table..."
-${PSQL} -e -d ${DBNAME} -c "COPY customer FROM '$DBDATA/customer.data' WITH NULL AS '';" || exit 1
-echo "Loading district table..."
-${PSQL} -e -d ${DBNAME} -c "COPY district FROM '$DBDATA/district.data' WITH NULL AS '';" || exit 1
-echo "Loading history table..."
-${PSQL} -e -d ${DBNAME} -c "COPY history FROM '$DBDATA/history.data' WITH NULL AS '';" || exit 1
-echo "Loading item table..."
-${PSQL} -e -d ${DBNAME} -c "COPY item FROM '$DBDATA/item.data' WITH NULL AS '';" || exit 1
-echo "Loading new_order table..."
-${PSQL} -e -d ${DBNAME} -c "COPY new_order FROM '$DBDATA/new_order.data' WITH NULL AS '';" || exit 1
-echo "Loading order_line table..."
-${PSQL} -e -d ${DBNAME} -c "COPY order_line FROM '$DBDATA/order_line.data' WITH NULL AS '';" || exit 1
-echo "Loading orders table..."
-${PSQL} -e -d ${DBNAME} -c "COPY orders FROM '$DBDATA/order.data' WITH NULL AS '';" || exit 1
-echo "Loading stock table..."
-${PSQL} -e -d ${DBNAME} -c "COPY stock FROM '$DBDATA/stock.data' WITH NULL AS '';" || exit 1
-echo "Loading warehouse table..."
-${PSQL} -e -d ${DBNAME} -c "COPY warehouse FROM '$DBDATA/warehouse.data' WITH NULL AS '';" || exit 1
+# This background stuff is honestly kinda ugly. IMO the right way to do this is to utilize make -j
+load_table() {
+	table=$1
+	if [ x$2 == x ]; then
+		file=$table.data
+	else
+		file=$2.data
+	fi
 
-${SHELL} create_indexes.sh || exit 1
+	local sql="COPY $table FROM '${DBDATA}/$file' WITH NULL AS '';"
+	local cmd="${PSQL} -e -d ${DBNAME} -c "
+	if [ $BACKGROUND == yes ]; then
+		echo "Loading $table table in the background..."
+		${cmd} "${sql} VACUUM ANALYZE $table;" || exit 1 &
+	else
+		echo "Loading $table table..."
+		${cmd} "${sql}" || exit 1
+	fi
+}
+
+load_table customer
+load_table district
+load_table history
+load_table item
+load_table new_order
+load_table order_line
+load_table orders order
+load_table stock
+load_table warehouse
+
+wait
+
+./create_indexes.sh ${TABLESPACES_FLAG} || exit 1
 
 # load C or SQL implementation of the stored procedures
 if true; then
-  ${SHELL} load_stored_funcs.sh || exit 1
+  ./load_stored_funcs.sh || exit 1
 else
-  ${SHELL} load_stored_procs.sh || exit 1
+  ./load_stored_procs.sh || exit 1
 fi
 
 ${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
@@ -48,6 +73,9 @@ ${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
 # tables. The VACUUM FULL is probably unnecessary; we want to scan the
 # heap and update the commit-hint bits on each new tuple, but a regular
 # VACUUM ought to suffice for that.
-$VACUUMDB -z -f -d ${DBNAME} || exit 1
+
+if [ $BACKGROUND == no ]; then
+    $VACUUMDB -z -f -d ${DBNAME} || exit 1
+fi
 
 exit 0

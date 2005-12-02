@@ -35,6 +35,8 @@ char postmaster_port[32];
 char dbt2_mysql_port[32];
 #endif /* LIBMYSQL */
 
+int perform_integrity_check = 0;
+
 int parse_arguments(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
@@ -44,7 +46,7 @@ int main(int argc, char *argv[])
         init_driver();
 
         if (parse_arguments(argc, argv) != OK) {
-                printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0] [-spread #]",
+                printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0] [-spread #] [-z]",
                         argv[0]);
 #ifdef STANDALONE
 #ifdef LIBPQ
@@ -141,6 +143,8 @@ int main(int argc, char *argv[])
                 printf("-spread #\n");
                 printf("\tfancy warehouse skipping trick for low i/o runs\n");
 
+                printf("-z #\n");
+                printf("\tperform database integrity check\n");
 #ifdef STANDALONE
                 printf("\nDriver is in STANDALONE mode.\n");
 #endif /* STANDALONE */
@@ -233,8 +237,7 @@ int main(int argc, char *argv[])
         printf("%d second steady state duration\n", duration);
         printf("\n");
 
-        if (integrity_terminal_worker() != OK)
-        {
+        if (perform_integrity_check && integrity_terminal_worker() != OK) {
            printf("You used wrong parameters or something wrong with database.\n");
            return 1;
         }
@@ -296,6 +299,8 @@ int parse_arguments(int argc, char *argv[])
                         set_transaction_mix(DELIVERY, atof(argv[i + 1]));
                 } else if (strcmp(flag, "t") == 0) {
                         set_transaction_mix(STOCK_LEVEL, atof(argv[i + 1]));
+                } else if (strcmp(flag, "z") == 0) {
+                        perform_integrity_check = 1;
                 } else if (strcmp(flag, "wmin") == 0) {
                         w_id_min = atoi(argv[i + 1]);
                 } else if (strcmp(flag, "wmax") == 0) {

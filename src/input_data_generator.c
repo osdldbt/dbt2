@@ -150,7 +150,12 @@ int generate_payment_data(int w_id, struct payment_t *data)
 				get_random(table_cardinality.warehouses - 1)
 					+ 1;
 			if (data->c_w_id >= w_id) {
-				++data->c_w_id;
+				data->c_w_id = (data->c_w_id + 1) %
+						table_cardinality.warehouses;
+			}
+			if (!data->c_w_id)
+			{
+			  data->c_w_id = 1;
 			}
 		} else {
 			data->c_w_id = 1;

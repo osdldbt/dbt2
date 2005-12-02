@@ -107,10 +107,4 @@ echo "starting system statistics data collection"
 VMSTAT_OUTPUT=$OUTPUT_DIR/vmstat.out
 @VMSTAT@ -n $SAMPLE_LENGTH $ITERATIONS >> $VMSTAT_OUTPUT &
 
-# Wait for the tools to finish before transforming data.
-wait
-
-echo "Data gathering complete, transforming data..."
-@SAR@ -f $OUTPUT_DIR/sar_raw.out -A > $OUTPUT_DIR/sar.out
-
-${SHELL} ${PFX}/vmplot.sh -i ${VMSTAT_OUTPUT} -o ${OUTPUT_DIR}/plots
+exit 0

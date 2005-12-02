@@ -3,15 +3,16 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002 Mark Wong & Jenny Zhang &
- *                    Open Source Development Labs, Inc.
+ *		    Open Source Development Labs, Inc.
  *
  * 11 June 2002
  */
 
 #include <pthread.h>
 #include <stdio.h>
+#include <string.h>
 
-#include "odbc_common.h"
+#include <odbc_common.h>
 
 SQLHENV henv = SQL_NULL_HENV;
 pthread_mutex_t db_source_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -44,7 +45,7 @@ int check_odbc_rc(SQLSMALLINT handle_type, SQLHANDLE handle, SQLRETURN rc)
 
 /* Print out all errors messages generated to the error log file. */
 int log_odbc_error(char *filename, int line, SQLSMALLINT handle_type,
-	SQLHANDLE handle)
+		SQLHANDLE handle)
 {
 	SQLCHAR sqlstate[5];
 	SQLCHAR message[256];
@@ -89,7 +90,7 @@ int _connect_to_db(struct db_context_t *odbcc)
 
 	/* Open connection to the database. */
 	rc = SQLConnect(odbcc->hdbc, servername, SQL_NTS,
-		username, SQL_NTS, authentication, SQL_NTS);
+			username, SQL_NTS, authentication, SQL_NTS);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_DBC, odbcc->hdbc);
 		SQLFreeHandle(SQL_HANDLE_DBC, odbcc->hdbc);
@@ -97,24 +98,24 @@ int _connect_to_db(struct db_context_t *odbcc)
 	}
 
 	rc = SQLSetConnectAttr(odbcc->hdbc, SQL_ATTR_AUTOCOMMIT,
-		SQL_AUTOCOMMIT_OFF, 0);
+			SQL_AUTOCOMMIT_OFF, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
-	        return ERROR;
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+		return ERROR;
 	}
 
 	rc = SQLSetConnectAttr(odbcc->hdbc, SQL_ATTR_TXN_ISOLATION,
-		SQL_TXN_REPEATABLE_READ, 0);
+			(SQLPOINTER *) SQL_TXN_REPEATABLE_READ, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
-	        return ERROR;
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+		return ERROR;
 	}
 
 	/* allocate statement handle */
 	rc = SQLAllocHandle(SQL_HANDLE_STMT, odbcc->hdbc, &odbcc->hstmt);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
-	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
-	        return ERROR;
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+		return ERROR;
 	}
 	pthread_mutex_unlock(&db_source_mutex);
 
@@ -143,8 +144,8 @@ int odbc_disconnect(struct db_context_t *odbcc)
 	}
 	rc = SQLFreeHandle(SQL_HANDLE_STMT, odbcc->hstmt);
 	if (rc != SQL_SUCCESS) {
-	        LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
-	        return ERROR;
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->hstmt);
+		return ERROR;
 	}
 	pthread_mutex_unlock(&db_source_mutex);
 	return OK;
@@ -161,8 +162,7 @@ int _db_init(char *sname, char *uname, char *auth)
 		LOG_ERROR_MESSAGE("alloc env handle failed");
 		return ERROR;
 	}
-	rc = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (void *) SQL_OV_ODBC3,
-		0);
+	rc = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION, (void *) SQL_OV_ODBC3, 0);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		SQLFreeHandle(SQL_HANDLE_ENV, henv);
 		return ERROR;
@@ -189,130 +189,116 @@ int rollback_transaction(struct db_context_t *dbc)
 
 
 int dbt2_sql_execute(struct db_context_t *dbc, char * query, 
-                     struct sql_result_t * sql_result, char * query_name)
+		struct sql_result_t * sql_result, char * query_name)
 {
-  int i;
-  SQLCHAR colname[32];
-  SQLSMALLINT coltype;
-  SQLSMALLINT colnamelen;
-  SQLSMALLINT scale;
-  SQLRETURN rc;
+	int i;
+	SQLCHAR colname[32];
+	SQLSMALLINT coltype;
+	SQLSMALLINT colnamelen;
+	SQLSMALLINT scale;
+	SQLRETURN rc;
   
-  sql_result->num_fields= 0;
-  sql_result->num_rows= 0;
-  sql_result->query= query;
+	sql_result->num_fields= 0;
+	sql_result->num_rows= 0;
+	sql_result->query= query;
 
-  rc= SQLExecDirect(dbc->hstmt, query, SQL_NTS);
-  if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
-  {
-    LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
-    return 0;
-  }
-  rc= SQLNumResultCols(dbc->hstmt,&sql_result->num_fields);
-  if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)  
-  {
-    LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
-    return 0;
-  }
+	rc = SQLExecDirect(dbc->hstmt, query, SQL_NTS);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+		return 0;
+	}
+	rc = SQLNumResultCols(dbc->hstmt,&sql_result->num_fields);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+		return 0;
+	}
 
-  rc =SQLRowCount(dbc->hstmt, &sql_result->num_rows);
-  if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)  
-  {
-    LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
-    return 0;
-  }
+	rc = SQLRowCount(dbc->hstmt, &sql_result->num_rows);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)  {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+		return 0;
+	}
 
-  if (sql_result->num_fields)
-  {
-    sql_result->lengths= malloc(sizeof(int)*sql_result->num_fields);
+	if (sql_result->num_fields) {
+		sql_result->lengths= malloc(sizeof(int) * sql_result->num_fields);
 
-    for (i=0; i < sql_result->num_fields; i++)
-    {
-      SQLDescribeCol(dbc->hstmt, 
-                     (SQLSMALLINT)(i + 1),
-                     colname,
-                     sizeof(colname),
-                     &colnamelen,
-                     &coltype,
-                     &sql_result->lengths[i],
-                     &scale,
-                     NULL
-                    );
-    } 
-    sql_result->current_row=1;
-    sql_result->result_set=1;
-  }
+		for (i=0; i < sql_result->num_fields; i++) {
+			SQLDescribeCol(dbc->hstmt, 
+					(SQLSMALLINT)(i + 1),
+					colname,
+					sizeof(colname),
+					&colnamelen,
+					&coltype,
+					&sql_result->lengths[i],
+					&scale,
+					NULL
+			);
+    	} 
+		sql_result->current_row = 1;
+		sql_result->result_set = 1;
+	}
 
-  return 1;
+	return 1;
 }
 
-int dbt2_sql_close_cursor(struct db_context_t *dbc, struct sql_result_t * sql_result)
+int dbt2_sql_close_cursor(struct db_context_t *dbc,
+		struct sql_result_t * sql_result)
 {
- SQLRETURN   rc;
+	SQLRETURN   rc;
    
- if (sql_result->lengths)
- {
-    free(sql_result->lengths);
-    sql_result->lengths=NULL;
- }
+	if (sql_result->lengths) {
+		free(sql_result->lengths);
+		sql_result->lengths=NULL;
+	}
  
- rc = SQLCloseCursor(dbc->hstmt);
- if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
- {
-   LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
-   return 0;
- }
- return 1;  
+	rc = SQLCloseCursor(dbc->hstmt);
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+		return 0;
+	}
+	return 1;  
 }
 
-
-int dbt2_sql_fetchrow(struct db_context_t *dbc, struct sql_result_t * sql_result)
+int dbt2_sql_fetchrow(struct db_context_t *dbc,
+		struct sql_result_t * sql_result)
 {
-  SQLRETURN  rc;
+	SQLRETURN  rc;
    
-  rc= SQLFetch(dbc->hstmt);
+	rc = SQLFetch(dbc->hstmt);
 
-  if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
-  {
-    LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
-    //result set - NULL
-    sql_result->current_row= 0;
-    return 0;
-  }
+	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+		LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+		/* result set - NULL */
+		sql_result->current_row= 0;
+		return 0;
+	}
   
   return 1;
 }
 
-char * dbt2_sql_getvalue(struct db_context_t *dbc, struct sql_result_t * sql_result, 
-                           int field)
+char *dbt2_sql_getvalue(struct db_context_t *dbc,
+		struct sql_result_t *sql_result, int field)
 {
-  SQLRETURN   rc;
-  char * tmp;
+	SQLRETURN rc;
+	char *tmp;
   
-  tmp= NULL;
-  SQLINTEGER cb_var=0;
+	tmp = NULL;
+	SQLINTEGER cb_var = 0;
 
-  if (sql_result->current_row && field < sql_result->num_fields)
-  {
-    if ((tmp = calloc(sizeof(char), sql_result->lengths[field]+1)))
-    {
-      rc=SQLGetData(dbc->hstmt, field+1, SQL_C_CHAR, tmp, sql_result->lengths[field]+1, &cb_var);
-      if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO)
-      {
-        LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
-      }
-    }
-    else
-    {
-      LOG_ERROR_MESSAGE("dbt2_sql_getvalue: CALLOC FAILED for value from field=%d\n", field);
-    }
-  }
+	if (sql_result->current_row && field < sql_result->num_fields) {
+		if ((tmp = calloc(sizeof(char), sql_result->lengths[field] + 1))) {
+			rc = SQLGetData(dbc->hstmt, field + 1, SQL_C_CHAR, tmp,
+					sql_result->lengths[field] + 1, &cb_var);
+			if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
+				LOG_ODBC_ERROR(SQL_HANDLE_STMT, dbc->hstmt);
+			}
+		} else {
+			LOG_ERROR_MESSAGE("dbt2_sql_getvalue: CALLOC FAILED for value from field=%d\n", field);
+		}
 #ifdef DEBUG_QUERY
-  else
-  {
-    LOG_ERROR_MESSAGE("dbt2_sql_getvalue: FIELD %d current_row %d\nQUERY --- %s\n", field, sql_result->current_row, sql_result->query);
-  }
+	} else {
+		LOG_ERROR_MESSAGE("dbt2_sql_getvalue: FIELD %d current_row %d\nQUERY --- %s\n", field, sql_result->current_row, sql_result->query);
 #endif
-  return tmp;
+	}
+	return tmp;
 }
-

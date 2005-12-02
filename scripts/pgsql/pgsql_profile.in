@@ -23,8 +23,12 @@ PG_AUTOVACUUM=@PG_AUTOVACUUM@; export PG_AUTOVACUUM
 DBNAME=dbt2; export DBNAME
 
 # Data instance path.  Storage location for this instance of the database
-# should be within the working directory
-PGDATA=/mnt/pgdata; export PGDATA
+# should be within the working directory.  If you're going to mount a device,
+# do it at /mnt/postgresql.
+PGDATA=/mnt/postgresql/pgdata; export PGDATA
 
 # Path of database data
-DBDATA=/tmp; export DBDATA
+DBDATA=/mnt/data; export DBDATA
+
+# Directory with tablespace mount points, if using tablespaces.
+TSDIR=/mnt/dbt2

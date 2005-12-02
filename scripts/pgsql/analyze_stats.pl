@@ -21,12 +21,12 @@ unless ( $stats_dir ) {
 	exit 1;
 }
 
-my @index_names = ( "pk_district", "pk_customer", "pk_new_order", "pk_orders",
-	"pk_order_line", "pk_item", "pk_warehouse", "pk_stock", "i_customer",
-	"i_orders" );
+my @index_names = ("i_customer", "i_orders", "pk_customer", "pk_district",
+		"pk_item", "pk_new_order", "pk_order_line", "pk_orders", "pk_stock",
+		"pk_warehouse" );
 
-my @table_names = ( "warehouse", "district", "customer", "history",
-	"new_order", "orders", "order_line", "item", "stock" );
+my @table_names = ("customer", "district", "history", "item", "new_order",
+		"order_line", "orders", "stock", "warehouse");
 
 my @input_file;
 
@@ -74,14 +74,15 @@ sub process {
 	my $png_filename = $filename;
 	$png_filename =~ s/data$/png/;
 	open( FILE, ">$stats_dir/$input_filename" );
-	print FILE "plot \"$filename\" using 1:1 title \"$names[ 0 ]\" with lines, \\\n";
+	print FILE "plot \"$filename\" using 1:2 title \"$names[ 0 ]\" with lines, \\\n";
 	my $i;
 	for ( $i = 1; $i < (scalar @names) - 1; $i++ ) {
-		print FILE "\"$filename\" using 1:" . ($i + 1) .
+		print FILE "\"$filename\" using 1:" . ($i + 2) .
 			" title \"$names[ $i ]\" with lines, \\\n";
 	}
-	print FILE "\"$filename\" using 1:" . ($i + 1) .
+	print FILE "\"$filename\" using 1:" . ($i + 2) .
 		" title \"$names[ $i ]\" with lines\n";
+	print FILE "set grid xtics ytics\n";
 	print FILE "set xlabel \"Elapsed Time (Minutes)\"\n";
 	print FILE "set ylabel \"$ylabel\"\n";
 	print FILE "set term png small\n";

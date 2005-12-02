@@ -29,7 +29,7 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 
 	/* Create the query and execute it. */
 	sprintf(stmt, "SELECT payment(%d, %d, %d, %d, %d, '%s', %f)",
-		data->w_id, data->d_id, data->c_id, data->c_w_id, data->c_w_id,
+		data->w_id, data->d_id, data->c_id, data->c_w_id, data->c_d_id,
 		data->c_last, data->h_amount);
 	res = PQexec(dbc->conn, stmt);
 	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&

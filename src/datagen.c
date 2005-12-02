@@ -1,12 +1,9 @@
 /*
- * main.c
- *
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
+ * This file is released under the terms of the Artistic License.
+ * Please see the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
  *
- * 16 may 2002
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
@@ -57,8 +54,8 @@ char delimiter = ',';
 char null_str[16] = "\"NULL\"";
 
 #define ERR_MSG( fn ) { (void)fflush(stderr); \
-                        (void)fprintf(stderr, __FILE__ ":%d:" #fn ": %s\n", \
-                                      __LINE__, strerror(errno)); }
+		(void)fprintf(stderr, __FILE__ ":%d:" #fn ": %s\n", \
+		__LINE__, strerror(errno)); }
 #define METAPRINTF( args ) if( fprintf args < 0  ) ERR_MSG( fn )
 
 /* Oh my gosh, is there a better way to do this? */
@@ -100,12 +97,12 @@ void print_timestamp(FILE *ofile, struct tm *date)
 {
 	if (mode_string == MODE_SAPDB) {
 		METAPRINTF((ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
-			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-			date->tm_hour, date->tm_min, date->tm_sec));
+				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
+				date->tm_hour, date->tm_min, date->tm_sec));
 	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		METAPRINTF((ofile, "%04d-%02d-%02d %02d:%02d:%02d",
-			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-			date->tm_hour, date->tm_min, date->tm_sec));
+				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
+				date->tm_hour, date->tm_min, date->tm_sec));
 	} else {
 		printf("unknown string mode: %d\n", mode_string);
 		exit(1);
@@ -170,8 +167,7 @@ void gen_customers()
 				if (l < 1000) {
 					get_c_last(a_string, l);
 				} else {
-					get_c_last(a_string,
-						get_nurand(255, 0, 999));
+					get_c_last(a_string, get_nurand(255, 0, 999));
 				}
 				escape_me(a_string);
 				FPRINTF(output, "%s", a_string);
@@ -467,8 +463,7 @@ void gen_items()
 		METAPRINTF((output, "%c", delimiter));
 
 		/* i_price */
-		FPRINTF(output, "%0.2f",
-			((double) get_random(9900) + 100.0) / 100.0);
+		FPRINTF(output, "%0.2f", ((double) get_random(9900) + 100.0) / 100.0);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* i_data */
@@ -582,8 +577,7 @@ void gen_orders()
 	for (i = 0; i < warehouses; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			/*
-			 * Create a random list of numbers from 1 to customers
-			 * for o_c_id.
+			 * Create a random list of numbers from 1 to customers for o_c_id.
 			 */
 			head = (struct node_t *) malloc(sizeof(struct node_t));
 			head->value = 1;
@@ -591,10 +585,7 @@ void gen_orders()
 			for (k = 2; k <= customers; k++) {
 				current = prev = head;
 
-				/*
-				 * Find a random place in the list to insert a
-				 * number.
-				 */
+				/* Find a random place in the list to insert a number. */
 				iter = get_random(k - 1);
 				while (iter > 0) {
 					prev = current;
@@ -613,16 +604,14 @@ void gen_orders()
 					prev->next = new_node;
 					new_node->next = NULL;
 				} else {
-					/*
-					 * Insert somewhere in the middle of
-					 * the list.
-					 */
+					/* Insert somewhere in the middle of the list. */
 					prev->next = new_node;
 					new_node->next = current;
 				}
 				new_node->value = k;
 			}
 
+			current = head;
 			for (k = 0; k < orders; k++) {
 				/* o_id */
 				FPRINTF(order, "%d", k + 1);
@@ -637,11 +626,9 @@ void gen_orders()
 				METAPRINTF((order, "%c", delimiter));
 
 				/* o_c_id */
-				current = head;
-				head = head->next;
 				FPRINTF(order, "%d", current->value);
 				METAPRINTF((order, "%c", delimiter));
-				free(current);
+				current = current->next;
 
 				/* o_entry_d */
 				/*
@@ -695,7 +682,7 @@ void gen_orders()
 
 					/* ol_i_id */
 					FPRINTF(order_line, "%d",
-						get_random(ITEM_CARDINALITY - 1) + 1);
+							get_random(ITEM_CARDINALITY - 1) + 1);
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_supply_w_id */
@@ -714,8 +701,7 @@ void gen_orders()
 						tm1 = localtime(&t1);
 						print_timestamp(order_line, tm1);
 					} else {
-						METAPRINTF((order_line, "%s",
-							null_str));
+						METAPRINTF((order_line, "%s", null_str));
 					}
 					METAPRINTF((order_line, "%c", delimiter));
 
@@ -728,7 +714,7 @@ void gen_orders()
 						FPRINTF2(order_line, "0.00");
 					} else {
 						FPRINTF(order_line, "%f",
-							(double) (get_random(999998) + 1) / 100.0);
+								(double) (get_random(999998) + 1) / 100.0);
 					}
 					METAPRINTF((order_line, "%c", delimiter));
 
@@ -738,6 +724,11 @@ void gen_orders()
 
 					METAPRINTF((order_line, "\n"));
 				}
+			}
+			while (head != NULL) {
+				current = head;
+				head = head->next;
+				free(current);
 			}
 		}
 	}
@@ -953,15 +944,13 @@ int main(int argc, char *argv[])
 		printf("-w #\n");
 		printf("\twarehouse cardinality\n");
 		printf("-c #\n");
-		printf("\tcustomer cardinality, default %d\n",
-			CUSTOMER_CARDINALITY);
+		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
 		printf("-i #\n");
 		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
 		printf("-o #\n");
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
 		printf("-n #\n");
-		printf("\tnew-order cardinality, default %d\n",
-			NEW_ORDER_CARDINALITY);
+		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		printf("-d <path>\n");
 		printf("\toutput path of data files\n");
 		printf("--sapdb\n");
@@ -979,12 +968,12 @@ int main(int argc, char *argv[])
 		static struct option long_options[] = {
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
-			{ "mysql", no_argument, &mode_string, MODE_MYSQL },                        
+			{ "mysql", no_argument, &mode_string, MODE_MYSQL },			
 			{ 0, 0, 0, 0 }
 		};
 
 		c = getopt_long(argc, argv, "c:d:i:n:o:w:",
-			long_options, &option_index); 
+				long_options, &option_index); 
 		if (c == -1) {
 			break;
 		}
@@ -1021,11 +1010,11 @@ int main(int argc, char *argv[])
 		return 3;
 	}
 
-        if (strlen(output_path) > 0 && ((stat(output_path, &st) < 0) || (st.st_mode & S_IFMT) != S_IFDIR))
-        {
-          printf("Output directory of data files '%s' not exists\n",output_path);
-          return 3;
-        } 
+	if (strlen(output_path) > 0 && ((stat(output_path, &st) < 0) ||
+			(st.st_mode & S_IFMT) != S_IFDIR)) {
+		printf("Output directory of data files '%s' not exists\n",output_path);
+		return 3;
+	} 
 
 	/* Set the correct delimiter. */
 	if (mode_string == MODE_SAPDB) {
@@ -1045,15 +1034,12 @@ int main(int argc, char *argv[])
 	printf("new_orders = %d\n", new_orders);
 	printf("\n");
 
-        if (strlen(output_path) > 0)
-        {
-          printf("Output directory of data files: %s\n",output_path);
-        }
-        else
-        {
-          printf("Output directory of data files: current directory\n");
-        }
-        printf("\n");
+	if (strlen(output_path) > 0) {
+		printf("Output directory of data files: %s\n",output_path);
+	} else {
+		printf("Output directory of data files: current directory\n");
+	}
+	printf("\n");
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 

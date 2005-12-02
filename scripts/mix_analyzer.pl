@@ -10,21 +10,30 @@
 use strict;
 use Getopt::Long;
 use Statistics::Descriptive;
+use POSIX qw(ceil floor);
 
 my $mix_log;
 my $help;
 my $outdir;
 my $verbose;
 
+my @delivery_response_time = ();
+my @new_order_response_time = ();
+my @order_status_response_time = ();
+my @payement_response_time = ();
+my @stock_level_response_time = ();
+
 my @transactions = ( "delivery", "new_order", "order_status",
 	"payment", "stock_level" );
+#
 # I'm so lazy, and I really don't like perl...
-my %transactions;
-$transactions{ 'd' } = "Delivery";
-$transactions{ 'n' } = "New Order";
-$transactions{ 'o' } = "Order Status";
-$transactions{ 'p' } = "Payment";
-$transactions{ 's' } = "Stock Level";
+#
+my %transaction;
+$transaction{ 'd' } = "Delivery";
+$transaction{ 'n' } = "New Order";
+$transaction{ 'o' } = "Order Status";
+$transaction{ 'p' } = "Payment";
+$transaction{ 's' } = "Stock Level";
 my @xtran = ( "d_tran", "n_tran", "o_tran", "p_tran", "s_tran" );
 
 my $sample_length = 60; # Seconds.
@@ -36,12 +45,16 @@ GetOptions(
 	"verbose" => \$verbose
 );
 
+#
 # Because of the way the math works out, and because we want to have 0's for
 # the first datapoint, this needs to start at the first $sample_length,
 # which is in minutes.
+#
 my $elapsed_time = 1;
 
+#
 # Isn't this bit lame?
+#
 if ( $help ) {
 	print "usage: mix_analyzer.pl --infile mix.log --outdir <path>\n";
 	exit 1;
@@ -57,20 +70,30 @@ unless ( $outdir ) {
 	exit 1;
 }
 
+#
 # Open a file handle to mix.log.
+#
 open( FH, "<$mix_log")
 	or die "Couldn't open $mix_log for reading: $!\n";
+
+#
+# Open a file handle to output data for gnuplot.
+#
 open( CSV, ">$outdir/notpm.data" )
 	or die "Couldn't open $outdir/notpm.data for writing: $!\n";
 
+#
 # Load mix.log into memory.  Hope perl doesn't choke...
+#
 my $line;
 my %data;
 my %last_time;
 my %error_count;
 my $errors = 0;
 
+#
 # Hashes to determine response time distributions.
+#
 my %d_distribution;
 my %n_distribution;
 my %o_distribution;
@@ -90,7 +113,9 @@ $transaction_name{ "P" } = "payment";
 $transaction_name{ "S" } = "stock level";
 $transaction_name{ "E" } = "unknown error";
 
+#
 # Open separate files because the range of data varies by transaction.
+#
 open( D_FILE, ">$outdir/d_tran.data" );
 open( N_FILE, ">$outdir/n_tran.data" );
 open( O_FILE, ">$outdir/o_tran.data" );
@@ -99,6 +124,7 @@ open( S_FILE, ">$outdir/s_tran.data" );
 
 my $current_time;
 my $start_time;
+my $steady_state_start_time = 0;
 my $previous_time;
 my $total_response_time;
 my $total_transaction_count;
@@ -121,22 +147,32 @@ $rollback_count{ 'o' } = 0;
 $rollback_count{ 'p' } = 0;
 $rollback_count{ 's' } = 0;
 
+#
+# Transaction counts for the steady state portion of the test.
+#
 $transaction_count{ 'd' } = 0;
 $transaction_count{ 'n' } = 0;
 $transaction_count{ 'o' } = 0;
 $transaction_count{ 'p' } = 0;
 $transaction_count{ 's' } = 0;
 
-# Collect stats.
+#
+# Read the data directly from the log file and handle it on the fly.
+#
 print CSV "0 0 0 0 0 0\n";
 while ( defined( $line = <FH> ) ) {
 	chomp $line;
 	my @word = split /,/, $line;
 
-	if ( scalar( @word ) == 4 ) {
+	if (scalar(@word) == 4) {
+		#
 		# Count transactions per second based on transaction type.
-		$current_time = $word[ 0 ];
-		my $response_time = $word[ 2 ];
+		#
+		$current_time = $word[0];
+		my $response_time = $word[2];
+		#
+		# Save the very first start time in the log.
+		#
 		unless ( $start_time ) {
 			$start_time = $previous_time = $current_time;
 		}
@@ -151,86 +187,88 @@ while ( defined( $line = <FH> ) ) {
 			++$elapsed_time;
 			$previous_time = $current_time;
 
+			#
 			# Reset counters for the next sample interval.
-			$current_transaction_count{ 'd' } = 0;
-			$current_transaction_count{ 'n' } = 0;
-			$current_transaction_count{ 'o' } = 0;
-			$current_transaction_count{ 'p' } = 0;
-			$current_transaction_count{ 's' } = 0;
+			#
+			$current_transaction_count{'d'} = 0;
+			$current_transaction_count{'n'} = 0;
+			$current_transaction_count{'o'} = 0;
+			$current_transaction_count{'p'} = 0;
+			$current_transaction_count{'s'} = 0;
 		}
 
+		#
 		# Determine response time distributions for each transaction
 		# type.  Also determine response time for a transaction when
 		# it occurs during the run.  Calculate response times for
 		# each transaction;
+		#
 		my $time;
 		$time = sprintf("%.2f", $response_time );
 		my $x_time = ($word[ 0 ] - $start_time) / 60;
 		if ( $word[ 1 ] eq 'd' ) {
-			++$transaction_count{ 'd' };
-			$transaction_response_time{ 'd' } += $response_time;
-			++$current_transaction_count{ 'd' };
-
+			unless ($steady_state_start_time == 0) {
+				++$transaction_count{ 'd' };
+				$transaction_response_time{ 'd' } += $response_time;
+				push @delivery_response_time, $response_time;
+				++$current_transaction_count{ 'd' };
+			}
 			++$d_distribution{ $time };
 			print D_FILE "$x_time $response_time\n";
 		} elsif ( $word[ 1 ] eq 'n' ) {
-			++$transaction_count{ 'n' };
-			$transaction_response_time{ 'n' } += $response_time;
-			++$current_transaction_count{ 'n' };
-
+			unless ($steady_state_start_time == 0) {
+				++$transaction_count{ 'n' };
+				$transaction_response_time{ 'n' } += $response_time;
+				push @new_order_response_time, $response_time;
+				++$current_transaction_count{ 'n' };
+			}
 			++$n_distribution{ $time };
 			print N_FILE "$x_time $response_time\n";
 		} elsif ( $word[ 1 ] eq 'o' ) {
-			++$transaction_count{ 'o' };
-			$transaction_response_time{ 'o' } += $response_time;
-			++$current_transaction_count{ 'o' };
-
+			unless ($steady_state_start_time == 0) {
+				++$transaction_count{ 'o' };
+				$transaction_response_time{ 'o' } += $response_time;
+				push @order_status_response_time, $response_time;
+				++$current_transaction_count{ 'o' };
+			}
 			++$o_distribution{ $time };
 			print O_FILE "$x_time $response_time\n";
 		} elsif ( $word[ 1 ] eq 'p' ) {
-			++$transaction_count{ 'p' };
-			$transaction_response_time{ 'p' } += $response_time;
-			++$current_transaction_count{ 'p' };
-
+			unless ($steady_state_start_time == 0) {
+				++$transaction_count{ 'p' };
+				$transaction_response_time{ 'p' } += $response_time;
+				push @payement_response_time, $response_time;
+				++$current_transaction_count{ 'p' };
+			}
 			++$p_distribution{ $time };
 			print P_FILE "$x_time $response_time\n";
 		} elsif ( $word[ 1 ] eq 's' ) {
-			++$transaction_count{ 's' };
-			$transaction_response_time{ 's' } += $response_time;
-			++$current_transaction_count{ 's' };
-
+			unless ($steady_state_start_time == 0) {
+				++$transaction_count{ 's' };
+				$transaction_response_time{ 's' } += $response_time;
+				push @stock_level_response_time, $response_time;
+				++$current_transaction_count{ 's' };
+			}
 			++$s_distribution{ $time };
 			print S_FILE "$x_time $response_time\n";
 		} elsif ( $word[ 1 ] eq 'D' ) {
-			++$rollback_count{ 'd' };
-			++$transaction_count{ 'd' };
-			$transaction_response_time{ 'd' } += $response_time;
-			++$current_transaction_count{ 'd' };
+			++$rollback_count{ 'd' } unless ($steady_state_start_time == 0);
 		} elsif ( $word[ 1 ] eq 'N' ) {
-			++$rollback_count{ 'n' };
-			++$transaction_count{ 'n' };
-			$transaction_response_time{ 'n' } += $response_time;
-			++$current_transaction_count{ 'n' };
+			++$rollback_count{ 'n' } unless ($steady_state_start_time == 0);
 		} elsif ( $word[ 1 ] eq 'O' ) {
-			++$rollback_count{ 'o' };
-			++$transaction_count{ 'o' };
-			$transaction_response_time{ 'o' } += $response_time;
-			++$current_transaction_count{ 'o' };
+			++$rollback_count{ 'o' } unless ($steady_state_start_time == 0);
 		} elsif ( $word[ 1 ] eq 'P' ) {
-			++$rollback_count{ 'p' };
-			++$transaction_count{ 'p' };
-			$transaction_response_time{ 'p' } += $response_time;
-			++$current_transaction_count{ 'p' };
+			++$rollback_count{ 'p' } unless ($steady_state_start_time == 0);
 		} elsif ( $word[ 1 ] eq 'S' ) {
-			++$rollback_count{ 's' };
-			++$transaction_count{ 's' };
-			$transaction_response_time{ 's' } += $response_time;
-			++$current_transaction_count{ 's' };
+			++$rollback_count{ 's' } unless ($steady_state_start_time == 0);
 		} elsif ( $word[ 1 ] eq 'E' ) {
 			++$errors;
 			++$error_count{ $word[ 3 ] };
 		}
 		
+		#
+		# Count unknown errors.
+		#
 		unless ($word[ 1 ] eq 'E' ) {
 			++$data{ $word[ 3 ] };
 			$last_time{ $word[ 3 ] } = $word[ 0 ];
@@ -238,6 +276,13 @@ while ( defined( $line = <FH> ) ) {
 
 		$total_response_time += $response_time;
 		++$total_transaction_count;
+	} elsif (scalar(@word) == 2) {
+		#
+		# Look for that 'START' marker to determine the end of the rampup time
+		# and to calculate the average throughput from that point to the end
+		# of the test.
+		#
+		$steady_state_start_time = $word[0];
 	}
 }
 close( FH );
@@ -248,7 +293,9 @@ close( O_FILE );
 close( P_FILE );
 close( S_FILE );
 
+#
 # Do statistics.
+#
 my $tid;
 my $stat = Statistics::Descriptive::Full->new();
 
@@ -263,7 +310,9 @@ my $median = $stat->median();
 my $min = $stat->min();
 my $max = $stat->max();
 
+#
 # Display the data.
+#
 if ( $verbose ) {
 	printf( "%10s %4s %12s\n", "----------", "-----",
 		"------------ ------" );
@@ -377,7 +426,9 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 
+#
 # Create gnuplot input file and generate the charts.
+#
 chdir $outdir;
 foreach my $transaction ( @transactions ) {
 	my $filename = "$transaction.input";
@@ -386,11 +437,12 @@ foreach my $transaction ( @transactions ) {
 	print FILE "plot \"$transaction.data\" using 1:2 title \"$transaction\" \n";
 	print FILE "set term png small\n";
 	print FILE "set output \"$transaction.png\"\n";
+	print FILE "set grid xtics ytics\n";
 	print FILE "set xlabel \"Response Time (seconds)\"\n";
 	print FILE "set ylabel \"Count\"\n";
 	print FILE "replot\n";
 	close( FILE );
-	system "gnuplot -noraise $transaction.input";
+	system "gnuplot $transaction.input";
 }
 
 foreach my $transaction ( @xtran ) {
@@ -400,31 +452,112 @@ foreach my $transaction ( @xtran ) {
 	print FILE "plot \"$transaction.data\" using 1:2 title \"$transaction\" \n";
 	print FILE "set term png small\n";
 	print FILE "set output \"$transaction" . "_bar.png\"\n";
+	print FILE "set grid xtics ytics\n";
 	print FILE "set xlabel \"Elapsed Time (Minutes)\"\n";
 	print FILE "set ylabel \"Response Time (Seconds)\"\n";
 	print FILE "replot\n";
 	close( FILE );
-	system "gnuplot -noraise $filename";
+	system "gnuplot $filename";
 }
 
+#
+# Determine 90th percentile response times for each transaction.
+#
+@delivery_response_time = sort(@delivery_response_time);
+@new_order_response_time = sort(@new_order_response_time);
+@order_status_response_time = sort(@order_status_response_time);
+@payement_response_time = sort(@payement_response_time);
+@stock_level_response_time = sort(@stock_level_response_time);
+#
+# Get the index for the 90th percentile point.
+#
+my $delivery90index = $transaction_count{'d'} * 0.90;
+my $new_order90index = $transaction_count{'n'} * 0.90;
+my $order_status90index = $transaction_count{'o'} * 0.90;
+my $payment90index = $transaction_count{'p'} * 0.90;
+my $stock_level90index = $transaction_count{'s'} * 0.90;
+
+my %response90th;
+
+my $floor;
+my $ceil;
+
+$floor = floor($delivery90index);
+$ceil = ceil($delivery90index);
+if ($floor == $ceil) {
+	$response90th{'d'} = $delivery_response_time[$delivery90index];
+} else {
+	$response90th{'d'} = ($delivery_response_time[$floor] +
+			$delivery_response_time[$ceil]) / 2;
+}
+
+$floor = floor($new_order90index);
+$ceil = ceil($new_order90index);
+if ($floor == $ceil) {
+	$response90th{'n'} = $new_order_response_time[$new_order90index];
+} else {
+	$response90th{'n'} = ($new_order_response_time[$floor] +
+			$new_order_response_time[$ceil]) / 2;
+}
+
+$floor = floor($order_status90index);
+$ceil = ceil($order_status90index);
+if ($floor == $ceil) {
+	$response90th{'o'} = $order_status_response_time[$order_status90index];
+} else {
+	$response90th{'o'} = ($order_status_response_time[$floor] +
+			$order_status_response_time[$ceil]) / 2;
+}
+
+$floor = floor($payment90index);
+$ceil = ceil($payment90index);
+if ($floor == $ceil) {
+	$response90th{'p'} = $payement_response_time[$payment90index];
+} else {
+	$response90th{'p'} = ($payement_response_time[$floor] +
+			$payement_response_time[$ceil]) / 2;
+}
+
+$floor = floor($stock_level90index);
+$ceil = ceil($stock_level90index);
+if ($floor == $ceil) {
+	$response90th{'s'} = $stock_level_response_time[$stock_level90index];
+} else {
+	$response90th{'s'} = ($stock_level_response_time[$floor] +
+			$stock_level_response_time[$ceil]) / 2;
+}
+
+#
 # Calculate the actual mix of transactions.
-printf( " Transaction      %%  Avg Response Time (s)        Total        Rollbacks      %%\n" );
-printf( "------------  -----  ---------------------  -----------  ---------------  -----\n" );
-foreach my $idx ( 'd', 'n', 'o', 'p', 's' ) {
-	printf("%12s  %5.2f  %21.3f  %11d  %15d  %5.2f\n",
-		$transactions{ $idx }, $transaction_count{ $idx } /
-		$total_transaction_count * 100.0,
-		$transaction_response_time{ $idx } /
-		$transaction_count{ $idx },
-		$transaction_count{ $idx }, $rollback_count{ $idx },
-		$rollback_count{ $idx } /
-		$transaction_count{ $idx } * 100.0);
+#
+printf("                         Response Time (s)\n");
+printf(" Transaction      %%    Average :    90th %%        Total        Rollbacks      %%\n");
+printf("------------  -----  ---------------------  -----------  ---------------  -----\n");
+foreach my $idx ('d', 'n', 'o', 'p', 's') {
+	if ($transaction_count{$idx} == 0) {
+		printf("%12s   0.00          N/A                      0                0   0.00\n", $transaction{$idx});
+	} else {
+		printf("%12s  %5.2f  %9.3f : %9.3f  %11d  %15d  %5.2f\n",
+				$transaction{$idx},
+				($transaction_count{$idx} + $rollback_count{$idx}) /
+						$total_transaction_count * 100.0,
+				$transaction_response_time{$idx} / $transaction_count{$idx},
+				$response90th{$idx},
+				$transaction_count{$idx} + $rollback_count{$idx},
+				$rollback_count{$idx},
+				$rollback_count{$idx} /
+						($rollback_count{$idx} + $transaction_count{$idx}) *
+						100.0);
+	}
 }
 
+#
 # Calculated the number of transactions per second.
-my $tps = $transaction_count{ 'n' } / ($current_time - $start_time);
+#
+my $tps = $transaction_count{'n'} / ($current_time - $start_time);
 printf("\n");
 printf("%0.2f new-order transactions per minute (NOTPM)\n", $tps * 60);
 printf("%0.1f minute duration\n", ($current_time - $start_time) / 60.0);
 printf("%d total unknown errors\n", $errors);
+printf("%d second(s) ramping up\n", $steady_state_start_time - $start_time);
 printf("\n");

@@ -20,6 +20,12 @@ echo '<title>DBT-2 PostgreSQL Results</title>' >> ${DIR}/index.html
 echo '</head>' >> ${DIR}/index.html
 
 echo '<body>' >> ${DIR}/index.html
+
+echo '<pre>' >> ${DIR}/index.html
+cat ${DIR}/readme.txt >> ${DIR}/index.html
+echo '</pre>' >> ${DIR}/index.html
+echo '<hr/>' >> ${DIR}/index.html
+
 echo '<pre>' >> ${DIR}/index.html
 cat ${DIR}/driver/results.out >> ${DIR}/index.html
 echo '</pre>' >> ${DIR}/index.html
@@ -34,8 +40,9 @@ echo '<a href="sar.out">sar</a><br/>' >> ${DIR}/index.html
 echo '<hr/>' >> ${DIR}/index.html
 
 echo 'Kernel and Application Profiles<br/>' >> ${DIR}/index.html
-echo '<a href="readprofile_ticks.out">readprofile</a><br/>' >> ${DIR}/index.html
+echo '<a href="readprofile_ticks.txt">readprofile</a><br/>' >> ${DIR}/index.html
 echo '<a href="oprofile.txt">oprofile</a><br/>' >> ${DIR}/index.html
+echo '<a href="callgraph.txt">callgraph</a><br/>' >> ${DIR}/index.html
 #echo '<a href="oprofile/current">oprofile raw data</a><br/>' >> ${DIR}/index.html
 echo '<a href="oprofile/annotate">opannotate source output</a><br/>' >> ${DIR}/index.html
 echo '<a href="oprofile/assembly.txt">opannotate assembly output</a><br/>' >> ${DIR}/index.html

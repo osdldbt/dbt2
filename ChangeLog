@@ -1,3 +1,71 @@
+v0.37
+
+- Removed use of the $SHELL environment variable so the kit is more portable.
+
+v0.36
+
+- Added a check for ulimit -n.
+- Fixed the response time calculations to be after all threads have started.
+
+v0.35
+
+- Critial fix for the data generator.
+- Critial fix for the Payment transaction when using MySQL.
+- Changed the database integrity check into a command line option.
+
+v0.34
+
+- Calculate 90th percentile reponse times in scripts/mix_analyzer.pl.
+- Fix up in run_mysql.sh.in.
+
+v0.33
+
+- Script improvements.
+- Fixed the Makefile for funcs.so.
+- Collect callgraph data with oprofile.  Only really works for ia32 and ARM
+  due to oprofile support.
+
+v0.32
+
+- Updated the autoconf scripts to not fail if pg_autovacuum is not found.
+  With 8.1 coming up, it is part of the backend now.
+- Fixed scripts/pgsql/analyze_stats.pl to work correctly.
+
+v0.31
+
+- Modified the table creation and index creation scripts so that the primary
+  keys are created as part of the index builds.
+- Modified the autoconf scripts so that using odbc libraries is a feature that
+  needs to be enabled with the database that will be tested.
+- Fixed some compiler warnings and errors when building against odbc.
+- Fixed a bug in src/libpq/dbc_payment.c where the wrong parameter was being
+  passed.
+
+v0.30
+
+- Added x- and y-axis lines for the PostgreSQL database charts.
+- Fixed the autoconf files to include files for MySQL with no stored procedures.
+
+v0.29
+
+- Removed default configure to PostgreSQL in configure.ac.  It will prompt for
+  the database to be specified if none is given.
+- Tidied up the autoconf files a little more.
+- Added x- and y-axis lines to scripts/notpm.input.
+- Fixed mix_analyzer.pl to stop counting failed transactions as successful
+  transactions.
+
+v0.28
+
+- Improved configure.ac to check for headers for PostgreSQL.
+- Fixed Makefile.am to include the README-* files in a 'make dist'.
+
+v0.27
+
+- Fixed Makefiles for 'make dist'.
+- Modified scripts for PostgreSQL so that tablespaces can be used.
+  README-POSTGRESQL has been updated with notes on how to use tablespaces.
+
 v0.26
 
 - Improved configure.in to set executable permission onfiles it generated.

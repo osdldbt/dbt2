@@ -1,9 +1,9 @@
-# This file is released under the terms of the Artistic License.  Please see
-# the file LICENSE, included in this package, for details.
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
 #
-# 18 March 2004
 
 # Process this file with automake to create Makefile.in
 
@@ -13,6 +13,13 @@ SUBDIRS = . src storedproc
 
 # FIXME: do we need all these files in the distribution?
 EXTRA_DIST = \
+LICENSE \
+README \
+README-FREEBSD \
+README-MYSQL \
+README-POSTGRESQL \
+storedproc/Makefile.am \
+storedproc/pgsql/Makefile.am \
 storedproc/pgsql/c/Makefile.am \
 storedproc/pgsql/c/funcs.c \
 storedproc/pgsql/c/delivery.sql.in \
@@ -46,21 +53,30 @@ storedproc/mysql/new_order_2.sql \
 storedproc/mysql/order_status.sql \
 storedproc/mysql/payment.sql \
 storedproc/mysql/stock_level.sql \
+scripts/gen_html.sh \
+scripts/mix_analyzer.pl \
+scripts/notpm.input \
+scripts/run_mysql.sh.in \
+scripts/run_workload.sh.in \
+scripts/sysstats.sh.in \
+scripts/transform_iostat.pl \
+scripts/transform_sar.sh.in \
+scripts/vmplot.sh \
 scripts/Linux/get_os_info.sh.in \
 scripts/SunOS/get_os_info.sh.in \
-scripts/pgsql/init_env.sh.in \
 scripts/pgsql/backup.sh \
+scripts/pgsql/build_db.sh \
 scripts/pgsql/check_db.sh \
 scripts/pgsql/create_db.sh \
 scripts/pgsql/create_indexes.sh \
-scripts/pgsql/create_tables.sql \
+scripts/pgsql/create_tables.sh \
 scripts/pgsql/db_plans.sh \
-scripts/pgsql/db_stat.sh \
 scripts/pgsql/drop_db.sh \
 scripts/pgsql/drop_tables.sh \
 scripts/pgsql/load_db.sh \
 scripts/pgsql/load_stored_funcs.sh \
 scripts/pgsql/load_stored_procs.sh \
+scripts/pgsql/pgsql_profile.in \
 scripts/pgsql/restore.sh \
 scripts/pgsql/start_db.sh \
 scripts/pgsql/stop_db.sh \
@@ -109,24 +125,10 @@ scripts/sapdb/warehouse.sql \
 scripts/mysql/mysql_dbt2_plans.sh \
 scripts/mysql/mysql_load_db.sh  \
 scripts/mysql/mysql_load_sp.sh  \
-scripts/cpu.input \
-scripts/mix_analyzer.pl \
-scripts/notpm.input \
-scripts/run_test.sh.in \
-scripts/run_workload.sh.in \
-scripts/sysstats.sh.in \
-scripts/transform_iostat.pl \
-scripts/transform_sar.sh.in \
-scripts/transform_vmstat.sh \
-scripts/run_mysql.sh \
-scripts/run_test.sh \
-scripts/sysstats.sh \
 doc/Makefile \
 doc/maintenance.sxw \
 doc/class.dia \
-doc/osdl_title_logo.eps \
 doc/component.dia \
-doc/dbt2-component.eps \
 doc/sapdb_sizing.sxc \
 doc/dbt2-architecture.tex \
 doc/dbt2-user.tex \

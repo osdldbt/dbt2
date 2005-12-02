@@ -19,7 +19,7 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 
 	/* Create the query and execute it. */
 	sprintf(stmt, "call payment(%d, %d, %d, %d, %d, '%s', %f)",
-		data->w_id, data->d_id, data->c_id, data->c_w_id, data->c_w_id,
+		data->w_id, data->d_id, data->c_id, data->c_w_id, data->c_d_id,
 		data->c_last, data->h_amount);
 
 #ifdef DEBUG_QUERY

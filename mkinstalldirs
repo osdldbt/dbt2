@@ -4,7 +4,7 @@
 # Created: 1993-05-16
 # Public domain
 
-# $Id: mkinstalldirs 1211 2005-03-04 06:28:07Z fimath $
+# $Id: mkinstalldirs 1329 2005-12-02 20:33:41Z fimath $
 
 errstatus=0
 

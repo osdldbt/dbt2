@@ -18,7 +18,7 @@ if [ -d ${PGDATA} ]; then
 	echo "Skipping initdb"
 	echo "======================================="
 else
-	${INITDB} -D $PPGDATA{ --locale=C || exit 1
+	${INITDB} -D ${PGDATA} --locale=C || exit 1
 fi
 
 ${SHELL} ${DIR}/start_db.sh

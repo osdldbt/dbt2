@@ -348,6 +348,15 @@ fi
 echo ''
 echo "Stage 4. Processing of results..."
 
+# Client doesn't go away by itself like the driver does and I nohup it.
+
+if [ -n "$CLIENT_PID" ]; then 
+  echo "Shutdown clients. Send TERM signal to $CLIENT_PID."
+  kill "$CLIENT_PID" 
+fi
+
+perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR | tee $DRIVER_OUTPUT_DIR/results.out
+
 #Make graphs
 cp -p notpm.input $DRIVER_OUTPUT_DIR
 cd $DRIVER_OUTPUT_DIR
@@ -357,15 +366,6 @@ else
   echo "Unable to make a graph"
 fi
 cd -
-
-# Client doesn't go away by itself like the driver does and I nohup it.
-
-if [ -n "$CLIENT_PID" ]; then 
-  echo "Shutdown clients. Send TERM signal to $CLIENT_PID."
-  kill "$CLIENT_PID" 
-fi
-
-perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out | tee $DRIVER_OUTPUT_DIR/results.out
 
 echo "Test completed."
 EXIT_OK=1

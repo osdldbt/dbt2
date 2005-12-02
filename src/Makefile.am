@@ -45,44 +45,45 @@ transaction_test_SOURCES = transaction_test.c db.c input_data_generator.c \
                            $(COMMON_SRCS)
 nodist_transaction_test_SOURCES = $(INTERFACE_SRCS)
 
-EXTRA_DIST = ../include/libpq_integrity.h \
-             ../include/libpq_common.h \
-             ../include/odbc_common.h \
-             ../include/mysql_common.h \
-             ../include/_socket.h \
-             ../include/_semaphore.h \
-             ../include/libpq_delivery.h \
-             ../include/odbc_delivery.h \
-             ../include/mysql_delivery.h \
-             ../include/client_interface.h \
-             ../include/libpq_new_order.h \
-             ../include/odbc_new_order.h \
-             ../include/mysql_new_order.h \
-             ../include/common.h \
-             ../include/libpq_order_status.h \
-             ../include/odbc_order_status.h \
-             ../include/mysql_order_status.h \
-             ../include/db.h \
-             ../include/libpq_payment.h \
-             ../include/odbc_payment.h \
-             ../include/mysql_payment.h \
-             ../include/db_threadpool.h \
-             ../include/libpq_stock_level.h \
-             ../include/odbc_stock_level.h \
-             ../include/mysql_stock_level.h \
-             ../include/driver.h \
-             ../include/listener.h \
-             ../include/transaction_data.h \
-             ../include/input_data_generator.h \
-             ../include/logging.h \
-             ../include/transaction_queue.h \
-             odbc/dbc_new_order.c \
-             odbc/dbc_stock_level.c \
-             odbc/dbc_common.c \
-             odbc/dbc_order_status.c \
-             odbc/dbc_delivery.c \
-             odbc/dbc_payment.c \
-             odbc/dbc_integrity.c \
+EXTRA_DIST = include/_semaphore.h \
+             include/_socket.h \
+             include/client_interface.h \
+             include/common.h \
+             include/db.h \
+             include/db_threadpool.h \
+             include/driver.h \
+             include/input_data_generator.h \
+             include/libpq_integrity.h \
+             include/libpq_common.h \
+             include/libpq_delivery.h \
+             include/libpq_new_order.h \
+             include/libpq_order_status.h \
+             include/libpq_payment.h \
+             include/libpq_stock_level.h \
+             include/listener.h \
+             include/logging.h \
+             include/mysql_common.h \
+             include/mysql_delivery.h \
+             include/mysql_integrity.h \
+             include/mysql_new_order.h \
+             include/mysql_order_status.h \
+             include/mysql_payment.h \
+             include/mysql_stock_level.h \
+             include/nonsp_common.h \
+             include/nonsp_delivery.h \
+             include/nonsp_integrity.h \
+             include/nonsp_new_order.h \
+             include/nonsp_order_status.h \
+             include/nonsp_payment.h \
+             include/nonsp_stock_level.h \
+             include/odbc_common.h \
+             include/odbc_delivery.h \
+             include/odbc_new_order.h \
+             include/odbc_order_status.h \
+             include/odbc_payment.h \
+             include/odbc_stock_level.h \
+             include/transaction_data.h \
+             include/transaction_queue.h \
              libpq/dbc_new_order.c \
              libpq/dbc_stock_level.c \
              libpq/dbc_common.c \
@@ -103,5 +104,11 @@ EXTRA_DIST = ../include/libpq_integrity.h \
              nonsp/dbc_order_status.c \
              nonsp/dbc_delivery.c \
              nonsp/dbc_payment.c \
-             nonsp/dbc_integrity.c
-
+             nonsp/dbc_integrity.c \
+             odbc/dbc_new_order.c \
+             odbc/dbc_stock_level.c \
+             odbc/dbc_common.c \
+             odbc/dbc_order_status.c \
+             odbc/dbc_delivery.c \
+             odbc/dbc_payment.c \
+             odbc/dbc_integrity.c
