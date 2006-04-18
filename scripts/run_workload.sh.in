@@ -79,10 +79,6 @@ while getopts "c:d:l:nop:s:t:vw:z:" opt; do
 		WAREHOUSES=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $WAREHOUSES
 		;;
-	v)
-		set -x
-		SHELL="-x"
-		;;
 	z)
 		COMMENT=$OPTARG
 		;;

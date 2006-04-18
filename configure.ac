@@ -1,8 +1,8 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.in 1290 2005-04-11 15:13:30Z fimath $)
+AC_REVISION($Id: configure.ac 1368 2006-04-18 21:51:48Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(dbt2, 0.25, osdldbt-general@lists.sourceforge.net)
+AC_INIT(dbt2, 0.37, osdldbt-general@lists.sourceforge.net)
 AM_INIT_AUTOMAKE
 AH_TOP([
 #ifndef __CONFIG_H__
@@ -56,7 +56,6 @@ AC_PATH_PROGS([VMSTAT], [vmstat], ,
 if test -z "$VMSTAT"
 then
   AC_MSG_WARN([*** vmstat not found some scripts may not be usable])
-  VMSTAT=/usr/bin/vmstat
 fi
 
 AC_PATH_PROGS([IOSTAT], [iostat], ,
@@ -64,7 +63,6 @@ AC_PATH_PROGS([IOSTAT], [iostat], ,
 if test -z "$IOSTAT"
 then
   AC_MSG_WARN([*** iostat not found some scripts may not be usable])
-  IOSTAT=/usr/bin/iostat
 fi
 
 AC_PATH_PROGS([GNUPLOT], [gnuplot], ,
@@ -72,7 +70,6 @@ AC_PATH_PROGS([GNUPLOT], [gnuplot], ,
 if test -z "$GNUPLOT"
 then
   AC_MSG_WARN([*** gnuplot not found some scripts may not be usable])
-  GNUPLOT=/usr/bin/gnuplot
 fi
 
 AC_PATH_PROGS([SAR], [sar bsdsar], ,
@@ -80,7 +77,6 @@ AC_PATH_PROGS([SAR], [sar bsdsar], ,
 if test -z "$SAR"
 then
   AC_MSG_WARN([*** sar or bsdsar not found some scripts may not be usable])
-  SAR=/usr/bin/sar
 fi
 
 AC_PATH_PROGS([SYSCTL], [sysctl], ,
@@ -88,15 +84,17 @@ AC_PATH_PROGS([SYSCTL], [sysctl], ,
 if test -z "$SYSCTL"
 then
   AC_MSG_WARN([*** sysctl not found some scripts may not be usable])
-  SYSCTL=/usr/bin/sysctl
 fi
 
 dnl
 dnl Thread Library (required)
 dnl check for `pthread_create' in -lpthread
 dnl
-AC_CHECK_HEADERS(semaphore.h pthread.h,[],[
-    AC_MSG_ERROR([could not locate threading headers])
+AC_CHECK_HEADER(semaphore.h, [], [
+    AC_MSG_ERROR([could not locate sempahore headers)])
+])
+AC_CHECK_HEADER(pthread.h, [], [
+    AC_MSG_ERROR([could not locate pthread headers)])
 ])
 AC_CHECK_LIB(pthread, pthread_create)
 if test ".`echo $LIBS | grep pthread`" != .; then
@@ -149,7 +147,7 @@ if test "$default_getopt" != default; then
 fi
 
 dnl GNU Getopt
-AC_CHECK_HEADERS(getopt.h,[],AC_MSG_ERROR([GNU Getopt required]))
+AC_CHECK_HEADER([getopt.h],[],AC_MSG_ERROR([GNU Getopt required]))
 AC_SEARCH_LIBS(getopt_long, [getopt gnugetopt], [],
   AC_MSG_ERROR([getopt libs required])
 )
@@ -157,163 +155,59 @@ AC_SEARCH_LIBS(getopt_long, [getopt gnugetopt], [],
 
 dnl Configuration options for different databases, PostgreSQL is default.
 
-# PostgreSQL
+dnl PostgreSQL
 AC_ARG_WITH(postgresql,
   [AC_HELP_STRING([--with-postgresql=DIR],
       [Default on. Set to the path of the PostgreSQL's installation, or leave
           unset if the path is already in the compiler search path.])],
-  [pgsql_path=$withval database_to_use="pgsql"],
-  [database_to_use="pgsql"]
+  [pgsql_path=$withval database_to_use="pgsql"]
 )
 
-# SAP DB
+dnl SAP DB
 AC_ARG_WITH(sapdb,
   [AC_HELP_STRING([--with-sapdb], [using ODBC])],
-  [database_to_use="sapdb"],
-  [],
+  [database_to_use="sapdb"]
 )
 
-# ODBC
-AC_ARG_WITH(odbc,
-  [AC_HELP_STRING([--with-odbc], [using ODBC])],
-  [database_to_use="odbc"],
-  [],
-)
-
-
-# MySQL
+dnl MySQL
 AC_ARG_WITH(mysql,
   [AC_HELP_STRING([--with-mysql=DIR],
   [Build C based version of dbt2 test. Set to the path of the MySQL's 
       installation, or leave unset if the path is already in the search 
       path])],
-  [ ac_cv_use_mysql=$withval database_to_use="mysql"],
-  [],
+  [ ac_cv_use_mysql=$withval database_to_use="mysql"]
+)
+
+dnl ODBC
+dnl AC_ARG_WITH(odbc,
+dnl   [AC_HELP_STRING([--with-odbc], [Default off, unless using SAP DB.])],
+dnl   [use_odbc="yes"]
+dnl )
+
+AC_ARG_ENABLE(odbc,
+  [AC_HELP_STRING([--enable-odbc],
+      [Use ODBC (default is no)]
+      )], 
+  [use_odbc="yes"], [use_odbc="no"]
 )
 
 AC_ARG_ENABLE(nonsp,
   [AC_HELP_STRING([--enable-nonsp],
       [Force to build pure C based version of dbt2 test (default is no)]
       )], 
-  NONSP="yes"
+  [NONSP="yes"], [NONSP="no"]
 )
 
 AC_ARG_ENABLE(debug_query,
   [AC_HELP_STRING([--enable-debug-query],
       [Turn on debug info for nonsp version of test dbt2 test (default is no)]
       )], 
-  CFLAGS="$CFLAGS -DDEBUG_QUERY"
+  [CFLAGS="$CFLAGS -DDEBUG_QUERY"]
 )
 
-dnl Set up rules depending on what database is selected.
-if test "$database_to_use" == "pgsql"; then
-  dnl check for initdb
-  AC_PATH_PROGS(INITDB, initdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$INITDB" ; then
-    AC_MSG_ERROR([*** initdb is required])
-  fi
+if test "$use_odbc" == "yes"; then
+  AC_DEFINE(ODBC, 1, [using ODBC to SAPDB])
 
-  dnl check for createdb
-  AC_PATH_PROGS(CREATEDB, createdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$CREATEDB" ; then
-    AC_MSG_ERROR([*** createdb is required])
-  fi
-
-  dnl check for dropdb
-  AC_PATH_PROGS(DROPDB, dropdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$DROPDB" ; then
-    AC_MSG_ERROR([*** dropdb is required])
-  fi
-
-  dnl check for pg_restore
-  AC_PATH_PROGS(PGRESTORE, pg_restore, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$PGRESTORE" ; then
-    AC_MSG_ERROR([*** pg_restore is required])
-  fi
-
-  dnl check for createlang
-  AC_PATH_PROGS(CREATELANG, createlang, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$CREATELANG" ; then
-    AC_MSG_ERROR([*** createlang is required])
-  fi
-
-  dnl check for pg_ctl
-  AC_PATH_PROGS(PG_CTL, pg_ctl, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$PG_CTL" ; then
-    AC_MSG_ERROR([*** pg_ctl is required])
-  fi
-
-  dnl check for psql
-  AC_PATH_PROGS(PSQL, psql, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$PSQL" ; then
-    AC_MSG_ERROR([*** psql is required])
-  fi
-
-  dnl check for vacuumdb
-  AC_PATH_PROGS(VACUUMDB, vacuumdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$VACUUMDB" ; then
-    AC_MSG_ERROR([*** vacuumdb is required])
-  fi
-
-  dnl check for pg_autovacuum
-  AC_PATH_PROGS(PG_AUTOVACUUM, pg_autovacuum, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$PG_AUTOVACUUM" ; then
-    AC_MSG_ERROR([*** pg_autovacuum is required])
-  fi
-
-  dnl check if the user has specified path for pgsql
-  if test "$pgsql_path" != ""; then
-    CPPFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server $CPPFLAGS"
-    CFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server $CFLAGS"
-    LDFLAGS="-L${pgsql_path}/lib -Wl,-R${pgsql_path}/lib $LDFLAGS"
-  fi
-
-  AC_CHECK_HEADERS(libpq-fe.h, [], AC_MSG_ERROR([libpq headers required]))
-  AC_SEARCH_LIBS(PQexec, pq, [], AC_MSG_ERROR([libpq libs required]))
-  AC_DEFINE(LIBPQ, 1, [using PostgreSQL])
-
-  DBC_FUNCTIONS="libpq"
-  DBC_CORE="libpq"
-
-  SP_DIR="pgsql"
-
-  AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
-      [chmod +x scripts/pgsql/db_stat.sh])
-  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
-  AC_CONFIG_FILES([storedproc/pgsql/Makefile])
-  AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
-  AC_CONFIG_FILES([storedproc/pgsql/c/delivery.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/new_order.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/order_status.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/payment.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/stock_level.sql])
-elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
-  dnl ODBC Library (required)
-  dnl check for `odbcinit' in -lodbc, -liodbc
-
-  if test "$database_to_use" == "odbc" -a -z "$NONSP"; then 
-    AC_MSG_ERROR(["It is possible to build only nonSP version of test for ODBC mode. Please 
-                   use --enable-nonsp option"])
-  fi
-  
   AC_ARG_WITH([unixodbc],
     [AC_HELP_STRING([--with-unixodbc=DIR],
         [path to UnixODBC installation root])],
@@ -327,9 +221,6 @@ elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
   )
 
   if test "$unixodbc_root" != ""; then 
-
-    CPPFLAGS="$CPPFLAGS -DUNIXODBC"
-
     if test "$unixodbc_root" != "yes" -a "$unixodbc_root" != "no"; then 
       if test -d "$unixodbc_root/include"; then     
         CFLAGS="$CFLAGS -I$unixodbc_root/include"
@@ -343,7 +234,7 @@ elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
       fi
       LIBS="$LIBS -lodbc"
     else
-      AC_CHECK_HEADERS(sql.h sqlext.h sqltypes.h, [],
+      AC_CHECK_HEADERS([sql.h sqlext.h sqltypes.h], [],
         [AC_MSG_ERROR([unixODBC required])]
       )
       AC_SEARCH_LIBS(SQLDriverConnect, [odbc], [],
@@ -351,7 +242,6 @@ elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
       )
     fi        
   elif test "$iodbc_root" != ""; then 
-
     CPPFLAGS="$CPPFLAGS -DIODBC"
 
     if test "$iodbc_root" != "yes" -a "$iodbc_root" != "no"; then 
@@ -369,7 +259,7 @@ elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
 
       LIBS="$LIBS -liodbc"
     else
-      AC_CHECK_HEADERS(isql.h isqlext.h isqltypes.h, [],
+      AC_CHECK_HEADERS([isql.h isqlext.h isqltypes.h], [],
         [AC_MSG_ERROR([iODBC required])]
       )
       AC_SEARCH_LIBS(SQLDriverConnect, [iodbc], [],
@@ -384,16 +274,180 @@ elif test "$database_to_use" == "sapdb" -o "$database_to_use" == "odbc"; then
       AC_MSG_ERROR([unixODBC or iODBC required])
     )
   fi
+fi
 
-  AC_DEFINE(ODBC, 1, [using ODBC to SAPDB])
+dnl Set up rules depending on what database is selected.
+if test "$database_to_use" == "pgsql"; then
+  if test "$use_odbc" == "yes"; then
+    DBC_CORE="odbc"
+    DBC_FUNCTIONS="odbc"
+    SP_DIR=""
+  else
+    DBC_FUNCTIONS="libpq"
+    DBC_CORE="libpq"
+    SP_DIR="pgsql"
+    AC_DEFINE(LIBPQ, 1, [using PostgreSQL])
 
+    dnl check if the user has specified path for pgsql
+    if test "$pgsql_path" != ""; then
+      CPPFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server -I${pgsql_path}/include/postgresql/server -I${pgsql_path}/include/pgsql/server $CPPFLAGS"
+      CFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server -I${pgsql_path}/include/postgresql/server -I${pgsql_path}/include/pgsql/server $CFLAGS"
+      LDFLAGS="-L${pgsql_path}/lib -Wl,-R${pgsql_path}/lib $LDFLAGS"
+    fi
+
+    AC_CHECK_HEADERS(
+        [${pgsql_path}/include/libpq-fe.h libpq-fe.h],
+        [libpq_ok=yes; break], [libpq_ok=no]
+    )
+    if test "x$libpq_ok" == "xno"; then
+        AC_MSG_ERROR([could not locate libpq-fe.h])
+    fi
+
+    AC_CHECK_HEADERS(
+        [${pgsql_path}/include/server/funcapi.h ${pgsql_path}/include/postgresql/server/funcapi.h ${pgsql_path}/include/pgsql/server/funcapi.h server/funcapi.h postgresql/server/funcapi.h pgsql/server/funcapi.h],
+        [funcapi_ok=yes; break],
+        [funcapi_ok=no]
+    )
+    if test "x$funcapi_ok" == "xno"; then
+        AC_MSG_ERROR([could not locate funcapi.h])
+    fi
+
+    AC_CHECK_HEADERS(
+        [${pgsql_path}/include/server/executor/spi.h ${pgsql_path}/include/postgresql/server/executor/spi.h ${pgsql_path}/include/pgsql/server/executor/spi.h server/executor/spi.h postgresql/server/executor/spi.h pgsql/server/executor/spi.h],
+        [spi_ok=yes; break],
+        [spi_ok=no]
+    )
+    if test "x$spi_ok" == "xno"; then
+        AC_MSG_ERROR([could not locate spi.h])
+    fi
+
+    AC_CHECK_HEADERS(
+        [${pgsql_path}/include/server/executor/executor.h ${pgsql_path}/include/postgresql/server/executor/executor.h ${pgsql_path}/include/pgsql/server/executor/executor.h server/executor/executor.h postgresql/server/executor/executor.h pgsql/server/executor/executor.h],
+        [executor_ok=yes; break],
+        [executor_ok=no]
+    )
+    if test "x$spi_ok" == "xno"; then
+        AC_MSG_ERROR([could not locate executor.h])
+    fi
+
+    AC_CHECK_HEADERS(
+        [${pgsql_path}/include/server/fmgr.h ${pgsql_path}/include/postgresql/server/fmgr.h ${pgsql_path}/include/pgsql/server/fmgr.h server/fmgr.h postgresql/server/fmgr.h pgsql/server/fmgr.h],
+        [fmgr_ok=yes; break],
+        [fmgr_ok=no]
+    )
+    if test "x$fmgr_ok" == "xno"; then
+        AC_MSG_ERROR([could not locate fmgr.h])
+    fi
+
+    AC_CHECK_HEADERS(
+        [${pgsql_path}/include/server/postgres.h ${pgsql_path}/include/postgresql/server/postgres.h ${pgsql_path}/include/pgsql/server/postgres.h server/postgres.h postgresql/server/postgres.h pgsql/server/postgres.h],
+        [postgres_ok=yes; break],
+        [postgres_ok=no]
+    )
+    if test "x$postgres_ok" == "xno"; then
+        AC_MSG_ERROR([could not locate postgres.h])
+    fi
+
+    AC_SEARCH_LIBS(PQexec, pq, [], AC_MSG_ERROR([libpq libs required]))
+  fi
+
+  dnl check for initdb
+  AC_PATH_PROGS([INITDB], [initdb], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$INITDB" ; then
+    AC_MSG_ERROR([*** initdb is required])
+  fi
+
+  dnl check for createdb
+  AC_PATH_PROGS([CREATEDB], [createdb], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$CREATEDB" ; then
+    AC_MSG_ERROR([*** createdb is required])
+  fi
+
+  dnl check for dropdb
+  AC_PATH_PROGS([DROPDB], [dropdb], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$DROPDB" ; then
+    AC_MSG_ERROR([*** dropdb is required])
+  fi
+
+  dnl check for pg_restore
+  AC_PATH_PROGS([PGRESTORE], [pg_restore], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PGRESTORE" ; then
+    AC_MSG_ERROR([*** pg_restore is required])
+  fi
+
+  dnl check for createlang
+  AC_PATH_PROGS([CREATELANG], [createlang], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$CREATELANG" ; then
+    AC_MSG_ERROR([*** createlang is required])
+  fi
+
+  dnl check for pg_ctl
+  AC_PATH_PROGS([PG_CTL], [pg_ctl], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PG_CTL" ; then
+    AC_MSG_ERROR([*** pg_ctl is required])
+  fi
+
+  dnl check for psql
+  AC_PATH_PROGS([PSQL], [psql], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PSQL" ; then
+    AC_MSG_ERROR([*** psql is required])
+  fi
+
+  dnl check for vacuumdb
+  AC_PATH_PROGS([VACUUMDB], [vacuumdb], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$VACUUMDB" ; then
+    AC_MSG_ERROR([*** vacuumdb is required])
+  fi
+
+  dnl check for pg_autovacuum
+  AC_PATH_PROGS([PG_AUTOVACUUM], [pg_autovacuum], ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$PG_AUTOVACUUM" ; then
+    AC_MSG_WARN([*** pg_autovacuum is recommended from 7.4 and 8.0])
+  fi
+
+  AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
+      [chmod +x scripts/pgsql/db_stat.sh])
+  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
+  AC_CONFIG_FILES([storedproc/pgsql/Makefile])
+  AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
+  AC_CONFIG_FILES([storedproc/pgsql/c/delivery.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/new_order.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/order_status.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/payment.sql])
+  AC_CONFIG_FILES([storedproc/pgsql/c/stock_level.sql])
+elif test "$database_to_use" == "sapdb"; then
+  dnl ODBC Library (required)
+  dnl check for `odbcinit' in -lodbc, -liodbc
+
+  if test "$use_odbc" == "yes" -a -z "$NONSP"; then 
+    AC_MSG_ERROR(["It is possible to build only nonSP version of test for ODBC mode. Please 
+                   use --enable-nonsp option"])
+  fi
+  
   DBC_CORE="odbc"
   DBC_FUNCTIONS="odbc"
 
   SP_DIR=""
 elif test "$database_to_use" == "mysql"; then
-
-  AC_CHECK_MYSQL([$ac_cv_use_mysql],["libmysql_r"])
+  AC_CHECK_MYSQL([$ac_cv_use_mysql], ["libmysql_r"])
 
   CFLAGS="$CFLAGS $MYSQL_CFLAGS"
   LIBS="$LIBS $MYSQL_LIBS" 
@@ -408,12 +462,16 @@ elif test "$database_to_use" == "mysql"; then
     AC_DEFINE(MYSQL_SP, 1, [SP based version of test])
   fi
 
-  DBC_CORE="mysql"
-  DBC_FUNCTIONS="mysql"
-
-  AC_DEFINE(LIBMYSQL, 1, [using MySQL])
-
-  SP_DIR=""        
+  if test "$use_odbc" == "yes"; then
+    DBC_CORE="odbc"
+    DBC_FUNCTIONS="odbc"
+    SP_DIR=""
+  else
+    DBC_CORE="mysql"
+    DBC_FUNCTIONS="mysql"
+    SP_DIR=""        
+    AC_DEFINE(LIBMYSQL, 1, [using MySQL])
+  fi
 
   AC_CONFIG_FILES([scripts/run_mysql.sh], [chmod +x scripts/run_mysql.sh])
 else

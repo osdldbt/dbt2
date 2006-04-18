@@ -1,8 +1,6 @@
 /*
- * odbc_stock_level.h
- *
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
+ * This file is released under the terms of the Artistic License.
+ * Please see the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
  *
@@ -13,7 +11,7 @@
 #ifndef _ODBC_INTEGRITY_H_
 #define _ODBC_INTEGRITY_H_
 
-#include <transaction_data.h>
+#include <odbc_common.h>
 
 int execute_integrity(struct db_context_t *dbc, struct integrity_t *data);
 

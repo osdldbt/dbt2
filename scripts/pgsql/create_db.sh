@@ -21,7 +21,7 @@ else
 	${INITDB} -D ${PGDATA} --locale=C || exit 1
 fi
 
-${SHELL} ${DIR}/start_db.sh
+${DIR}/start_db.sh
 
 # Give the database a few seconds to get going
 sleep 4
