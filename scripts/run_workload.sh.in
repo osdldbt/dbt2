@@ -93,7 +93,7 @@ if [ "$DBCON" == "" ]; then
 fi
 
 if [ "$DURATION" == "" ]; then
-	echo "specify the duration of the test in seconds using -t #"
+	echo "specify the duration of the test in seconds using -d #"
 	exit 1
 fi
 
