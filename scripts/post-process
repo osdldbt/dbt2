@@ -1,0 +1,167 @@
+#!/usr/bin/perl -w
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+use Test::Parser::Dbt2;
+
+my $dir;
+my $html;
+my $plot;
+my $xml;
+
+#
+# Disk devices per tablespace.
+#
+my $customer;
+my $district;
+my $history;
+my $item;
+my $log;
+my $new_order;
+my $order_line;
+my $orders;
+my $stock;
+my $warehouse;
+#
+# Primary key tablespaces.
+#
+my $pkcustomer;
+my $pkdistrict;
+my $pkitem;
+my $pknew_order;
+my $pkorder_line;
+my $pkorders;
+my $pkstock;
+my $pkwarehouse;
+#
+# Index tablespaces
+#
+my $index1;
+my $index2;
+
+GetOptions(
+    'customer=s' => \$customer,
+    'dir=s' => \$dir,
+    'district=s' => \$district,
+    'history=s' => \$history,
+    'html' => \$html,
+    'item=s' => \$item,
+    'index1=s' => \$index1,
+    'index2=s' => \$index2,
+    'log=s' => \$log,
+    'new_order=s' => \$new_order,
+    'order_line=s' => \$order_line,
+    'orders=s' => \$orders,
+    'pkcustomer=s' => \$pkcustomer,
+    'pkdistrict=s' => \$pkdistrict,
+    'pkitem=s' => \$pkitem,
+    'pknew_order=s' => \$pknew_order,
+    'pkorder_line=s' => \$pkorder_line,
+    'pkorders=s' => \$pkorders,
+    'pkstock=s' => \$pkstock,
+    'pkwarehouse=s' => \$pkwarehouse,
+    'plot' => \$plot,
+    'stock=s' => \$stock,
+    'warehouse=s' => \$warehouse,
+    'xml' => \$xml
+);
+
+unless ($dir) {
+  print "usage: post-process --dir <directory [--plot] [--xml] [--warehouse dev1,dev2,...]\n";
+  exit 0;
+}
+
+my $parser = new Test::Parser::Dbt2;
+$parser->parse($dir);
+
+if ($customer) {
+  $parser->customer_devices(split(/,/, $customer));
+}
+if ($district) {
+  $parser->district_devices(split(/,/, $district));
+}
+if ($history) {
+  $parser->history_devices(split(/,/, $history));
+}
+if ($item) {
+  $parser->item_devices(split(/,/, $item));
+}
+if ($log) {
+  $parser->log_devices(split(/,/, $log));
+}
+if ($new_order) {
+  $parser->new_order_devices(split(/,/, $new_order));
+}
+if ($order_line) {
+  $parser->order_line_devices(split(/,/, $order_line));
+}
+if ($orders) {
+  $parser->orders_devices(split(/,/, $orders));
+}
+if ($stock) {
+  $parser->stock_devices(split(/,/, $stock));
+}
+if ($warehouse) {
+  $parser->warehouse_devices(split(/,/, $warehouse));
+}
+
+if ($pkcustomer) {
+  $parser->pkcustomer_devices(split(/,/, $pkcustomer));
+}
+if ($pkdistrict) {
+  $parser->pkdistrict_devices(split(/,/, $pkdistrict));
+}
+if ($pkitem) {
+  $parser->pkitem_devices(split(/,/, $pkitem));
+}
+if ($pknew_order) {
+  $parser->pknew_order_devices(split(/,/, $pknew_order));
+}
+if ($pkorder_line) {
+  $parser->pkorder_line_devices(split(/,/, $pkorder_line));
+}
+if ($pkorders) {
+  $parser->pkorders_devices(split(/,/, $pkorders));
+}
+if ($pkstock) {
+  $parser->pkstock_devices(split(/,/, $pkstock));
+}
+if ($pkwarehouse) {
+  $parser->pkwarehouse_devices(split(/,/, $pkwarehouse));
+}
+
+if ($index1) {
+  $parser->index1_devices(split(/,/, $index1));
+}
+if ($index2) {
+  $parser->index2_devices(split(/,/, $index2));
+}
+
+#
+# TODO
+# Allow command line options to specific what format to output plots in as
+# oppose to just the default (png) and svg.
+#
+if ($plot) {
+  $parser->plot();
+  $parser->plot('svg');
+}
+
+if ($xml) {
+  $parser->to_xml();
+}
+
+if ($html) {
+  open(FILE, "> $dir/report/index.html");
+  print FILE $parser->to_html();
+  close(FILE);
+}
