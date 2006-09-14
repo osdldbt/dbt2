@@ -56,4 +56,9 @@ if [ ${USE_PG_AUTOVACUUM} -eq 1 ]; then
 	fi
 fi
 
+if [ ! -f ${PGDATA}/postmaster.pid ]; then
+	echo "database did not start correctly, check database log"
+	exit 1
+fi
+
 exit 0
