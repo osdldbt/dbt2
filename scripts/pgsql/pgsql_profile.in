@@ -25,7 +25,7 @@ DBNAME=dbt2; export DBNAME
 # Data instance path.  Storage location for this instance of the database
 # should be within the working directory.  If you're going to mount a device,
 # do it at /mnt/postgresql.
-PGDATA=/mnt/postgresql/pgdata; export PGDATA
+PGDATA=/mnt/dbt2/pgdata; export PGDATA
 
 # Path of database data
 DBDATA=/mnt/data; export DBDATA
