@@ -15,6 +15,10 @@
 #include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
 
+#ifdef PG_MODULE_MAGIC
+PG_MODULE_MAGIC;
+#endif
+
 /*
 #define DEBUG
 */
