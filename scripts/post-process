@@ -148,7 +148,7 @@ if ($index2) {
 
 #
 # TODO
-# Allow command line options to specific what format to output plots in as
+# Allow command line options to specify what format to output plots in as
 # oppose to just the default (png) and svg.
 #
 if ($plot) {
