@@ -214,7 +214,7 @@ PG_MODULE_MAGIC;
         "UPDATE customer\n" \
         "SET c_balance = c_balance - %f,\n" \
         "    c_ytd_payment = c_ytd_payment + 1,\n" \
-        "    c_data = '%s'\n" \
+        "    c_data = E'%s'\n" \
         "WHERE c_id = %d\n" \
         "  AND c_w_id = %d\n" \
         "  AND c_d_id = %d"
@@ -222,7 +222,7 @@ PG_MODULE_MAGIC;
 #define PAYMENT_8 \
         "INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,\n" \
         "                     h_date, h_amount, h_data)\n" \
-        "VALUES (%d, %d, %d, %d, %d, current_timestamp, %f, '%s    %s')"
+        "VALUES (%d, %d, %d, %d, %d, current_timestamp, %f, E'%s    %s')"
 
 #define STOCK_LEVEL_1 \
         "SELECT d_next_o_id\n" \
@@ -269,7 +269,7 @@ void escape_str(char *orig_str, char *esc_str)
         int i, j;
         for (i = 0, j = 0; i < strlen(orig_str); i++) {
                 if (orig_str[i] == '\'') {
-                        esc_str[j++] = '\'';
+                        esc_str[j++] = '\\';
                 } else if (orig_str[i] == '\\') {
                         esc_str[j++] = '\\';
                 } else if (orig_str[i] == ')') {
