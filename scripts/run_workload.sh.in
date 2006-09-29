@@ -235,7 +235,6 @@ if [ $USE_OPROFILE -eq 1 ]
 then
 	mkdir -p $OUTPUT_DIR/oprofile/
 	mkdir -p $OUTPUT_DIR/oprofile/annotate
-	cp -pR /var/lib/oprofile/samples/current $OUTPUT_DIR/oprofile/
 	sudo opannotate --source --assembly > $OUTPUT_DIR/oprofile/assembly.txt 2>&1
 	sudo opannotate --source --output-dir=$OUTPUT_DIR/oprofile/annotate
 fi
