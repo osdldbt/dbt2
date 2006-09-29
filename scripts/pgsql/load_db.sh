@@ -58,13 +58,13 @@ load_table warehouse
 
 wait
 
-./create_indexes.sh ${TABLESPACES_FLAG} || exit 1
+${DIR}/create_indexes.sh ${TABLESPACES_FLAG} || exit 1
 
 # load C or SQL implementation of the stored procedures
 if true; then
-  ./load_stored_funcs.sh || exit 1
+  ${DIR}/load_stored_funcs.sh || exit 1
 else
-  ./load_stored_procs.sh || exit 1
+  ${DIR}/load_stored_procs.sh || exit 1
 fi
 
 ${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
