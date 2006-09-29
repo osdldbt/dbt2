@@ -116,8 +116,9 @@ fi
 
 # Determine the output directory for storing data.
 RUN_NUMBER=-1
-if test -f run_number; then
-  read RUN_NUMBER < run_number
+RUN_FILE="${abs_top_srcdir}/scripts/run_number"
+if test -f ${RUN_FILE}; then
+  read RUN_NUMBER < ${RUN_FILE}
 fi
 if [ $RUN_NUMBER -eq -1 ]; then
 	RUN_NUMBER=0
@@ -138,7 +139,7 @@ echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> output/log.html
 
 # Update the run number for the next test.
 RUN_NUMBER=`expr $RUN_NUMBER + 1`
-echo $RUN_NUMBER > run_number
+echo $RUN_NUMBER > ${RUN_FILE}
 
 # Create a readme file in the output directory and date it.
 date >> $OUTPUT_DIR/readme.txt

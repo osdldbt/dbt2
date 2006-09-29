@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1478 2006-09-29 02:24:14Z markwkm $)
+AC_REVISION($Id: configure.ac 1480 2006-09-29 16:51:18Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
@@ -294,6 +294,7 @@ if test "$database_to_use" == "pgsql"; then
     else
         AC_PATH_PROGS(PG_CONFIG, pg_config, no, "$pgsql_path/bin")
     fi
+    AC_SUBST(PG_CONFIG)
 
     if test -z "$PG_CONFIG" || test ! -r "$PG_CONFIG"; then
         AC_MSG_ERROR([
