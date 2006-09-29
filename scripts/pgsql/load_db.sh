@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # This file is released under the terms of the Artistic License.
@@ -8,13 +8,13 @@
 #
 
 DIR=`dirname $0`
-BACKGROUND=no
+BACKGROUND="no"
 . ${DIR}/pgsql_profile || exit 1
 
 while getopts "bd:t" OPT; do
 	case ${OPT} in
 	b)
-		BACKGROUND=yes
+		BACKGROUND="yes"
 		;;
 	d)
 		DBDATA=${OPTARG}
@@ -29,7 +29,7 @@ done
 # This background stuff is honestly kinda ugly. IMO the right way to do this is to utilize make -j
 load_table() {
 	table=$1
-	if [ x$2 == x ]; then
+	if [ "x$2" == "x" ]; then
 		file=$table.data
 	else
 		file=$2.data
@@ -37,7 +37,7 @@ load_table() {
 
 	local sql="COPY $table FROM '${DBDATA}/$file' WITH NULL AS '';"
 	local cmd="${PSQL} -e -d ${DBNAME} -c "
-	if [ $BACKGROUND == yes ]; then
+	if [ "${BACKGROUND}" == "yes" ]; then
 		echo "Loading $table table in the background..."
 		${cmd} "${sql} VACUUM ANALYZE $table;" || exit 1 &
 	else
@@ -74,7 +74,7 @@ ${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
 # heap and update the commit-hint bits on each new tuple, but a regular
 # VACUUM ought to suffice for that.
 
-if [ $BACKGROUND == no ]; then
+if [ "${BACKGROUND}" == "no" ]; then
     $VACUUMDB -z -f -d ${DBNAME} || exit 1
 fi
 

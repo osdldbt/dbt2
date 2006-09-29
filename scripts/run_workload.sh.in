@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 
 abs_top_srcdir=@abs_top_srcdir@
@@ -123,7 +123,7 @@ fi
 if [ $RUN_NUMBER -eq -1 ]; then
 	RUN_NUMBER=0
 fi
-OUTPUT_DIR=output/$RUN_NUMBER
+OUTPUT_DIR=${abs_top_srcdir}/scripts/output/${RUN_NUMBER}
 CLIENT_OUTPUT_DIR=$OUTPUT_DIR/client
 DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
 DB_OUTPUT_DIR=$OUTPUT_DIR/db
@@ -135,7 +135,7 @@ mkdir -p $DRIVER_OUTPUT_DIR
 mkdir -p $DB_OUTPUT_DIR
 
 # Update log.html
-echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> output/log.html
+echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
 
 # Update the run number for the next test.
 RUN_NUMBER=`expr $RUN_NUMBER + 1`
@@ -229,7 +229,9 @@ fi
 perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
 cp -p $abs_top_srcdir/scripts/notpm.input $DRIVER_OUTPUT_DIR
 cd $DRIVER_OUTPUT_DIR
-@GNUPLOT@ notpm.input
+if [ "x@GNUPLOT@" != "x" ]; then
+	@GNUPLOT@ notpm.input
+fi
 cd -
 
 if [ $USE_OPROFILE -eq 1 ]
@@ -251,9 +253,13 @@ $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
 chmod 644 ${DB_OUTPUT_DIR}/log
 
 # Postprocessing of Database Statistics
-@SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
-$abs_top_srcdir/scripts/vmplot.sh -i ${OUTPUT_DIR}/vmstat.out \
-		-o ${OUTPUT_DIR}/plots
+if [ -f ${OUTPUT_DIR}/sar_raw.out ]; then
+	@SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
+fi
+if [ "x@GNUPLOT@" != "x" ]; then
+	$abs_top_srcdir/scripts/vmplot.sh -i ${OUTPUT_DIR}/vmstat.out \
+			-o ${OUTPUT_DIR}/plots
+fi
 perl $abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
 
 # Create summary in HTML.

@@ -4,7 +4,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 
 use strict;
@@ -430,7 +430,16 @@ if ( $verbose ) {
 # Create gnuplot input file and generate the charts.
 #
 chdir $outdir;
+my $str = `which gnuplot`;
+print "$str\n";
+my $has_gnuplot;
+if ($str =~ /^no gnuplot/) {
+	$has_gnuplot = 0;
+} else {
+	$has_gnuplot = 1;
+}
 foreach my $transaction ( @transactions ) {
+	last unless ($has_gnuplot);
 	my $filename = "$transaction.input";
 	open( FILE, ">$filename" )
 		or die "cannot open $filename\n";
@@ -446,6 +455,7 @@ foreach my $transaction ( @transactions ) {
 }
 
 foreach my $transaction ( @xtran ) {
+	last unless ($has_gnuplot);
 	my $filename = "$transaction" . "-bar.input";
 	open( FILE, ">$filename" )
 		or die "cannot open $filename\n";

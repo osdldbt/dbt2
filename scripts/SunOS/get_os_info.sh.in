@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 while getopts "o:" opt; do
 	case $opt in
@@ -8,6 +8,8 @@ while getopts "o:" opt; do
 	esac
 done
 
-if test -f @SYSCTL@; then
-  @SYSCTL@ -a | sort > $OUTPUT_DIR/proc.out
+if [ "x@SYSCTL@" != "x" ]; then
+  if [ -f @SYSCTL@ ]; then
+    @SYSCTL@ -a | sort > $OUTPUT_DIR/proc.out
+  fi
 fi
