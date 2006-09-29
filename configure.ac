@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1480 2006-09-29 16:51:18Z markwkm $)
+AC_REVISION($Id: configure.ac 1483 2006-09-29 22:44:11Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
@@ -313,6 +313,8 @@ find the right location for the libpq library.])
 
         CFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER $CFLAGS"
         LDFLAGS="-L`$PG_CONFIG --libdir` -lpq $LDFLAGS"
+	LIBDIR=`$PG_CONFIG --libdir`
+	AC_SUBST(LIBDIR)
 
         POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
 

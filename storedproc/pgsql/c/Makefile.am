@@ -6,7 +6,7 @@ noinst_DATA = funcs.so
 	$(CC) -c -fpic $(CFLAGS) -o $@ $<
 
 funcs.so: funcs.o
-	$(CC) $(LDFLAGS) -shared -static-libgcc -o $@ $<
+	$(CC) $(LDFLAGS) -Wl,-R$(LIBDIR) -shared -static-libgcc -o $@ $<
 
 clean:
 	rm -f funcs.so funcs.o

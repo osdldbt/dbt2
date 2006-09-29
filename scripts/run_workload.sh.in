@@ -161,7 +161,7 @@ $abs_top_srcdir/scripts/${DBDIR}/start_db.sh -a -p "${DB_PARAMS}" -o ${DB_OUTPUT
 
 # Start the client.
 echo "Starting client: $DBCON database connection(s), 1 connection per $SLEEPY milliseconds..."
-$abs_top_srcdir/src/client -f -d $DB_HOSTNAME -c $DBCON -l $DB_PORT -s $SLEEPY -o $CLIENT_OUTPUT_DIR > $OUTPUT_DIR/client.out 2>&1 &
+LD_LIBRARY_PATH=@LIBDIR@ $abs_top_srcdir/src/client -f -d $DB_HOSTNAME -c $DBCON -l $DB_PORT -s $SLEEPY -o $CLIENT_OUTPUT_DIR > $OUTPUT_DIR/client.out 2>&1 &
 
 # Sleep long enough for all the client database connections to be established.
 SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY/1000 ))
@@ -187,7 +187,7 @@ fi
 
 DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
 echo "Starting driver: $DRIVERS driver(s), 1 driver starting every $SLEEPY milliseconds..."
-$abs_top_srcdir/src/driver -d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR -tpw $THREADS_PER_WAREHOUSE $NO_THINK > $OUTPUT_DIR/driver.out 2>&1 &
+LD_LIBRARY_PATH=@LIBDIR@ $abs_top_srcdir/src/driver -d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR -tpw $THREADS_PER_WAREHOUSE $NO_THINK > $OUTPUT_DIR/driver.out 2>&1 &
 echo "Results will be written to: $OUTPUT_DIR"
 
 do_sleep $SLEEP_RAMPUP
