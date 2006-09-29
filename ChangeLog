@@ -1,3 +1,10 @@
+v0.38
+
+- Various fixes with all scripts.
+- Improved configure.ac to use pg_config for PostgreSQL.
+- Updated PostgreSQL scripts to work with PostgreSQL 8.1 and newer.
+- Updated PostgreSQL stored functions for 8.1 and newer.
+
 v0.37
 
 - Removed use of the $SHELL environment variable so the kit is more portable.
