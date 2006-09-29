@@ -156,7 +156,7 @@ echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
 $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
-$abs_top_srcdir/scripts/${DBDIR}/start_db.sh -a -p "${DB_PARAMS}"
+$abs_top_srcdir/scripts/${DBDIR}/start_db.sh -a -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR}
 
 # Start the client.
 echo "Starting client: $DBCON database connection(s), 1 connection per $SLEEPY milliseconds..."
@@ -226,7 +226,7 @@ fi
 
 # Run some post processing analysese.
 perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
-cp -p notpm.input $DRIVER_OUTPUT_DIR
+cp -p $abs_top_srcdir/scripts/notpm.input $DRIVER_OUTPUT_DIR
 cd $DRIVER_OUTPUT_DIR
 @GNUPLOT@ notpm.input
 cd -
@@ -246,9 +246,9 @@ killall client driver 2> /dev/null
 
 $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
 
-# Move the database log.  (No, not the transaction log.)
-chmod 644 $abs_top_srcdir/scripts/log
-mv $abs_top_srcdir/scripts/log $DB_OUTPUT_DIR
+# Change the permissions on the database log, not readable by other users by
+# default.  (No, not the transaction log.)
+chmod 644 ${DB_OUTPUT_DIR}/log
 
 # Postprocessing of Database Statistics
 @SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
