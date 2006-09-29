@@ -2,7 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2003 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2003-2006 Mark Wong & Open Source Development Labs, Inc.
  *
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
  */
