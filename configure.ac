@@ -1,8 +1,8 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1477 2006-09-29 02:23:41Z markwkm $)
+AC_REVISION($Id: configure.ac 1478 2006-09-29 02:24:14Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(dbt2, 0.37, osdldbt-general@lists.sourceforge.net)
+AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
 AM_INIT_AUTOMAKE
 AH_TOP([
 #ifndef __CONFIG_H__
