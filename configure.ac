@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1368 2006-04-18 21:51:48Z markwkm $)
+AC_REVISION($Id: configure.ac 1477 2006-09-29 02:23:41Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.37, osdldbt-general@lists.sourceforge.net)
@@ -289,63 +289,37 @@ if test "$database_to_use" == "pgsql"; then
     AC_DEFINE(LIBPQ, 1, [using PostgreSQL])
 
     dnl check if the user has specified path for pgsql
-    if test "$pgsql_path" != ""; then
-      CPPFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server -I${pgsql_path}/include/postgresql/server -I${pgsql_path}/include/pgsql/server $CPPFLAGS"
-      CFLAGS="-I${pgsql_path}/include -I${pgsql_path}/include/server -I${pgsql_path}/include/postgresql/server -I${pgsql_path}/include/pgsql/server $CFLAGS"
-      LDFLAGS="-L${pgsql_path}/lib -Wl,-R${pgsql_path}/lib $LDFLAGS"
+    if test "$pgsql_path" == "yes"; then
+        AC_PATH_PROGS(PG_CONFIG, pg_config, no)
+    else
+        AC_PATH_PROGS(PG_CONFIG, pg_config, no, "$pgsql_path/bin")
     fi
 
-    AC_CHECK_HEADERS(
-        [${pgsql_path}/include/libpq-fe.h libpq-fe.h],
-        [libpq_ok=yes; break], [libpq_ok=no]
-    )
-    if test "x$libpq_ok" == "xno"; then
-        AC_MSG_ERROR([could not locate libpq-fe.h])
+    if test -z "$PG_CONFIG" || test ! -r "$PG_CONFIG"; then
+        AC_MSG_ERROR([
+libpq configuration script pg_config not found.  Make sure this is in your
+command path before configuring.  Without it, the configure script has no way to
+find the right location for the libpq library.])
     fi
 
-    AC_CHECK_HEADERS(
-        [${pgsql_path}/include/server/funcapi.h ${pgsql_path}/include/postgresql/server/funcapi.h ${pgsql_path}/include/pgsql/server/funcapi.h server/funcapi.h postgresql/server/funcapi.h pgsql/server/funcapi.h],
-        [funcapi_ok=yes; break],
-        [funcapi_ok=no]
-    )
-    if test "x$funcapi_ok" == "xno"; then
-        AC_MSG_ERROR([could not locate funcapi.h])
-    fi
+    if test "$PG_CONFIG" != "no"; then
+        AC_MSG_CHECKING([for PostgreSQL libraries])
 
-    AC_CHECK_HEADERS(
-        [${pgsql_path}/include/server/executor/spi.h ${pgsql_path}/include/postgresql/server/executor/spi.h ${pgsql_path}/include/pgsql/server/executor/spi.h server/executor/spi.h postgresql/server/executor/spi.h pgsql/server/executor/spi.h],
-        [spi_ok=yes; break],
-        [spi_ok=no]
-    )
-    if test "x$spi_ok" == "xno"; then
-        AC_MSG_ERROR([could not locate spi.h])
-    fi
+        BINDIR=`$PG_CONFIG --bindir`
+        INCLUDEDIR=`$PG_CONFIG --includedir`
+        PKGINCLUDEDIR=`$PG_CONFIG --pkgincludedir`
+        INCLUDEDIR_SERVER=`$PG_CONFIG --includedir-server`
 
-    AC_CHECK_HEADERS(
-        [${pgsql_path}/include/server/executor/executor.h ${pgsql_path}/include/postgresql/server/executor/executor.h ${pgsql_path}/include/pgsql/server/executor/executor.h server/executor/executor.h postgresql/server/executor/executor.h pgsql/server/executor/executor.h],
-        [executor_ok=yes; break],
-        [executor_ok=no]
-    )
-    if test "x$spi_ok" == "xno"; then
-        AC_MSG_ERROR([could not locate executor.h])
-    fi
+        CFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER $CFLAGS"
+        LDFLAGS="-L`$PG_CONFIG --libdir` -lpq $LDFLAGS"
 
-    AC_CHECK_HEADERS(
-        [${pgsql_path}/include/server/fmgr.h ${pgsql_path}/include/postgresql/server/fmgr.h ${pgsql_path}/include/pgsql/server/fmgr.h server/fmgr.h postgresql/server/fmgr.h pgsql/server/fmgr.h],
-        [fmgr_ok=yes; break],
-        [fmgr_ok=no]
-    )
-    if test "x$fmgr_ok" == "xno"; then
-        AC_MSG_ERROR([could not locate fmgr.h])
-    fi
+        POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
 
-    AC_CHECK_HEADERS(
-        [${pgsql_path}/include/server/postgres.h ${pgsql_path}/include/postgresql/server/postgres.h ${pgsql_path}/include/pgsql/server/postgres.h server/postgres.h postgresql/server/postgres.h pgsql/server/postgres.h],
-        [postgres_ok=yes; break],
-        [postgres_ok=no]
-    )
-    if test "x$postgres_ok" == "xno"; then
-        AC_MSG_ERROR([could not locate postgres.h])
+        AC_DEFINE([HAVE_POSTGRESQL], [1],
+            [Define to 1 if PostgreSQL libraries are available])
+
+        found_postgresql="yes"
+        AC_MSG_RESULT([yes])
     fi
 
     AC_SEARCH_LIBS(PQexec, pq, [], AC_MSG_ERROR([libpq libs required]))
@@ -353,7 +327,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for initdb
   AC_PATH_PROGS([INITDB], [initdb], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$INITDB" ; then
     AC_MSG_ERROR([*** initdb is required])
@@ -361,7 +335,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for createdb
   AC_PATH_PROGS([CREATEDB], [createdb], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$CREATEDB" ; then
     AC_MSG_ERROR([*** createdb is required])
@@ -369,7 +343,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for dropdb
   AC_PATH_PROGS([DROPDB], [dropdb], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$DROPDB" ; then
     AC_MSG_ERROR([*** dropdb is required])
@@ -377,7 +351,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for pg_restore
   AC_PATH_PROGS([PGRESTORE], [pg_restore], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PGRESTORE" ; then
     AC_MSG_ERROR([*** pg_restore is required])
@@ -385,7 +359,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for createlang
   AC_PATH_PROGS([CREATELANG], [createlang], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$CREATELANG" ; then
     AC_MSG_ERROR([*** createlang is required])
@@ -393,7 +367,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for pg_ctl
   AC_PATH_PROGS([PG_CTL], [pg_ctl], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PG_CTL" ; then
     AC_MSG_ERROR([*** pg_ctl is required])
@@ -401,7 +375,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for psql
   AC_PATH_PROGS([PSQL], [psql], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PSQL" ; then
     AC_MSG_ERROR([*** psql is required])
@@ -409,18 +383,10 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for vacuumdb
   AC_PATH_PROGS([VACUUMDB], [vacuumdb], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$PATH:${BINDIR}:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$VACUUMDB" ; then
     AC_MSG_ERROR([*** vacuumdb is required])
-  fi
-
-  dnl check for pg_autovacuum
-  AC_PATH_PROGS([PG_AUTOVACUUM], [pg_autovacuum], ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
-  )
-  if test -z "$PG_AUTOVACUUM" ; then
-    AC_MSG_WARN([*** pg_autovacuum is recommended from 7.4 and 8.0])
   fi
 
   AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
