@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1483 2006-09-29 22:44:11Z markwkm $)
+AC_REVISION($Id: configure.ac 1487 2006-10-02 21:53:40Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
@@ -416,7 +416,9 @@ elif test "$database_to_use" == "sapdb"; then
 
   SP_DIR=""
 elif test "$database_to_use" == "mysql"; then
-  AC_CHECK_MYSQL([$ac_cv_use_mysql], ["libmysql_r"])
+  AC_CHECK_MYSQL([$ac_cv_use_mysql], ["libmysql"])
+  MYSQLDIR=$ac_cv_use_mysql
+  AC_SUBST(MYSQLDIR)
 
   CFLAGS="$CFLAGS $MYSQL_CFLAGS"
   LIBS="$LIBS $MYSQL_LIBS" 
@@ -442,7 +444,19 @@ elif test "$database_to_use" == "mysql"; then
     AC_DEFINE(LIBMYSQL, 1, [using MySQL])
   fi
 
+  dnl check for mysqld_safe
+  AC_PATH_PROGS([MYSQLD_SAFE], [mysqld_safe], ,
+    [$PATH:$ac_cv_use_mysql/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$MYSQLD_SAFE" ; then
+    AC_MSG_ERROR([*** mysqld_safe is required])
+  fi
+
   AC_CONFIG_FILES([scripts/run_mysql.sh], [chmod +x scripts/run_mysql.sh])
+  AC_CONFIG_FILES([scripts/mysql/start_db.sh],
+      [chmod +x scripts/mysql/start_db.sh])
+  AC_CONFIG_FILES([scripts/mysql/stop_db.sh],
+      [chmod +x scripts/mysql/stop_db.sh])
 else
   AC_MSG_ERROR('Please choose DBMS. ./configure --with-(postgresql|sapdb|mysql)!')
 fi

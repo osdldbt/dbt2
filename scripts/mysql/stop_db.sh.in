@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+
+LOGFILE="log"
+OUTDIR="."
+while getopts "o:" OPT; do
+	case ${OPT} in
+	o)
+		OUTDIR=$OPTARG
+		;;
+	esac
+done
+
+if [ ! -f "@MYSQLDIR@/var/localhost.pid" ]; then
+	echo "MySQL pid file '@MYSQLDIR@/var/localhost.pid' does not exist."
+	echo "MySQL was not stopped, if it was running."
+	exit 1
+fi
+MYSQL_PID=`cat @MYSQLDIR@/var/localhost.pid`
+kill ${MYSQL_PID} || exit 1
+echo "MySQL stopped successfully (by kill)."
+
+exit 0

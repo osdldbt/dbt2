@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+
+LOGFILE="log"
+OUTDIR="."
+while getopts "o:" OPT; do
+	case ${OPT} in
+	o)
+		OUTDIR=$OPTARG
+		;;
+	esac
+done
+
+if [ -f "@MYSQLDIR@/var/localhost.pid" ]; then
+	echo "MySQL pid file '@MYSQLDIR@/var/localhost.pid' already exists."
+	exit 1
+fi
+nohup @MYSQLD_SAFE@ --log-error=${OUTDIR}/${LOGFILE} > /dev/null 2>&1 &
+MYSQL_PID=$$
+
+exit 0
