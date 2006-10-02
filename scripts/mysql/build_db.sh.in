@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # load_db_mysql.sh
 
@@ -15,7 +15,6 @@ usage() {
   echo '       -d <database name>'
   echo '       -f <path to dataset files>'
   echo '       -m <database scheme [OPTIMIZED|ORIG] (default OPTIMIZED)>'
-  echo '       -c <path to mysql client binary. (default /usr/bin/mysql)>'
   echo '       -s <database socket>'
   echo '       -h <database host>'
   echo '       -u <database user>'
@@ -41,9 +40,9 @@ command_exec()
    echo "ERROR: rc=$rc"
    case $rc in
      127) echo "COMMAND NOT FOUND"
-          ;;
+	  ;;
        *) echo "SCRIPT INTERRUPTED"
-          ;;
+	  ;;
     esac
     exit 255
   fi
@@ -65,7 +64,7 @@ for TABLE in $TABLES ; do
   fi
 
   command_exec "$MYSQL $DB_NAME -e \"LOAD DATA $LOCAL INFILE \\\"$DB_PATH/$FN.data\\\" \
-                INTO TABLE $TABLE FIELDS TERMINATED BY '\t'\""
+		INTO TABLE $TABLE FIELDS TERMINATED BY '\t'\""
 
 done
 
@@ -212,124 +211,123 @@ WAREHOUSE="CREATE TABLE warehouse (
 else
 
 WAREHOUSE="create table warehouse ( w_id int not null, 
-                         w_name varchar(10), 
-                         w_street_1 varchar(20), 
-                         w_street_2 varchar(20), 
-                         w_city varchar(20), 
-                         w_state char(2), 
-                         w_zip char(9), 
-                         w_tax real, 
-                         w_ytd numeric(24, 12), 
-                         constraint pk_warehouse primary key (w_id) 
-                       )"
+  w_name varchar(10), 
+  w_street_1 varchar(20), 
+  w_street_2 varchar(20), 
+  w_city varchar(20), 
+  w_state char(2), 
+  w_zip char(9), 
+  w_tax real, 
+  w_ytd numeric(24, 12), 
+  constraint pk_warehouse primary key (w_id) 
+)"
 
 
 DISTRICT="create table district ( d_id int not null,
-                        d_w_id int not null,
-                        d_name varchar(10),
-                        d_street_1 varchar(20),
-                        d_street_2 varchar(20),
-                        d_city varchar(20),
-                        d_state char(2),
-                        d_zip char(9),
-                        d_tax real,
-                        d_ytd numeric(24, 12),
-                        d_next_o_id int,
-                        constraint pk_district primary key (d_w_id, d_id)
-                      )"
+  d_w_id int not null,
+  d_name varchar(10),
+  d_street_1 varchar(20),
+  d_street_2 varchar(20),
+  d_city varchar(20),
+  d_state char(2),
+  d_zip char(9),
+  d_tax real,
+  d_ytd numeric(24, 12),
+  d_next_o_id int,
+  constraint pk_district primary key (d_w_id, d_id)
+)"
 
 CUSTOMER="create table customer ( c_id int not null, 
-                        c_d_id int not null, 
-                        c_w_id int not null, 
-                        c_first varchar(16), 
-                        c_middle char(2), 
-                        c_last varchar(16),   
-                        c_street_1 varchar(20),               
-                        c_street_2 varchar(20), 
-                        c_city varchar(20), 
-                        c_state char(2),  
-                        c_zip char(9), 
-                        c_phone char(16), 
-                        c_since timestamp, 
-                        c_credit char(2), 
-                        c_credit_lim numeric(24, 12), 
-                        c_discount real, 
-                        c_balance numeric(24, 12), 
-                        c_ytd_payment numeric(24, 12), 
-                        c_payment_cnt real, 
-                        c_delivery_cnt real, 
-                        c_data text, 
-                        constraint pk_customer primary key (c_w_id, c_d_id, c_id)
-                      )"
+  c_d_id int not null, 
+  c_w_id int not null, 
+  c_first varchar(16), 
+  c_middle char(2), 
+  c_last varchar(16),   
+  c_street_1 varchar(20),	       
+  c_street_2 varchar(20), 
+  c_city varchar(20), 
+  c_state char(2),  
+  c_zip char(9), 
+  c_phone char(16), 
+  c_since timestamp, 
+  c_credit char(2), 
+  c_credit_lim numeric(24, 12), 
+  c_discount real, 
+  c_balance numeric(24, 12), 
+  c_ytd_payment numeric(24, 12), 
+  c_payment_cnt real, 
+  c_delivery_cnt real, 
+  c_data text, 
+  constraint pk_customer primary key (c_w_id, c_d_id, c_id)
+)"
 
 HISTORY="create table history ( h_c_id int, 
-                       h_c_d_id int, 
-                       h_c_w_id int, 
-                       h_d_id int, 
-                       h_w_id int, 
-                       h_date timestamp, 
-                       h_amount real, 
-                       h_data varchar(24) )"
+  h_c_d_id int, 
+  h_c_w_id int, 
+  h_d_id int, 
+  h_w_id int, 
+  h_date timestamp, 
+  h_amount real, 
+  h_data varchar(24)
+)"
 
 NEW_ORDER="create table new_order ( no_o_id int not null, 
-                         no_d_id int not null, 
-                         no_w_id int not null, 
-                         constraint pk_new_order primary key (no_o_id, no_d_id, no_w_id) 
-                       )"
+  no_d_id int not null, 
+  no_w_id int not null, 
+  constraint pk_new_order primary key (no_o_id, no_d_id, no_w_id) 
+)"
 
 ORDERS="create table orders ( o_id int not null, 
-                      o_d_id int not null, 
-                      o_w_id int not null, 
-                      o_c_id int,
-                      o_entry_d timestamp,
-                      o_carrier_id int,
-                      o_ol_cnt int,
-                      o_all_local real,
-                      constraint pk_orders primary key (o_w_id, o_d_id, o_id)
-                    )"
-
-
+  o_d_id int not null, 
+  o_w_id int not null, 
+  o_c_id int,
+  o_entry_d timestamp,
+  o_carrier_id int,
+  o_ol_cnt int,
+  o_all_local real,
+  constraint pk_orders primary key (o_w_id, o_d_id, o_id)
+)"
 
 ORDER_LINE="create table order_line ( ol_o_id int not null,
-                          ol_d_id int not null,
-                          ol_w_id int not null,
-                          ol_number int not null,
-                          ol_i_id int,
-                          ol_supply_w_id int,
-                          ol_delivery_d timestamp,
-                          ol_quantity real,
-                          ol_amount real, 
-                          ol_dist_info varchar(24),
-                          constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_number)
-                        )"
+  ol_d_id int not null,
+  ol_w_id int not null,
+  ol_number int not null,
+  ol_i_id int,
+  ol_supply_w_id int,
+  ol_delivery_d timestamp,
+  ol_quantity real,
+  ol_amount real, 
+  ol_dist_info varchar(24),
+  constraint pk_order_line primary key (ol_w_id, ol_d_id, ol_o_id, ol_number)
+)"
 
 ITEM="create table item ( i_id int not null,
-                    i_im_id int,
-                    i_name varchar(24), 
-                    i_price real, 
-                    i_data varchar(50), 
-                    constraint pk_item primary key (i_id) 
-                  )"
+  i_im_id int,
+  i_name varchar(24), 
+  i_price real, 
+  i_data varchar(50), 
+  constraint pk_item primary key (i_id) 
+)"
 
 STOCK="create table stock ( s_i_id int not null, 
-                     s_w_id int not null, 
-                     s_quantity real, 
-                     s_dist_01 varchar(24), 
-                     s_dist_02 varchar(24), 
-                     s_dist_03 varchar(24), 
-                     s_dist_04 varchar(24), 
-                     s_dist_05 varchar(24), 
-                     s_dist_06 varchar(24), 
-                     s_dist_07 varchar(24), 
-                     s_dist_08 varchar(24), 
-                     s_dist_09 varchar(24), 
-                     s_dist_10 varchar(24), 
-                     s_ytd numeric(16, 8), 
-                     s_order_cnt real, 
-                     s_remote_cnt real, 
-                     s_data varchar(50), 
-                     constraint pk_stock primary key (s_w_id, s_i_id, s_quantity) 
-                   )"
+  s_w_id int not null, 
+  s_quantity real, 
+  s_dist_01 varchar(24), 
+  s_dist_02 varchar(24), 
+  s_dist_03 varchar(24), 
+  s_dist_04 varchar(24), 
+  s_dist_05 varchar(24), 
+  s_dist_06 varchar(24), 
+  s_dist_07 varchar(24), 
+  s_dist_08 varchar(24), 
+  s_dist_09 varchar(24), 
+  s_dist_10 varchar(24), 
+  s_ytd numeric(16, 8), 
+  s_order_cnt real, 
+  s_remote_cnt real, 
+  s_data varchar(50), 
+  constraint pk_stock primary key (s_w_id, s_i_id, s_quantity) 
+)"
 fi
 
 TABLES="STOCK ITEM ORDER_LINE ORDERS NEW_ORDER HISTORY CUSTOMER DISTRICT WAREHOUSE"
@@ -345,34 +343,33 @@ done
 
 #DEFAULTs
 
+DIR=`dirname ${0}`
+
 LOCAL=""
 VERBOSE=""
 DB_PASSWORD=""
 DB_PATH=""
 DB_NAME=""
 
-MYSQL="/usr/bin/mysql"
+MYSQL="@MYSQL@"
 DB_HOST="localhost"
 DB_SOCKET="/tmp/mysql.sock"
 DB_USER=$USER
 DB_ENGINE="INNODB"
 DB_SCHEME="OPTIMIZED"
 
-while getopts "d:h:f:s:c:e:m:u:p:v" opt; do
-        case $opt in
-        c)
-                MYSQL=$OPTARG
-                ;;
-        f)
-                DB_PATH=$OPTARG
-                ;;
-        s)
-                DB_SOCKET=$OPTARG
-                ;;
-        l)      
-                LOCAL="LOCAL"
-                ;;
-        d)
+while getopts "d:h:f:s:e:m:u:p:v" opt; do
+	case $opt in
+	f)
+		DB_PATH=$OPTARG
+		;;
+	s)
+		DB_SOCKET=$OPTARG
+		;;
+	l)      
+		LOCAL="LOCAL"
+		;;
+	d)
 		DB_NAME=$OPTARG
 		;;
 	h)	
@@ -383,32 +380,36 @@ while getopts "d:h:f:s:c:e:m:u:p:v" opt; do
 		;;
 	p)	
 		DB_PASSWORD=$OPTARG
-		;;        
+		;;	
 	e)	
 		DB_ENGINE=$OPTARG
 		;;
-        m)      
+	m)      
 		DB_SCHEME=$OPTARG
 		;;
-        v)      
+	v)      
 		VERBOSE=1
 		;;
-        ?)
+	?)
 		usage
-                exit 1
+		exit 1
 		;;
-        esac
+	esac
 done
+
+if [ ! -f "@MYSQLDIR@/var/localhost.pid" ]; then
+	${DIR}/start_db.sh || exit 1
+fi
 
 # Check parameters.
 if [ "$DB_PATH" == "" ]; then
-  usage "specify path where dataset txt files are located - using -p #"
+  usage "specify path where dataset txt files are located - using -f <absolute path>"
   exit 1
 fi
 
 if [ ! -d "$DB_PATH" ]; then
   usage "Directory '$DB_PATH' not exists. Please specify
-       correct path to data files using -f #"
+       correct path to data files using -f <absolute path>"
   exit 1
 fi
 
@@ -427,14 +428,8 @@ if [ "$DB_SCHEME" != "OPTIMIZED" -a "$DB_SCHEME" != "ORIG" ]; then
   exit 1
 fi
 
-if [ ! -f "$MYSQL" ]; then
-  usage "MySQL client binary '$MYSQL' not exists.
-       Please specify correct one using -c #"
-  exit 1
-fi
-
-if [ "$DB_PASSWORD" != "" ]; then
-  MYSQL_ARGS="-p $DB_PASSWORD"
+if [ "${DB_PASSWORD}" != "" ]; then
+  MYSQL_ARGS="--password=${DB_PASSWORD}"
 fi
 
 MYSQL_ARGS="$MYSQL_ARGS -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"
