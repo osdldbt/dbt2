@@ -12,6 +12,8 @@ server.
 To run SP based test you have to build test with includes and libraries 
 from MySQL 5.0 or higher.
 
+Don't forget to run 'mysql_install_db'!
+
 PREPARATION FOR TEST
 --------------------
 
