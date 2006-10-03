@@ -12,4 +12,7 @@ DIR=`dirname $0`
 DATABASE=@database_to_use@
 
 DBNAME="dbt2"
-source @abs_top_srcdir@/scripts/${DATABASE}/${DATABASE}_profile
+
+if [ -f "@abs_top_srcdir@/scripts/${DATABASE}/${DATABASE}_profile" ]; then
+	source @abs_top_srcdir@/scripts/${DATABASE}/${DATABASE}_profile
+fi

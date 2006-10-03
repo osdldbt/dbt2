@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1489 2006-10-03 17:09:14Z markwkm $)
+AC_REVISION($Id: configure.ac 1493 2006-10-03 20:29:54Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
@@ -313,8 +313,8 @@ find the right location for the libpq library.])
 
         CFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER $CFLAGS"
         LDFLAGS="-L`$PG_CONFIG --libdir` -lpq $LDFLAGS"
-	LIBDIR=`$PG_CONFIG --libdir`
-	AC_SUBST(LIBDIR)
+        LIBDIR=`$PG_CONFIG --libdir`
+        AC_SUBST(LIBDIR)
 
         POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
 
@@ -446,6 +446,31 @@ elif test "$database_to_use" == "mysql"; then
   MYSQLDIR=$ac_cv_use_mysql
   AC_SUBST(MYSQLDIR)
 
+  dnl check if the user has specified path for pgsql
+  if test "$ac_cv_use_mysql" == "yes"; then
+    AC_PATH_PROGS(MYSQL_CONFIG, mysql_config, no)
+  else
+    AC_PATH_PROGS(MYSQL_CONFIG, mysql_config, no, "$ac_cv_use_mysql/bin")
+  fi
+  AC_SUBST(MYSQL_CONFIG)
+
+  if test -z "$MYSQL_CONFIG" || test ! -r "$MYSQL_CONFIG"; then
+    AC_MSG_ERROR([
+mysql configuration script mysql_config not found.  Make sure this is in your
+command path before configuring.  Without it, the configure script has no way to
+find the right location for the libmysql library.])
+  fi
+
+  if test "$MYSQL_CONFIG" != "no"; then
+    AC_MSG_CHECKING([for MySQL libraries])
+
+    DBCFLAGS=`$MYSQL_CONFIG --cflags`
+    DBLDFLAGS=`$MYSQL_CONFIG --libs`
+
+    LIBDIR="$ac_cv_use_mysql/lib/mysql"
+    AC_SUBST(LIBDIR)
+  fi
+
   CFLAGS="$CFLAGS $MYSQL_CFLAGS"
   LIBS="$LIBS $MYSQL_LIBS" 
 
@@ -486,7 +511,6 @@ elif test "$database_to_use" == "mysql"; then
     AC_MSG_ERROR([*** mysqld_safe is required])
   fi
 
-  AC_CONFIG_FILES([scripts/run_mysql.sh], [chmod +x scripts/run_mysql.sh])
   AC_CONFIG_FILES([scripts/mysql/build_db.sh],
       [chmod +x scripts/mysql/build_db.sh])
   AC_CONFIG_FILES([scripts/mysql/start_db.sh],

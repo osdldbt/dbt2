@@ -1,3 +1,8 @@
+v0.39
+
+- Merged run_mysql.sh script into run_workload.sh script.
+- Various fixes with all scripts.
+
 v0.38
 
 - Various fixes with all scripts.

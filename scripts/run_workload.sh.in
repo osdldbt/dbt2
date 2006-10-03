@@ -10,6 +10,9 @@
 abs_top_srcdir=@abs_top_srcdir@
 DBDIR=@database_to_use@
 
+DIR=`dirname $0`
+source ${DIR}/dbt2_profile || exit 1
+
 trap 'echo "Test was interrupted by Control-C."; \
 	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
@@ -21,6 +24,24 @@ usage()
 		echo
 		echo "error: $1"
 	fi
+	echo ''
+	echo 'usage: run_workload.sh -c <number of database connections> -d <duration of test> -w <number of warehouses>'
+	echo 'other options:'
+	echo '       -n <database name. (default dbt2)>'
+	echo '       -h <database host name. (default localhost)>'
+	echo '       -l <database port number>'
+	echo '       -o <enable oprofile data collection>'
+	echo '       -s <delay of starting of new threads in milliseconds>'
+	echo '       -n <no thinking or keying time (default no)>'
+	if [ "$DBDIR" == "mysql" ]; then
+	echo '       -u <database user>'
+	echo '       -x <database password>'
+	fi
+	echo '       -z <comments for the test>'
+	echo ''
+	echo 'Example: sh run_workload.sh -c 20 -d 100 -w 1'
+	echo 'Test will be run for 120 seconds with 20 database connections and scale factor (num of warehouses) 1'
+	echo ''
 }
 
 validate_parameter()
@@ -33,17 +54,24 @@ validate_parameter()
 
 do_sleep()
 {
-    echo "Sleeping $1 seconds"
-    sleep $1
+	echo "Sleeping $1 seconds"
+	sleep $1
 }
 
 DB_HOSTNAME="localhost"
-DB_PORT=5432
+DB_PASSWORD=""
+DB_PARAMS=""
+if [ ${DBDIR} == "pgsql" ]; then
+	DB_PORT=5432
+elif [ ${DBDIR} == "mysql" ]; then
+	DB_PORT=""
+fi
+DB_USER=""
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
 
-while getopts "c:d:l:nop:s:t:vw:z:" opt; do
+while getopts "c:d:l:nop:s:t:u:w:x:z:" opt; do
 	case $opt in
 	c)
 		# Check for numeric value
@@ -75,10 +103,18 @@ while getopts "c:d:l:nop:s:t:vw:z:" opt; do
 		THREADS_PER_WAREHOUSE=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $THREADS_PER_WAREHOUSE
 		;;
+	u)      
+		DB_USER=${OPTARG}
+		;;
+
 	w)
 		WAREHOUSES=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $WAREHOUSES
 		;;
+	x)      
+		DB_PASSWORD=${OPTARG}
+		;;
+
 	z)
 		COMMENT=$OPTARG
 		;;
@@ -157,11 +193,79 @@ echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
 $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
-$abs_top_srcdir/scripts/${DBDIR}/start_db.sh -a -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR}
+START_DB_ARGS=""
+if [ ${DBDIR} == "pgsql" ]; then
+	if [ -n "${DB_PARAMS}" ]; then
+		START_DB_ARGS="${START_DB_ARGS} -p \"${DB_PARAMS}\""
+	fi
+fi
+START_DB_ARGS="${START_DB_ARGS} -o ${DB_OUTPUT_DIR}"
+${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} || exit 1
 
+#
+# Redisplay the test parameters.
+#
+echo "************************************************************************"
+echo "*		     DBT-2 test for ${DBDIR} started		     *"
+echo "*								      *"
+echo "*	    Results can be found in output/$(( $RUN_NUMBER-1 )) directory	       *"
+echo "************************************************************************"
+echo "*								      *"
+echo "*  Test consists of 3 stages:					  *"
+echo "*								      *"
+echo "*  1. Start of client to create pool of databases connections	  *"
+echo "*  2. Start of driver to emulate terminals and transactions generation *"
+echo "*  3. Processing of results					    *"
+echo "*								      *"
+echo "************************************************************************"
+
+#
+# Build up the client command line arguments.
+#
+
+echo ""
+echo "DATABASE NAME:		${DBNAME}"
+
+if [ -n "${DB_USER}" ]; then
+  echo "DATABASE USER:		${DB_USER}"
+  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -u ${DB_USER}"
+fi 
+
+if [ -n "${DB_PASSWORD}" ]; then 
+  echo "DATABASE PASSWORD:	    *******" 
+  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
+fi 
+
+if [ -n "${DB_SOCKET}" ]; then 
+  echo "DATABASE SOCKET:	      ${DB_SOCKET}"
+  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
+fi 
+
+if [ -n "${DB_PORT}" ]; then 
+  echo "DATABASE PORT:		${DB_PORT}"
+  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -l ${DB_PORT}"
+fi 
+
+THREADS=$(( ${WAREHOUSES}*${THREADS_PER_WAREHOUSE} ))
+echo "DATABASE CONNECTIONS:	 ${DBCON}"
+echo "TERMINAL THREADS:	     ${THREADS}"
+echo "TERMINALS PER WAREHOUSE:      ${THREADS_PER_WAREHOUSE}"
+echo "SCALE FACTOR(WARHOUSES):      ${WAREHOUSES}"
+echo "DURATION OF TEST (in sec):     ${DURATION}"
+echo "1 client stared every ${SLEEPY} millisecond(s)"
+echo ""
+
+#
 # Start the client.
-echo "Starting client: $DBCON database connection(s), 1 connection per $SLEEPY milliseconds..."
-LD_LIBRARY_PATH=@LIBDIR@ $abs_top_srcdir/src/client -f -d $DB_HOSTNAME -c $DBCON -l $DB_PORT -s $SLEEPY -o $CLIENT_OUTPUT_DIR > $OUTPUT_DIR/client.out 2>&1 &
+#
+echo "Stage 1. Starting up client..."
+if [ ${DBDIR} == "pgsql" ]; then
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
+elif [ ${DBDIR} == "mysql" ]; then
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
+fi
+CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}"
+LD_LIBRARY_PATH=@LIBDIR@ ${abs_top_srcdir}/src/client ${CLIENT_COMMAND_ARGS} > ${OUTPUT_DIR}/client.out 2>&1 || exit 1 &
 
 # Sleep long enough for all the client database connections to be established.
 SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY/1000 ))
@@ -176,33 +280,35 @@ $abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH 
 $abs_top_srcdir/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
-if [ $USE_OPROFILE -eq 1 ]
-then
-        sudo opcontrol --vmlinux=/usr/src/linux-`uname -r`/vmlinux -c 100
-        sleep 1
-        sudo opcontrol --start-daemon
-        sleep 1
-        sudo opcontrol --start
+if [ $USE_OPROFILE -eq 1 ]; then
+	sudo opcontrol --vmlinux=/usr/src/linux-`uname -r`/vmlinux -c 100
+	sleep 1
+	sudo opcontrol --start-daemon
+	sleep 1
+	sudo opcontrol --start
 fi
 
+# Start the driver.
+echo ''
+echo "Stage 2. Starting up driver..."
+echo "${SLEEPY} threads started per millisecond"
+
 DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
-echo "Starting driver: $DRIVERS driver(s), 1 driver starting every $SLEEPY milliseconds..."
-LD_LIBRARY_PATH=@LIBDIR@ $abs_top_srcdir/src/driver -d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR -tpw $THREADS_PER_WAREHOUSE $NO_THINK > $OUTPUT_DIR/driver.out 2>&1 &
-echo "Results will be written to: $OUTPUT_DIR"
+DRIVER_COMMAND_ARGS="-d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR -tpw $THREADS_PER_WAREHOUSE $NO_THINK"
+LD_LIBRARY_PATH=@LIBDIR@ ${abs_top_srcdir}/src/driver ${DRIVER_COMMAND_ARGS} > ${OUTPUT_DIR}/driver.out 2>&1 || exit 1&
 
 do_sleep $SLEEP_RAMPUP
 
 # Clear the readprofile data after the driver ramps up.
 if [ -f /proc/profile ]; then
-    echo "Clearing profile data"
+	echo "Clearing profile data"
 	sudo /usr/sbin/readprofile -r
 fi
 
 # Reset the oprofile counters after the driver ramps up.
-if [ $USE_OPROFILE -eq 1 ]
-then
-    echo "Reseting oprofile counters"    
-    sudo opcontrol --reset
+if [ $USE_OPROFILE -eq 1 ]; then
+	echo "Reseting oprofile counters"
+	sudo opcontrol --reset
 fi
 
 # Sleep for the duration of the run.
@@ -217,16 +323,18 @@ if [ -f /proc/profile ]; then
 fi
 
 # Collect oprofile data.
-if [ $USE_OPROFILE -eq 1 ]
-then
+if [ $USE_OPROFILE -eq 1 ]; then
 	sudo opcontrol --dump
 	sudo opreport -l -p /lib/modules/`uname -r` -o $OUTPUT_DIR/oprofile.txt
 	sudo opreport -l -c -p /lib/modules/`uname -r` -o $OUTPUT_DIR/callgraph.txt
 	sudo opcontrol --stop
 fi
 
+echo ''
+echo "Stage 3. Processing of results..."
+
 # Run some post processing analysese.
-perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
+$abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
 cp -p $abs_top_srcdir/scripts/notpm.input $DRIVER_OUTPUT_DIR
 cd $DRIVER_OUTPUT_DIR
 if [ "x@GNUPLOT@" != "x" ]; then
@@ -234,8 +342,7 @@ if [ "x@GNUPLOT@" != "x" ]; then
 fi
 cd -
 
-if [ $USE_OPROFILE -eq 1 ]
-then
+if [ $USE_OPROFILE -eq 1 ]; then
 	mkdir -p $OUTPUT_DIR/oprofile/
 	mkdir -p $OUTPUT_DIR/oprofile/annotate
 	sudo opannotate --source --assembly > $OUTPUT_DIR/oprofile/assembly.txt 2>&1
@@ -260,7 +367,9 @@ if [ "x@GNUPLOT@" != "x" ]; then
 	$abs_top_srcdir/scripts/vmplot.sh -i ${OUTPUT_DIR}/vmstat.out \
 			-o ${OUTPUT_DIR}/plots
 fi
-perl $abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
+if [ -f "${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl" ]; then
+	${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl --dir ${DB_OUTPUT_DIR}
+fi
 
 # Create summary in HTML.
 $abs_top_srcdir/scripts/gen_html.sh $OUTPUT_DIR
