@@ -65,6 +65,10 @@ scripts/transform_sar.sh.in \
 scripts/vmplot.sh \
 scripts/Linux/get_os_info.sh.in \
 scripts/SunOS/get_os_info.sh.in \
+scripts/mysql/mysql_dbt2_plans.sh \
+scripts/mysql/mysql_load_db.sh  \
+scripts/mysql/mysql_load_sp.sh  \
+scripts/mysql/mysql_profile.in \
 scripts/pgsql/pgsql_profile.in \
 scripts/pgsql/restore.sh \
 scripts/pgsql/start_db.sh \
@@ -111,9 +115,6 @@ scripts/sapdb/trace_off.sh \
 scripts/sapdb/trace_on.sh \
 scripts/sapdb/update_stats.sh \
 scripts/sapdb/warehouse.sql \
-scripts/mysql/mysql_dbt2_plans.sh \
-scripts/mysql/mysql_load_db.sh  \
-scripts/mysql/mysql_load_sp.sh  \
 doc/Makefile \
 doc/maintenance.sxw \
 doc/class.dia \

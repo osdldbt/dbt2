@@ -11,7 +11,11 @@ DIR=`dirname $0`
 
 DATABASE=@database_to_use@
 
+# Database instance name.
 DBNAME="dbt2"
+
+# Path of database data.
+DBDATA=/mnt/data; export DBDATA
 
 if [ -f "@abs_top_srcdir@/scripts/${DATABASE}/${DATABASE}_profile" ]; then
 	source @abs_top_srcdir@/scripts/${DATABASE}/${DATABASE}_profile

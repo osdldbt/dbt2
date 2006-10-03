@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1495 2006-10-03 21:25:00Z markwkm $)
+AC_REVISION($Id: configure.ac 1498 2006-10-03 22:11:19Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
@@ -508,6 +508,7 @@ find the right location for the libmysql library.])
 
   AC_CONFIG_FILES([scripts/mysql/build_db.sh],
       [chmod +x scripts/mysql/build_db.sh])
+  AC_CONFIG_FILES([scripts/mysql/mysql_profile])
   AC_CONFIG_FILES([scripts/mysql/start_db.sh],
       [chmod +x scripts/mysql/start_db.sh])
   AC_CONFIG_FILES([scripts/mysql/stop_db.sh],

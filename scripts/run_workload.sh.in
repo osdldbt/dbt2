@@ -66,7 +66,7 @@ if [ ${DBDIR} == "pgsql" ]; then
 elif [ ${DBDIR} == "mysql" ]; then
 	DB_PORT=""
 fi
-DB_USER=""
+DB_USER=${DBUSER}
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10

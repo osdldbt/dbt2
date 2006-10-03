@@ -1,6 +1,9 @@
 #!/bin/bash
 
-# load_db_mysql.sh
+# build_db.sh
+
+TOPDIR="@abs_top_srcdir@"
+source ${TOPDIR}/scripts/dbt2_profile || exit 1
 
 usage() {
 
@@ -10,10 +13,11 @@ usage() {
   fi
 
   echo ''
-  echo 'usage: mysql_load_db.sh [options]'
+  echo 'usage: build_db.sh [options]'
   echo 'options:'
   echo '       -d <database name>'
   echo '       -f <path to dataset files>'
+  echo '       -g (generate data files)'
   echo '       -m <database scheme [OPTIMIZED|ORIG] (default OPTIMIZED)>'
   echo '       -s <database socket>'
   echo '       -h <database host>'
@@ -22,8 +26,9 @@ usage() {
   echo '       -e <storage engine: [MYISAM|INNODB|BDB]. (default INNODB)>'
   echo '       -l <to use LOCAL keyword while loading dataset>'
   echo '       -v <verbose>'  
+  echo '       -w <scale factor>'  
   echo ''
-  echo 'Example: sh mysql_load_db.sh -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock'
+  echo 'Example: bash build_db.sh -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock'
   echo ''
 }
 
@@ -353,42 +358,53 @@ DB_NAME=""
 
 MYSQL="@MYSQL@"
 DB_HOST="localhost"
+DB_NAME=${DBNAME}
+DB_PATH=${DBDATA}
 DB_SOCKET="/tmp/mysql.sock"
-DB_USER=$USER
+DB_USER=${DBUSER}
 DB_ENGINE="INNODB"
 DB_SCHEME="OPTIMIZED"
+GENERATE_DATAFILE=0
+WAREHOUSES=1
 
-while getopts "d:h:f:s:e:m:u:p:v" opt; do
+while getopts "d:h:f:gs:e:m:u:p:vw:" opt; do
 	case $opt in
+	d)
+		DB_NAME=${OPTARG}
+		;;
 	f)
 		DB_PATH=$OPTARG
 		;;
+	g)
+		GENERATE_DATAFILE=1
+		;;
+
 	s)
 		DB_SOCKET=$OPTARG
 		;;
-	l)      
+	l)
 		LOCAL="LOCAL"
 		;;
-	d)
-		DB_NAME=$OPTARG
-		;;
-	h)	
+	h)
 		DB_HOST=$OPTARG
 		;;
-	u)	
+	u)
 		DB_USER=$OPTARG
 		;;
-	p)	
+	p)
 		DB_PASSWORD=$OPTARG
 		;;	
-	e)	
+	e)
 		DB_ENGINE=$OPTARG
 		;;
-	m)      
+	m)
 		DB_SCHEME=$OPTARG
 		;;
-	v)      
+	v)
 		VERBOSE=1
+		;;
+	w)
+		WAREHOUSES=${OPTARG}
 		;;
 	?)
 		usage
@@ -396,10 +412,6 @@ while getopts "d:h:f:s:e:m:u:p:v" opt; do
 		;;
 	esac
 done
-
-if [ ! -f "@MYSQLDIR@/var/localhost.pid" ]; then
-	${DIR}/start_db.sh || exit 1
-fi
 
 # Check parameters.
 if [ "$DB_PATH" == "" ]; then
@@ -430,6 +442,17 @@ fi
 
 if [ "${DB_PASSWORD}" != "" ]; then
   MYSQL_ARGS="--password=${DB_PASSWORD}"
+fi
+
+if [ ! -f "@MYSQLDIR@/var/localhost.pid" ]; then
+	${DIR}/start_db.sh || exit 1
+fi
+
+if [ ${GENERATE_DATAFILE} -eq 1 ]; then
+	#
+	# Generate data files.
+	#
+	${TOPDIR}/src/datagen -d ${DBDATA} -w ${WAREHOUSES} --mysql || exit 1
 fi
 
 MYSQL_ARGS="$MYSQL_ARGS -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"

@@ -24,8 +24,5 @@ DBNAME=dbt2; export DBNAME
 # do it at /mnt/postgresql.
 PGDATA=/mnt/dbt2/pgdata; export PGDATA
 
-# Path of database data
-DBDATA=/mnt/data; export DBDATA
-
 # Directory with tablespace mount points, if using tablespaces.
 TSDIR=/mnt/dbt2
