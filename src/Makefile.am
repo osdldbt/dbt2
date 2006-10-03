@@ -34,15 +34,24 @@ bin_PROGRAMS = client datagen driver transaction_test
 
 client_SOURCES = client.c transaction_queue.c listener.c db_threadpool.c db.c \
                  $(COMMON_SRCS)
+client_CFLAGS = $(DBCFLAGS)
+client_LDFLAGS = $(DBLDFLAGS)
+
 nodist_client_SOURCES = $(INTERFACE_SRCS)
 
 datagen_SOURCES = datagen.c common.c
+datagen_INCLUDES = -Iinclude
+datagen_LDFLAGS = -lm -lpthread
 
 driver_SOURCES = driver_main.c driver.c input_data_generator.c \
                  $(COMMON_SRCS)
+driver_CFLAGS = $(DBCFLAGS)
+driver_LDFLAGS = $(DBLDFLAGS)
 
 transaction_test_SOURCES = transaction_test.c db.c input_data_generator.c \
                            $(COMMON_SRCS)
+transaction_test_CFLAGS = $(DBCFLAGS)
+transaction_test_LDFLAGS = $(DBLDFLAGS)
 nodist_transaction_test_SOURCES = $(INTERFACE_SRCS)
 
 EXTRA_DIST = include/_semaphore.h \

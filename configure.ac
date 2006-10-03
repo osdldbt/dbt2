@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1493 2006-10-03 20:29:54Z markwkm $)
+AC_REVISION($Id: configure.ac 1495 2006-10-03 21:25:00Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
@@ -311,10 +311,9 @@ find the right location for the libpq library.])
         PKGINCLUDEDIR=`$PG_CONFIG --pkgincludedir`
         INCLUDEDIR_SERVER=`$PG_CONFIG --includedir-server`
 
-        CFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER $CFLAGS"
-        LDFLAGS="-L`$PG_CONFIG --libdir` -lpq $LDFLAGS"
+        DBCFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER $CFLAGS"
+        DBLDFLAGS="-L`$PG_CONFIG --libdir` -lpq $LDFLAGS"
         LIBDIR=`$PG_CONFIG --libdir`
-        AC_SUBST(LIBDIR)
 
         POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
 
@@ -468,11 +467,7 @@ find the right location for the libmysql library.])
     DBLDFLAGS=`$MYSQL_CONFIG --libs`
 
     LIBDIR="$ac_cv_use_mysql/lib/mysql"
-    AC_SUBST(LIBDIR)
   fi
-
-  CFLAGS="$CFLAGS $MYSQL_CFLAGS"
-  LIBS="$LIBS $MYSQL_LIBS" 
 
   if test -z "$NONSP" ; then
     if test $MYSQL_VER -ne 0 && test $MYSQL_VER -lt 50000 ; then
@@ -520,6 +515,9 @@ find the right location for the libmysql library.])
 else
   AC_MSG_ERROR('Please choose DBMS. ./configure --with-(postgresql|sapdb|mysql)!')
 fi
+AC_SUBST(DBCFLAGS)
+AC_SUBST(DBLDFLAGS)
+AC_SUBST(LIBDIR)
 
 dnl Check for test type(SP/NONSP)
 if test -n "$NONSP" && test "$database_to_use" != "pgsql"; then

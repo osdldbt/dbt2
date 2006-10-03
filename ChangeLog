@@ -2,6 +2,7 @@ v0.39
 
 - Merged run_mysql.sh script into run_workload.sh script.
 - Various fixes with all scripts.
+- Fixed up autoconf scripts.  Now database libraries aren't linked to datagen.
 
 v0.38
 
