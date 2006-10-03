@@ -53,6 +53,7 @@ storedproc/mysql/new_order_2.sql \
 storedproc/mysql/order_status.sql \
 storedproc/mysql/payment.sql \
 storedproc/mysql/stock_level.sql \
+scripts/dbt2_profile.in \
 scripts/gen_html.sh \
 scripts/mix_analyzer.pl \
 scripts/notpm.input \
@@ -64,18 +65,6 @@ scripts/transform_sar.sh.in \
 scripts/vmplot.sh \
 scripts/Linux/get_os_info.sh.in \
 scripts/SunOS/get_os_info.sh.in \
-scripts/pgsql/backup.sh \
-scripts/pgsql/build_db.sh \
-scripts/pgsql/check_db.sh \
-scripts/pgsql/create_db.sh \
-scripts/pgsql/create_indexes.sh \
-scripts/pgsql/create_tables.sh \
-scripts/pgsql/db_plans.sh \
-scripts/pgsql/drop_db.sh \
-scripts/pgsql/drop_tables.sh \
-scripts/pgsql/load_db.sh \
-scripts/pgsql/load_stored_funcs.sh \
-scripts/pgsql/load_stored_procs.sh \
 scripts/pgsql/pgsql_profile.in \
 scripts/pgsql/restore.sh \
 scripts/pgsql/start_db.sh \
