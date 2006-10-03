@@ -24,6 +24,7 @@ if [ ! -f "@MYSQLDIR@/var/localhost.pid" ]; then
 fi
 MYSQL_PID=`cat @MYSQLDIR@/var/localhost.pid`
 kill ${MYSQL_PID} || exit 1
+sleep 10
 echo "MySQL stopped successfully (by kill)."
 
 exit 0

@@ -9,8 +9,13 @@
 
 LOGFILE="log"
 OUTDIR="."
-while getopts "o:" OPT; do
+while getopts "fo:" OPT; do
 	case ${OPT} in
+	f)
+		if [ -f "@MYSQLDIR@/var/localhost.pid" ]; then
+			rm @MYSQLDIR@/var/localhost.pid
+		fi
+		;;
 	o)
 		OUTDIR=$OPTARG
 		;;
@@ -22,6 +27,6 @@ if [ -f "@MYSQLDIR@/var/localhost.pid" ]; then
 	exit 1
 fi
 nohup @MYSQLD_SAFE@ --log-error=${OUTDIR}/${LOGFILE} > /dev/null 2>&1 &
-MYSQL_PID=$$
+sleep 10
 
 exit 0
