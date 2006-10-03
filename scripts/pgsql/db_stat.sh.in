@@ -1,14 +1,13 @@
-#!/bin/sh
-
+#!/bin/bash
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 
-DIR=`dirname $0`
-. ${DIR}/pgsql_profile || exit 1
+TOPDIR="@abs_top_srcdir@"
+source ${TOPDIR}/scripts/dbt2_profile || exit 1
 
 while getopts "i:o:s:" opt; do
 	case $opt in
@@ -53,4 +52,4 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 done
 
 # Get the plans after the test.
-@abs_top_srcdir@/scripts/pgsql/db_plans.sh -o $OUTPUT_DIR/plan1.out
+${TOPDIR}/scripts/pgsql/db_plans.sh -o ${OUTPUT_DIR}/plan1.out

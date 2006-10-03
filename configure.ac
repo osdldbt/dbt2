@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1488 2006-10-02 22:44:40Z markwkm $)
+AC_REVISION($Id: configure.ac 1489 2006-10-03 17:09:14Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.38, osdldbt-general@lists.sourceforge.net)
@@ -392,9 +392,35 @@ find the right location for the libpq library.])
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
 
+  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
+  AC_CONFIG_FILES([scripts/pgsql/backup.sh],
+      [chmod +x scripts/pgsql/backup.sh])
+  AC_CONFIG_FILES([scripts/pgsql/build_db.sh],
+      [chmod +x scripts/pgsql/build_db.sh])
+  AC_CONFIG_FILES([scripts/pgsql/check_db.sh],
+      [chmod +x scripts/pgsql/check_db.sh])
+  AC_CONFIG_FILES([scripts/pgsql/create_db.sh],
+      [chmod +x scripts/pgsql/create_db.sh])
+  AC_CONFIG_FILES([scripts/pgsql/create_indexes.sh],
+      [chmod +x scripts/pgsql/create_indexes.sh])
+  AC_CONFIG_FILES([scripts/pgsql/create_tables.sh],
+      [chmod +x scripts/pgsql/create_tables.sh])
+  AC_CONFIG_FILES([scripts/pgsql/db_plans.sh],
+      [chmod +x scripts/pgsql/db_plans.sh])
   AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
       [chmod +x scripts/pgsql/db_stat.sh])
-  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
+  AC_CONFIG_FILES([scripts/pgsql/drop_db.sh],
+      [chmod +x scripts/pgsql/drop_db.sh])
+  AC_CONFIG_FILES([scripts/pgsql/drop_tables.sh],
+      [chmod +x scripts/pgsql/drop_tables.sh])
+  AC_CONFIG_FILES([scripts/pgsql/load_db.sh],
+      [chmod +x scripts/pgsql/load_db.sh])
+  AC_CONFIG_FILES([scripts/pgsql/load_stored_funcs.sh],
+      [chmod +x scripts/pgsql/load_stored_funcs.sh])
+  AC_CONFIG_FILES([scripts/pgsql/load_stored_procs.sh],
+      [chmod +x scripts/pgsql/load_stored_procs.sh])
+  AC_CONFIG_FILES([scripts/pgsql/restore.sh],
+      [chmod +x scripts/pgsql/restore.sh])
   AC_CONFIG_FILES([storedproc/pgsql/Makefile])
   AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
   AC_CONFIG_FILES([storedproc/pgsql/c/delivery.sql])
@@ -503,6 +529,7 @@ AC_SUBST(database_to_use)
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([storedproc/Makefile])
+AC_CONFIG_FILES([scripts/dbt2_profile])
 AC_CONFIG_FILES([scripts/sysstats.sh], [chmod +x scripts/sysstats.sh])
 AC_CONFIG_FILES([scripts/transform_sar.sh], [chmod +x scripts/transform_sar.sh])
 AC_CONFIG_FILES([scripts/run_workload.sh], [chmod +x scripts/run_workload.sh])

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see # the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Lab, Inc.
+#
+
+DIR=`dirname $0`
+
+DATABASE=@database_to_use@
+
+DBNAME="dbt2"
+source @abs_top_srcdir@/scripts/${DATABASE}/${DATABASE}_profile
