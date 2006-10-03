@@ -14,11 +14,8 @@ DIR=`dirname ${0}`
 
 LOGFILE="log"
 OUTDIR="."
-while getopts "afo:p:" OPT; do
+while getopts "fo:p:" OPT; do
 	case ${OPT} in
-	a)
-		USE_PG_AUTOVACUUM=1
-		;;
 	f)
 		rm -f ${PGDATA}/postmaster.pid
 		;;
