@@ -57,7 +57,6 @@ scripts/dbt2_profile.in \
 scripts/gen_html.sh \
 scripts/mix_analyzer.pl \
 scripts/notpm.input \
-scripts/run_mysql.sh.in \
 scripts/run_workload.sh.in \
 scripts/sysstats.sh.in \
 scripts/transform_iostat.pl \
@@ -65,8 +64,8 @@ scripts/transform_sar.sh.in \
 scripts/vmplot.sh \
 scripts/Linux/get_os_info.sh.in \
 scripts/SunOS/get_os_info.sh.in \
+scripts/mysql/build_db.sh  \
 scripts/mysql/mysql_dbt2_plans.sh \
-scripts/mysql/mysql_load_db.sh  \
 scripts/mysql/mysql_load_sp.sh  \
 scripts/mysql/mysql_profile.in \
 scripts/pgsql/pgsql_profile.in \
