@@ -6,6 +6,10 @@
 #
 # Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
+# September 2006
+# - response time sort to use numeric sort not ascii
+# - 90th percentile sort to use numeric sort
+# Richard Kennedy EnterpriseDB
 
 use strict;
 use Getopt::Long;
@@ -352,7 +356,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/delivery.data" );
-foreach my $time ( sort keys %d_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %d_distribution  ) {
 	printf( "%8s %5d\n", $time, $d_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $d_distribution{ $time }\n"
 		if ( $d_distribution{ $time } );
@@ -368,7 +372,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/new_order.data" );
-foreach my $time ( sort keys %n_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %n_distribution  ) {
 	printf( "%8s %5d\n", $time, $n_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $n_distribution{ $time }\n"
 		if ( $n_distribution{ $time } );
@@ -384,7 +388,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/order_status.data" );
-foreach my $time ( sort keys %o_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %o_distribution  ) {
 	printf( "%8s %5d\n", $time, $o_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $o_distribution{ $time }\n"
 		if ( $o_distribution{ $time } );
@@ -400,7 +404,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/payment.data" );
-foreach my $time ( sort keys %p_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %p_distribution  ) {
 	printf( "%8s %5d\n", $time, $p_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $p_distribution{ $time }\n"
 		if ( $p_distribution{ $time } );
@@ -416,7 +420,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/stock_level.data" );
-foreach my $time ( sort keys %s_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %s_distribution  ) {
 	printf( "%8s %5d\n", $time, $s_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $s_distribution{ $time }\n"
 		if ( $s_distribution{ $time } );
@@ -473,11 +477,11 @@ foreach my $transaction ( @xtran ) {
 #
 # Determine 90th percentile response times for each transaction.
 #
-@delivery_response_time = sort(@delivery_response_time);
-@new_order_response_time = sort(@new_order_response_time);
-@order_status_response_time = sort(@order_status_response_time);
-@payement_response_time = sort(@payement_response_time);
-@stock_level_response_time = sort(@stock_level_response_time);
+@delivery_response_time = sort { $a <=> $b } @delivery_response_time;
+@new_order_response_time = sort{ $a <=> $b }  @new_order_response_time;
+@order_status_response_time = sort { $a <=> $b } @order_status_response_time;
+@payement_response_time = sort { $a <=> $b } @payement_response_time;
+@stock_level_response_time = sort { $a <=> $b } @stock_level_response_time;
 #
 # Get the index for the 90th percentile point.
 #
