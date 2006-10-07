@@ -568,7 +568,7 @@ foreach my $idx ('d', 'n', 'o', 'p', 's') {
 #
 # Calculated the number of transactions per second.
 #
-my $tps = $transaction_count{'n'} / ($current_time - $start_time);
+my $tps = $transaction_count{'n'} / ($current_time - $steady_state_start_time);
 printf("\n");
 printf("%0.2f new-order transactions per minute (NOTPM)\n", $tps * 60);
 printf("%0.1f minute duration\n", ($current_time - $start_time) / 60.0);
