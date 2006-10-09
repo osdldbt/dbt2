@@ -193,14 +193,15 @@ echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
 $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
-START_DB_ARGS=""
 if [ ${DBDIR} == "pgsql" ]; then
-	if [ -n "${DB_PARAMS}" ]; then
-		START_DB_ARGS="${START_DB_ARGS} -p \"${DB_PARAMS}\""
-	fi
+        if [ -n "${DB_PARAMS}" ]; then
+                ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} -p "${DB_PARAMS}" || exit 1
+        else
+                ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
+        fi
+else
+        ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
 fi
-START_DB_ARGS="${START_DB_ARGS} -o ${DB_OUTPUT_DIR}"
-${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} || exit 1
 
 #
 # Redisplay the test parameters.
