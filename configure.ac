@@ -1,8 +1,8 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1501 2006-10-04 02:02:34Z markwkm $)
+AC_REVISION($Id: configure.ac 1514 2006-10-11 01:16:09Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(dbt2, 0.39, osdldbt-general@lists.sourceforge.net)
+AC_INIT(dbt2, 0.40-pre2, osdldbt-general@lists.sourceforge.net)
 AM_INIT_AUTOMAKE
 AH_TOP([
 #ifndef __CONFIG_H__
@@ -420,6 +420,10 @@ find the right location for the libpq library.])
       [chmod +x scripts/pgsql/load_stored_procs.sh])
   AC_CONFIG_FILES([scripts/pgsql/restore.sh],
       [chmod +x scripts/pgsql/restore.sh])
+  AC_CONFIG_FILES([scripts/pgsql/test-pgsql],
+      [chmod +x scripts/pgsql/test-pgsql])
+  AC_CONFIG_FILES([scripts/pgsql/destroy-installation],
+      [chmod +x scripts/pgsql/destroy-installation])
   AC_CONFIG_FILES([storedproc/pgsql/Makefile])
   AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
   AC_CONFIG_FILES([storedproc/pgsql/c/delivery.sql])
