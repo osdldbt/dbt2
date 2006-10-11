@@ -57,7 +57,7 @@ int startup();
 
 int main(int argc, char *argv[])
 {
-        int count;
+        unsigned int count;
         char command[128];
 
         init_common();
@@ -242,7 +242,7 @@ int parse_arguments(int argc, char *argv[])
 int parse_command(char *command)
 {
         int i, j;
-        int count;
+        unsigned int count;
         int stats[2][TRANSACTION_MAX];
 
         if (strcmp(command, "status") == 0) {
