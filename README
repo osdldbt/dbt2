@@ -1,3 +1,5 @@
 Please refer to the user manual for instructions on how to use this package.
 After that, read README-* if they apply to your case.
 
+Using the kit in a multi-tier environment requires ssh keys to be set up and
+rsync to synchronize the results data for post processing.

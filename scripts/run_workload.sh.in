@@ -14,9 +14,9 @@ DIR=`dirname $0`
 source ${DIR}/dbt2_profile || exit 1
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' INT
+	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_HOSTNAME} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' TERM
+	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_HOSTNAME} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh' TERM
 
 usage()
 {
@@ -27,7 +27,7 @@ usage()
 	echo ''
 	echo 'usage: run_workload.sh -c <number of database connections> -d <duration of test> -w <number of warehouses>'
 	echo 'other options:'
-	echo '       -n <database name. (default dbt2)>'
+	echo '       -d <database name. (default dbt2)>'
 	echo '       -h <database host name. (default localhost)>'
 	echo '       -l <database port number>'
 	echo '       -o <enable oprofile data collection>'
@@ -58,9 +58,23 @@ do_sleep()
 	sleep $1
 }
 
+make_directories()
+{
+	HOST=${1}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	fi
+	${COMMAND} mkdir -p ${OUTPUT_DIR}
+	${COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}
+	${COMMAND} mkdir -p ${DRIVER_OUTPUT_DIR}
+	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
+}
+
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
 DB_PARAMS=""
+CLIENT_HOSTNAME="localhost"
+
 if [ ${DBDIR} == "pgsql" ]; then
 	DB_PORT=5432
 elif [ ${DBDIR} == "mysql" ]; then
@@ -71,7 +85,7 @@ SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
 
-while getopts "c:d:l:nop:s:t:u:w:x:z:" opt; do
+while getopts "c:d:h:l:nop:s:t:u:w:x:z:" opt; do
 	case $opt in
 	c)
 		# Check for numeric value
@@ -81,6 +95,9 @@ while getopts "c:d:l:nop:s:t:u:w:x:z:" opt; do
 	d)
 		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DURATION
+		;;
+	h)
+		DB_HOSTNAME=${OPTARG}
 		;;
 	l)
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -164,11 +181,23 @@ CLIENT_OUTPUT_DIR=$OUTPUT_DIR/client
 DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
 DB_OUTPUT_DIR=$OUTPUT_DIR/db
 
+#
 # Create the directories we will need.
-mkdir -p $OUTPUT_DIR
-mkdir -p $CLIENT_OUTPUT_DIR
-mkdir -p $DRIVER_OUTPUT_DIR
-mkdir -p $DB_OUTPUT_DIR
+#
+make_directories
+if [ -n ${DB_HOSTNAME} ]; then
+	#
+	# Create direcotires on the database server if specified.
+	#
+	make_directories ${DB_HOSTNAME}
+	#
+	# We want to sync everything with the system executing this script so
+	# use rsync to delete any files that may be on the database system but
+	# only in the database output directory.
+	#
+	@RSYNC@ -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
+			${DB_HOSTNAME}:${DB_OUTPUT_DIR}/
+fi
 
 # Update log.html
 echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
@@ -192,15 +221,19 @@ echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
-$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+if [ -n ${DB_HOSTNAME} ]; then
+	DB_COMMAND="ssh ${DB_HOSTNAME}"
+fi
+
+${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh
 if [ ${DBDIR} == "pgsql" ]; then
         if [ -n "${DB_PARAMS}" ]; then
-                ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} -p "${DB_PARAMS}" || exit 1
+                ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} -p "${DB_PARAMS}" || exit 1
         else
-                ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
+                ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
         fi
 else
-        ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
+        ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
 fi
 
 #
@@ -225,34 +258,35 @@ echo "************************************************************************"
 #
 
 echo ""
-echo "DATABASE NAME:		${DBNAME}"
+echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
+echo "DATABASE NAME: ${DBNAME}"
 
 if [ -n "${DB_USER}" ]; then
-  echo "DATABASE USER:		${DB_USER}"
+  echo "DATABASE USER: ${DB_USER}"
   CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -u ${DB_USER}"
 fi 
 
 if [ -n "${DB_PASSWORD}" ]; then 
-  echo "DATABASE PASSWORD:	    *******" 
+  echo "DATABASE PASSWORD: *******" 
   CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
 fi 
 
 if [ -n "${DB_SOCKET}" ]; then 
-  echo "DATABASE SOCKET:	      ${DB_SOCKET}"
+  echo "DATABASE SOCKET: ${DB_SOCKET}"
   CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
 fi 
 
 if [ -n "${DB_PORT}" ]; then 
-  echo "DATABASE PORT:		${DB_PORT}"
+  echo "DATABASE PORT: ${DB_PORT}"
   CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -l ${DB_PORT}"
 fi 
 
 THREADS=$(( ${WAREHOUSES}*${THREADS_PER_WAREHOUSE} ))
-echo "DATABASE CONNECTIONS:	 ${DBCON}"
-echo "TERMINAL THREADS:	     ${THREADS}"
-echo "TERMINALS PER WAREHOUSE:      ${THREADS_PER_WAREHOUSE}"
-echo "SCALE FACTOR(WARHOUSES):      ${WAREHOUSES}"
-echo "DURATION OF TEST (in sec):     ${DURATION}"
+echo "DATABASE CONNECTIONS: ${DBCON}"
+echo "TERMINAL THREADS: ${THREADS}"
+echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
+echo "SCALE FACTOR(WAREHOUSES): ${WAREHOUSES}"
+echo "DURATION OF TEST (in sec): ${DURATION}"
 echo "1 client stared every ${SLEEPY} millisecond(s)"
 echo ""
 
@@ -278,7 +312,8 @@ SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
 $abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
-$abs_top_srcdir/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
+${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR \
+		-i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ $USE_OPROFILE -eq 1 ]; then
@@ -295,7 +330,7 @@ echo "Stage 2. Starting up driver..."
 echo "${SLEEPY} threads started per millisecond"
 
 DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
-DRIVER_COMMAND_ARGS="-d $DB_HOSTNAME -l $DURATION -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -sleep $SLEEPY -outdir $DRIVER_OUTPUT_DIR -tpw $THREADS_PER_WAREHOUSE $NO_THINK"
+DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -l ${DURATION} -wmin 1 -wmax ${WAREHOUSES} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DRIVER_OUTPUT_DIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
 LD_LIBRARY_PATH=@LIBDIR@ ${abs_top_srcdir}/src/driver ${DRIVER_COMMAND_ARGS} > ${OUTPUT_DIR}/driver.out 2>&1 || exit 1&
 
 do_sleep $SLEEP_RAMPUP
@@ -354,7 +389,15 @@ fi
 echo "Killing client..."
 killall client driver 2> /dev/null
 
-$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh
+
+if [ -n ${DB_HOSTNAME} ]; then
+	#
+	# If a database system is specified, rsync all the logs back to here.
+	#
+	@RSYNC@ -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
+			${DB_OUTPUT_DIR}/
+fi
 
 # Change the permissions on the database log, not readable by other users by
 # default.  (No, not the transaction log.)

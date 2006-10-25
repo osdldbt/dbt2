@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1514 2006-10-11 01:16:09Z markwkm $)
+AC_REVISION($Id: configure.ac 1550 2006-10-25 03:13:38Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.40-pre2, osdldbt-general@lists.sourceforge.net)
@@ -84,6 +84,13 @@ AC_PATH_PROGS([SYSCTL], [sysctl], ,
 if test -z "$SYSCTL"
 then
   AC_MSG_WARN([*** sysctl not found some scripts may not be usable])
+fi
+
+AC_PATH_PROGS([RSYNC], [rsync], ,
+    [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
+if test -z "$RSYNC"
+then
+  AC_MSG_ERROR([*** rsync not found])
 fi
 
 dnl
