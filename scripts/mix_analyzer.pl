@@ -435,7 +435,6 @@ if ( $verbose ) {
 #
 chdir $outdir;
 my $str = `which gnuplot`;
-print "$str\n";
 my $has_gnuplot;
 if ($str =~ /^no gnuplot/) {
 	$has_gnuplot = 0;
