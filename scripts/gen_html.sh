@@ -1,10 +1,11 @@
-#!/bin/sh
-
+#!/bin/bash
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2004 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2004-2006 Mark Wong & Open Source Development Labs, Inc.
+#
+# This file produces and html file in the results directory.
 #
 
 if [ $# -ne 1 ]; then
@@ -40,12 +41,24 @@ echo '<a href="sar.out">sar</a><br/>' >> ${DIR}/index.html
 echo '<hr/>' >> ${DIR}/index.html
 
 echo 'Kernel and Application Profiles<br/>' >> ${DIR}/index.html
-echo '<a href="readprofile_ticks.txt">readprofile</a><br/>' >> ${DIR}/index.html
-echo '<a href="oprofile.txt">oprofile</a><br/>' >> ${DIR}/index.html
-echo '<a href="callgraph.txt">callgraph</a><br/>' >> ${DIR}/index.html
-#echo '<a href="oprofile/current">oprofile raw data</a><br/>' >> ${DIR}/index.html
-echo '<a href="oprofile/annotate">opannotate source output</a><br/>' >> ${DIR}/index.html
-echo '<a href="oprofile/assembly.txt">opannotate assembly output</a><br/>' >> ${DIR}/index.html
+if [ -f "${DIR}/readprofile_ticks.txt" ]; then
+	echo '<a href="readprofile_ticks.txt">readprofile</a><br/>' \
+			>> ${DIR}/index.html
+fi
+if [ -f "${DIR}/oprofile.txt" ]; then
+	echo '<a href="oprofile.txt">oprofile</a><br/>' >> ${DIR}/index.html
+fi
+if [ -f "${DIR}/callgraph.txt" ]; then
+	echo '<a href="callgraph.txt">callgraph</a><br/>' >> ${DIR}/index.html
+fi
+if [ -d "${DIR}/oprofile/annotate" ]; then
+	echo '<a href="oprofile/annotate">opannotate source output</a><br/>' \
+			>> ${DIR}/index.html
+fi
+if [ -f "${DIR}/oprofile/assembly.txt" ]; then
+	echo '<a href="oprofile/assembly.txt">opannotate assembly output</a><br/>' \
+			>> ${DIR}/index.html
+fi
 
 echo '<hr/>' >> ${DIR}/index.html
 
@@ -57,6 +70,24 @@ echo '<hr/>' >> ${DIR}/index.html
 echo 'Database Information<br/>' >> ${DIR}/index.html
 echo '<a href="db/param.out">database parameters</a><br/>' >> ${DIR}/index.html
 echo '<a href="db/plan0.out">explain plans</a><br/>' >> ${DIR}/index.html
+if [ -f "${DIR}/db/readprofile_ticks.txt" ]; then
+	echo '<a href="db/readprofile_ticks.txt">readprofile</a><br/>' \
+			>> ${DIR}/index.html
+fi
+if [ -f "${DIR}/db/oprofile.txt" ]; then
+	echo '<a href="db/oprofile.txt">oprofile</a><br/>' >> ${DIR}/index.html
+fi
+if [ -f "${DIR}/db/callgraph.txt" ]; then
+	echo '<a href="db/callgraph.txt">callgraph</a><br/>' >> ${DIR}/index.html
+fi
+if [ -d "${DIR}/db/oprofile/annotate" ]; then
+	echo '<a href="db/oprofile/annotate">opannotate source output</a><br/>' \
+			>> ${DIR}/index.html
+fi
+if [ -f "${DIR}/db/oprofile/assembly.txt" ]; then
+	echo '<a href="db/oprofile/assembly.txt">opannotate assembly output</a><br/>' \
+			>> ${DIR}/index.html
+fi
 
 echo '<hr/>' >> ${DIR}/index.html
 
@@ -168,7 +199,8 @@ echo '</html>' >> ${DIR}/index.html
 
 echo "<html>" > ${DIR}/vmcharts.html
 echo "<head>" >> ${DIR}/vmcharts.html
-echo "<title>Database Test 2 Result vmstat Charts</title>" >> ${DIR}/vmcharts.html
+echo "<title>Database Test 2 Result vmstat Charts</title>" \
+		>> ${DIR}/vmcharts.html
 echo "</head>" >> ${DIR}/vmcharts.html
 echo "<body>" >> ${DIR}/vmcharts.html
 echo "<img src=\"plots/cpu.png\" /><br />" >> ${DIR}/vmcharts.html
