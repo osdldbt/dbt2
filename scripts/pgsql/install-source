@@ -10,7 +10,7 @@
 #
 
 if [ $# -lt 3 ]; then
-	echo "usage: install-source <DIR or DATE> <TMP DIR> <INSTALL DIR> [J FLAG]"
+	echo "usage: install-source <DIR or DATE> <TMP DIR> <INSTALL DIR> <J FLAG> <FORCE>"
 	exit 1
 fi
 
@@ -18,21 +18,39 @@ DATE=${1}
 WORKING_DIR=${2}
 INSTALL_DIR=${3}
 J_FLAG=${4}
+FORCE=${5}
 
 MODULE="pgsql"
+
+HOST=`hostname`
+
+echo "attempting to build postgresql: ${HOST}"
+
+if [ -d "${WORKING_DIR}/${MODULE}" ]; then
+	if [ ${FORCE} -eq 1 ]; then
+		killall -9 postmaster
+		rm -rf ${WORKING_DIR}/${MODULE} || exit 1
+		rm -r /tmp/.s.PGSQL.5432
+		rm -r /tmp/.s.PGSQL.5432.lock
+	else
+		echo "'${WORKING_DIR}/${MODULE}' exists, cannot continue"
+		exit 1
+	fi
+fi
 
 if [ -d "${DATE}" ]; then
 	cd ${DATE} || exit 1
 else
 	cd ${WORKING_DIR} || exit 1
 	cvs -z3 -d :pserver:anoncvs@anoncvs.postgresql.org:/projects/cvsroot \
-			export -D ${DATE} ${MODULE} || exit 1
+			export -D ${DATE} ${MODULE} > /dev/null 2>&1 || exit 1
 	cd ${MODULE} || exit 1
 fi
 
 # Precautionary step, we don't need to see if 'make distclean' fails.
 make distclean > /dev/null 2>&1
 ./configure --enable-debug --enable-thread-safety \
-		--prefix=${INSTALL_DIR} || exit 1
-make ${J_FLAG} || exit 1
-make install || exit 1
+		--prefix=${INSTALL_DIR} > /dev/null 2>&1 || exit 1
+make ${J_FLAG} > /dev/null 2>&1 || exit 1
+make install > /dev/null 2>&1 || exit 1
+echo "postgresql installed successfully: ${HOST}"
