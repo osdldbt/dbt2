@@ -314,7 +314,7 @@ DB_OUTPUT_DIR=$OUTPUT_DIR/db
 # Create the directories we will need.
 #
 make_directories
-if [ -n ${DB_HOSTNAME} ]; then
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	#
 	# Create direcotires on the database server if specified.
 	#
@@ -350,7 +350,7 @@ echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
 
-if [ -n ${DB_HOSTNAME} ]; then
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 fi
 
@@ -447,7 +447,7 @@ ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR \
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_init
-	if [ -n ${DB_HOSTNAME} ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		oprofile_init ${DB_HOSTNAME}
 	fi
 fi
@@ -468,7 +468,7 @@ echo "estimated rampup time has elapsed"
 # Clear the readprofile data after the driver ramps up.
 if [ -f /proc/profile ]; then
 	readprofile_clear()
-	if [ -n ${DB_HOSTNAME} ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		readprofile_clear ${DB_HOSTNAME}
 	fi
 fi
@@ -476,7 +476,7 @@ fi
 # Reset the oprofile counters after the driver ramps up.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_reset
-	if [ -n ${DB_HOSTNAME} ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		oprofile_reset ${DB_HOSTNAME}
 	fi
 fi
@@ -488,7 +488,7 @@ do_sleep $DURATION
 # Collect readprofile data.
 if [ -f /proc/profile ]; then
 	readprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
@@ -496,7 +496,7 @@ fi
 # Collect oprofile data.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
@@ -519,7 +519,7 @@ fi
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
-	if [ -n ${DB_HOSTNAME} ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
 fi
@@ -527,12 +527,12 @@ wait
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_stop
-	if [ -n ${DB_HOSTNAME} ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		oprofile_stop ${DB_HOSTNAME}
 	fi
 fi
 
-if [ -n ${DB_HOSTNAME} ]; then
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	#
 	# If a database system is specified, rsync all the logs back to here.
 	#
