@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1550 2006-10-25 03:13:38Z markwkm $)
+AC_REVISION($Id: configure.ac 1568 2006-10-26 17:28:14Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.40-pre2, osdldbt-general@lists.sourceforge.net)
@@ -330,8 +330,6 @@ find the right location for the libpq library.])
         found_postgresql="yes"
         AC_MSG_RESULT([yes])
     fi
-
-    AC_SEARCH_LIBS(PQexec, pq, [], AC_MSG_ERROR([libpq libs required]))
   fi
 
   dnl check for initdb
