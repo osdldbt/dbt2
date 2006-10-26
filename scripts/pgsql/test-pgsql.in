@@ -74,6 +74,8 @@ if [ -d "${WORKING_DIR}/${MODULE}" ]; then
 	if [ ${FORCE} -eq 1 ]; then
 		killall -9 postmaster
 		rm -rf ${WORKING_DIR}/${MODULE} || exit 1
+		rm -r /tmp/.s.PGSQL.5432
+		rm -r /tmp/.s.PGSQL.5432.lock
 	else
 		echo "'${WORKING_DIR}/${MODULE}' exists, cannot continue"
 		exit 1
@@ -159,6 +161,8 @@ if [ ${FORCE} -eq 1 ]; then
 	# If you don't know why the postmaster isn't shutting down, kill it.
 	#
 	killall -9 postmaster
+	rm -f /tmp/.s.PGSQL.5432
+	rm -f /tmp/.s.PGSQL.5432.lock
 fi
 
 #
