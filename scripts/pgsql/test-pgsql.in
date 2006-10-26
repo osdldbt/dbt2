@@ -7,6 +7,7 @@
 #
 
 TOPDIR="@abs_top_srcdir@"
+PGDIR="${TOPDIR}/scripts/pgsql"
 source ${TOPDIR}/scripts/dbt2_profile || exit 1
 
 export PATH="$PATH:~/bin"
@@ -25,7 +26,7 @@ SAVE=0
 DBCON=20
 DURATION=120
 
-while getopts "C:c:fD:d:gj:np:rw:" OPT; do
+while getopts "C:c:D:d:fgj:nop:rw:" OPT; do
 	case ${OPT} in
 	C)
 		COMMENT=${OPTARG}
@@ -53,6 +54,9 @@ while getopts "C:c:fD:d:gj:np:rw:" OPT; do
 		;;
 	n)
 		NO_THINK="-n"
+		;;
+	o)
+		OPROFILE_FLAG="-o"
 		;;
 	p)
 		TEST_PARAMETERS=${OPTARG}
@@ -83,22 +87,10 @@ if [ -d "${WORKING_DIR}/${MODULE}" ]; then
 fi
 
 #
-# Export PostgreSQL from CVS.
+# Export and install PostgreSQL from CVS.
 #
-if [ ${SAVE} -eq 1 ]; then
-	PGSQL_DIR="${DATE}"
-	cd ${PGSQL_DIR}
-else
-	cd ${WORKING_DIR} || exit 1
-	cvs -z3 -d :pserver:anoncvs@anoncvs.postgresql.org:/projects/cvsroot \
-			export -D ${DATE} ${MODULE} || exit 1
-	cd ${MODULE} || exit 1
-fi
-make distclean
-./configure --enable-debug --enable-thread-safety \
-		--prefix=${INSTALL_DIR} || exit 1
-make ${J_FLAG} || exit 1
-make install || exit 1
+${PGDIR}/install-source ${DATE} ${WORKING_DIR} ${INSTALL_DIR} \
+		${J_FLAG} || exit 1
 
 #
 # Configure kit and rebuild stored functions.
@@ -124,14 +116,16 @@ source ${TOPDIR}/scripts/dbt2_profile || exit 1
 
 if [ -d "${PGDATA}" ]; then
 	if [ ${FORCE} -eq 1 ]; then
-		${TOPDIR}/scripts/pgsql/destroy-installation -f
+		${PGDIR}/destroy-installation -f
 	else
 		echo "'${PGDATA}' exists, cannot continue"
 		exit 1
 	fi
 fi
 
-cd ${TOPDIR}/scripts/pgsql || exit 1
+#
+# Generate database data.
+#
 if [ ${GENERATE_DATA} -eq 1 ]; then
 	mkdir ${DBDATA}/${SCALE_FACTOR} || exit 1
 	${TOPDIR}/src/datagen --pgsql -d ${DBDATA}/${SCALE_FACTOR} \
@@ -141,24 +135,32 @@ if [ ! -d "${DBDATA}/${SCALE_FACTOR}" ]; then
 	echo "'${DBDATA}/${SCALE_FACTOR}' doesn't exist"
 	exit 1
 fi
+#
+# Build the database.
+#
 if [ -n ${LOAD_PARAMTERS} ]; then
-	./build_db.sh -d ${DBDATA}/${SCALE_FACTOR} -t -b \
+	${PGDIR}/build_db.sh -d ${DBDATA}/${SCALE_FACTOR} -t -b \
 			-p "${LOAD_PARAMTERS}" || exit 1
 else
 	./build_db.sh -d ${DBDATA}/${SCALE_FACTOR} -t -b || exit 1
 fi
-cd ${TOPDIR}/scripts || exit 1
+#
+# Start the test.
+#
 if [ -n ${TEST_PARAMETERS} ]; then
-	./run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} -c ${DBCON} -s 100 \
-			-p "${TEST_PARAMETERS}" -o -z "${COMMENT}" ${NO_THINK} || exit 1
+	${TOPDIR}/scripts/run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} \
+			-c ${DBCON} -s 100 -p "${TEST_PARAMETERS}" ${OPROFILE_FLAG} \
+			-z "${COMMENT}" ${NO_THINK} || exit 1
 else
-	./run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} -c ${DBCON} -s 100 \
-			-o -z "${COMMENT}" ${NO_THINK} || exit 1
+	${TOPDIR}/scripts/run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} \
+			-c ${DBCON} -s 100 ${OPROFILE_FLAG} \
+			-z "${COMMENT}" ${NO_THINK} || exit 1
 fi
 
 if [ ${FORCE} -eq 1 ]; then
 	#
-	# If you don't know why the postmaster isn't shutting down, kill it.
+	# If you don't know why the postmaster isn't shutting down sometimes,
+	# so kill it.
 	#
 	killall -9 postmaster
 	rm -f /tmp/.s.PGSQL.5432
@@ -169,7 +171,7 @@ fi
 # Cleaning up.
 #
 if [ -d "${PGDATA}" ]; then
-	${TOPDIR}/scripts/pgsql/destroy-installation -f
+	${PGDIR}/destroy-installation -f
 fi
 if [ ${SAVE} -eq 0 ]; then
 	rm -rf ${WORKING_DIR}/${MODULE} || exit 1

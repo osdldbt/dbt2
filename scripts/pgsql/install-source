@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+# Export PostgreSQL from CVS or install from specified directory, with
+# priority given to the latter.
+#
+
+if [ $# -lt 3 ]; then
+	echo "usage: install-source <DIR or DATE> <TMP DIR> <INSTALL DIR> [J FLAG]"
+	exit 1
+fi
+
+DATE=${1}
+WORKING_DIR=${2}
+INSTALL_DIR=${3}
+J_FLAG=${4}
+
+MODULE="pgsql"
+
+if [ -d "${DATE}" ]; then
+	cd ${DATE} || exit 1
+else
+	cd ${WORKING_DIR} || exit 1
+	cvs -z3 -d :pserver:anoncvs@anoncvs.postgresql.org:/projects/cvsroot \
+			export -D ${DATE} ${MODULE} || exit 1
+	cd ${MODULE} || exit 1
+fi
+
+# Precautionary step, we don't need to see if 'make distclean' fails.
+make distclean > /dev/null 2>&1
+./configure --enable-debug --enable-thread-safety \
+		--prefix=${INSTALL_DIR} || exit 1
+make ${J_FLAG} || exit 1
+make install || exit 1
