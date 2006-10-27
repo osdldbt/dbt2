@@ -20,6 +20,7 @@ if [ -d ${PGDATA} ]; then
 	echo "======================================="
 else
 	${INITDB} -D ${PGDATA} --locale=C || exit 1
+	cp -p ${DIR}/pg_hba.conf ${PGDATA}/ || exit 1
 fi
 
 ${DIR}/start_db.sh || exit 1
