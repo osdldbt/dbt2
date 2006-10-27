@@ -1,3 +1,13 @@
+To use the scripts for multi-tier testing, ssh keys needs to be set up for
+the user that owns the kit, preferably without a passphrase being set.  To
+keep the scripts simple, the kit needs to be installed in the same location
+on each system.  Each user must also have sudo privileges, also preferbly
+without needing a password.  The database parameter listen_addresses must be
+set to "*" (i.e. -c listen_addresses=*) otherwise the database will not
+accept remote tpc/ip connections.
+
+-----
+
 For PostgreSQL 7.4 and earlier the kit is configured to expect PostgreSQL
 to have trusted connections defined.  So in the pg_hba.conf file, if you
 want to trust everyone, define this:
@@ -27,15 +37,17 @@ This command does not need to be run as of 8.0beta4.
 
 -----
 
-For PostgreSQL 8.0, run configure with the --enable-thread-safety to
-avoid SIGPIPE handling for the multi-thread dbt2 client program.
+For PostgreSQL 8.0 and later, run configure with the --enable-thread-safety to
+avoid SIGPIPE handling for the multi-thread dbt2 client program.  This is a
+significant performance benefit.
 
 -----
 
 The kit now requires pg_autovacuum to be install from the PostgreSQL source.
 It's in contrib/pg_autovacuum.  Not sure which beta it was released in, but
 it's in 8.0 now, and current releases of 7.4 if you insist on using that
-release.
+release.  As of 8.1, pg_autovacuum is in the backend and is controlled
+through the GUC database settings.
 
 -----
 
@@ -67,32 +79,6 @@ Additional flags:
 	-c #  -  Set the number of database connections.
 	-w #  -  Set the warehouse scale factor.
 	-t    -  Use tablespaces, read tablespace notes below.
-
------
-
-Tablespace Notes
-
-The scripts assumes a specfic tablespace layout.
-
-The $TSDIR variable in pgsql_profile.in defines the directory where all
-tablespace devices will be mounted.  Directories or symlinks can be substituted
-for what is assumed to be a mount point from this point forward.
-
-In create_tables.sh is where the tablespaces are created.
-
-The mount points that need to be created, and must be owned by the user running
-the scripts are:
-	${TSDIR}/warehouse
-	${TSDIR}/district
-	${TSDIR}/customer
-	${TSDIR}/history
-	${TSDIR}/new_order
-	${TSDIR}/orders
-	${TSDIR}/order_line
-	${TSDIR}/item
-	${TSDIR}/stock
-	${TSDIR}/index1
-	${TSDIR}/index2
 
 -----
 

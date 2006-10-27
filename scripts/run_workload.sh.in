@@ -355,14 +355,11 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 fi
 
 ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh
-if [ ${DBDIR} == "pgsql" ]; then
-        if [ -n "${DB_PARAMS}" ]; then
-                ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} -p "${DB_PARAMS}" || exit 1
-        else
-                ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
-        fi
+if [ -n "${DB_COMMAND}" ]; then
+	${DB_COMMAND} "${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} -p \"${DB_PARAMS}\"" || exit 1
 else
-        ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh -o ${DB_OUTPUT_DIR} || exit 1
+	${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} \
+			-p "${DB_PARAMS}" || exit 1
 fi
 
 #
