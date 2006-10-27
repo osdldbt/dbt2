@@ -53,8 +53,11 @@ DBCON=20
 DB_HOSTNAME="localhost"
 DURATION=120
 
-while getopts "C:c:D:d:fgh:j:nop:rw:" OPT; do
+while getopts "b:C:c:D:d:fgh:j:nop:rw:" OPT; do
 	case ${OPT} in
+	b)
+		LOAD_PARAMETERS=${OPTARG}
+		;;
 	C)
 		COMMENT=${OPTARG}
 		;;
@@ -148,12 +151,12 @@ fi
 #
 # Build the database.
 #
-if [ -n ${LOAD_PARAMTERS} ]; then
-	${DB_COMMAND} ${PGDIR}/build_db.sh -d ${DBDATA}/${SCALE_FACTOR} -t -b \
-			-p "${LOAD_PARAMTERS}" > /dev/null 2>&1 || exit 1
+if [ -n "${DB_COMMAND}" ]; then
+	${DB_COMMAND} "${PGDIR}/build_db.sh -d ${DBDATA}/${SCALE_FACTOR} -t -b \
+			-p \"${LOAD_PARAMETERS}\"" > /dev/null 2>&1 || exit 1
 else
-	${DB_COMMAND} ./build_db.sh -d ${DBDATA}/${SCALE_FACTOR} -t \
-			-b > /dev/null 2>&1 || exit 1
+	${PGDIR}/build_db.sh -d ${DBDATA}/${SCALE_FACTOR} -t -b \
+			-p "${LOAD_PARAMETERS}" > /dev/null 2>&1 || exit 1
 fi
 #
 # Start the test.
