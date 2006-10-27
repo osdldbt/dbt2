@@ -1,5 +1,9 @@
 Please refer to the user manual for instructions on how to use this package.
 After that, read README-* if they apply to your case.
 
-Using the kit in a multi-tier environment requires ssh keys to be set up and
-rsync to synchronize the results data for post processing.
+To use the scripts for multi-tier testing, ssh keys needs to be set up for
+the user that owns the kit, preferably without a passphrase being set.  To
+keep the scripts simple, the kit needs to be installed in the same location
+on each system.  Each user must also have sudo privileges, also preferbly
+without needing a password.  Also review each additional README-* related
+to your environment for any additional specific details.

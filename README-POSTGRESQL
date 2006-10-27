@@ -1,10 +1,6 @@
-To use the scripts for multi-tier testing, ssh keys needs to be set up for
-the user that owns the kit, preferably without a passphrase being set.  To
-keep the scripts simple, the kit needs to be installed in the same location
-on each system.  Each user must also have sudo privileges, also preferbly
-without needing a password.  The database parameter listen_addresses must be
-set to "*" (i.e. -c listen_addresses=*) otherwise the database will not
-accept remote tpc/ip connections.
+The database parameter listen_addresses must be set to "*"
+(i.e. -c listen_addresses=*) otherwise the database will not accept remote
+tpc/ip connections.
 
 -----
 
