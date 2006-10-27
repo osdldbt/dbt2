@@ -426,7 +426,8 @@ elif [ ${DBDIR} == "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
 fi
 CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}"
-LD_LIBRARY_PATH=@LIBDIR@ ${abs_top_srcdir}/src/client ${CLIENT_COMMAND_ARGS} > ${OUTPUT_DIR}/client.out 2>&1 || exit 1 &
+${abs_top_srcdir}/src/client ${CLIENT_COMMAND_ARGS} > \
+		${OUTPUT_DIR}/client.out 2>&1 || exit 1 &
 
 # Sleep long enough for all the client database connections to be established.
 SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY/1000 ))
@@ -456,7 +457,8 @@ echo "${SLEEPY} threads started per millisecond"
 
 DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
 DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -l ${DURATION} -wmin 1 -wmax ${WAREHOUSES} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DRIVER_OUTPUT_DIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
-LD_LIBRARY_PATH=@LIBDIR@ ${abs_top_srcdir}/src/driver ${DRIVER_COMMAND_ARGS} > ${OUTPUT_DIR}/driver.out 2>&1 || exit 1&
+${abs_top_srcdir}/src/driver ${DRIVER_COMMAND_ARGS} > \
+		${OUTPUT_DIR}/driver.out 2>&1 || exit 1&
 
 echo -n "estimated rampup time: "
 do_sleep $SLEEP_RAMPUP

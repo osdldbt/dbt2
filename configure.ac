@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1568 2006-10-26 17:28:14Z markwkm $)
+AC_REVISION($Id: configure.ac 1584 2006-10-27 22:16:49Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.40-pre2, osdldbt-general@lists.sourceforge.net)
@@ -319,8 +319,8 @@ find the right location for the libpq library.])
         INCLUDEDIR_SERVER=`$PG_CONFIG --includedir-server`
 
         DBCFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER $CFLAGS"
-        DBLDFLAGS="-L`$PG_CONFIG --libdir` -lpq $LDFLAGS"
         LIBDIR=`$PG_CONFIG --libdir`
+        DBLDFLAGS="-L$LIBDIR -Wl,-R$LIBDIR -lpq $LDFLAGS"
 
         POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
 
@@ -527,7 +527,6 @@ else
 fi
 AC_SUBST(DBCFLAGS)
 AC_SUBST(DBLDFLAGS)
-AC_SUBST(LIBDIR)
 
 dnl Check for test type(SP/NONSP)
 if test -n "$NONSP" && test "$database_to_use" != "pgsql"; then
