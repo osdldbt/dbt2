@@ -50,8 +50,11 @@ oprofile_annotate()
 	echo "oprofile is annotating source: ${HOST}"
 	${COMMAND} mkdir -p ${DIR}/oprofile/
 	${COMMAND} mkdir -p ${DIR}/oprofile/annotate
-	${COMMAND} sudo opannotate --source \
-			--assembly > ${DIR}/oprofile/assembly.txt 2>&1
+	if [ -n "${COMMAND}" ]; then
+		${COMMAND} "sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt 2>&1"
+	else
+		sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt 2>&1
+	fi
 	${COMMAND} sudo opannotate --source --output-dir=${DIR}/oprofile/annotate
 }
 
@@ -70,10 +73,15 @@ oprofile_collect()
 	#
 	echo "oprofile is dumping data: ${HOST}"
 	${COMMAND} sudo opcontrol --dump
-	${COMMAND} sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` \
-			-o ${DIR}/oprofile.txt > /dev/null 2>&1
-	${COMMAND} sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` \
-			-o ${DIR}/callgraph.txt > /dev/null 2>&1
+	if [ -n "${COMMAND}" ]; then
+		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > /dev/null 2>&1"
+		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/callgraph.txt > /dev/null 2>&1"
+	else
+		sudo opreport -l -p /lib/modules/`uname -r` \
+				-o ${DIR}/oprofile.txt > /dev/null 2>&1
+		sudo opreport -l -c -p /lib/modules/`uname -r` \
+				-o ${DIR}/callgraph.txt > /dev/null 2>&1
+	fi
 	${COMMAND} sudo opcontrol --stop
 }
 
@@ -143,10 +151,15 @@ readprofile_collect()
 	fi
 	echo "collecting readprofile data: ${HOST}"
 	PROFILE=${DIR}/readprofile.txt
-	${COMMAND} /usr/sbin/readprofile -n \
-			-m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}
-	${COMMAND} cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt
-	${COMMAND} cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt
+	if [ -n "${COMMAND}" ]; then
+		${COMMAND} "/usr/sbin/readprofile -n -m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}"
+		${COMMAND} "cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt"
+		${COMMAND} "cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt"
+	else
+		/usr/sbin/readprofile -n -m /boot/System.map-`uname -r` > ${PROFILE}
+		cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt
+		cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt
+	fi
 }
 
 readprofile_clear()
@@ -366,17 +379,17 @@ fi
 # Redisplay the test parameters.
 #
 echo "************************************************************************"
-echo "*		     DBT-2 test for ${DBDIR} started		     *"
-echo "*								      *"
-echo "*	    Results can be found in output/$(( $RUN_NUMBER-1 )) directory	       *"
+echo "*              DBT-2 test for ${DBDIR} started"
+echo "*                                                                      *"
+echo "*	    Results can be found in output/$(( $RUN_NUMBER-1 )) directory"
 echo "************************************************************************"
-echo "*								      *"
-echo "*  Test consists of 3 stages:					  *"
-echo "*								      *"
-echo "*  1. Start of client to create pool of databases connections	  *"
+echo "*                                                                      *"
+echo "*  Test consists of 3 stages:                                          *"
+echo "*                                                                      *"
+echo "*  1. Start of client to create pool of databases connections          *"
 echo "*  2. Start of driver to emulate terminals and transactions generation *"
-echo "*  3. Processing of results					    *"
-echo "*								      *"
+echo "*  3. Processing of results                                            *"
+echo "*                                                                      *"
 echo "************************************************************************"
 
 #
@@ -521,8 +534,8 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
+	wait
 fi
-wait
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_stop
