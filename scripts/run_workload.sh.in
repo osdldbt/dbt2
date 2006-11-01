@@ -139,6 +139,23 @@ oprofile_stop()
 	${COMMAND} sudo opcontrol --shutdown
 }
 
+post_process_sar()
+{
+	FILE=${1}
+	if [ -f ${FILE} ]; then
+		@SAR@ -f ${FILE} -A > `dirname ${FILE}`/sar.out
+	fi
+}
+
+post_process_vmstat()
+{
+	FILE=${1}
+	if [ -f ${FILE} ]; then
+		${abs_top_srcdir}/scripts/vmplot.sh -i ${FILE} \
+				-o `dirname ${FILE}`/plots
+	fi
+}
+
 readprofile_collect()
 {
 	COMMAND=""
@@ -450,10 +467,16 @@ do_sleep $SLEEPYTIME
 SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
-ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-$abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
+ITERATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
+${abs_top_srcdir}/scripts/sysstats.sh \
+		--iter ${ITERATIONS} \
+		--sample ${SAMPLE_LENGTH} \
+		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	${DB_COMMAND} "${abs_top_srcdir}/scripts/sysstats.sh --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
+fi
 ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR \
-		-i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
+		-i $ITERATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -557,12 +580,11 @@ fi
 chmod 644 ${DB_OUTPUT_DIR}/log
 
 # Postprocessing of Database Statistics
-if [ -f ${OUTPUT_DIR}/sar_raw.out ]; then
-	@SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
-fi
+post_process_sar ${OUTPUT_DIR}/sar_raw.out
+post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
 if [ "x@GNUPLOT@" != "x" ]; then
-	$abs_top_srcdir/scripts/vmplot.sh -i ${OUTPUT_DIR}/vmstat.out \
-			-o ${OUTPUT_DIR}/plots
+	post_process_vmstat ${OUTPUT_DIR}/vmstat.out
+	post_process_vmstat ${DB_OUTPUT_DIR}/vmstat.out
 fi
 if [ -f "${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl" ]; then
 	${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl --dir ${DB_OUTPUT_DIR}
