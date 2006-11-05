@@ -14,6 +14,7 @@ use Getopt::Long;
 use Test::Parser::Dbt2;
 
 my $dir;
+my $format = "png";
 my $html;
 my $plot;
 my $xml;
@@ -52,6 +53,7 @@ GetOptions(
     'customer=s' => \$customer,
     'dir=s' => \$dir,
     'district=s' => \$district,
+    'format=s' => \$format,
     'history=s' => \$history,
     'html' => \$html,
     'item=s' => \$item,
@@ -82,6 +84,7 @@ unless ($dir) {
 
 my $parser = new Test::Parser::Dbt2;
 $parser->parse($dir);
+$parser->format($format);
 
 if ($customer) {
   $parser->customer_devices(split(/,/, $customer));
@@ -153,7 +156,6 @@ if ($index2) {
 #
 if ($plot) {
   $parser->plot();
-  $parser->plot('svg');
 }
 
 if ($xml) {

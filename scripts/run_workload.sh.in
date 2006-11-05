@@ -359,7 +359,7 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 fi
 
 # Update log.html
-echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
+echo "<a href='$RUN_NUMBER/report/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
 
 # Update the run number for the next test.
 RUN_NUMBER=`expr $RUN_NUMBER + 1`
