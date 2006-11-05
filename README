@@ -1,6 +1,10 @@
 Please refer to the user manual for instructions on how to use this package.
 After that, read README-* if they apply to your case.
 
+The data analsys scripts requires two additional Perl packages to be instealled,
+which are not checked by configure.  They are Statistics::Descriptive and
+Test::Parser.
+
 To use the scripts for multi-tier testing, ssh keys needs to be set up for
 the user that owns the kit, preferably without a passphrase being set.  To
 keep the scripts simple, the kit needs to be installed in the same location
