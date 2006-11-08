@@ -307,7 +307,10 @@ int start_driver()
 	for (i = w_id_min; i < w_id_max + 1; i += spread) {
 		g_tid[i] = (pthread_t*)
 				malloc(sizeof(pthread_t) * terminals_per_warehouse);
-		for (j = 0; j < terminals_per_warehouse; j++) {
+	}
+
+	for (j = 0; j < terminals_per_warehouse; j++) {
+		for (i = w_id_min; i < w_id_max + 1; i += spread) {
 			int ret;
 			pthread_attr_t attr;
 			size_t stacksize = 131072; /* 128 kilobytes. */
