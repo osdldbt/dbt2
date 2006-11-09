@@ -412,6 +412,8 @@ void *terminal_worker(void *data)
 	extern int errno;
 	int rc;
 	int local_seed;
+	pid_t pid;
+	pthread_t tid;
 
 #ifdef STANDALONE
 	struct db_context_t dbc;
@@ -432,17 +434,19 @@ void *terminal_worker(void *data)
 
 	tc = (struct terminal_context_t *) data;
 	/* Each thread needs to seed in Linux. */
+    tid = pthread_self();
+    pid = getpid();
 	if (seed == -1) {
 		struct timeval tv;
 		unsigned long junk; /* Purposely used uninitialized */
 
+		local_seed = pid;
 		gettimeofday(&tv, NULL);
-		local_seed = getpid() ^ (int) pthread_self() ^ tv.tv_sec ^
-				tv.tv_usec ^ junk;
+		local_seed ^=  tid ^ tv.tv_sec ^ tv.tv_usec ^ junk;
 	} else {
 		local_seed = seed;
 	}
-	printf("seed: %u\n", local_seed);
+	printf("seed for %d:%x : %u\n", pid, (unsigned int)tid, local_seed);
 	fflush(stdout);
 	srand(local_seed);
 
