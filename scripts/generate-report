@@ -102,70 +102,70 @@ unless ($presenter) {
 # Tables.
 #
 if ($customer) {
-  $presenter->customer_devices(split(/,/, $customer));
+  $presenter->set_devices('customer_devices', split(/,/, $customer));
 }
 if ($district) {
-  $presenter->district_devices(split(/,/, $district));
+  $presenter->set_devices('district_devices', split(/,/, $district));
 }
 if ($history) {
-  $presenter->history_devices(split(/,/, $history));
+  $presenter->set_devices('history_devices', split(/,/, $history));
 }
 if ($item) {
-  $presenter->item_devices(split(/,/, $item));
+  $presenter->set_devices('item_devices', split(/,/, $item));
 }
 if ($log) {
-  $presenter->log_devices(split(/,/, $log));
+  $presenter->set_devices('log_devices', split(/,/, $log));
 }
 if ($new_order) {
-  $presenter->new_order_devices(split(/,/, $new_order));
+  $presenter->set_devices('new_order_devices', split(/,/, $new_order));
 }
 if ($order_line) {
-  $presenter->order_line_devices(split(/,/, $order_line));
+  $presenter->set_devices('order_line_devices', split(/,/, $order_line));
 }
 if ($orders) {
-  $presenter->orders_devices(split(/,/, $orders));
+  $presenter->set_devices('orders_devices', split(/,/, $orders));
 }
 if ($stock) {
-  $presenter->stock_devices(split(/,/, $stock));
+  $presenter->set_devices('stock_devices', split(/,/, $stock));
 }
 if ($warehouse) {
-  $presenter->warehouse_devices(split(/,/, $warehouse));
+  $presenter->set_devices('warehouse_devices', split(/,/, $warehouse));
 }
 #
 # Primary key indexes.
 #
 if ($pkcustomer) {
-  $presenter->pkcustomer_devices(split(/,/, $pkcustomer));
+  $presenter->set_devices('pkcustomer_devices', split(/,/, $pkcustomer));
 }
 if ($pkdistrict) {
-  $presenter->pkdistrict_devices(split(/,/, $pkdistrict));
+  $presenter->set_devices('pkdistrict_devices', split(/,/, $pkdistrict));
 }
 if ($pkitem) {
-  $presenter->pkitem_devices(split(/,/, $pkitem));
+  $presenter->set_devices('pkitem_devices', split(/,/, $pkitem));
 }
 if ($pknew_order) {
-  $presenter->pknew_order_devices(split(/,/, $pknew_order));
+  $presenter->set_devices('pknew_order_devices', split(/,/, $pknew_order));
 }
 if ($pkorder_line) {
-  $presenter->pkorder_line_devices(split(/,/, $pkorder_line));
+  $presenter->set_devices('pkorder_line_devices', split(/,/, $pkorder_line));
 }
 if ($pkorders) {
-  $presenter->pkorders_devices(split(/,/, $pkorders));
+  $presenter->set_devices('pkorders_devices', split(/,/, $pkorders));
 }
 if ($pkstock) {
-  $presenter->pkstock_devices(split(/,/, $pkstock));
+  $presenter->set_devices('pkstock_devices', split(/,/, $pkstock));
 }
 if ($pkwarehouse) {
-  $presenter->pkwarehouse_devices(split(/,/, $pkwarehouse));
+  $presenter->set_devices('pkwarehouse_devices', split(/,/, $pkwarehouse));
 }
 #
 # Indexes.
 #
 if ($index1) {
-  $presenter->index1_devices(split(/,/, $index1));
+  $presenter->set_devices('index1_devices', split(/,/, $index1));
 }
 if ($index2) {
-  $presenter->index2_devices(split(/,/, $index2));
+  $presenter->set_devices('index2_devices', split(/,/, $index2));
 }
 
 #
