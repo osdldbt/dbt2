@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -144,15 +143,6 @@ post_process_sar()
 	FILE=${1}
 	if [ -f ${FILE} ]; then
 		@SAR@ -f ${FILE} -A > `dirname ${FILE}`/sar.out
-	fi
-}
-
-post_process_vmstat()
-{
-	FILE=${1}
-	if [ -f ${FILE} ]; then
-		${abs_top_srcdir}/scripts/vmplot.sh -i ${FILE} \
-				-o `dirname ${FILE}`/plots
 	fi
 }
 
@@ -546,11 +536,8 @@ killall client driver 2> /dev/null
 ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh
 
 # Run some post processing analysese.
-$abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
-cp -p $abs_top_srcdir/scripts/notpm.input $DRIVER_OUTPUT_DIR
-if [ "x@GNUPLOT@" != "x" ]; then
-	(cd ${DRIVER_OUTPUT_DIR} && @GNUPLOT@ notpm.input)
-fi
+${abs_top_srcdir}/scripts/post-process \
+		${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
@@ -582,16 +569,10 @@ chmod 644 ${DB_OUTPUT_DIR}/log
 # Postprocessing of Database Statistics
 post_process_sar ${OUTPUT_DIR}/sar_raw.out
 post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
-if [ "x@GNUPLOT@" != "x" ]; then
-	post_process_vmstat ${OUTPUT_DIR}/vmstat.out
-	post_process_vmstat ${DB_OUTPUT_DIR}/vmstat.out
-fi
 if [ -f "${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl" ]; then
 	${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl --dir ${DB_OUTPUT_DIR}
 fi
 
-# Create summary in HTML.
-$abs_top_srcdir/scripts/gen_html.sh $OUTPUT_DIR
 
 echo "Test completed."
 echo "Results are in: $OUTPUT_DIR"

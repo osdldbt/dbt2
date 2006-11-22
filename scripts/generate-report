@@ -1,0 +1,182 @@
+#!/usr/bin/perl -w
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Test::Parser::Dbt2;
+use Test::Presenter::Dbt2;
+
+my $dir;
+my $format = "png";
+my $indir;
+my $outdir = "report";
+my $xml_file;
+
+#
+# Disk devices per tablespace.
+#
+my $customer;
+my $district;
+my $history;
+my $item;
+my $log;
+my $new_order;
+my $order_line;
+my $orders;
+my $stock;
+my $warehouse;
+#
+# Primary key tablespaces.
+#
+my $pkcustomer;
+my $pkdistrict;
+my $pkitem;
+my $pknew_order;
+my $pkorder_line;
+my $pkorders;
+my $pkstock;
+my $pkwarehouse;
+#
+# Index tablespaces
+#
+my $index1;
+my $index2;
+
+GetOptions(
+    'customer=s' => \$customer,
+    'dir=s' => \$dir,
+    'district=s' => \$district,
+    'format=s' => \$format,
+    'history=s' => \$history,
+    'item=s' => \$item,
+    'indir=s' => \$indir,
+    'index1=s' => \$index1,
+    'index2=s' => \$index2,
+    'log=s' => \$log,
+    'new_order=s' => \$new_order,
+    'order_line=s' => \$order_line,
+    'orders=s' => \$orders,
+    'outdir=s' => \$outdir,
+    'pkcustomer=s' => \$pkcustomer,
+    'pkdistrict=s' => \$pkdistrict,
+    'pkitem=s' => \$pkitem,
+    'pknew_order=s' => \$pknew_order,
+    'pkorder_line=s' => \$pkorder_line,
+    'pkorders=s' => \$pkorders,
+    'pkstock=s' => \$pkstock,
+    'pkwarehouse=s' => \$pkwarehouse,
+    'stock=s' => \$stock,
+    'warehouse=s' => \$warehouse,
+    'xml-file=s' => \$xml_file
+);
+
+my $presenter;
+if ($xml_file) {
+  if (-f $xml_file) {
+    $presenter = Test::Presenter::Dbt2->new($xml_file);
+  } else {
+    print "'$xml_file' does not exist.\n";
+    exit(1);
+  }
+} elsif (-d $indir) {
+  my $parser = new Test::Parser::Dbt2;;
+  $parser->parse($indir);
+  $presenter = Test::Presenter::Dbt2->new($parser->data());
+} else {
+  #usage
+  exit(1);
+}
+
+unless ($presenter) {
+  print "no xml data\n";
+  exit(1);
+}
+
+#
+# Tables.
+#
+if ($customer) {
+  $presenter->customer_devices(split(/,/, $customer));
+}
+if ($district) {
+  $presenter->district_devices(split(/,/, $district));
+}
+if ($history) {
+  $presenter->history_devices(split(/,/, $history));
+}
+if ($item) {
+  $presenter->item_devices(split(/,/, $item));
+}
+if ($log) {
+  $presenter->log_devices(split(/,/, $log));
+}
+if ($new_order) {
+  $presenter->new_order_devices(split(/,/, $new_order));
+}
+if ($order_line) {
+  $presenter->order_line_devices(split(/,/, $order_line));
+}
+if ($orders) {
+  $presenter->orders_devices(split(/,/, $orders));
+}
+if ($stock) {
+  $presenter->stock_devices(split(/,/, $stock));
+}
+if ($warehouse) {
+  $presenter->warehouse_devices(split(/,/, $warehouse));
+}
+#
+# Primary key indexes.
+#
+if ($pkcustomer) {
+  $presenter->pkcustomer_devices(split(/,/, $pkcustomer));
+}
+if ($pkdistrict) {
+  $presenter->pkdistrict_devices(split(/,/, $pkdistrict));
+}
+if ($pkitem) {
+  $presenter->pkitem_devices(split(/,/, $pkitem));
+}
+if ($pknew_order) {
+  $presenter->pknew_order_devices(split(/,/, $pknew_order));
+}
+if ($pkorder_line) {
+  $presenter->pkorder_line_devices(split(/,/, $pkorder_line));
+}
+if ($pkorders) {
+  $presenter->pkorders_devices(split(/,/, $pkorders));
+}
+if ($pkstock) {
+  $presenter->pkstock_devices(split(/,/, $pkstock));
+}
+if ($pkwarehouse) {
+  $presenter->pkwarehouse_devices(split(/,/, $pkwarehouse));
+}
+#
+# Indexes.
+#
+if ($index1) {
+  $presenter->index1_devices(split(/,/, $index1));
+}
+if ($index2) {
+  $presenter->index2_devices(split(/,/, $index2));
+}
+
+#
+# Start creating report.
+#
+$presenter->format($format);
+$presenter->outdir($outdir);
+$presenter->plot();
+system "mkdir -p $outdir";
+open(H, "> $outdir/index.html")
+    or die "Couldn't open $outdir/index.html for writing: $!\n";
+print H $presenter->to_html();
+close(H);
+print "DBT-2 report generated.\n";
