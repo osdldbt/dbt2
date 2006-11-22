@@ -54,7 +54,7 @@ storedproc/mysql/order_status.sql \
 storedproc/mysql/payment.sql \
 storedproc/mysql/stock_level.sql \
 scripts/dbt2_profile.in \
-scripts/mix_analyzer.pl \
+scripts/generate-report \
 scripts/notpm.input \
 scripts/post-process \
 scripts/run_workload.sh.in \
