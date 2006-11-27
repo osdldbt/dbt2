@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1719 2006-11-22 18:24:48Z markwkm $)
+AC_REVISION($Id: configure.ac 1722 2006-11-27 22:15:41Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.40-pre3, osdldbt-general@lists.sourceforge.net)
@@ -170,6 +170,15 @@ AC_ARG_WITH(postgresql,
   [pgsql_path=$withval database_to_use="pgsql"]
 )
 
+AC_ARG_WITH(pgpool,
+  [AC_HELP_STRING([--with-pgpool=DIR],
+      [Default off. Set to the path of the pgpool's installation, or leave
+          unset if the path is already in the compiler search path.
+          only for use with PostgreSQL])],
+  [pgpool_path=$withval],
+  [pgpool_path=no]
+)
+
 dnl SAP DB
 AC_ARG_WITH(sapdb,
   [AC_HELP_STRING([--with-sapdb], [using ODBC])],
@@ -182,7 +191,7 @@ AC_ARG_WITH(mysql,
   [Build C based version of dbt2 test. Set to the path of the MySQL's 
       installation, or leave unset if the path is already in the search 
       path])],
-  [ ac_cv_use_mysql=$withval database_to_use="mysql"]
+  [ac_cv_use_mysql=$withval database_to_use="mysql"]
 )
 
 dnl ODBC
@@ -390,10 +399,20 @@ find the right location for the libpq library.])
 
   dnl check for vacuumdb
   AC_PATH_PROGS([VACUUMDB], [vacuumdb], ,
-    [$PATH:${BINDIR}:/bin:/usr/bin:/usr/local/bin]
+    [${BINDIR}:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$VACUUMDB" ; then
     AC_MSG_ERROR([*** vacuumdb is required])
+  fi
+
+  if test "$pgpool_path" != "no"; then
+    dnl check for pgpool
+    AC_PATH_PROGS([PGPOOL], [pgpool], ,
+      [$pgpool_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
+    )
+    if test -z "$PGPOOL" ; then
+      AC_MSG_ERROR([*** pgpool is required])
+    fi
   fi
 
   AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])

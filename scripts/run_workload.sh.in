@@ -441,7 +441,14 @@ echo ""
 #
 echo "Stage 1. Starting up client..."
 if [ ${DBDIR} == "pgsql" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
+	if [ ${USE_PGPOOL} -eq 1 ]; then
+		echo "Starting pgpool..."
+		@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf
+		TMP_DB_HOSTNAME="localhost"
+	else
+		TMP_DB_HOSTNAME=${DB_HOSTNAME}
+	fi
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME}"
 elif [ ${DBDIR} == "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
 fi
@@ -534,6 +541,9 @@ echo "Killing client..."
 killall client driver 2> /dev/null
 
 ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh
+if [ ${USE_PGPOOL} -eq 1 ]; then
+	@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf stop
+fi
 
 # Run some post processing analysese.
 ${abs_top_srcdir}/scripts/post-process \

@@ -4,6 +4,7 @@ v0.40
 - Ability to run in a two-tier environment.
 - Added scripts to run a test against a pull from PostgreSQL's CVS repository.
 - Fixed 90th percentile and steady state metric calculations.
+- Added support for pgpool.
 
 v0.39
 

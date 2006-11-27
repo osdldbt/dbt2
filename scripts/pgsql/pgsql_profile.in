@@ -26,3 +26,6 @@ PGDATA=/mnt/dbt2/pgdata; export PGDATA
 
 # Directory with tablespace mount points, if using tablespaces.
 TSDIR=/mnt/dbt2
+
+# Flag to use PGPOOL.
+USE_PGPOOL=0
