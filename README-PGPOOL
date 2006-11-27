@@ -12,3 +12,6 @@ changed if the test is being used in a two-tier configuration.
 run_workload.sh needs to be passed '-l 9999' otherwise the test will connect
 to the database directly instead of using pgpool.  The default port 9999 can
 be changed in the pgpool.conf file.
+
+scripts/pgsql/pgsql_profile.in also must be edited so that 'USE_PGPOOL=1'.
+configure must also be rerun.
