@@ -113,8 +113,8 @@ void print_timestamp(FILE *ofile, struct tm *date)
 void gen_customers()
 {
 	FILE *output;
-	int i, j, k, l;
-	char a_string[512];
+	int i, j, k;
+	char a_string[1024];
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
@@ -135,14 +135,9 @@ void gen_customers()
 
 	for (i = 0; i < warehouses; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
-			/*
-			 * A poor way to work around some sort of memory
-			 * violation.  k gets clobbered, so I buffer l with it.
-			 * Help?
-			 */
-			for (k = 0, l = 0; k < customers; k++, l++) {
+			for (k = 0; k < customers; k++) {
 				/* c_id */
-				FPRINTF(output, "%d", l + 1);
+				FPRINTF(output, "%d", k + 1);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_d_id */
@@ -164,8 +159,8 @@ void gen_customers()
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_last Clause 4.3.2.7 */
-				if (l < 1000) {
-					get_c_last(a_string, l);
+				if (k < 1000) {
+					get_c_last(a_string, k);
 				} else {
 					get_c_last(a_string, get_nurand(255, 0, 999));
 				}
@@ -268,7 +263,7 @@ void gen_districts()
 {
 	FILE *output;
 	int i, j;
-	char a_string[32];
+	char a_string[48];
 	char filename[1024] = "\0";
 
 	srand(0);
@@ -353,7 +348,7 @@ void gen_history()
 {
 	FILE *output;
 	int i, j, k;
-	char a_string[32];
+	char a_string[64];
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
@@ -429,7 +424,7 @@ void gen_items()
 {
 	FILE *output;
 	int i;
-	char a_string[64];
+	char a_string[128];
 	int j;
 	char filename[1024] = "\0";
 
@@ -531,7 +526,7 @@ void gen_orders()
 {
 	FILE *order, *order_line;
 	int i, j, k, l;
-	char a_string[32];
+	char a_string[64];
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
@@ -743,7 +738,7 @@ void gen_stock()
 {
 	FILE *output;
 	int i, j, k;
-	char a_string[64];
+	char a_string[128];
 	char filename[1024] = "\0";
 
 	srand(0);
@@ -858,7 +853,7 @@ void gen_warehouses()
 {
 	FILE *output;
 	int i;
-	char a_string[32];
+	char a_string[48];
 	char filename[1024] = "\0";
 
 	srand(0);
