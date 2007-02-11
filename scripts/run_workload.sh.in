@@ -234,7 +234,7 @@ SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
 
-while getopts "c:d:h:l:nop:s:t:u:w:x:z:" opt; do
+while getopts "c:d:H:hl:nop:s:t:u:w:x:z:" opt; do
 	case $opt in
 	c)
 		# Check for numeric value
@@ -245,8 +245,12 @@ while getopts "c:d:h:l:nop:s:t:u:w:x:z:" opt; do
 		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DURATION
 		;;
-	h)
+	H)
 		DB_HOSTNAME=${OPTARG}
+		;;
+	h)
+		usage
+		exit 1
 		;;
 	l)
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -547,7 +551,7 @@ fi
 
 # Run some post processing analysese.
 ${abs_top_srcdir}/scripts/post-process \
-		${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
+		--dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &

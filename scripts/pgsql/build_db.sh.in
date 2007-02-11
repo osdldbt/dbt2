@@ -11,10 +11,32 @@ source ${TOPDIR}/scripts/dbt2_profile || exit 1
 
 DIR=`dirname ${0}`
 
+usage()
+{
+    echo "Usage:"
+    echo "    build_db.sh [options]"
+    echo "    build_db.sh -h"
+    echo "Options:"
+    echo "    -b"
+    echo "        Load tables and create indexes in parallel."
+    echo "    -d <path>"
+    echo "        Location of raw database files to load."
+    echo "    -g"
+    echo "        Generate raw database files."
+    echo "    -p <database_parameters>"
+    echo "        PostgreSQL database parameters."
+    echo "    -r"
+    echo "        Drop existing database before building a new database"
+    echo "    -t"
+    echo "        Use tablespaces."
+    echo "    -w <scale factor>"
+    echo "        Number of warehouses to build. Default 1."
+}
+
 WAREHOUSES=1
 GENERATE_DATAFILE=0
 REBUILD_DB=0
-while getopts "bd:gp:rtw:" OPT; do
+while getopts "bd:ghp:rtw:" OPT; do
 	case ${OPT} in
 	b)
 		BACKGROUND_FLAG="-b"
@@ -24,6 +46,10 @@ while getopts "bd:gp:rtw:" OPT; do
 		;;
 	g)
 		GENERATE_DATAFILE=1
+		;;
+	h)
+		usage
+		exit 0
 		;;
 	p)
 		PARAMETERS=$OPTARG
