@@ -3,7 +3,7 @@ After that, read README-* if they apply to your case.
 
 The data analsys scripts requires two additional Perl packages to be instealled,
 which are not checked by configure.  They are Statistics::Descriptive and
-Test::Parser.
+Test::Parser.  To generate HTML reports, Test::Reporter is required.
 
 To use the scripts for multi-tier testing, ssh keys needs to be set up for
 the user that owns the kit, preferably without a passphrase being set.  To
