@@ -1,3 +1,6 @@
+v0.41
+
+- Renamed the 'scripts' directory to 'bin'.
 v0.40
 
 - Various fixes with all the scripts.

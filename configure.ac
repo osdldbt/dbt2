@@ -1,8 +1,8 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1808 2007-02-11 18:07:13Z markwkm $)
+AC_REVISION($Id: configure.ac 1811 2007-02-14 00:56:46Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(dbt2, 0.40, osdldbt-general@lists.sourceforge.net)
+AC_INIT(dbt2, 0.41pre1, osdldbt-general@lists.sourceforge.net)
 AM_INIT_AUTOMAKE
 AH_TOP([
 #ifndef __CONFIG_H__
@@ -20,14 +20,14 @@ AC_CANONICAL_BUILD
 case $build in
 *-*-solaris*)
   AC_DEFINE(SOLARIS, 1, [Build for solaris])
-  AC_CONFIG_FILES([scripts/SunOS/get_os_info.sh],
-      [chmod +x scripts/SunOS/get_os_info.sh])
+  AC_CONFIG_FILES([bin/SunOS/get_os_info.sh],
+      [chmod +x bin/SunOS/get_os_info.sh])
   ;;
 *-*-linux*)
   AC_DEFINE(LINUX, 1, [Build for Linux])
   AC_DEFINE(BROKEN_SEMAPHORES, 1, [Pthread semaphores are broken])
-  AC_CONFIG_FILES([scripts/Linux/get_os_info.sh],
-      [chmod +x scripts/Linux/get_os_info.sh])
+  AC_CONFIG_FILES([bin/Linux/get_os_info.sh],
+      [chmod +x bin/Linux/get_os_info.sh])
   ;;
 *-*-darwin*)
   AC_DEFINE(DARWIN, 1, [Build for DARWIN])
@@ -415,39 +415,29 @@ find the right location for the libpq library.])
     fi
   fi
 
-  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
-  AC_CONFIG_FILES([scripts/pgsql/backup.sh],
-      [chmod +x scripts/pgsql/backup.sh])
-  AC_CONFIG_FILES([scripts/pgsql/build_db.sh],
-      [chmod +x scripts/pgsql/build_db.sh])
-  AC_CONFIG_FILES([scripts/pgsql/check_db.sh],
-      [chmod +x scripts/pgsql/check_db.sh])
-  AC_CONFIG_FILES([scripts/pgsql/create_db.sh],
-      [chmod +x scripts/pgsql/create_db.sh])
-  AC_CONFIG_FILES([scripts/pgsql/create_indexes.sh],
-      [chmod +x scripts/pgsql/create_indexes.sh])
-  AC_CONFIG_FILES([scripts/pgsql/create_tables.sh],
-      [chmod +x scripts/pgsql/create_tables.sh])
-  AC_CONFIG_FILES([scripts/pgsql/db_plans.sh],
-      [chmod +x scripts/pgsql/db_plans.sh])
-  AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
-      [chmod +x scripts/pgsql/db_stat.sh])
-  AC_CONFIG_FILES([scripts/pgsql/drop_db.sh],
-      [chmod +x scripts/pgsql/drop_db.sh])
-  AC_CONFIG_FILES([scripts/pgsql/drop_tables.sh],
-      [chmod +x scripts/pgsql/drop_tables.sh])
-  AC_CONFIG_FILES([scripts/pgsql/load_db.sh],
-      [chmod +x scripts/pgsql/load_db.sh])
-  AC_CONFIG_FILES([scripts/pgsql/load_stored_funcs.sh],
-      [chmod +x scripts/pgsql/load_stored_funcs.sh])
-  AC_CONFIG_FILES([scripts/pgsql/load_stored_procs.sh],
-      [chmod +x scripts/pgsql/load_stored_procs.sh])
-  AC_CONFIG_FILES([scripts/pgsql/restore.sh],
-      [chmod +x scripts/pgsql/restore.sh])
-  AC_CONFIG_FILES([scripts/pgsql/test-pgsql],
-      [chmod +x scripts/pgsql/test-pgsql])
-  AC_CONFIG_FILES([scripts/pgsql/destroy-installation],
-      [chmod +x scripts/pgsql/destroy-installation])
+  AC_CONFIG_FILES([bin/pgsql/pgsql_profile])
+  AC_CONFIG_FILES([bin/pgsql/backup.sh], [chmod +x bin/pgsql/backup.sh])
+  AC_CONFIG_FILES([bin/pgsql/build_db.sh], [chmod +x bin/pgsql/build_db.sh])
+  AC_CONFIG_FILES([bin/pgsql/check_db.sh], [chmod +x bin/pgsql/check_db.sh])
+  AC_CONFIG_FILES([bin/pgsql/create_db.sh], [chmod +x bin/pgsql/create_db.sh])
+  AC_CONFIG_FILES([bin/pgsql/create_indexes.sh],
+      [chmod +x bin/pgsql/create_indexes.sh])
+  AC_CONFIG_FILES([bin/pgsql/create_tables.sh],
+      [chmod +x bin/pgsql/create_tables.sh])
+  AC_CONFIG_FILES([bin/pgsql/db_plans.sh], [chmod +x bin/pgsql/db_plans.sh])
+  AC_CONFIG_FILES([bin/pgsql/db_stat.sh], [chmod +x bin/pgsql/db_stat.sh])
+  AC_CONFIG_FILES([bin/pgsql/drop_db.sh], [chmod +x bin/pgsql/drop_db.sh])
+  AC_CONFIG_FILES([bin/pgsql/drop_tables.sh],
+      [chmod +x bin/pgsql/drop_tables.sh])
+  AC_CONFIG_FILES([bin/pgsql/load_db.sh], [chmod +x bin/pgsql/load_db.sh])
+  AC_CONFIG_FILES([bin/pgsql/load_stored_funcs.sh],
+      [chmod +x bin/pgsql/load_stored_funcs.sh])
+  AC_CONFIG_FILES([bin/pgsql/load_stored_procs.sh],
+      [chmod +x bin/pgsql/load_stored_procs.sh])
+  AC_CONFIG_FILES([bin/pgsql/restore.sh], [chmod +x bin/pgsql/restore.sh])
+  AC_CONFIG_FILES([bin/pgsql/test-pgsql], [chmod +x bin/pgsql/test-pgsql])
+  AC_CONFIG_FILES([bin/pgsql/destroy-installation],
+      [chmod +x bin/pgsql/destroy-installation])
   AC_CONFIG_FILES([storedproc/pgsql/Makefile])
   AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
   AC_CONFIG_FILES([storedproc/pgsql/c/delivery.sql])
@@ -534,13 +524,10 @@ find the right location for the libmysql library.])
     AC_MSG_ERROR([*** mysqld_safe is required])
   fi
 
-  AC_CONFIG_FILES([scripts/mysql/build_db.sh],
-      [chmod +x scripts/mysql/build_db.sh])
-  AC_CONFIG_FILES([scripts/mysql/mysql_profile])
-  AC_CONFIG_FILES([scripts/mysql/start_db.sh],
-      [chmod +x scripts/mysql/start_db.sh])
-  AC_CONFIG_FILES([scripts/mysql/stop_db.sh],
-      [chmod +x scripts/mysql/stop_db.sh])
+  AC_CONFIG_FILES([bin/mysql/build_db.sh], [chmod +x bin/mysql/build_db.sh])
+  AC_CONFIG_FILES([bin/mysql/mysql_profile])
+  AC_CONFIG_FILES([bin/mysql/start_db.sh], [chmod +x bin/mysql/start_db.sh])
+  AC_CONFIG_FILES([bin/mysql/stop_db.sh], [chmod +x bin/mysql/stop_db.sh])
 else
   AC_MSG_ERROR('Please choose DBMS. ./configure --with-(postgresql|sapdb|mysql)!')
 fi
@@ -579,9 +566,9 @@ AC_SUBST(database_to_use)
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
 AC_CONFIG_FILES([storedproc/Makefile])
-AC_CONFIG_FILES([scripts/dbt2_profile])
-AC_CONFIG_FILES([scripts/sysstats.sh], [chmod +x scripts/sysstats.sh])
-AC_CONFIG_FILES([scripts/transform_sar.sh], [chmod +x scripts/transform_sar.sh])
-AC_CONFIG_FILES([scripts/run_workload.sh], [chmod +x scripts/run_workload.sh])
+AC_CONFIG_FILES([bin/dbt2_profile])
+AC_CONFIG_FILES([bin/sysstats.sh], [chmod +x bin/sysstats.sh])
+AC_CONFIG_FILES([bin/transform_sar.sh], [chmod +x bin/transform_sar.sh])
+AC_CONFIG_FILES([bin/run_workload.sh], [chmod +x bin/run_workload.sh])
 
 AC_OUTPUT
