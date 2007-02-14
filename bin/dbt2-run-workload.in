@@ -7,15 +7,13 @@
 #
 
 abs_top_srcdir=@abs_top_srcdir@
-DBDIR=@database_to_use@
 
 DIR=`dirname $0`
-source ${DIR}/dbt2_profile || exit 1
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall dbt2-client; killall dbt2-driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' INT
+	killall dbt2-client; killall dbt2-driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall dbt2-client; killall dbt2-driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' TERM
+	killall dbt2-client; killall dbt2-driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db' TERM
 
 do_sleep()
 {
@@ -192,19 +190,20 @@ usage()
 	echo ''
 	echo 'usage: dbt2-run-workload -c <number of database connections> -d <duration of test> -w <number of warehouses>'
 	echo 'other options:'
+	echo '       -a <mysql | pgsql>'
 	echo '       -d <database name. (default dbt2)>'
 	echo '       -h <database host name. (default localhost)>'
 	echo '       -l <database port number>'
 	echo '       -o <enable oprofile data collection>'
 	echo '       -s <delay of starting of new threads in milliseconds>'
 	echo '       -n <no thinking or keying time (default no)>'
-	if [ "$DBDIR" == "mysql" ]; then
+	if [ "${DBMS}" == "mysql" ]; then
 		echo '       -u <database user>'
 		echo '       -x <database password>'
 	fi
 	echo '       -z <comments for the test>'
 	echo ''
-	echo 'Example: sh run_workload.sh -c 20 -d 100 -w 1'
+	echo 'Example: dbt2-run-workload -c 20 -d 100 -w 1'
 	echo 'Test will be run for 120 seconds with 20 database connections and '
 	echo 'scale factor (num of warehouses) 1.'
 	echo ''
@@ -223,21 +222,26 @@ DB_PASSWORD=""
 DB_PARAMS=""
 CLIENT_HOSTNAME="localhost"
 
-#
-# Set the default DB_PORT depending on which database is used.
-#
-if [ ${DBDIR} == "pgsql" ]; then
-	DB_PORT=5432
-elif [ ${DBDIR} == "mysql" ]; then
-	DB_PORT=""
-fi
 DB_USER=${DBUSER}
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
 
-while getopts "c:d:H:hl:nop:s:t:u:w:x:z:" opt; do
+while getopts "a:c:d:H:hl:nop:s:t:u:w:x:z:" opt; do
 	case $opt in
+	a)
+		DBMS=${OPTARG}
+		export DATABASE=${DBMS}
+		source ${DIR}/dbt2_profile || exit 1
+		#
+		# Set the default DB_PORT depending on which database is used.
+		#
+		if [ ${DBMS} == "pgsql" ]; then
+			DB_PORT=5432
+		elif [ ${DBMS} == "mysql" ]; then
+			DB_PORT=""
+		fi
+		;;
 	c)
 		# Check for numeric value
 		DBCON=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -294,6 +298,11 @@ while getopts "c:d:H:hl:nop:s:t:u:w:x:z:" opt; do
 done
 
 # Check parameters.
+
+if [ "$DBMS" == "" ]; then
+	echo "specify which dbms system to test using -a <mysql | pgsql>"
+	exit 1
+fi
 
 if [ "$DBCON" == "" ]; then
 	echo "specify the number of database connections using -c #"
@@ -380,11 +389,11 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 fi
 
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-stop-db
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
+	${DB_COMMAND} "${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
 else
-	${abs_top_srcdir}/bin/${DBDIR}/dbt2-pgsql-start-db ${START_DB_ARGS} \
+	${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-start-db ${START_DB_ARGS} \
 			-p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
 fi
 
@@ -392,7 +401,7 @@ fi
 # Redisplay the test parameters.
 #
 echo "************************************************************************"
-echo "*              DBT-2 test for ${DBDIR} started"
+echo "*              DBT-2 test for ${DBMS} started"
 echo "*                                                                      *"
 echo "*	    Results can be found in output/$(( $RUN_NUMBER-1 )) directory"
 echo "************************************************************************"
@@ -446,7 +455,7 @@ echo ""
 # Start the client.
 #
 echo "Stage 1. Starting up client..."
-if [ ${DBDIR} == "pgsql" ]; then
+if [ ${DBMS} == "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then
 		echo "Starting pgpool..."
 		@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf
@@ -455,7 +464,7 @@ if [ ${DBDIR} == "pgsql" ]; then
 		TMP_DB_HOSTNAME=${DB_HOSTNAME}
 	fi
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME}"
-elif [ ${DBDIR} == "mysql" ]; then
+elif [ ${DBMS} == "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
 fi
 CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}"
@@ -478,7 +487,7 @@ ${abs_top_srcdir}/bin/dbt2-sysstats \
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	${DB_COMMAND} "${abs_top_srcdir}/bin/sysstats.sh --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-db-stat \
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-db-stat \
 		-o $DB_OUTPUT_DIR \
 		-i $ITERATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
@@ -547,7 +556,7 @@ echo "Stage 3. Processing of results..."
 echo "Killing client..."
 killall dbt2-client dbt2-driver 2> /dev/null
 
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-stop-db
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db
 if [ ${USE_PGPOOL} -eq 1 ]; then
 	@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf stop
 fi
@@ -586,8 +595,8 @@ chmod 644 ${DB_OUTPUT_DIR}/log
 # Postprocessing of Database Statistics
 post_process_sar ${OUTPUT_DIR}/sar_raw.out
 post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
-if [ -f "${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-analyze-stats" ]; then
-	${abs_top_srcdir}/bin/${DBDIR}/dbt2-pgsql-analyze-stats \
+if [ -f "${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-analyze-stats" ]; then
+	${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-analyze-stats \
 			--dir ${DB_OUTPUT_DIR}
 fi
 

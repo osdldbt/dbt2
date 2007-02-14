@@ -9,8 +9,6 @@
 
 DIR=`dirname $0`
 
-DATABASE=@database_to_use@
-
 # Database instance name.
 DBNAME="dbt2"
 

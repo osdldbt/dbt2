@@ -7,6 +7,7 @@
 #
 
 TOPDIR="@abs_top_srcdir@"
+export DATABASE="pgsql"
 source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 USE_TABLESPACES=0

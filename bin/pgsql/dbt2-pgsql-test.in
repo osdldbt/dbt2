@@ -34,6 +34,7 @@ install_src()
 
 TOPDIR="@abs_top_srcdir@"
 PGDIR="${TOPDIR}/bin/pgsql"
+export DATABASE="pgsql"
 source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 export PATH="$PATH:~/bin"

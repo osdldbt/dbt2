@@ -3,6 +3,7 @@
 # dbt2-mysql-build-db
 
 TOPDIR="@abs_top_srcdir@"
+export DATABASE="mysql"
 source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 usage() {

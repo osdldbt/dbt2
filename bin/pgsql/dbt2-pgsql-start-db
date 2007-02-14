@@ -1,16 +1,16 @@
-#!/bin/sh
-
+#!/bin/bash
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Rod Taylor & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2007 Rod Taylor & Open Source Development Lab, Inc.
 #
 
 FLAG=${1}
 
 DIR=`dirname ${0}`
-. ${DIR}/pgsql_profile || exit 1
+export DATABASE="pgsql"
+source ${DIR}/pgsql_profile || exit 1
 
 LOGFILE="log"
 OUTDIR="."
