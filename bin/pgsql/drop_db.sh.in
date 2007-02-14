@@ -7,7 +7,7 @@
 #
 
 TOPDIR="@abs_top_srcdir@"
-source ${TOPDIR}/scripts/dbt2_profile || exit
+source ${TOPDIR}/bin/dbt2_profile || exit
 
 # Double check we have a value for PGDATA
 if [ -z ${PGDATA} ] ; then

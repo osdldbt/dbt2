@@ -33,8 +33,8 @@ install_src()
 }
 
 TOPDIR="@abs_top_srcdir@"
-PGDIR="${TOPDIR}/scripts/pgsql"
-source ${TOPDIR}/scripts/dbt2_profile || exit 1
+PGDIR="${TOPDIR}/bin/pgsql"
+source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 export PATH="$PATH:~/bin"
 
@@ -134,7 +134,7 @@ fi
 #
 # Source pgsql environment.
 #
-source ${TOPDIR}/scripts/dbt2_profile || exit 1
+source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 if [ ${FORCE} -eq 1 ]; then
 	${DB_COMMAND} ${PGDIR}/destroy-installation -f
@@ -162,11 +162,11 @@ fi
 # Start the test.
 #
 if [ -n "${TEST_PARAMETERS}" ]; then
-	${TOPDIR}/scripts/run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} \
+	${TOPDIR}/bin/run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} \
 			-c ${DBCON} -s 100 -p "${TEST_PARAMETERS}" ${OPROFILE_FLAG} \
 			-z "${COMMENT}" -h ${DB_HOSTNAME} ${NO_THINK} || exit 1
 else
-	${TOPDIR}/scripts/run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} \
+	${TOPDIR}/bin/run_workload.sh -w ${SCALE_FACTOR} -d ${DURATION} \
 			-c ${DBCON} -s 100 ${OPROFILE_FLAG} \
 			-z "${COMMENT}" -h ${DB_HOSTNAME} ${NO_THINK} || exit 1
 fi

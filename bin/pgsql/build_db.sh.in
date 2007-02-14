@@ -7,7 +7,7 @@
 #
 
 TOPDIR="@abs_top_srcdir@"
-source ${TOPDIR}/scripts/dbt2_profile || exit 1
+source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 DIR=`dirname ${0}`
 

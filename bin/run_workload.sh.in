@@ -13,9 +13,9 @@ DIR=`dirname $0`
 source ${DIR}/dbt2_profile || exit 1
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh' INT
+	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh' TERM
+	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' TERM
 
 do_sleep()
 {
@@ -322,14 +322,14 @@ fi
 
 # Determine the output directory for storing data.
 RUN_NUMBER=-1
-RUN_FILE="${abs_top_srcdir}/scripts/run_number"
+RUN_FILE="${abs_top_srcdir}/bin/run_number"
 if test -f ${RUN_FILE}; then
   read RUN_NUMBER < ${RUN_FILE}
 fi
 if [ $RUN_NUMBER -eq -1 ]; then
 	RUN_NUMBER=0
 fi
-OUTPUT_DIR=${abs_top_srcdir}/scripts/output/${RUN_NUMBER}
+OUTPUT_DIR=${abs_top_srcdir}/bin/output/${RUN_NUMBER}
 CLIENT_OUTPUT_DIR=$OUTPUT_DIR/client
 DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
 DB_OUTPUT_DIR=$OUTPUT_DIR/db
@@ -353,7 +353,7 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 fi
 
 # Update log.html
-echo "<a href='$RUN_NUMBER/report/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
+echo "<a href='$RUN_NUMBER/report/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/bin/output/log.html
 
 # Update the run number for the next test.
 RUN_NUMBER=`expr $RUN_NUMBER + 1`
@@ -367,7 +367,7 @@ echo "Command line: $0 $@" >> $OUTPUT_DIR/readme.txt
 
 # Get any OS specific information.
 OS_DIR=`uname`
-$abs_top_srcdir/scripts/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
+$abs_top_srcdir/bin/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
 
 # Output run information into the readme.txt.
 echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
@@ -378,11 +378,11 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 fi
 
-${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} -p \"${DB_PARAMS}\"" || exit 1
+	${DB_COMMAND} "${abs_top_srcdir}/bin/${DBDIR}/start_db.sh ${START_DB_ARGS} -p \"${DB_PARAMS}\"" || exit 1
 else
-	${abs_top_srcdir}/scripts/${DBDIR}/start_db.sh ${START_DB_ARGS} \
+	${abs_top_srcdir}/bin/${DBDIR}/start_db.sh ${START_DB_ARGS} \
 			-p "${DB_PARAMS}" || exit 1
 fi
 
@@ -469,14 +469,14 @@ SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-${abs_top_srcdir}/scripts/sysstats.sh \
+${abs_top_srcdir}/bin/sysstats.sh \
 		--iter ${ITERATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/scripts/sysstats.sh --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
+	${DB_COMMAND} "${abs_top_srcdir}/bin/sysstats.sh --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
-${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR \
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR \
 		-i $ITERATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
@@ -544,13 +544,13 @@ echo "Stage 3. Processing of results..."
 echo "Killing client..."
 killall client driver 2> /dev/null
 
-${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop_db.sh
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh
 if [ ${USE_PGPOOL} -eq 1 ]; then
 	@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf stop
 fi
 
 # Run some post processing analysese.
-${abs_top_srcdir}/scripts/post-process \
+${abs_top_srcdir}/bin/post-process \
 		--dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -583,8 +583,8 @@ chmod 644 ${DB_OUTPUT_DIR}/log
 # Postprocessing of Database Statistics
 post_process_sar ${OUTPUT_DIR}/sar_raw.out
 post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
-if [ -f "${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl" ]; then
-	${abs_top_srcdir}/scripts/${DBDIR}/analyze_stats.pl --dir ${DB_OUTPUT_DIR}
+if [ -f "${abs_top_srcdir}/bin/${DBDIR}/analyze_stats.pl" ]; then
+	${abs_top_srcdir}/bin/${DBDIR}/analyze_stats.pl --dir ${DB_OUTPUT_DIR}
 fi
 
 
