@@ -30,29 +30,29 @@ if NONSP
 INTERFACE_SRCS+=@DBC_FUNCTIONS@/dbc_nonsp.c
 endif
 
-bin_PROGRAMS = client datagen driver transaction_test
+bin_PROGRAMS = dbt2-client dbt2-datagen dbt2-driver dbt2-transaction_test
 
-client_SOURCES = client.c transaction_queue.c listener.c db_threadpool.c db.c \
+dbt2_client_SOURCES = client.c transaction_queue.c listener.c db_threadpool.c db.c \
                  $(COMMON_SRCS)
-client_CFLAGS = $(DBCFLAGS)
-client_LDFLAGS = $(DBLDFLAGS)
+dbt2_client_CFLAGS = $(DBCFLAGS)
+dbt2_client_LDFLAGS = $(DBLDFLAGS)
 
-nodist_client_SOURCES = $(INTERFACE_SRCS)
+nodist_dbt2_client_SOURCES = $(INTERFACE_SRCS)
 
-datagen_SOURCES = datagen.c common.c
-datagen_INCLUDES = -Iinclude
-datagen_LDFLAGS = -lm -lpthread
+dbt2_datagen_SOURCES = datagen.c common.c
+dbt2_datagen_INCLUDES = -Iinclude
+dbt2_datagen_LDFLAGS = -lm -lpthread
 
-driver_SOURCES = driver_main.c driver.c input_data_generator.c \
+dbt2_driver_SOURCES = driver_main.c driver.c input_data_generator.c \
                  $(COMMON_SRCS)
-driver_CFLAGS = $(DBCFLAGS)
-driver_LDFLAGS = $(DBLDFLAGS)
+dbt2_driver_CFLAGS = $(DBCFLAGS)
+dbt2_driver_LDFLAGS = $(DBLDFLAGS)
 
-transaction_test_SOURCES = transaction_test.c db.c input_data_generator.c \
+dbt2_transaction_test_SOURCES = transaction_test.c db.c input_data_generator.c \
                            $(COMMON_SRCS)
-transaction_test_CFLAGS = $(DBCFLAGS)
-transaction_test_LDFLAGS = $(DBLDFLAGS)
-nodist_transaction_test_SOURCES = $(INTERFACE_SRCS)
+dbt2_transaction_test_CFLAGS = $(DBCFLAGS)
+dbt2_transaction_test_LDFLAGS = $(DBLDFLAGS)
+nodist_dbt2_transaction_test_SOURCES = $(INTERFACE_SRCS)
 
 EXTRA_DIST = include/_semaphore.h \
              include/_socket.h \

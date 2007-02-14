@@ -68,10 +68,10 @@ make
    You should run shell script which will create database scheme
    and will load all data files. 
 
-   cd scripts/mysql
-   ./mysql_load_db.sh
+   cd bin/mysql
+   ./dbt2-mysql-build-db
 
-   usage: mysql_load_db.sh [options]
+   usage: dbt2-mysql-build-db [options]
    options:
        -d <database name>
        -f <path to dataset files>
@@ -85,15 +85,15 @@ make
        -l <to use LOCAL keyword while loading dataset>
        -v <verbose output>
 
-   Example: sh mysql_load_db.sh -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock
+   Example: dbt2-mysql-build-db -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock
 
 3. How to load SP procedures? (optional, only if you ran configure with 
    --enable-mysql-sp)
 
-   cd scripts/mysql
-   ./mysql_load_sp.sh
+   cd bin/mysql
+   ./dbt2-mysql-load-sp
 
-   usage: mysql_load_sp.sh [options]
+   usage: dbt2-mysql-load-sp [options]
    options:
        -d <database name>
        -c <path to mysql client binary. (default: /usr/bin/mysql)>
@@ -104,15 +104,15 @@ make
        -p <database password>
        -t <database port>
 
-   Example: sh mysql_load_sp.sh -d dbt2 -f ../../storedproc/mysql/
+   Example: dbt2-mysql-load-sp -d dbt2 -f ../../storedproc/mysql/
 
 RUN TEST
 --------
 
-   cd scripts
-   sh ./run_mysql.sh
+   cd bin
+   dbt2-run-workload
 
-   usage: run_mysql.sh -c <number of database connections> -t <duration of test> -w <number of warehouses>
+   usage: dbt2-run-workload -c <number of database connections> -t <duration of test> -w <number of warehouses>
    other options:
        -n <database name. (default dbt2)>
        -h <database host name. (default localhost)>
@@ -127,7 +127,7 @@ RUN TEST
        -e <use zero delays for test (default no)>
        -v <verbose output>
 
-   Example: sh run_mysql.sh -c 20 -t 300 -w 3
+   Example: dbt2-run-workload -c 20 -t 300 -w 3
 
    Test will be run for 300 seconds with 20 database connections and 
    scale factor(num of warehouses) 3
@@ -148,13 +148,13 @@ database.
 POSTRUNNING ANALYSES
 --------------------
 
-Results can be found in scripts/output/<number>
+Results can be found in bin/output/<number>
 
 some of the usefull log files:
 
-  scripts/output/<number>/client/error.log - errors from backend C|SP based
-  scripts/output/<number>/driver/error.log - errors from terminals(driver)
-  scripts/output/<number>/driver/mix.log - info about performed transactions
-  scripts/output/<number>/driver/results.out - results of the test
+  bin/output/<number>/client/error.log - errors from backend C|SP based
+  bin/output/<number>/driver/error.log - errors from terminals(driver)
+  bin/output/<number>/driver/mix.log - info about performed transactions
+  bin/output/<number>/driver/results.out - results of the test
 
 

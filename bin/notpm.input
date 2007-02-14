@@ -1,8 +1,0 @@
-plot "notpm.data" using 1:3 with lines
-set grid xtics ytics
-set xlabel "Elapsed Time (Minutes)"
-set ylabel "New-Order Transactions"
-set term png small
-set output "notpm.png"
-set yrange [0:]
-replot

@@ -8,7 +8,7 @@ usage() {
   fi
 
   echo ''
-  echo 'usage: mysql_dbt2_plans.sh [options]'
+  echo 'usage: dbt2-mysql-plans [options]'
   echo 'options:'
   echo '       -d <database name>'
   echo '       -o <output file name>'
@@ -16,7 +16,7 @@ usage() {
   echo '       -s <database socket>'
   echo '       -h <database host (default: localhost>'
   echo ''
-  echo 'Example: sh mysql_dbt2_plans.sh -d dbt2 -o explain.out'
+  echo 'Example: dbt2-mysql-plans -d dbt2 -o explain.out'
   echo ''
 }
 

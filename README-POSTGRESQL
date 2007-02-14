@@ -49,14 +49,14 @@ through the GUC database settings.
 
 A really quick howto.
 
-Edit scripts/pgsql/pgsql_profile.in and follow the notes for the PGDATA and
+Edit bin/pgsql/pgsql_profile.in and follow the notes for the PGDATA and
 DBDATA directory.  PGDATA is where the database directory will be created and
 DBDATA is where the database table data will be generated.
 
-Run configure after editing scripts/pgsql/pgsql_profile.in.
+Run configure after editing bin/pgsql/pgsql_profile.in.
 
-Create a 1 warehouse database by running scripts/pgsql/build_db.sh:
-	build_db.sh -g -w 1
+Create a 1 warehouse database by running bin/pgsql/dbt2-pgsql-build-db:
+	dbt2-pgsql-build-db -g -w 1
 
 Additional flags:
 
@@ -66,8 +66,8 @@ Additional flags:
 	-t    -  Use tablespaces, read tablespace notes below.
 
 
-Run a 5 minute (300 second) test by running scripts/run_workload.sh:
-	run_workload.sh -d 300 -w 1
+Run a 5 minute (300 second) test by running bin/dbt2-run-workload:
+	dbt2-run-workload -d 300 -w 1
 
 Additional flags:
 
@@ -128,7 +128,7 @@ is pointing to the correct directory you just generated above.
 Then run "client" program manually,
 you can monitor the query queue length by type "status" command.
 
-cd <dbt2_home>/scripts/pgsql
+cd <dbt2_home>/bin/pgsql
 ../../src/client -d localhost -c 2 -l 5432 -o ../output/0
 
 Then run "driver" program manually,

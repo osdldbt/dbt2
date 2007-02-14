@@ -13,9 +13,9 @@ DIR=`dirname $0`
 source ${DIR}/dbt2_profile || exit 1
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall client; killall driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' INT
+	killall dbt2-client; killall dbt2-driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' TERM
+	killall dbt2-client; killall dbt2-driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh' TERM
 
 do_sleep()
 {
@@ -50,7 +50,8 @@ oprofile_annotate()
 	${COMMAND} mkdir -p ${DIR}/oprofile/
 	${COMMAND} mkdir -p ${DIR}/oprofile/annotate
 	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt 2>&1"
+		${COMMAND} "sudo opannotate --source \
+				--assembly > ${DIR}/oprofile/assembly.txt 2>&1"
 	else
 		sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt 2>&1
 	fi
@@ -189,7 +190,7 @@ usage()
 		echo "error: $1"
 	fi
 	echo ''
-	echo 'usage: run_workload.sh -c <number of database connections> -d <duration of test> -w <number of warehouses>'
+	echo 'usage: dbt2-run-workload -c <number of database connections> -d <duration of test> -w <number of warehouses>'
 	echo 'other options:'
 	echo '       -d <database name. (default dbt2)>'
 	echo '       -h <database host name. (default localhost)>'
@@ -198,13 +199,14 @@ usage()
 	echo '       -s <delay of starting of new threads in milliseconds>'
 	echo '       -n <no thinking or keying time (default no)>'
 	if [ "$DBDIR" == "mysql" ]; then
-	echo '       -u <database user>'
-	echo '       -x <database password>'
+		echo '       -u <database user>'
+		echo '       -x <database password>'
 	fi
 	echo '       -z <comments for the test>'
 	echo ''
 	echo 'Example: sh run_workload.sh -c 20 -d 100 -w 1'
-	echo 'Test will be run for 120 seconds with 20 database connections and scale factor (num of warehouses) 1'
+	echo 'Test will be run for 120 seconds with 20 database connections and '
+	echo 'scale factor (num of warehouses) 1.'
 	echo ''
 }
 
@@ -353,7 +355,8 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 fi
 
 # Update log.html
-echo "<a href='$RUN_NUMBER/report/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/bin/output/log.html
+echo "<a href='$RUN_NUMBER/report/'>$RUN_NUMBER</a>: $COMMENT<br />" \
+		>> ${abs_top_srcdir}/bin/output/log.html
 
 # Update the run number for the next test.
 RUN_NUMBER=`expr $RUN_NUMBER + 1`
@@ -378,12 +381,12 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 fi
 
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-stop-db
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/bin/${DBDIR}/start_db.sh ${START_DB_ARGS} -p \"${DB_PARAMS}\"" || exit 1
+	${DB_COMMAND} "${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
 else
-	${abs_top_srcdir}/bin/${DBDIR}/start_db.sh ${START_DB_ARGS} \
-			-p "${DB_PARAMS}" || exit 1
+	${abs_top_srcdir}/bin/${DBDIR}/dbt2-pgsql-start-db ${START_DB_ARGS} \
+			-p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
 fi
 
 #
@@ -457,7 +460,7 @@ elif [ ${DBDIR} == "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
 fi
 CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}"
-${abs_top_srcdir}/src/client ${CLIENT_COMMAND_ARGS} > \
+${abs_top_srcdir}/src/dbt2-client ${CLIENT_COMMAND_ARGS} > \
 		${OUTPUT_DIR}/client.out 2>&1 || exit 1 &
 
 # Sleep long enough for all the client database connections to be established.
@@ -469,14 +472,15 @@ SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-${abs_top_srcdir}/bin/sysstats.sh \
+${abs_top_srcdir}/bin/dbt2-sysstats \
 		--iter ${ITERATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	${DB_COMMAND} "${abs_top_srcdir}/bin/sysstats.sh --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR \
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-db-stat \
+		-o $DB_OUTPUT_DIR \
 		-i $ITERATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
@@ -494,7 +498,7 @@ echo "${SLEEPY} threads started per millisecond"
 
 DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
 DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -l ${DURATION} -wmin 1 -wmax ${WAREHOUSES} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DRIVER_OUTPUT_DIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
-${abs_top_srcdir}/src/driver ${DRIVER_COMMAND_ARGS} > \
+${abs_top_srcdir}/src/dbt2-driver ${DRIVER_COMMAND_ARGS} > \
 		${OUTPUT_DIR}/driver.out 2>&1 || exit 1&
 
 echo -n "estimated rampup time: "
@@ -542,15 +546,15 @@ echo "Stage 3. Processing of results..."
 
 # Client doesn't go away by itself like the driver does, so kill it.
 echo "Killing client..."
-killall client driver 2> /dev/null
+killall dbt2-client dbt2-driver 2> /dev/null
 
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/stop_db.sh
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-stop-db
 if [ ${USE_PGPOOL} -eq 1 ]; then
 	@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf stop
 fi
 
 # Run some post processing analysese.
-${abs_top_srcdir}/bin/post-process \
+${abs_top_srcdir}/bin/dbt2-post-process \
 		--dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -583,8 +587,9 @@ chmod 644 ${DB_OUTPUT_DIR}/log
 # Postprocessing of Database Statistics
 post_process_sar ${OUTPUT_DIR}/sar_raw.out
 post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
-if [ -f "${abs_top_srcdir}/bin/${DBDIR}/analyze_stats.pl" ]; then
-	${abs_top_srcdir}/bin/${DBDIR}/analyze_stats.pl --dir ${DB_OUTPUT_DIR}
+if [ -f "${abs_top_srcdir}/bin/${DBDIR}/dbt2-${DBDIR}-analyze-stats" ]; then
+	${abs_top_srcdir}/bin/${DBDIR}/dbt2-pgsql-analyze-stats \
+			--dir ${DB_OUTPUT_DIR}
 fi
 
 

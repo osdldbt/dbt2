@@ -59,13 +59,13 @@ load_table warehouse
 
 wait
 
-${DIR}/create_indexes.sh ${TABLESPACES_FLAG} || exit 1
+${DIR}/dbt2-pgsql-create-indexes ${TABLESPACES_FLAG} || exit 1
 
 # load C or SQL implementation of the stored procedures
 if true; then
-  ${DIR}/load_stored_funcs.sh || exit 1
+  ${DIR}/dbt2-pgsql-load-stored-funcs || exit 1
 else
-  ${DIR}/load_stored_procs.sh || exit 1
+  ${DIR}/dbt2-pgsql-load-stored-procs || exit 1
 fi
 
 ${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1

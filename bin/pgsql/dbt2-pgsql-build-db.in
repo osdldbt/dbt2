@@ -14,8 +14,8 @@ DIR=`dirname ${0}`
 usage()
 {
     echo "Usage:"
-    echo "    build_db.sh [options]"
-    echo "    build_db.sh -h"
+    echo "    dbt2-pgsql-build-db [options]"
+    echo "    dbt2-pgsql-build-db -h"
     echo "Options:"
     echo "    -b"
     echo "        Load tables and create indexes in parallel."
@@ -67,18 +67,19 @@ while getopts "bd:ghp:rtw:" OPT; do
 done
 
 if [ ${GENERATE_DATAFILE} -eq 1 ]; then
-	${TOPDIR}/src/datagen -d ${DBDATA} -w ${WAREHOUSES} --pgsql || exit 1
+	${TOPDIR}/src/dbt2-datagen -d ${DBDATA} -w ${WAREHOUSES} --pgsql || exit 1
 fi
 
 if [ ${REBUILD_DB} -eq 1 ]; then
 	echo "Restart the database to reset database parameters."
-	${DIR}/stop_db.sh
-	${DIR}/start_db.sh -p "${PARAMETERS}" || exit 1
-	${DIR}/drop_db.sh
+	${DIR}/dbt2-pgsql-stop-db
+	${DIR}/dbt2-pgsql-start-db -p "${PARAMETERS}" || exit 1
+	${DIR}/dbt2-pgsql-drop-db
 fi
 
-${DIR}/create_db.sh || exit 1
-${DIR}/create_tables.sh ${TABLESPACES_FLAG} || exit 1
-${DIR}/load_db.sh -d ${DBDATA} ${BACKGROUND_FLAG} ${TABLESPACES_FLAG} || exit 1
+${DIR}/dbt2-pgsql-create-db || exit 1
+${DIR}/dbt2-pgsql-create-tables ${TABLESPACES_FLAG} || exit 1
+${DIR}/dbt2-pgsql-load-db -d ${DBDATA} ${BACKGROUND_FLAG} \
+		${TABLESPACES_FLAG} || exit 1
 
 exit 0

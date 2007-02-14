@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# build_db.sh
+# dbt2-mysql-build-db
 
 TOPDIR="@abs_top_srcdir@"
 source ${TOPDIR}/bin/dbt2_profile || exit 1
@@ -13,7 +13,7 @@ usage() {
   fi
 
   echo ''
-  echo 'usage: build_db.sh [options]'
+  echo 'usage: dbt2-mysql-build-db [options]'
   echo 'options:'
   echo '       -d <database name>'
   echo '       -f <path to dataset files>'
@@ -28,7 +28,7 @@ usage() {
   echo '       -v <verbose>'  
   echo '       -w <scale factor>'  
   echo ''
-  echo 'Example: bash build_db.sh -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock'
+  echo 'Example: dbt2-mysql-build-db -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock'
   echo ''
 }
 
@@ -445,14 +445,14 @@ if [ "${DB_PASSWORD}" != "" ]; then
 fi
 
 if [ ! -f "@MYSQLDIR@/var/localhost.pid" ]; then
-	${DIR}/start_db.sh || exit 1
+	${DIR}/dbt2-mysql-start-db || exit 1
 fi
 
 if [ ${GENERATE_DATAFILE} -eq 1 ]; then
 	#
 	# Generate data files.
 	#
-	${TOPDIR}/src/datagen -d ${DBDATA} -w ${WAREHOUSES} --mysql || exit 1
+	${TOPDIR}/src/dbt2-datagen -d ${DBDATA} -w ${WAREHOUSES} --mysql || exit 1
 fi
 
 MYSQL_ARGS="$MYSQL_ARGS -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"

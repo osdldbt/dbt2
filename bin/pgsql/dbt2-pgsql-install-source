@@ -10,7 +10,7 @@
 #
 
 if [ $# -lt 3 ]; then
-	echo "usage: install-source <DIR or DATE> <TMP DIR> <INSTALL DIR> <J FLAG> <FORCE>"
+	echo "usage: dbt2-pgsql-install-source <DIR or DATE> <TMP DIR> <INSTALL DIR> <J FLAG> <FORCE>"
 	exit 1
 fi
 

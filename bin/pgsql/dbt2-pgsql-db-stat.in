@@ -33,7 +33,7 @@ done
 @PSQL@ -e -d ${DBNAME} -c "select * from pg_stat_user_indexes;" -o $OUTPUT_DIR/indexes.out
 
 # Get the plans before the test.
-@abs_top_srcdir@/bin/pgsql/db_plans.sh -o $OUTPUT_DIR/plan0.out
+@abs_top_srcdir@/bin/pgsql/dbt2-pgsql-db-plans -o $OUTPUT_DIR/plan0.out
 
 COUNTER=0
 
@@ -52,4 +52,4 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 done
 
 # Get the plans after the test.
-${TOPDIR}/bin/pgsql/db_plans.sh -o ${OUTPUT_DIR}/plan1.out
+${TOPDIR}/bin/pgsql/dbt2-pgsql-db-plans -o ${OUTPUT_DIR}/plan1.out

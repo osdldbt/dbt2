@@ -23,7 +23,7 @@ else
 	cp -p ${DIR}/pg_hba.conf ${PGDATA}/ || exit 1
 fi
 
-${DIR}/start_db.sh || exit 1
+${DIR}/dbt2-pgsql-start-db || exit 1
 
 # Give the database a few seconds to get going
 sleep 4

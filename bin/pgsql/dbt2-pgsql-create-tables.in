@@ -57,20 +57,28 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	#
 	# Don't need to '|| exit 1' in case the tablespaces do not already exist.
 	#
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_WAREHOUSE};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_WAREHOUSE} LOCATION '${TS_WAREHOUSE_DIR}';"
+	${PSQL} -e -d ${DBNAME} \
+			-c "DROP ${TS_WAREHOUSE};"
+	${PSQL} -e -d ${DBNAME} \
+			-c "CREATE ${TS_WAREHOUSE} LOCATION '${TS_WAREHOUSE_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_DISTRICT};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_DISTRICT} LOCATION '${TS_DISTRICT_DIR}';"
+	${PSQL} -e -d ${DBNAME} \
+			-c "CREATE ${TS_DISTRICT} LOCATION '${TS_DISTRICT_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_CUSTOMER} LOCATION '${TS_CUSTOMER_DIR}';"
+	${PSQL} -e -d ${DBNAME} \
+			-c "CREATE ${TS_CUSTOMER} LOCATION '${TS_CUSTOMER_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_HISTORY};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_HISTORY} LOCATION '${TS_HISTORY_DIR}';"
+	${PSQL} -e -d ${DBNAME} \
+			-c "CREATE ${TS_HISTORY} LOCATION '${TS_HISTORY_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_NEW_ORDER};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_NEW_ORDER} LOCATION '${TS_NEW_ORDER_DIR}';"
+	${PSQL} -e -d ${DBNAME} \
+			-c "CREATE ${TS_NEW_ORDER} LOCATION '${TS_NEW_ORDER_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ORDERS};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_ORDERS} LOCATION '${TS_ORDERS_DIR}';"
+	${PSQL} -e -d ${DBNAME} \
+			-c "CREATE ${TS_ORDERS} LOCATION '${TS_ORDERS_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ORDER_LINE};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_ORDER_LINE} LOCATION '${TS_ORDER_LINE_DIR}';"
+	${PSQL} -e -d ${DBNAME} \
+			-c "CREATE ${TS_ORDER_LINE} LOCATION '${TS_ORDER_LINE_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ITEM};"
 	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_ITEM} LOCATION '${TS_ITEM_DIR}';"
 	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_STOCK};"
