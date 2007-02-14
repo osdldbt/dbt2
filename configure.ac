@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1815 2007-02-14 06:43:04Z markwkm $)
+AC_REVISION($Id: configure.ac 1816 2007-02-14 07:07:23Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.41pre1, osdldbt-general@lists.sourceforge.net)
@@ -20,14 +20,10 @@ AC_CANONICAL_BUILD
 case $build in
 *-*-solaris*)
   AC_DEFINE(SOLARIS, 1, [Build for solaris])
-  AC_CONFIG_FILES([bin/SunOS/get_os_info.sh],
-      [chmod +x bin/SunOS/get_os_info.sh])
   ;;
 *-*-linux*)
   AC_DEFINE(LINUX, 1, [Build for Linux])
   AC_DEFINE(BROKEN_SEMAPHORES, 1, [Pthread semaphores are broken])
-  AC_CONFIG_FILES([bin/Linux/get_os_info.sh],
-      [chmod +x bin/Linux/get_os_info.sh])
   ;;
 *-*-darwin*)
   AC_DEFINE(DARWIN, 1, [Build for DARWIN])
@@ -578,5 +574,6 @@ AC_CONFIG_FILES([storedproc/Makefile])
 AC_CONFIG_FILES([bin/dbt2_profile])
 AC_CONFIG_FILES([bin/dbt2-sysstats], [chmod +x bin/dbt2-sysstats])
 AC_CONFIG_FILES([bin/dbt2-run-workload], [chmod +x bin/dbt2-run-workload])
+AC_CONFIG_FILES([bin/dbt2-get-os-info], [chmod +x bin/dbt2-get-os-info])
 
 AC_OUTPUT

@@ -8,12 +8,22 @@
 #
 
 while getopts "o:" opt; do
-	case $opt in
+	case ${opt} in
 	o)
-		OUTPUT_DIR=$OPTARG
+		OUTPUT_DIR=${OPTARG}
 		;;
 	esac
 done
 
+OS=`uname -s`
+
 # I don't think capturing error messages is important here.
-@SYSCTL@ -a 2> /dev/null | sort > $OUTPUT_DIR/proc.out
+if [ -f @SYSCTL@ ]; then
+	if [ "${OS}" == "Linux" ]; then
+		@SYSCTL@ -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.out
+	elif [ "${OS}" == "SunOS" ]; then
+		@SYSCTL@ -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.out
+	else
+		echo "Unknown OS: ${OS}"
+	fi
+fi

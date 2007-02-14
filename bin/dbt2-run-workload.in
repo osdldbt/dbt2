@@ -369,8 +369,7 @@ uname -a >> $OUTPUT_DIR/readme.txt
 echo "Command line: $0 $@" >> $OUTPUT_DIR/readme.txt
 
 # Get any OS specific information.
-OS_DIR=`uname`
-$abs_top_srcdir/bin/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
+$abs_top_srcdir/bin/dbt2-get-os-info -o $OUTPUT_DIR
 
 # Output run information into the readme.txt.
 echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
