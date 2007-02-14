@@ -19,13 +19,13 @@ LIBDIR=@LIBDIR@; export LIBDIR
 # Our database will be named dbt2
 DBNAME=dbt2; export DBNAME
 
-# Data instance path.  Storage location for this instance of the database
+# Database instance path.  Storage location for this instance of the database
 # should be within the working directory.  If you're going to mount a device,
-# do it at /mnt/postgresql.
-PGDATA=/mnt/dbt2/pgdata; export PGDATA
+# do it at '${HOME}/local/dbt2' as opposed to ${HOME}/local/dbt2/pgdata.
+PGDATA=${HOME}/local/dbt2/pgdata; export PGDATA
 
 # Directory with tablespace mount points, if using tablespaces.
-TSDIR=/mnt/dbt2
+TSDIR=${HOME}/local/dbt2
 
 # Flag to use PGPOOL.
 USE_PGPOOL=0
