@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_REVISION($Id: configure.ac 1814 2007-02-14 06:21:29Z markwkm $)
+AC_REVISION($Id: configure.ac 1815 2007-02-14 06:43:04Z markwkm $)
 
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(dbt2, 0.41pre1, osdldbt-general@lists.sourceforge.net)
@@ -437,8 +437,6 @@ find the right location for the libpq library.])
       [chmod +x bin/pgsql/dbt2-pgsql-drop-tables])
   AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-load-db],
       [chmod +x bin/pgsql/dbt2-pgsql-load-db])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-load-stored-funcs],
-      [chmod +x bin/pgsql/dbt2-pgsql-load-stored-funcs])
   AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-load-stored-procs],
       [chmod +x bin/pgsql/dbt2-pgsql-load-stored-procs])
   AC_CONFIG_FILES([bin/pgsql/restore.sh], [chmod +x bin/pgsql/restore.sh])

@@ -61,11 +61,11 @@ wait
 
 ${DIR}/dbt2-pgsql-create-indexes ${TABLESPACES_FLAG} || exit 1
 
-# load C or SQL implementation of the stored procedures
+# load C or pl/pgsql implementation of the stored procedures
 if true; then
-  ${DIR}/dbt2-pgsql-load-stored-funcs || exit 1
+  ${DIR}/dbt2-pgsql-load-stored-procs c|| exit 1
 else
-  ${DIR}/dbt2-pgsql-load-stored-procs || exit 1
+  ${DIR}/dbt2-pgsql-load-stored-procs plpgsql || exit 1
 fi
 
 ${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
