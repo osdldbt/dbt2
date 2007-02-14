@@ -5,6 +5,7 @@ v0.40
 - Added scripts to run a test against a pull from PostgreSQL's CVS repository.
 - Fixed 90th percentile and steady state metric calculations.
 - Added support for pgpool.
+- Fixed memory violation with datagen.
 
 v0.39
 
