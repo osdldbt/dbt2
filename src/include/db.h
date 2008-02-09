@@ -28,6 +28,9 @@
 #include "mysql_common.h"
 #endif /* LIBMYSQL */
 
+#ifdef LIBSQLITE
+#include "sqlite_common.h"
+#endif /* LIBSQLITE */
 
 int connect_to_db(struct db_context_t *dbc);
 #ifdef ODBC

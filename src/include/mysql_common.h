@@ -23,6 +23,7 @@ struct sql_result_t
   MYSQL_RES * result_set;
   MYSQL_ROW current_row;
   unsigned int num_fields;
+#define HAVE_SQL_RESULT_NUM_ROWS
   unsigned int num_rows;
   unsigned long * lengths;
   char * query;
