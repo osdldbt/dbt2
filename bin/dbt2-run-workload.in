@@ -3,7 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
 abs_top_srcdir=@abs_top_srcdir@
@@ -487,12 +487,12 @@ ${abs_top_srcdir}/bin/dbt2-sysstats \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/bin/sysstats.sh --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
+	${DB_COMMAND} "${abs_top_srcdir}/bin/dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
-if [ -x ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh ]; then
-	${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/db_stat.sh \
-			-o $DB_OUTPUT_DIR -i $ITERATIONS -s $SAMPLE_LENGTH \
-			> $OUTPUT_DIR/dbstats.out 2>&1 &
+if [ -x ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-db-stat ]; then
+	${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-db-stat \
+			-o ${DB_OUTPUT_DIR} -i ${ITERATIONS} -s ${SAMPLE_LENGTH} \
+			-l ${DB_PORT} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 fi
 
 # Initialize oprofile before we start the driver.

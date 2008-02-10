@@ -3,7 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2005-2007 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2005-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
 #
@@ -12,23 +12,26 @@
 
 explain() {
 	SQL="EXPLAIN ${@}"
-	@PSQL@ -e -d ${DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
+	@PSQL@ -p ${PORT} -e -d ${DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
 }
 
 TOPDIR="@abs_top_srcdir@"
 export DATABASE="pgsql"
 source ${TOPDIR}/bin/dbt2_profile || exit 1
 
-while getopts "o:" opt; do
-	case $opt in
+while getopts "l:o:" opt; do
+	case ${opt} in
+	l)
+		PORT=${OPTARG}
+		;;
 	o)
-		OUTPUT_FILE=$OPTARG
+		OUTPUT_FILE=${OPTARG}
 		;;
 	esac
 done
 
 if [ "${OUTPUT_FILE}" == "" ]; then
-	echo "usage: db_plan.sh -o <outfile>"
+	echo "usage: $0 -o <outfile>"
 	exit 1
 fi
 

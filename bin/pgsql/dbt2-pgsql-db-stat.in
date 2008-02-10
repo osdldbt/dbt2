@@ -3,17 +3,20 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
 TOPDIR="@abs_top_srcdir@"
 export DATABASE="pgsql"
 source ${TOPDIR}/bin/dbt2_profile || exit 1
 
-while getopts "i:o:s:" opt; do
+while getopts "l:i:o:s:" opt; do
 	case $opt in
 	i)
 		ITERATIONS=$OPTARG
+		;;
+	l)
+		PORT=${OPTARG}
 		;;
 	o)
 		OUTPUT_DIR=$OPTARG
@@ -24,33 +27,35 @@ while getopts "i:o:s:" opt; do
 	esac
 done
 
+PSQL="@PSQL@ -p ${PORT} -e -d ${DBNAME}"
+
 # Get database version.
 @PG_CONFIG@ --version >> $OUTPUT_DIR/readme.txt
 
 # Get database parameters.
-@PSQL@ -e -d ${DBNAME} -c "show all"  > $OUTPUT_DIR/param.out
+${PSQL} -c "show all"  > $OUTPUT_DIR/param.out
 
 # Get indexes.
-@PSQL@ -e -d ${DBNAME} -c "select * from pg_stat_user_indexes;" -o $OUTPUT_DIR/indexes.out
+${PSQL} -c "select * from pg_stat_user_indexes;" -o $OUTPUT_DIR/indexes.out
 
 # Get the plans before the test.
-@abs_top_srcdir@/bin/pgsql/dbt2-pgsql-db-plans -o $OUTPUT_DIR/plan0.out
+${TOPDIR}/bin/pgsql/dbt2-pgsql-plans -l ${PORT} -o ${OUTPUT_DIR}/plan0.out
 
 COUNTER=0
 
 while [ $COUNTER -lt $ITERATIONS ]; do
-	@PSQL@ -e -d ${DBNAME} -c "SELECT relname, pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation ORDER BY relname;" >> $OUTPUT_DIR/lockstats.out
-	@PSQL@ -e -d ${DBNAME} -c "SELECT * FROM pg_locks WHERE transaction IS NOT NULL;" >> $OUTPUT_DIR/tran_lock.out
-	@PSQL@ -e -d ${DBNAME} -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out
-	@PSQL@ -e -d ${DBNAME} -c "SELECT * FROM pg_stat_database WHERE datname ='${DBNAME}';" >> $OUTPUT_DIR/db_load.out
-	@PSQL@ -e -d ${DBNAME} -c "SELECT relid, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit FROM pg_statio_user_tables ORDER BY relname;" >> $OUTPUT_DIR/table_info.out
-	@PSQL@ -e -d ${DBNAME} -c "SELECT relid, indexrelid, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_statio_user_indexes ORDER BY indexrelname;" >> $OUTPUT_DIR/index_info.out
-	@PSQL@ -e -d ${DBNAME} -c "SELECT * FROM pg_stat_user_tables;" >> $OUTPUT_DIR/table_scan.out
-	@PSQL@ -e -d ${DBNAME} -c "SELECT * FROM pg_stat_user_indexes;" >> $OUTPUT_DIR/indexes_scan.out
+	${PSQL} -c "SELECT relname, pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation ORDER BY relname;" >> $OUTPUT_DIR/lockstats.out
+	${PSQL} -c "SELECT * FROM pg_locks WHERE transaction IS NOT NULL;" >> $OUTPUT_DIR/tran_lock.out
+	${PSQL} -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out
+	${PSQL} -c "SELECT * FROM pg_stat_database WHERE datname ='${DBNAME}';" >> $OUTPUT_DIR/db_load.out
+	${PSQL} -c "SELECT relid, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit FROM pg_statio_user_tables ORDER BY relname;" >> $OUTPUT_DIR/table_info.out
+	${PSQL} -c "SELECT relid, indexrelid, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_statio_user_indexes ORDER BY indexrelname;" >> $OUTPUT_DIR/index_info.out
+	${PSQL} -c "SELECT * FROM pg_stat_user_tables;" >> $OUTPUT_DIR/table_scan.out
+	${PSQL} -c "SELECT * FROM pg_stat_user_indexes;" >> $OUTPUT_DIR/indexes_scan.out
 
 	COUNTER=$(( $COUNTER+1 ))
 	sleep $SAMPLE_LENGTH
 done
 
 # Get the plans after the test.
-${TOPDIR}/bin/pgsql/dbt2-pgsql-db-plans -o ${OUTPUT_DIR}/plan1.out
+${TOPDIR}/bin/pgsql/dbt2-pgsql-plans -l ${PORT} -o ${OUTPUT_DIR}/plan1.out
