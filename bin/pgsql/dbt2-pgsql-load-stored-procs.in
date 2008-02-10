@@ -3,7 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
 TOPDIR="@abs_top_srcdir@"
@@ -12,43 +12,44 @@ source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 usage()
 {
-	echo "Usage: dbt2-pgsql-load-stored-procs [c | plpgsql]"
+	echo "Usage: dbt2-pgsql-load-stored-procs -t <c|plpgsql> [-l <PORT>]"
 	echo "    c       - C stored functions"
 	echo "    plpgsql - pl/pgsql stored functions"
 }
 
-if [ $# -ne 1 ]; then
+while getopts "l:t:" OPT; do
+	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	t)
+		TYPE=${OPTARG}
+		;;
+	esac
+done
+
+if [ -z "${TYPE}" ]; then
 	usage
 	exit 1
 fi
 
-TYPE=${1}
+PSQL="${PSQL} -p ${PORT} -e -d ${DBNAME}"
 
 if [ "${TYPE}" == "plpgsql" ]; then
 	echo "loading pl/pgsql stored functions..."
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/delivery.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/new_order_2.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/new_order.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/order_status.sql || exit 1
-	${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/payment.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/stock_level.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/delivery.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/new_order_2.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/new_order.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/order_status.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/payment.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/stock_level.sql || exit 1
 elif [ "${TYPE}" == "c" ]; then
 	echo "loading C stored functions..."
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/c/delivery.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/c/new_order.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/c/order_status.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/c/payment.sql || exit 1
-	${PSQL} -e -d ${DBNAME} \
-			-f ${TOPDIR}/storedproc/pgsql/c/stock_level.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/c/delivery.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/c/new_order.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/c/order_status.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/c/payment.sql || exit 1
+	${PSQL} -f ${TOPDIR}/storedproc/pgsql/c/stock_level.sql || exit 1
 else
 	echo "unknown stored function type: ${TYPE}"
 	exit 2

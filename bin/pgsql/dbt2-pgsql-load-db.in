@@ -3,7 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see # the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
 TOPDIR="@abs_top_srcdir@"
@@ -13,13 +13,16 @@ source ${TOPDIR}/bin/dbt2_profile || exit 1
 DIR=`dirname $0`
 BACKGROUND="no"
 
-while getopts "bd:t" OPT; do
+while getopts "bd:l:t" OPT; do
 	case ${OPT} in
 	b)
 		BACKGROUND="yes"
 		;;
 	d)
 		DBDATA=${OPTARG}
+		;;
+	l)
+		PORT=${OPTARG}
 		;;
 	t)
 		TABLESPACES_FLAG="-t"
@@ -38,7 +41,7 @@ load_table() {
 	fi
 
 	local sql="COPY $table FROM '${DBDATA}/$file' WITH NULL AS '';"
-	local cmd="${PSQL} -e -d ${DBNAME} -c "
+	local cmd="${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 	if [ "${BACKGROUND}" == "yes" ]; then
 		echo "Loading $table table in the background..."
 		${cmd} "${sql} VACUUM ANALYZE $table;" || exit 1 &
@@ -60,16 +63,16 @@ load_table warehouse
 
 wait
 
-${DIR}/dbt2-pgsql-create-indexes ${TABLESPACES_FLAG} || exit 1
+${DIR}/dbt2-pgsql-create-indexes -l ${PORT} ${TABLESPACES_FLAG} || exit 1
 
 # load C or pl/pgsql implementation of the stored procedures
 if true; then
-  ${DIR}/dbt2-pgsql-load-stored-procs c|| exit 1
+  ${DIR}/dbt2-pgsql-load-stored-procs -l ${PORT} -t c|| exit 1
 else
-  ${DIR}/dbt2-pgsql-load-stored-procs plpgsql || exit 1
+  ${DIR}/dbt2-pgsql-load-stored-procs -l ${PORT} -t plpgsql || exit 1
 fi
 
-${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
 
 # VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
 # tables. The VACUUM FULL is probably unnecessary; we want to scan the
@@ -77,7 +80,7 @@ ${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
 # VACUUM ought to suffice for that.
 
 if [ "${BACKGROUND}" == "no" ]; then
-    $VACUUMDB -z -f -d ${DBNAME} || exit 1
+    ${VACUUMDB} -p ${PORT} -z -f -d ${DBNAME} || exit 1
 fi
 
 exit 0

@@ -3,7 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labss, Inc.
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labss, Inc.
 #
 
 TOPDIR="@abs_top_srcdir@"
@@ -11,13 +11,18 @@ export DATABASE="pgsql"
 source ${TOPDIR}/bin/dbt2_profile || exit 1
 
 USE_TABLESPACES=0
-while getopts "t" OPT; do
+while getopts "l:t" OPT; do
 	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
 	t)
 		USE_TABLESPACES=1
 		;;
 	esac
 done
+
+PSQL="${PSQL} -p ${PORT} -e -d ${DBNAME}"
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_WAREHOUSE_DIR=${TSDIR}/warehouse/ts
@@ -58,35 +63,27 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	#
 	# Don't need to '|| exit 1' in case the tablespaces do not already exist.
 	#
-	${PSQL} -e -d ${DBNAME} \
-			-c "DROP ${TS_WAREHOUSE};"
-	${PSQL} -e -d ${DBNAME} \
-			-c "CREATE ${TS_WAREHOUSE} LOCATION '${TS_WAREHOUSE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_DISTRICT};"
-	${PSQL} -e -d ${DBNAME} \
-			-c "CREATE ${TS_DISTRICT} LOCATION '${TS_DISTRICT_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER};"
-	${PSQL} -e -d ${DBNAME} \
-			-c "CREATE ${TS_CUSTOMER} LOCATION '${TS_CUSTOMER_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_HISTORY};"
-	${PSQL} -e -d ${DBNAME} \
-			-c "CREATE ${TS_HISTORY} LOCATION '${TS_HISTORY_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_NEW_ORDER};"
-	${PSQL} -e -d ${DBNAME} \
-			-c "CREATE ${TS_NEW_ORDER} LOCATION '${TS_NEW_ORDER_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ORDERS};"
-	${PSQL} -e -d ${DBNAME} \
-			-c "CREATE ${TS_ORDERS} LOCATION '${TS_ORDERS_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ORDER_LINE};"
-	${PSQL} -e -d ${DBNAME} \
-			-c "CREATE ${TS_ORDER_LINE} LOCATION '${TS_ORDER_LINE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ITEM};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_ITEM} LOCATION '${TS_ITEM_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_STOCK};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_STOCK} LOCATION '${TS_STOCK_DIR}';"
+	${PSQL} -c "DROP ${TS_WAREHOUSE};"
+	${PSQL} -c "CREATE ${TS_WAREHOUSE} LOCATION '${TS_WAREHOUSE_DIR}';"
+	${PSQL} -c "DROP ${TS_DISTRICT};"
+	${PSQL} -c "CREATE ${TS_DISTRICT} LOCATION '${TS_DISTRICT_DIR}';"
+	${PSQL} -c "DROP ${TS_CUSTOMER};"
+	${PSQL} -c "CREATE ${TS_CUSTOMER} LOCATION '${TS_CUSTOMER_DIR}';"
+	${PSQL} -c "DROP ${TS_HISTORY};"
+	${PSQL} -c "CREATE ${TS_HISTORY} LOCATION '${TS_HISTORY_DIR}';"
+	${PSQL} -c "DROP ${TS_NEW_ORDER};"
+	${PSQL} -c "CREATE ${TS_NEW_ORDER} LOCATION '${TS_NEW_ORDER_DIR}';"
+	${PSQL} -c "DROP ${TS_ORDERS};"
+	${PSQL} -c "CREATE ${TS_ORDERS} LOCATION '${TS_ORDERS_DIR}';"
+	${PSQL} -c "DROP ${TS_ORDER_LINE};"
+	${PSQL} -c "CREATE ${TS_ORDER_LINE} LOCATION '${TS_ORDER_LINE_DIR}';"
+	${PSQL} -c "DROP ${TS_ITEM};"
+	${PSQL} -c "CREATE ${TS_ITEM} LOCATION '${TS_ITEM_DIR}';"
+	${PSQL} -c "DROP ${TS_STOCK};"
+	${PSQL} -c "CREATE ${TS_STOCK} LOCATION '${TS_STOCK_DIR}';"
 fi
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE warehouse (
     w_id INTEGER,
     w_name VARCHAR(10),
@@ -100,7 +97,7 @@ CREATE TABLE warehouse (
     ${TS_WAREHOUSE};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE district (
     d_id INTEGER,
     d_w_id INTEGER,
@@ -116,7 +113,7 @@ CREATE TABLE district (
     ${TS_DISTRICT};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE customer (
     c_id INTEGER,
     c_d_id INTEGER,
@@ -142,7 +139,7 @@ CREATE TABLE customer (
     ${TS_CUSTOMER};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE history (
     h_c_id INTEGER,
     h_c_d_id INTEGER,
@@ -155,7 +152,7 @@ CREATE TABLE history (
     ${TS_HISTORY};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE new_order (
     no_o_id INTEGER,
     no_d_id INTEGER,
@@ -163,7 +160,7 @@ CREATE TABLE new_order (
     ${TS_NEW_ORDER};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE orders (
     o_id INTEGER,
     o_d_id INTEGER,
@@ -176,7 +173,7 @@ CREATE TABLE orders (
     ${TS_ORDERS};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE order_line (
     ol_o_id INTEGER,
     ol_d_id INTEGER,
@@ -191,7 +188,7 @@ CREATE TABLE order_line (
     ${TS_ORDER_LINE};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE item (
     i_id INTEGER,
     i_im_id INTEGER,
@@ -201,7 +198,7 @@ CREATE TABLE item (
     ${TS_ITEM};
 " || exit 1
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -c "
 CREATE TABLE stock (
     s_i_id INTEGER,
     s_w_id INTEGER,

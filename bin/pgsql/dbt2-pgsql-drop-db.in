@@ -3,7 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
 TOPDIR="@abs_top_srcdir@"
@@ -16,6 +16,14 @@ if [ -z ${PGDATA} ] ; then
 	exit 1
 fi
 
-${DROPDB} ${DBNAME} || exit 1
+while getopts "l:" OPT; do
+	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
+${DROPDB} -p ${PORT} ${DBNAME} || exit 1
 
 exit 0
