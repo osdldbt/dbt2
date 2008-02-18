@@ -138,11 +138,18 @@ int dbt2_free_values(char ** values, int max_values);
 	"WHERE s_i_id = %d\n" \
 	"  AND s_w_id = %d"
 
+#ifndef LIBSQLITE
+	"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number,\n" \
+	"                        ol_i_id, ol_supply_w_id, ol_delivery_d,\n" \
+	"                        ol_quantity, ol_amount, ol_dist_info)\n" \
+	"VALUES (%s, %d, %d, %d, %d, %d, current_timestamp, %d, %f, '%s')"
+#else
 #define NEW_ORDER_10 \
 	"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number,\n" \
 	"                        ol_i_id, ol_supply_w_id, ol_delivery_d,\n" \
 	"                        ol_quantity, ol_amount, ol_dist_info)\n" \
 	"VALUES (%s, %d, %d, %d, %d, %d, NULL, %d, %f, '%s')"
+#endif
 
 #define ORDER_STATUS_1 \
 	"SELECT c_id\n" \

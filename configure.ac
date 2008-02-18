@@ -547,7 +547,7 @@ elif test "$database_to_use" == "sqlite"; then
   AC_MSG_ERROR(["Package does not yet support ODBC with SQLite.  Use --disable-odbc"])
   fi
   if test -n "$NONSP" -a "$NONSP" == "no"; then
-  AC_MSG_ERROR(["QSLite does not support stored procedures.  Use --enable-nonsp"])
+    AC_MSG_ERROR(["SQLite does not support stored procedures.  Use --enable-nonsp"])
   fi
   NONSP="yes"
   DBC_CORE="sqlite"
