@@ -98,10 +98,6 @@ int main(int argc, char *argv[])
                 printf("-u <db user>\n");
                 printf("-a <db password>\n");
 #endif
-#ifdef LIBSQLITE
-                printf("-d <db_file>\n");
-                printf("\tpath to database file\n");
-#endif
                 return 1;
         }
 

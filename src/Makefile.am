@@ -78,7 +78,6 @@ EXTRA_DIST = include/_semaphore.h \
              include/mysql_order_status.h \
              include/mysql_payment.h \
              include/mysql_stock_level.h \
-             include/sqlite_common.h \
              include/nonsp_common.h \
              include/nonsp_delivery.h \
              include/nonsp_integrity.h \
@@ -108,7 +107,6 @@ EXTRA_DIST = include/_semaphore.h \
              mysql/dbc_delivery.c \
              mysql/dbc_payment.c \
              mysql/dbc_integrity.c \
-             sqlite/dbc_common.c \
              nonsp/dbc_new_order.c \
              nonsp/dbc_stock_level.c \
              nonsp/dbc_nonsp.c \
