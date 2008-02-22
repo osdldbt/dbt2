@@ -461,6 +461,9 @@ void *terminal_worker(void *data)
 	printf("CONNECTED TO DB |%s| |%s| |%s|\n", DB_NAME, sname, dbt2_mysql_port);
 	db_init(sname, "", dbt2_mysql_port);
 #endif /* LIBMYSQL */
+#ifdef LIBSQLITE
+	db_init(sname);
+#endif /* LIBSQLITE */
 
 	if (!exiting && connect_to_db(&dbc) != OK) {
 		LOG_ERROR_MESSAGE("db_connect() error, terminating program");

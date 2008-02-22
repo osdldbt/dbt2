@@ -190,6 +190,15 @@ AC_ARG_WITH(mysql,
   [ac_cv_use_mysql=$withval database_to_use="mysql"]
 )
 
+dnl SQLite
+AC_ARG_WITH(sqlite,
+  [AC_HELP_STRING([--with-sqlite=DIR],
+  [Build C based version of dbt2 test. Set to the path of SQLite's 
+      installation, or leave unset if the path is already in the search 
+      path])],
+  [sqlite_path=$withval database_to_use="sqlite"]
+)
+
 dnl ODBC
 dnl AC_ARG_WITH(odbc,
 dnl   [AC_HELP_STRING([--with-odbc], [Default off, unless using SAP DB.])],
@@ -533,8 +542,40 @@ find the right location for the libmysql library.])
       [chmod +x bin/mysql/dbt2-mysql-start-db])
   AC_CONFIG_FILES([bin/mysql/dbt2-mysql-stop-db],
       [chmod +x bin/mysql/dbt2-mysql-stop-db])
+elif test "$database_to_use" == "sqlite"; then
+  if test "$use_odbc" == "yes"; then
+  AC_MSG_ERROR(["Package does not yet support ODBC with SQLite.  Use --disable-odbc"])
+  fi
+  if test -n "$NONSP" -a "$NONSP" == "no"; then
+    AC_MSG_ERROR(["SQLite does not support stored procedures.  Use --enable-nonsp"])
+  fi
+  NONSP="yes"
+  DBC_CORE="sqlite"
+  DBC_FUNCTIONS="nonsp"
+  SP_DIR=""        
+  AC_DEFINE(LIBSQLITE, 1, [using SQLite])
+
+  if test "$sqlite_path" != "yes"; then
+    sqlite_path=`eval echo "$sqlite_path"`
+    if test -d "$sqlite_path/include"; then
+        CPPFLAGS="$CPPFLAGS -I $sqlite_path/include/"
+      else
+        CPPFLAGS="$CPPFLAGS -I $sqlite_path/"
+    fi
+    if test -d "$sqlite_path/lib"; then
+        CFLAGS="$CFLAGS -L $sqlite_path/lib/"
+      else
+        CFLAGS="$CFLAGS -L $sqlite_path/.libs/"
+    fi
+  fi
+  AC_PATH_PROGS(SQLITE3_BIN, sqlite3, no, "$PATH:$sqlite_path/bin:$sqlite_path")
+  AC_CHECK_HEADERS([sqlite3.h],,AC_MSG_ERROR([Couldn't find sqlite3.h]))
+  AC_CHECK_LIB([sqlite3], [sqlite3_open],,AC_MSG_ERROR([couldn't find libsqlite3]))
+
+  AC_CONFIG_FILES([bin/sqlite/dbt2-sqlite-build-db],
+      [chmod +x bin/sqlite/dbt2-sqlite-build-db])
 else
-  AC_MSG_ERROR('Please choose DBMS. ./configure --with-(postgresql|sapdb|mysql)!')
+  AC_MSG_ERROR('Please choose DBMS. ./configure --with-(postgresql|sapdb|mysql|sqlite)!')
 fi
 AC_SUBST(DBCFLAGS)
 AC_SUBST(DBLDFLAGS)
