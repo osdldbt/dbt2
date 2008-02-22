@@ -190,7 +190,7 @@ usage()
 	echo ''
 	echo 'usage: dbt2-run-workload -c <number of database connections> -d <duration of test> -w <number of warehouses>'
 	echo 'other options:'
-	echo '       -a <mysql | pgsql | sqlite >'
+	echo '       -a <mysql | pgsql>'
 	echo '       -d <database name. (default dbt2)>'
 	echo '       -h <database host name. (default localhost)>'
 	echo '       -l <database port number>'
@@ -466,8 +466,6 @@ if [ ${DBMS} == "pgsql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME}"
 elif [ ${DBMS} == "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
-elif [ ${DBMS} == "sqlite" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 fi
 CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}"
 ${abs_top_srcdir}/src/dbt2-client ${CLIENT_COMMAND_ARGS} > \
@@ -489,11 +487,9 @@ ${abs_top_srcdir}/bin/dbt2-sysstats \
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	${DB_COMMAND} "${abs_top_srcdir}/bin/sysstats.sh --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
-if [ -x ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh ]; then
-	${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/db_stat.sh \
-			-o $DB_OUTPUT_DIR -i $ITERATIONS -s $SAMPLE_LENGTH \
-			> $OUTPUT_DIR/dbstats.out 2>&1 &
-fi
+${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-db-stat \
+		-o $DB_OUTPUT_DIR \
+		-i $ITERATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -561,10 +557,8 @@ echo "Killing client..."
 killall dbt2-client dbt2-driver 2> /dev/null
 
 ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db
-if [ ${DBMS} == "pgsql" ]; then
-	if [ ${USE_PGPOOL} -eq 1 ]; then
-		@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf stop
-	fi
+if [ ${USE_PGPOOL} -eq 1 ]; then
+	@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf stop
 fi
 
 # Run some post processing analysese.
@@ -596,9 +590,7 @@ fi
 
 # Change the permissions on the database log, not readable by other users by
 # default.  (No, not the transaction log.)
-if [ -f ${DB_OUTPUT_DIR}/log ]; then
-	chmod 644 ${DB_OUTPUT_DIR}/log
-fi
+chmod 644 ${DB_OUTPUT_DIR}/log
 
 # Postprocessing of Database Statistics
 post_process_sar ${OUTPUT_DIR}/sar_raw.out

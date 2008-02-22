@@ -43,16 +43,6 @@
 #endif /* LIBMYSQL */
 
 
-#ifdef LIBSQLITE
-#include "nonsp_delivery.h"
-#include "nonsp_order_status.h"
-#include "nonsp_payment.h"
-#include "nonsp_stock_level.h"
-#include "nonsp_new_order.h"
-#include "nonsp_integrity.h"
-#endif /* LIBSQLITE */
-
-
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
 
@@ -74,9 +64,6 @@ int db_init(char *_dbname, char *_pghost, char *_pgport)
 int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
              char * _mysql_pass, char * _mysql_port, char * _mysql_socket)
 #endif /* LIBMYSQL */
-#ifdef LIBSQLITE
-int db_init(char *_dbname)
-#endif /* LIBSQLITE */
 
 {
 	int rc;
@@ -94,9 +81,6 @@ int db_init(char *_dbname)
                       _mysql_port, _mysql_socket);
 #endif /* LIBMYSQL */
 
-#ifdef LIBSQLITE
-	rc = _db_init(_dbname);
-#endif /* LIBSQLITE */
 
 	return OK;
 }

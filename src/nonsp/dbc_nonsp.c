@@ -20,12 +20,10 @@ void dbt2_escape_str(char *orig_str, char *esc_str)
 		for (i = 0, j = 0; i < len; i++) {
 			if (orig_str[i] == '\'') {
 	      		esc_str[j++] = '\'';
-#ifndef LIBSQLITE
 	    	} else if (orig_str[i] == '\\') {
 	      		esc_str[j++] = '\\';
 	    	} else if (orig_str[i] == ')') {
 	      		esc_str[j++] = '\\';
-#endif
 	    	}
 	    	esc_str[j++] = orig_str[i];
 	  }

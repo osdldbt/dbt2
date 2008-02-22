@@ -87,9 +87,6 @@ void *db_worker(void *data)
        db_init(sname, dbt2_mysql_host , dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
 #endif /* LIBMYSQL */
 
-#ifdef LIBSQLITE
-		db_init(sname);
-#endif /* LIBSQLITE */
 
         if (!exiting && connect_to_db(&dbc) != OK) {
                 LOG_ERROR_MESSAGE("connect_to_db() error, terminating program");

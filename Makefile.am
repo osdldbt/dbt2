@@ -129,10 +129,6 @@ bin/sapdb/trace_off.sh \
 bin/sapdb/trace_on.sh \
 bin/sapdb/update_stats.sh \
 bin/sapdb/warehouse.sql \
-bin/sqlite/dbt2-sqlite-build-db.in \
-bin/sqlite/dbt2-sqlite-plans.in \
-bin/sqlite/dbt2-sqlite-start-db \
-bin/sqlite/dbt2-sqlite-stop-db \
 doc/Makefile \
 doc/maintenance.sxw \
 doc/class.dia \

@@ -23,9 +23,6 @@
 #include "mysql_common.h"
 #endif
 
-#ifdef LIBSQLITE
-#include "sqlite_common.h"
-#endif
 
 void dbt2_escape_str(char *orig_str, char *esc_str);
 int dbt2_init_values(char ** values, int max_values);
@@ -84,20 +81,12 @@ int dbt2_free_values(char ** values, int max_values);
 	"FROM warehouse\n" \
 	"WHERE w_id = %d"
 
-#ifndef LIBSQLITE
 #define NEW_ORDER_2 \
 	"SELECT d_tax, d_next_o_id\n" \
 	"FROM district \n" \
 	"WHERE d_w_id = %d\n" \
 	"  AND d_id = %d\n" \
 	"FOR UPDATE"
-#else
-#define NEW_ORDER_2 \
-   "SELECT d_tax, d_next_o_id\n" \
-   "FROM district \n" \
-   "WHERE d_w_id = %d\n" \
-   "  AND d_id = %d\n"
-#endif
 
 #define NEW_ORDER_3 \
 	"UPDATE district\n" \
@@ -138,18 +127,11 @@ int dbt2_free_values(char ** values, int max_values);
 	"WHERE s_i_id = %d\n" \
 	"  AND s_w_id = %d"
 
-#ifndef LIBSQLITE
-	"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number,\n" \
-	"                        ol_i_id, ol_supply_w_id, ol_delivery_d,\n" \
-	"                        ol_quantity, ol_amount, ol_dist_info)\n" \
-	"VALUES (%s, %d, %d, %d, %d, %d, current_timestamp, %d, %f, '%s')"
-#else
 #define NEW_ORDER_10 \
 	"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number,\n" \
 	"                        ol_i_id, ol_supply_w_id, ol_delivery_d,\n" \
 	"                        ol_quantity, ol_amount, ol_dist_info)\n" \
 	"VALUES (%s, %d, %d, %d, %d, %d, NULL, %d, %f, '%s')"
-#endif
 
 #define ORDER_STATUS_1 \
 	"SELECT c_id\n" \
