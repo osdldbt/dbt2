@@ -3,7 +3,11 @@
 # build_db.sh
 
 TOPDIR="@abs_top_srcdir@"
-source ${TOPDIR}/bin/dbt2_profile || exit 1
+if [ -f "${HOME}/.dbt2_profile" ]; then
+	source ${HOME}/.dbt2_profile || exit 1
+else
+	source ${TOPDIR}/bin/dbt2_profile || exit 1
+fi
 
 usage() {
 

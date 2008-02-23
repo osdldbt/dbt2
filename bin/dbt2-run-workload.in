@@ -190,7 +190,7 @@ usage()
 	echo ''
 	echo 'usage: dbt2-run-workload -c <number of database connections> -d <duration of test> -w <number of warehouses>'
 	echo 'other options:'
-	echo '       -a <mysql | pgsql | sqlite >'
+	echo '       -a < mysql | pgsql | sqlite >'
 	echo '       -d <database name. (default dbt2)>'
 	echo '       -h <database host name. (default localhost)>'
 	echo '       -l <database port number>'
@@ -232,7 +232,11 @@ while getopts "a:c:d:H:hl:nop:s:t:u:w:x:z:" opt; do
 	a)
 		DBMS=${OPTARG}
 		export DATABASE=${DBMS}
-		source ${DIR}/dbt2_profile || exit 1
+		if [ -f "${HOME}/.dbt2_profile" ]; then
+			source ${HOME}/.dbt2_profile || exit 1
+		else
+			source ${DIR}/dbt2_profile || exit 1
+		fi
 		#
 		# Set the default DB_PORT depending on which database is used.
 		#

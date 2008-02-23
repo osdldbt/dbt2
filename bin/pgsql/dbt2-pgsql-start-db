@@ -10,7 +10,11 @@ FLAG=${1}
 
 DIR=`dirname ${0}`
 export DATABASE="pgsql"
-source ${DIR}/pgsql_profile || exit 1
+if [ -f "${HOME}/.pgsql_profile " ]; then
+	source ${HOME}/.pgsql_profile || exit 1
+else
+	source ${DIR}/pgsql_profile || exit 1
+fi
 
 LOGFILE="log"
 OUTDIR="."

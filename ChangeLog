@@ -4,6 +4,8 @@ v0.41
 - Added SQLite support.
 - Renamed all the script with 'dbt2-' prefixes to facilitate a better
   'make install' in the future.
+- Support .dbt_profile and .pgsql_profile, .mysql_profile, etc in user's home
+  directory.
 
 v0.40
 

@@ -15,6 +15,13 @@ DBNAME="dbt2"
 # Path of database data.
 DBDATA=${HOME}/local/dbt2/data; export DBDATA
 
-if [ -f "@abs_top_srcdir@/bin/${DATABASE}/${DATABASE}_profile" ]; then
+
+if [ -f "${HOME}/.${DATABASE}_profile" ]; then
+	source ${HOME}/.${DATABASE}_profile
+elif [ -f "@abs_top_srcdir@/bin/${DATABASE}/${DATABASE}_profile" ]; then
 	source @abs_top_srcdir@/bin/${DATABASE}/${DATABASE}_profile
+else
+	echo "Cannot source '${HOME}/.${DATABASE}_profile' or"
+	echo "'@abs_top_srcdir@/bin/${DATABASE}/${DATABASE}_profile'."
+	exit 1
 fi

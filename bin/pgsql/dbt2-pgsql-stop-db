@@ -8,7 +8,11 @@
 
 DIR=`dirname ${0}`
 export DATABASE="pgsql"
-source ${DIR}/pgsql_profile || exit 1
+if [ -f "${HOME}/.pgsql_profile " ]; then
+	source ${HOME}/.pgsql_profile || exit 1
+else
+	source ${DIR}/pgsql_profile || exit 1
+fi
 
 # We only need to stop the database if it's running.
 if [ -f "${PGDATA}/postmaster.pid" ]; then
