@@ -2,6 +2,7 @@
 
 # build_db.sh
 
+export DATABASE="sqlite"
 TOPDIR="@abs_top_srcdir@"
 if [ -f "${HOME}/.dbt2_profile" ]; then
 	source ${HOME}/.dbt2_profile || exit 1
