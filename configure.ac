@@ -47,35 +47,35 @@ then
   AC_MSG_ERROR([*** grep -E is required])
 fi
 
-AC_PATH_PROGS([VMSTAT], [vmstat], ,
+AC_PATH_PROGS([VMSTAT], [vmstat], [true],
     [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$VMSTAT"
 then
   AC_MSG_WARN([*** vmstat not found some scripts may not be usable])
 fi
 
-AC_PATH_PROGS([IOSTAT], [iostat], ,
+AC_PATH_PROGS([IOSTAT], [iostat], [true],
     [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$IOSTAT"
 then
   AC_MSG_WARN([*** iostat not found some scripts may not be usable])
 fi
 
-AC_PATH_PROGS([GNUPLOT], [gnuplot], ,
+AC_PATH_PROGS([GNUPLOT], [gnuplot], [true],
     [$PATH:/usr/local/bin:/usr/bin:/usr/X11R6/bin])
 if test -z "$GNUPLOT"
 then
   AC_MSG_WARN([*** gnuplot not found some scripts may not be usable])
 fi
 
-AC_PATH_PROGS([SAR], [sar bsdsar], ,
+AC_PATH_PROGS([SAR], [sar bsdsar], [true],
              [$PATH:/usr/local/bin:/usr/bin])
 if test -z "$SAR"
 then
   AC_MSG_WARN([*** sar or bsdsar not found some scripts may not be usable])
 fi
 
-AC_PATH_PROGS([SYSCTL], [sysctl], ,
+AC_PATH_PROGS([SYSCTL], [sysctl], [true],
     [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
 if test -z "$SYSCTL"
 then
