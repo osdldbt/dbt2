@@ -72,13 +72,19 @@ oprofile_collect()
 	echo "oprofile is dumping data: ${HOST}"
 	${COMMAND} sudo opcontrol --dump
 	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > /dev/null 2>&1"
-		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/callgraph.txt > /dev/null 2>&1"
+		echo "Generating oprofile profile on '${HOST}'..."
+		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > ${DIR}/oprofile.log 2>&1"
+		echo "Generating oprofile callgraph on '${HOST}'..."
+		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/callgraph.txt > ${DIR}/oprofile.log 2>&1"
 	else
+		echo "Generating oprofile profile..."
 		sudo opreport -l -p /lib/modules/`uname -r` \
-				-o ${DIR}/oprofile.txt > /dev/null 2>&1
+				-o ${DIR}/oprofile.txt > \
+				${DIR}/oprofile.log 2>&1
+		echo "Generating oprofile callgraph..."
 		sudo opreport -l -c -p /lib/modules/`uname -r` \
-				-o ${DIR}/callgraph.txt > /dev/null 2>&1
+				-o ${DIR}/callgraph.txt > \
+				${DIR}/oprofile.log 2>&1
 	fi
 	${COMMAND} sudo opcontrol --stop
 }
@@ -94,7 +100,8 @@ oprofile_init()
 	fi
 	echo "starting oprofile: ${HOST}"
 	${COMMAND} sudo opcontrol \
-			--vmlinux=/usr/src/linux-`${COMMAND} uname -r`/vmlinux -c 100
+			--vmlinux=/lib/modules/`${COMMAND} uname -r`/vmlinux \
+			-c 100
 	sleep 1
 	START_ARGS=""
 	MACHINE=`${COMMAND} uname -m`
@@ -191,7 +198,7 @@ usage()
 	echo 'usage: dbt2-run-workload -c <number of database connections> -d <duration of test> -w <number of warehouses>'
 	echo 'other options:'
 	echo '       -a < mysql | pgsql | sqlite >'
-	echo '       -d <database name. (default dbt2)>'
+	echo '       -d <seconds>'
 	echo '       -h <database host name. (default localhost)>'
 	echo '       -l <database port number>'
 	echo '       -o <enable oprofile data collection>'
@@ -304,7 +311,7 @@ done
 # Check parameters.
 
 if [ "$DBMS" == "" ]; then
-	echo "specify which dbms system to test using -a <mysql | pgsql>"
+	echo "specify which dbms system to test using -a <mysql | pgsql | sqlite>"
 	exit 1
 fi
 
@@ -542,7 +549,7 @@ echo -n "estimated steady state time: "
 do_sleep $DURATION
 
 # Collect readprofile data.
-if [ -f /proc/profile ]; then
+if [ -f "/proc/profile" ]; then
 	readprofile_collect ${OUTPUT_DIR}
 	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
