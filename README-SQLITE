@@ -1,0 +1,12 @@
+To build the kit:
+
+    ./configure --with-sqlite --enable-nonsp
+    make
+
+To create a database:
+
+    bin/sqlite/dbt2-sqlite-build-db -g -w 1 -d /tmp/dbt2-w1
+
+To run a test:
+
+    bin/dbt2-run-workload -a sqlite -p /tmp/dbt2-w1 -c 1 -d 30 -w 1 -n
