@@ -244,6 +244,7 @@ PG_MODULE_MAGIC;
         "                  AND (%d)"
 
 /* Prototypes to prevent potential gcc warnings. */
+void escape_str(char *, char *);
 
 Datum delivery(PG_FUNCTION_ARGS);
 Datum new_order(PG_FUNCTION_ARGS);

@@ -1,1 +1,0 @@
-SUBDIRS = @SP_DIR@

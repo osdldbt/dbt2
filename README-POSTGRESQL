@@ -1,3 +1,15 @@
+The C stored functions must be built and installed separately from the rest of
+the kit.
+
+cd storedproc/pgsql/c
+make
+make install
+
+The 'make install' function will need to be run by the owner of the database
+installation.
+
+-----
+
 The database parameter listen_addresses must be set to "*"
 (i.e. -c listen_addresses=*) otherwise the database will not accept remote
 tpc/ip connections.

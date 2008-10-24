@@ -2,9 +2,10 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2003-2006 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2003-2008 Mark Wong & Open Source Development Labs, Inc.
  */
 
 CREATE OR REPLACE FUNCTION delivery (INTEGER, INTEGER)
-RETURNS INTEGER AS '@abs_top_srcdir@/storedproc/pgsql/c/funcs'
+RETURNS INTEGER
+AS 'MODULE_PATHNAME'
 LANGUAGE C STRICT;

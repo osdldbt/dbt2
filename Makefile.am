@@ -9,7 +9,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = . src storedproc
+SUBDIRS = . src
 
 # FIXME: do we need all these files in the distribution?
 EXTRA_DIST = \
@@ -19,9 +19,7 @@ README-FREEBSD \
 README-MYSQL \
 README-POSTGRESQL \
 README-SQLITE \
-storedproc/Makefile.am \
-storedproc/pgsql/Makefile.am \
-storedproc/pgsql/c/Makefile.am \
+storedproc/pgsql/c/Makefile \
 storedproc/pgsql/c/funcs.c \
 storedproc/pgsql/c/delivery.sql.in \
 storedproc/pgsql/c/new_order.sql.in \
@@ -76,7 +74,7 @@ bin/pgsql/dbt2-pgsql-drop-db.in \
 bin/pgsql/dbt2-pgsql-drop-tables.in \
 bin/pgsql/dbt2-pgsql-install-source \
 bin/pgsql/dbt2-pgsql-load-db.in \
-bin/pgsql/dbt2-pgsql-load-stored-procs.in \
+bin/pgsql/dbt2-pgsql-load-stored-procs \
 bin/pgsql/dbt2-pgsql-plans.in \
 bin/pgsql/dbt2-pgsql-start-db \
 bin/pgsql/dbt2-pgsql-stop-db \

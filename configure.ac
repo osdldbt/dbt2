@@ -442,20 +442,11 @@ find the right location for the libpq library.])
       [chmod +x bin/pgsql/dbt2-pgsql-drop-tables])
   AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-load-db],
       [chmod +x bin/pgsql/dbt2-pgsql-load-db])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-load-stored-procs],
-      [chmod +x bin/pgsql/dbt2-pgsql-load-stored-procs])
   AC_CONFIG_FILES([bin/pgsql/restore.sh], [chmod +x bin/pgsql/restore.sh])
   AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-test],
       [chmod +x bin/pgsql/dbt2-pgsql-test])
   AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-destroy-installation],
       [chmod +x bin/pgsql/dbt2-pgsql-destroy-installation])
-  AC_CONFIG_FILES([storedproc/pgsql/Makefile])
-  AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
-  AC_CONFIG_FILES([storedproc/pgsql/c/delivery.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/new_order.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/order_status.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/payment.sql])
-  AC_CONFIG_FILES([storedproc/pgsql/c/stock_level.sql])
 elif test "$database_to_use" == "sapdb"; then
   dnl ODBC Library (required)
   dnl check for `odbcinit' in -lodbc, -liodbc
@@ -611,7 +602,6 @@ AC_SUBST(database_to_use)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
-AC_CONFIG_FILES([storedproc/Makefile])
 AC_CONFIG_FILES([bin/dbt2_profile])
 AC_CONFIG_FILES([bin/dbt2-sysstats], [chmod +x bin/dbt2-sysstats])
 AC_CONFIG_FILES([bin/dbt2-run-workload], [chmod +x bin/dbt2-run-workload])
