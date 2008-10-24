@@ -1,0 +1,38 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
+#
+
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
+PSQL="psql -d ${DBNAME}"
+
+echo "Checking dbt2 database '${DBNAME}'..."
+echo
+
+# Load tables
+echo customer
+${PSQL} -c "select count(*) from customer"
+echo district
+${PSQL} -c "select count(*) from district"
+echo history 
+${PSQL} -c "select count(*) from history"
+echo item    
+${PSQL} -c "select count(*) from item"
+echo new_order
+${PSQL} -c "select count(*) from new_order"
+echo order_line
+${PSQL} -c "select count(*) from order_line"
+echo orders  
+${PSQL} -c "select count(*) from orders"
+echo stock   
+${PSQL} -c "select count(*) from stock"
+echo warehouse
+${PSQL} -c "select count(*) from warehouse"

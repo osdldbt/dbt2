@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -6,12 +7,9 @@
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labss, Inc.
 #
 
-TOPDIR="@abs_top_srcdir@"
-export DATABASE="pgsql"
-if [ -f "${HOME}/.dbt2_profile" ]; then
-	source ${HOME}/.dbt2_profile || exit 1
-else
-	source ${TOPDIR}/bin/dbt2_profile || exit 1
+if [ -z ${DBNAME} ]; then
+    echo "DBNAME not defined."
+    exit 1
 fi
 
 USE_TABLESPACES=0
@@ -26,23 +24,30 @@ while getopts "l:t" OPT; do
 	esac
 done
 
-PSQL="${PSQL} -p ${PORT} -e -d ${DBNAME}"
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+fi
+PSQL="psql ${PORTARG} -e -d ${DBNAME}"
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
-	TS_WAREHOUSE_DIR=${TSDIR}/warehouse/ts
-	TS_DISTRICT_DIR=${TSDIR}/district/ts
-	TS_CUSTOMER_DIR=${TSDIR}/customer/ts
-	TS_HISTORY_DIR=${TSDIR}/history/ts
-	TS_NEW_ORDER_DIR=${TSDIR}/new_order/ts
-	TS_ORDERS_DIR=${TSDIR}/orders/ts
-	TS_ORDER_LINE_DIR=${TSDIR}/order_line/ts
-	TS_ITEM_DIR=${TSDIR}/item/ts
-	TS_STOCK_DIR=${TSDIR}/stock/ts
+	if [ "x${DBT2TSDIR}" = "x" ]; then
+		echo "DBT2TSDIR is not set."
+		exit 1
+	fi
+	TS_WAREHOUSE_DIR=${DBT2TSDIR}/warehouse/ts
+	TS_DISTRICT_DIR=${DBT2TSDIR}/district/ts
+	TS_CUSTOMER_DIR=${DBT2TSDIR}/customer/ts
+	TS_HISTORY_DIR=${DBT2TSDIR}/history/ts
+	TS_NEW_ORDER_DIR=${DBT2TSDIR}/new_order/ts
+	TS_ORDERS_DIR=${DBT2TSDIR}/orders/ts
+	TS_ORDER_LINE_DIR=${DBT2TSDIR}/order_line/ts
+	TS_ITEM_DIR=${DBT2TSDIR}/item/ts
+	TS_STOCK_DIR=${DBT2TSDIR}/stock/ts
 
 	#
 	# Creating 'ts' subdirectories because PostgreSQL doesn't like that
 	# 'lost+found' directory if a device was mounted at
-	# '${TSDIR}/warehouse'.
+	# '${DBT2TSDIR}/warehouse'.
 	#
 	mkdir -p ${TS_WAREHOUSE_DIR} || exit 1
 	mkdir -p ${TS_DISTRICT_DIR} || exit 1

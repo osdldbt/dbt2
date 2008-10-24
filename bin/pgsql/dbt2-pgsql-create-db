@@ -1,0 +1,55 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
+#
+
+if [ -z ${PGDATA} ]; then
+    echo "PGDATA not defined."
+    exit 1
+fi
+
+if [ -z ${DBNAME} ]; then
+    echo "DBNAME not defined."
+    exit 1
+fi
+
+while getopts "l:p:" OPT; do
+	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	p)
+		PARAMETERS=${OPTARG}
+		;;
+	esac
+done
+
+# Create database
+echo "Creating database..."
+if [ -d ${PGDATA} ]; then
+	echo "PGData directory '${PGDATA}' already exists, skipping initdb..."
+else
+	initdb -D ${PGDATA} --locale=C || exit 1
+fi
+
+if [ ! "x${PARAMETERS}" = "x" ]; then
+    PARAMOPT="-p ${PARAMETERS}"
+fi
+
+dbt2-pgsql-start-db ${PARAMOPT} || exit 1
+
+# Give the database a few seconds to get started.
+sleep 4
+
+if [ ! "x${PORT}" = "x" ]; then
+    PORTOPT="-p ${PORT}"
+fi
+
+createdb ${PORTOPT} ${DBNAME} || exit 1
+createlang ${PORTOPT} plpgsql ${DBNAME}
+
+exit 0

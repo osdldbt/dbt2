@@ -1,0 +1,35 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
+#
+
+# Double check we have a value for PGDATA
+if [ -z ${PGDATA} ]; then
+	echo "PGDATA not defined."
+	exit 1
+fi
+
+if [ -z ${DBNAME} ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
+while getopts "l:" OPT; do
+	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTOPT="-p ${PORT}"
+fi
+
+dropdb ${PORTOPT} ${DBNAME} || exit 1
+
+exit 0

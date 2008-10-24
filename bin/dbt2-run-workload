@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -6,14 +7,10 @@
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
-abs_top_srcdir=@abs_top_srcdir@
-
-DIR=`dirname $0`
-
 trap 'echo "Test was interrupted by Control-C."; \
-	killall dbt2-client; killall dbt2-driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db' INT
+	killall dbt2-client; killall dbt2-driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} dbt2-${DBMS}-stop-db' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall dbt2-client; killall dbt2-driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db' TERM
+	killall dbt2-client; killall dbt2-driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} dbt2-${DBMS}-stop-db' TERM
 
 do_sleep()
 {
@@ -105,7 +102,7 @@ oprofile_init()
 	sleep 1
 	START_ARGS=""
 	MACHINE=`${COMMAND} uname -m`
-	if [ "${MACHINE}" == "ppc64" ]; then
+	if [ "${MACHINE}" = "ppc64" ]; then
 		#
 		# Oprofile fails to work on ppc64 because the defaults settings
 		# are invalid on this platform.  Why isn't it smart enough to
@@ -148,7 +145,7 @@ post_process_sar()
 {
 	FILE=${1}
 	if [ -f ${FILE} ]; then
-		@SAR@ -f ${FILE} -A > `dirname ${FILE}`/sar.out
+		sar -f ${FILE} -A > `dirname ${FILE}`/sar.out
 	fi
 }
 
@@ -194,26 +191,27 @@ usage()
 		echo
 		echo "error: $1"
 	fi
-	echo ''
-	echo 'usage: dbt2-run-workload -c <number of database connections> -d <duration of test> -w <number of warehouses>'
-	echo 'other options:'
-	echo '       -a < mysql | pgsql | sqlite >'
-	echo '       -d <seconds>'
-	echo '       -h <database host name. (default localhost)>'
-	echo '       -l <database port number>'
-	echo '       -o <enable oprofile data collection>'
-	echo '       -s <delay of starting of new threads in milliseconds>'
-	echo '       -n <no thinking or keying time (default no)>'
-	if [ "${DBMS}" == "mysql" ]; then
-		echo '       -u <database user>'
-		echo '       -x <database password>'
+	echo
+	echo "usage: `basename $0` -a <mysql|pgsql|sqlite>"
+	echo "       -c <number of database connections> -d <duration of test>"
+	echo "       -w <number of warehouses> -o <path> [options]"
+	echo "options:"
+	echo "       -d <seconds>"
+	echo "       -h <database host name. (default localhost)>"
+	echo "       -l <database port number>"
+	echo "       -q <enable oprofile data collection>"
+	echo "       -s <delay of starting of new threads in milliseconds>"
+	echo "       -n <no thinking or keying time (default no)>"
+	if [ "${DBMS}" = "mysql" ]; then
+		echo "       -u <database user>"
+		echo "       -x <database password>"
 	fi
-	echo '       -z <comments for the test>'
-	echo ''
-	echo 'Example: dbt2-run-workload -c 20 -d 100 -w 1'
-	echo 'Test will be run for 120 seconds with 20 database connections and '
-	echo 'scale factor (num of warehouses) 1.'
-	echo ''
+	echo "       -z <comments for the test>"
+	echo
+	echo "Example: dbt2-run-workload -c 20 -d 100 -w 1"
+	echo "Test will be run for 120 seconds with 20 database connections and"
+	echo "scale factor (num of warehouses) 1."
+	echo
 }
 
 validate_parameter()
@@ -233,25 +231,13 @@ DB_USER=${DBUSER}
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
+USE_PGPOOL=0
 
-while getopts "a:c:d:H:hl:nop:s:t:u:w:x:z:" opt; do
+while getopts "a:c:d:H:hl:no:p:qs:t:u:w:x:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
 		export DATABASE=${DBMS}
-		if [ -f "${HOME}/.dbt2_profile" ]; then
-			source ${HOME}/.dbt2_profile || exit 1
-		else
-			source ${DIR}/dbt2_profile || exit 1
-		fi
-		#
-		# Set the default DB_PORT depending on which database is used.
-		#
-		if [ ${DBMS} == "pgsql" ]; then
-			DB_PORT=5432
-		elif [ ${DBMS} == "mysql" ]; then
-			DB_PORT=""
-		fi
 		;;
 	c)
 		# Check for numeric value
@@ -277,31 +263,32 @@ while getopts "a:c:d:H:hl:nop:s:t:u:w:x:z:" opt; do
 		NO_THINK="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
 		;;
 	o)
-		USE_OPROFILE=1
+		OUTPUT_DIR=${OPTARG}
 		;;
 	p)
-		DB_PARAMS=$OPTARG
+		DB_PARAMS=${OPTARG}
+		;;
+	q)
+		USE_OPROFILE=1
 		;;
 	s)
-		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $SLEEPY
+		SLEEPY=`echo ${OPTARG} | egrep "^[0-9]+$"`
+		validate_parameter ${opt} ${OPTARG} ${SLEEPY}
 		;;
 	t)
-		THREADS_PER_WAREHOUSE=`echo $OPTARG | egrep "^[0-9]+$"`
+		THREADS_PER_WAREHOUSE=`echo ${OPTARG} | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $THREADS_PER_WAREHOUSE
 		;;
-	u)      
+	u)
 		DB_USER=${OPTARG}
 		;;
-
 	w)
 		WAREHOUSES=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $WAREHOUSES
 		;;
-	x)      
+	x)
 		DB_PASSWORD=${OPTARG}
 		;;
-
 	z)
 		COMMENT=$OPTARG
 		;;
@@ -310,29 +297,44 @@ done
 
 # Check parameters.
 
-if [ "$DBMS" == "" ]; then
-	echo "specify which dbms system to test using -a <mysql | pgsql | sqlite>"
+if [ "x${DBMS}" = "x" ]; then
+	echo "specify which dbms system to test using -a <mysql|pgsql|sqlite>"
 	exit 1
 fi
 
-if [ "$DBCON" == "" ]; then
+if [ "x${DBCON}" = "x" ]; then
 	echo "specify the number of database connections using -c #"
 	exit 1
 fi
 
-if [ "$DURATION" == "" ]; then
+if [ "x${DURATION}" = "x" ]; then
 	echo "specify the duration of the test in seconds using -d #"
 	exit 1
 fi
 
-if [ "$WAREHOUSES" == "" ]; then
+if [ "x${WAREHOUSES}" = "x" ]; then
 	echo "specify the number of warehouses using -w #"
+	exit 1
+fi
+
+if [ "x${OUTPUT_DIR}" = "x" ]; then
+	echo "specify the location for results, directory must not exist, using -o <path>"
+	exit 1
+fi
+
+if [ -d "${OUTPUT_DIR}" ]; then
+	echo "directory '${OUTPUT_DIR}' exists, stopping to prevent possible"
+	echo "clobbering of data, please specify another -o location"
 	exit 1
 fi
 
 if [ $(( $THREADS_PER_WAREHOUSE*1 )) -lt 1 -o $(( $THREADS_PER_WAREHOUSE*1 )) -gt 1000 ]; then
 	usage "-t value should be in range [1..1000]. Please specify correct value"
 	exit 1
+fi
+
+if [ ! "x${DB_PORT}" = "x" ]; then
+	DB_PORT_ARG="-l ${DB_PORT}"
 fi
 
 ULIMIT_N=`ulimit -n`
@@ -342,25 +344,15 @@ if [ ${ULIMIT_N} -lt $(( $ESTIMATED_ULIMIT )) ]; then
   exit 1
 fi
 
-# Determine the output directory for storing data.
-RUN_NUMBER=-1
-RUN_FILE="${abs_top_srcdir}/bin/run_number"
-if test -f ${RUN_FILE}; then
-  read RUN_NUMBER < ${RUN_FILE}
-fi
-if [ $RUN_NUMBER -eq -1 ]; then
-	RUN_NUMBER=0
-fi
-OUTPUT_DIR=${abs_top_srcdir}/bin/output/${RUN_NUMBER}
-CLIENT_OUTPUT_DIR=$OUTPUT_DIR/client
-DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
-DB_OUTPUT_DIR=$OUTPUT_DIR/db
+CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
+DRIVER_OUTPUT_DIR=${OUTPUT_DIR}/driver
+DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 
 #
 # Create the directories we will need.
 #
 make_directories
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 	#
 	# Create direcotires on the database server if specified.
 	#
@@ -370,41 +362,38 @@ if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
 	# use rsync to delete any files that may be on the database system but
 	# only in the database output directory.
 	#
-	@RSYNC@ -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
+	rsync -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
 			${DB_HOSTNAME}:${DB_OUTPUT_DIR}/
 fi
 
-# Update log.html
-echo "<a href='$RUN_NUMBER/report/'>$RUN_NUMBER</a>: $COMMENT<br />" \
-		>> ${abs_top_srcdir}/bin/output/log.html
-
-# Update the run number for the next test.
-RUN_NUMBER=`expr $RUN_NUMBER + 1`
-echo $RUN_NUMBER > ${RUN_FILE}
-
 # Create a readme file in the output directory and date it.
-date >> $OUTPUT_DIR/readme.txt
-echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
-uname -a >> $OUTPUT_DIR/readme.txt
-echo "Command line: $0 $@" >> $OUTPUT_DIR/readme.txt
+date >> ${OUTPUT_DIR}/readme.txt
+echo "$COMMENT" >> ${OUTPUT_DIR}/readme.txt
+uname -a >> ${OUTPUT_DIR}/readme.txt
+echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
 
 # Get any OS specific information.
-$abs_top_srcdir/bin/dbt2-get-os-info -o $OUTPUT_DIR
+dbt2-get-os-info -o ${OUTPUT_DIR}
 
 # Output run information into the readme.txt.
-echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
-echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
-echo "Database Connections: $DBCON" >> $OUTPUT_DIR/readme.txt
+echo "Database Scale Factor: $WAREHOUSES warehouses" >> ${OUTPUT_DIR}/readme.txt
+echo "Test Duration: $DURATION seconds" >> ${OUTPUT_DIR}/readme.txt
+echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 fi
 
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db
+${DB_COMMAND} dbt2-${DBMS}-stop-db
+if [ $? -ne 0 ]; then
+	echo "cleaning up results..."
+	rm -rf ${OUTPUT_DIR}
+	exit 1
+fi
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
+	${DB_COMMAND} "dbt2-${DBMS}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
 else
-	${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-start-db ${START_DB_ARGS} \
+	dbt2-${DBMS}-start-db ${START_DB_ARGS} \
 			-p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
 fi
 
@@ -413,8 +402,6 @@ fi
 #
 echo "************************************************************************"
 echo "*              DBT-2 test for ${DBMS} started"
-echo "*                                                                      *"
-echo "*	    Results can be found in output/$(( $RUN_NUMBER-1 )) directory"
 echo "************************************************************************"
 echo "*                                                                      *"
 echo "*  Test consists of 3 stages:                                          *"
@@ -436,22 +423,22 @@ echo "DATABASE NAME: ${DBNAME}"
 if [ -n "${DB_USER}" ]; then
   echo "DATABASE USER: ${DB_USER}"
   CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -u ${DB_USER}"
-fi 
+fi
 
-if [ -n "${DB_PASSWORD}" ]; then 
-  echo "DATABASE PASSWORD: *******" 
+if [ -n "${DB_PASSWORD}" ]; then
+  echo "DATABASE PASSWORD: *******"
   CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
-fi 
+fi
 
-if [ -n "${DB_SOCKET}" ]; then 
+if [ -n "${DB_SOCKET}" ]; then
   echo "DATABASE SOCKET: ${DB_SOCKET}"
   CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
-fi 
+fi
 
-if [ -n "${DB_PORT}" ]; then 
+if [ -n "${DB_PORT}" ]; then
   echo "DATABASE PORT: ${DB_PORT}"
-  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -l ${DB_PORT}"
-fi 
+  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
+fi
 
 THREADS=$(( ${WAREHOUSES}*${THREADS_PER_WAREHOUSE} ))
 echo "DATABASE CONNECTIONS: ${DBCON}"
@@ -466,23 +453,22 @@ echo ""
 # Start the client.
 #
 echo "Stage 1. Starting up client..."
-if [ ${DBMS} == "pgsql" ]; then
+if [ ${DBMS} = "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then
 		echo "Starting pgpool..."
-		@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf
+		pgpool -f ${DIR}/pgsql/pgpool.conf
 		TMP_DB_HOSTNAME="localhost"
 	else
 		TMP_DB_HOSTNAME=${DB_HOSTNAME}
 	fi
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME}"
-elif [ ${DBMS} == "mysql" ]; then
+elif [ ${DBMS} = "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
-elif [ ${DBMS} == "sqlite" ]; then
+elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 fi
 CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}"
-${abs_top_srcdir}/src/dbt2-client ${CLIENT_COMMAND_ARGS} > \
-		${OUTPUT_DIR}/client.out 2>&1 || exit 1 &
+dbt2-client ${CLIENT_COMMAND_ARGS} > ${OUTPUT_DIR}/client.out 2>&1 || exit 1 &
 
 # Sleep long enough for all the client database connections to be established.
 SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY/1000 ))
@@ -493,23 +479,23 @@ SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-${abs_top_srcdir}/bin/dbt2-sysstats \
+dbt2-sysstats \
 		--iter ${ITERATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/bin/dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
-if [ -x ${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-db-stat ]; then
-	${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-db-stat \
+if [ -x ${DB_COMMAND} ${DBMS}/dbt2-${DBMS}-db-stat ]; then
+	${DB_COMMAND} ${DBMS}/dbt2-${DBMS}-db-stat \
 			-o ${DB_OUTPUT_DIR} -i ${ITERATIONS} -s ${SAMPLE_LENGTH} \
-			-l ${DB_PORT} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
+			${DB_PORT_ARG} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 fi
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_init
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		oprofile_init ${DB_HOSTNAME}
 	fi
 fi
@@ -521,7 +507,7 @@ echo "${SLEEPY} threads started per millisecond"
 
 DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
 DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -l ${DURATION} -wmin 1 -wmax ${WAREHOUSES} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DRIVER_OUTPUT_DIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
-${abs_top_srcdir}/src/dbt2-driver ${DRIVER_COMMAND_ARGS} > \
+dbt2-driver ${DRIVER_COMMAND_ARGS} > \
 		${OUTPUT_DIR}/driver.out 2>&1 || exit 1&
 
 echo -n "estimated rampup time: "
@@ -531,7 +517,7 @@ echo "estimated rampup time has elapsed"
 # Clear the readprofile data after the driver ramps up.
 if [ -f /proc/profile ]; then
 	readprofile_clear()
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		readprofile_clear ${DB_HOSTNAME}
 	fi
 fi
@@ -539,7 +525,7 @@ fi
 # Reset the oprofile counters after the driver ramps up.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_reset
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		oprofile_reset ${DB_HOSTNAME}
 	fi
 fi
@@ -551,7 +537,7 @@ do_sleep $DURATION
 # Collect readprofile data.
 if [ -f "/proc/profile" ]; then
 	readprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
@@ -559,7 +545,7 @@ fi
 # Collect oprofile data.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
@@ -571,20 +557,19 @@ echo "Stage 3. Processing of results..."
 echo "Killing client..."
 killall dbt2-client dbt2-driver 2> /dev/null
 
-${DB_COMMAND} ${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-stop-db
-if [ ${DBMS} == "pgsql" ]; then
+${DB_COMMAND} dbt2-${DBMS}-stop-db
+if [ ${DBMS} = "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then
-		@PGPOOL@ -f ${DIR}/pgsql/pgpool.conf stop
+		pgpool -f ${DIR}/pgsql/pgpool.conf stop
 	fi
 fi
 
 # Run some post processing analysese.
-${abs_top_srcdir}/bin/dbt2-post-process \
-		--dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
+dbt2-post-process --dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
 	wait
@@ -592,16 +577,16 @@ fi
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_stop
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		oprofile_stop ${DB_HOSTNAME}
 	fi
 fi
 
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 	#
 	# If a database system is specified, rsync all the logs back to here.
 	#
-	@RSYNC@ -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
+	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
 			${DB_OUTPUT_DIR}/
 fi
 
@@ -614,14 +599,13 @@ fi
 # Postprocessing of Database Statistics
 post_process_sar ${OUTPUT_DIR}/sar_raw.out
 post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
-if [ -f "${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-analyze-stats" ]; then
-	${abs_top_srcdir}/bin/${DBMS}/dbt2-${DBMS}-analyze-stats \
-			--dir ${DB_OUTPUT_DIR}
+if [ -f "dbt2-${DBMS}-analyze-stats" ]; then
+	dbt2-${DBMS}-analyze-stats --dir ${DB_OUTPUT_DIR}
 fi
 
 
 echo "Test completed."
-echo "Results are in: $OUTPUT_DIR"
+echo "Results are in: ${OUTPUT_DIR}"
 echo
 
 cat $DRIVER_OUTPUT_DIR/results.out

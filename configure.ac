@@ -420,33 +420,6 @@ find the right location for the libpq library.])
     fi
   fi
 
-  AC_CONFIG_FILES([bin/pgsql/pgsql_profile])
-  AC_CONFIG_FILES([bin/pgsql/backup.sh], [chmod +x bin/pgsql/backup.sh])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-build-db],
-      [chmod +x bin/pgsql/dbt2-pgsql-build-db])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-check-db],
-      [chmod +x bin/pgsql/dbt2-pgsql-check-db])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-create-db],
-      [chmod +x bin/pgsql/dbt2-pgsql-create-db])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-create-indexes],
-      [chmod +x bin/pgsql/dbt2-pgsql-create-indexes])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-create-tables],
-      [chmod +x bin/pgsql/dbt2-pgsql-create-tables])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-plans],
-      [chmod +x bin/pgsql/dbt2-pgsql-plans])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-db-stat],
-      [chmod +x bin/pgsql/dbt2-pgsql-db-stat])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-drop-db],
-      [chmod +x bin/pgsql/dbt2-pgsql-drop-db])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-drop-tables],
-      [chmod +x bin/pgsql/dbt2-pgsql-drop-tables])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-load-db],
-      [chmod +x bin/pgsql/dbt2-pgsql-load-db])
-  AC_CONFIG_FILES([bin/pgsql/restore.sh], [chmod +x bin/pgsql/restore.sh])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-test],
-      [chmod +x bin/pgsql/dbt2-pgsql-test])
-  AC_CONFIG_FILES([bin/pgsql/dbt2-pgsql-destroy-installation],
-      [chmod +x bin/pgsql/dbt2-pgsql-destroy-installation])
 elif test "$database_to_use" == "sapdb"; then
   dnl ODBC Library (required)
   dnl check for `odbcinit' in -lodbc, -liodbc
@@ -602,9 +575,5 @@ AC_SUBST(database_to_use)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
-AC_CONFIG_FILES([bin/dbt2_profile])
-AC_CONFIG_FILES([bin/dbt2-sysstats], [chmod +x bin/dbt2-sysstats])
-AC_CONFIG_FILES([bin/dbt2-run-workload], [chmod +x bin/dbt2-run-workload])
-AC_CONFIG_FILES([bin/dbt2-get-os-info], [chmod +x bin/dbt2-get-os-info])
 
 AC_OUTPUT

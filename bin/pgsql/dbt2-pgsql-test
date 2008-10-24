@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -31,17 +32,6 @@ install_src()
 	${COMMAND} ${PGDIR}/install-source ${DATE} ${WORKING_DIR} ${INSTALL_DIR} \
 			${J_FLAG} ${FORCE} || exit 1
 }
-
-TOPDIR="@abs_top_srcdir@"
-PGDIR="${TOPDIR}/bin/pgsql"
-export DATABASE="pgsql"
-if [ -f "${HOME}/.dbt2_profile" ]; then
-	source ${HOME}/.dbt2_profile || exit 1
-else
-	source ${TOPDIR}/bin/dbt2_profile || exit 1
-fi
-
-export PATH="$PATH:~/bin"
 
 MODULE="pgsql"
 INSTALL_DIR="/tmp/pgsql-tmp"
@@ -118,7 +108,7 @@ fi
 #
 install_src &
 if [ ! "${DB_HOSTNAME}" == "localhost" ]; then
-	install_src ${DB_HOSTNAME} & 
+	install_src ${DB_HOSTNAME} &
 fi
 wait
 

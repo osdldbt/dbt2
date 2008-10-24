@@ -1,0 +1,55 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006-2008 Mark Wong & Open Source Development Labs, Inc.
+#
+
+FORCE=0
+while getopts "f" OPT; do
+	case ${OPT} in
+	f)
+		FORCE=1
+		;;
+	esac
+done
+
+if [ ${FORCE} -eq 0 ]; then
+	echo "This script is incredibly destructive.  If you know what you "
+	echo "doing, rerun with the -f flag."
+	exit 1
+fi
+
+if [ -z ${DBT2TSDIR} ]; then
+    echo "DBT2TSDIR not defined."
+    exit 1
+fi
+
+echo "Destroying DBT-2 installation..."
+
+rm -rf ${DBT2TSDIR}/pgdata || exit 1 &
+rm -rf ${DBT2TSDIR}/customer/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/district/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/history/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/index1/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/index2/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/item/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/new_order/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/order_line/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/orders/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/stock/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/warehouse/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_customer/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_district/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_item/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_new_order/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_order_line/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_orders/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_stock/ts || exit 1 &
+rm -rf ${DBT2TSDIR}/pk_warehouse/ts || exit 1 &
+
+wait
+
+exit 0

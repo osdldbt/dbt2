@@ -1,0 +1,21 @@
+# Path to database data files for creating the database.
+DBDATA=${HOME}/local/dbt2/data
+
+#
+# PostgreSQL specific variables.
+#
+
+# Database listener port.
+PORT=5432
+
+# Database instance name.
+DBNAME=dbt2
+
+# Database instance path.
+PGDATA=${HOME}/local/dbt2/pgdata; export PGDATA
+
+# Directory with tablespace mount points, if using tablespaces.
+TSDIR=${HOME}/local/dbt2
+
+# Flag to use PGPOOL.
+USE_PGPOOL=0

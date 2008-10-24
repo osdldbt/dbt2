@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see # the file LICENSE, included in this package, for details.
@@ -6,16 +7,18 @@
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
-TOPDIR="@abs_top_srcdir@"
-export DATABASE="pgsql"
-if [ -f "${HOME}/.dbt2_profile" ]; then
-	source ${HOME}/.dbt2_profile || exit 1
-else
-	source ${TOPDIR}/bin/dbt2_profile || exit 1
+if [ -z ${DBNAME} ]; then
+	echo "DBNAME not defined."
+	exit 1
 fi
 
-DIR=`dirname $0`
 BACKGROUND="no"
+
+usage()
+{
+	echo "usage: `basename $0` -d <dir> [-b] [-l <port>] [-t]"
+	echo "  <dir> is where the data files are."
+}
 
 while getopts "bd:l:t" OPT; do
 	case ${OPT} in
@@ -34,6 +37,15 @@ while getopts "bd:l:t" OPT; do
 	esac
 done
 
+if [ "x${DBDATA}" = "x" ]; then
+	usage
+	exit 1
+fi
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+fi
+
 # Load tables
 # This background stuff is honestly kinda ugly. IMO the right way to do this is to utilize make -j
 load_table() {
@@ -45,7 +57,7 @@ load_table() {
 	fi
 
 	local sql="COPY $table FROM '${DBDATA}/$file' WITH NULL AS '';"
-	local cmd="${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+	local cmd="psql ${PORTARG} -e -d ${DBNAME} -c "
 	if [ "${BACKGROUND}" == "yes" ]; then
 		echo "Loading $table table in the background..."
 		${cmd} "${sql} VACUUM ANALYZE $table;" || exit 1 &
@@ -67,24 +79,11 @@ load_table warehouse
 
 wait
 
-${DIR}/dbt2-pgsql-create-indexes -l ${PORT} ${TABLESPACES_FLAG} || exit 1
-
 # load C or pl/pgsql implementation of the stored procedures
-if true; then
-  ${DIR}/dbt2-pgsql-load-stored-procs -l ${PORT} -t c|| exit 1
-else
-  ${DIR}/dbt2-pgsql-load-stored-procs -l ${PORT} -t plpgsql || exit 1
-fi
-
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
-
-# VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
-# tables. The VACUUM FULL is probably unnecessary; we want to scan the
-# heap and update the commit-hint bits on each new tuple, but a regular
-# VACUUM ought to suffice for that.
-
-if [ "${BACKGROUND}" == "no" ]; then
-    ${VACUUMDB} -p ${PORT} -z -f -d ${DBNAME} || exit 1
-fi
+#if true; then
+#  ${DIR}/dbt2-pgsql-load-stored-procs -l ${PORT} -t c|| exit 1
+#else
+#  ${DIR}/dbt2-pgsql-load-stored-procs -l ${PORT} -t plpgsql || exit 1
+#fi
 
 exit 0

@@ -1,18 +1,11 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
-
-TOPDIR="@abs_top_srcdir@"
-export DATABASE="pgsql"
-if [ -f "${HOME}/.dbt2_profile" ]; then
-	source ${HOME}/.dbt2_profile || exit 1
-else
-	source ${TOPDIR}/bin/dbt2_profile || exit 1
-fi
 
 USE_TABLESPACES=0
 while getopts "l:t" OPT; do
@@ -26,7 +19,16 @@ while getopts "l:t" OPT; do
 	esac
 done
 
-PSQL="${PSQL} -p ${PORT} -e -d ${DBNAME}"
+if [ !"x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+fi
+
+if [ -z ${DBNAME} ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
+PSQL="psql ${PORTARG} -e -d ${DBNAME}"
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_PK_WAREHOUSE_DIR="${TSDIR}/pk_warehouse/ts"

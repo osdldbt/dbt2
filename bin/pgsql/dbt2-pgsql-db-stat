@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -6,12 +7,9 @@
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
-TOPDIR="@abs_top_srcdir@"
-export DATABASE="pgsql"
-if [ -f "${HOME}/.dbt2_profile" ]; then
-	source ${HOME}/.dbt2_profile || exit 1
-else
-	source ${TOPDIR}/bin/dbt2_profile || exit 1
+if [ -z ${DBNAME} ]; then
+	echo "DBNAME not defined."
+	exit 1
 fi
 
 while getopts "l:i:o:s:" opt; do
@@ -31,10 +29,15 @@ while getopts "l:i:o:s:" opt; do
 	esac
 done
 
-PSQL="@PSQL@ -p ${PORT} -e -d ${DBNAME}"
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+	PORTARG2="-l ${PORT}"
+fi
+
+PSQL="psql ${PORTARG} -e -d ${DBNAME}"
 
 # Get database version.
-@PG_CONFIG@ --version >> $OUTPUT_DIR/readme.txt
+pg_config --version >> $OUTPUT_DIR/readme.txt
 
 # Get database parameters.
 ${PSQL} -c "show all"  > $OUTPUT_DIR/param.out
@@ -43,7 +46,7 @@ ${PSQL} -c "show all"  > $OUTPUT_DIR/param.out
 ${PSQL} -c "select * from pg_stat_user_indexes;" -o $OUTPUT_DIR/indexes.out
 
 # Get the plans before the test.
-${TOPDIR}/bin/pgsql/dbt2-pgsql-plans -l ${PORT} -o ${OUTPUT_DIR}/plan0.out
+dbt2-pgsql-plans ${PORTARG2} -o ${OUTPUT_DIR}/plan0.out
 
 COUNTER=0
 
@@ -62,4 +65,4 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 done
 
 # Get the plans after the test.
-${TOPDIR}/bin/pgsql/dbt2-pgsql-plans -l ${PORT} -o ${OUTPUT_DIR}/plan1.out
+dbt2-pgsql-plans ${PORTARG2} -o ${OUTPUT_DIR}/plan1.out
