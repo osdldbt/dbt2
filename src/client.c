@@ -43,7 +43,7 @@ char dbt2_pass[128] = DB_PASS;
 #endif
 
 #ifdef LIBPQ
-char postmaster_port[32];
+char postmaster_port[32] = "5432";
 #endif /* LIBPQ */
 
 #ifdef LIBMYSQL
