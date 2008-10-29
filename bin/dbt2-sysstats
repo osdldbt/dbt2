@@ -19,6 +19,13 @@ else
 	IOSTAT=true
 fi
 
+which mpstat > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	MPSTAT=mpstat
+else
+	MPSTAT=true
+fi
+
 which sar > /dev/null 2>&1
 if [ $? -eq 0 ]; then
 	SAR=sar
@@ -118,6 +125,9 @@ ${SAR} -o $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $ITERATIONS &
 # collect i/o data per physical device
 ${IOSTAT} -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
 ${IOSTAT} -d -x $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostatx.out &
+
+# collect mpstat data
+${MPSTAT} -P ALL ${SAMPLE_LENGTH} ${ITERATIONS} >> ${OUTPUT_DIR}/mpstat.out &
 
 # collect vmstat data
 VMSTAT_OUTPUT=$OUTPUT_DIR/vmstat.out
