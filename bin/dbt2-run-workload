@@ -36,21 +36,25 @@ oprofile_annotate()
 	COMMAND=""
 	DIR=${1}
 	HOST=${2}
+	OPROFILE_DIR=${DIR}/oprofile
+	ANNOTATED_DIR=${OPROFILE_DIR}/annotated
 	if [ -n "${HOST}" ]; then
 		COMMAND="ssh ${HOST}"
 	else
 		HOST=`hostname`
 	fi
 	echo "oprofile is annotating source: ${HOST}"
-	${COMMAND} mkdir -p ${DIR}/oprofile/
-	${COMMAND} mkdir -p ${DIR}/oprofile/annotate
+	${COMMAND} mkdir -p ${OPROFILE_DIR}
+	${COMMAND} mkdir -p ${ANNOTATED_DIR}
 	if [ -n "${COMMAND}" ]; then
 		${COMMAND} "sudo opannotate --source \
-				--assembly > ${DIR}/oprofile/assembly.txt 2>&1"
+				--assembly > ${OPROFILE_DIR}/assembly.txt 2>&1"
 	else
-		sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt 2>&1
+		sudo opannotate --source --assembly > ${OPROFILE_DIR}/assembly.txt 2>&1
 	fi
-	${COMMAND} sudo opannotate --source --output-dir=${DIR}/oprofile/annotate
+	${COMMAND} sudo opannotate --source --output-dir=${ANNOTATED_DIR}
+	IAM=`whoami`
+	${COMMAND} sudo chown -R ${IAM} ${OPROFILE_DIR}
 }
 
 oprofile_collect()
@@ -58,32 +62,40 @@ oprofile_collect()
 	COMMAND=""
 	DIR=${1}
 	HOST=${2}
+	OPROFILE_DIR=${DIR}/oprofile
+	ANNOTATED_DIR=${OPROFILE_DIR}/annotated
 	if [ -n "${HOST}" ]; then
 		COMMAND="ssh ${HOST}"
 	else
 		HOST=`hostname`
 	fi
+	mkdir -p ${OPROFILE_DIR}
+	mkdir -p ${ANNOTATED_DIR}
 	#
 	# I don't think we need any output dumped to the terminal.
 	#
 	echo "oprofile is dumping data: ${HOST}"
 	${COMMAND} sudo opcontrol --dump
 	if [ -n "${COMMAND}" ]; then
+		${COMMAND} mkdir -p ${OPROFILE_DIR}
+		${COMMAND} mkdir -p ${ANNOTATED_DIR}
 		echo "Generating oprofile profile on '${HOST}'..."
-		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > ${DIR}/oprofile.log 2>&1"
+		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > ${OPROFILE_DIR}/oprofile.log 2>&1"
 		echo "Generating oprofile callgraph on '${HOST}'..."
-		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/callgraph.txt > ${DIR}/oprofile.log 2>&1"
+		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${OPROFILE_DIR}/callgraph.txt > ${OPROFILE_DIR}/oprofile.log 2>&1"
 	else
 		echo "Generating oprofile profile..."
 		sudo opreport -l -p /lib/modules/`uname -r` \
-				-o ${DIR}/oprofile.txt > \
-				${DIR}/oprofile.log 2>&1
+				-o ${OPROFILE_DIR}/oprofile.txt > \
+				${OPROFILE_DIR}/oprofile.log 2>&1
 		echo "Generating oprofile callgraph..."
 		sudo opreport -l -c -p /lib/modules/`uname -r` \
-				-o ${DIR}/callgraph.txt > \
-				${DIR}/oprofile.log 2>&1
+				-o ${OPROFILE_DIR}/callgraph.txt > \
+				${OPROFILE_DIR}/oprofile.log 2>&1
 	fi
 	${COMMAND} sudo opcontrol --stop
+	IAM=`whoami`
+	${COMMAND} sudo chown -R ${IAM} ${OPROFILE_DIR}
 }
 
 oprofile_init()
@@ -154,21 +166,23 @@ readprofile_collect()
 	COMMAND=""
 	DIR=${1}
 	HOST=${2}
+	RP_DIR=${DIR}/readprofile
 	if [ -n "${HOST}" ]; then
 		COMMAND="ssh ${HOST}"
 	else
 		HOST=`hostname`
 	fi
 	echo "collecting readprofile data: ${HOST}"
-	PROFILE=${DIR}/readprofile.txt
+	mkdir -p ${RP_DIR}
+	PROFILE=${RP_DIR}/readprofile.txt
 	if [ -n "${COMMAND}" ]; then
 		${COMMAND} "/usr/sbin/readprofile -n -m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}"
-		${COMMAND} "cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt"
-		${COMMAND} "cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt"
+		${COMMAND} "cat ${PROFILE} | sort -n -r -k1 > ${RP_DIR}/readprofile_ticks.txt"
+		${COMMAND} "cat ${PROFILE} | sort -n -r -k3 > ${RP_DIR}/readprofile_load.txt"
 	else
 		/usr/sbin/readprofile -n -m /boot/System.map-`uname -r` > ${PROFILE}
-		cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt
-		cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt
+		cat ${PROFILE} | sort -n -r -k1 > ${RP_DIR}/readprofile_ticks.txt
+		cat ${PROFILE} | sort -n -r -k3 > ${RP_DIR}/readprofile_load.txt
 	fi
 }
 
@@ -193,10 +207,10 @@ usage()
 	fi
 	echo
 	echo "usage: `basename $0` -a <mysql|pgsql|sqlite>"
-	echo "       -c <number of database connections> -d <duration of test>"
+	echo "       -c <number of database connections> -d <seconds>"
 	echo "       -w <number of warehouses> -o <path> [options]"
 	echo "options:"
-	echo "       -d <seconds>"
+	echo "       -d <duraction of test in seconds>"
 	echo "       -h <database host name. (default localhost)>"
 	echo "       -l <database port number>"
 	echo "       -q <enable oprofile data collection>"
