@@ -12,6 +12,13 @@
 # true so the script doesn't complain.
 #
 
+which iopp > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	IOPP=iopp
+else
+	IOPP=true
+fi
+
 which iostat > /dev/null 2>&1
 if [ $? -eq 0 ]; then
 	IOSTAT=iostat
@@ -121,6 +128,9 @@ echo "starting system statistics data collection"
 
 # collect all sar data in binary form
 ${SAR} -o $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $ITERATIONS &
+
+# collect i/o data per process
+${IOPP} -c ${SAMPLE_LENGTH} ${ITERATIONS} >> ${OUTPUT_DIR}/iopp.out &
 
 # collect i/o data per physical device
 ${IOSTAT} -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
