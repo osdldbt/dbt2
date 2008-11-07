@@ -30,52 +30,52 @@ PG_MODULE_MAGIC;
  */
 
 #define DELIVERY_1 \
-        "SELECT no_o_id\n" \
-        "FROM new_order\n" \
-        "WHERE no_w_id = %d\n" \
-        "  AND no_d_id = %d"
+	"SELECT no_o_id\n" \
+	"FROM new_order\n" \
+	"WHERE no_w_id = %d\n" \
+	"  AND no_d_id = %d"
 
 #define DELIVERY_2 \
-        "DELETE FROM new_order\n" \
-        "WHERE no_o_id = %s\n" \
-        "  AND no_w_id = %d\n" \
-        "  AND no_d_id = %d"
+	"DELETE FROM new_order\n" \
+	"WHERE no_o_id = %s\n" \
+	"  AND no_w_id = %d\n" \
+	"  AND no_d_id = %d"
 
 #define DELIVERY_3 \
-        "SELECT o_c_id\n" \
-        "FROM orders\n" \
-        "WHERE o_id = %s\n" \
-        "  AND o_w_id = %d\n" \
-        "  AND o_d_id = %d"
+	"SELECT o_c_id\n" \
+	"FROM orders\n" \
+	"WHERE o_id = %s\n" \
+	"  AND o_w_id = %d\n" \
+	"  AND o_d_id = %d"
 
 #define DELIVERY_4 \
-        "UPDATE orders\n" \
-        "SET o_carrier_id = %d\n" \
-        "WHERE o_id = %s\n" \
-        "  AND o_w_id = %d\n" \
-        "  AND o_d_id = %d"
+	"UPDATE orders\n" \
+	"SET o_carrier_id = %d\n" \
+	"WHERE o_id = %s\n" \
+	"  AND o_w_id = %d\n" \
+	"  AND o_d_id = %d"
 
 #define DELIVERY_5 \
-        "UPDATE order_line\n" \
-        "SET ol_delivery_d = current_timestamp\n" \
-        "WHERE ol_o_id = %s\n" \
-        "  AND ol_w_id = %d\n" \
-        "  AND ol_d_id = %d"
+	"UPDATE order_line\n" \
+	"SET ol_delivery_d = current_timestamp\n" \
+	"WHERE ol_o_id = %s\n" \
+	"  AND ol_w_id = %d\n" \
+	"  AND ol_d_id = %d"
 
 #define DELIVERY_6 \
-        "SELECT SUM(ol_amount * ol_quantity)\n" \
-        "FROM order_line\n" \
-        "WHERE ol_o_id = %s\n" \
-        "  AND ol_w_id = %d\n" \
-        "  AND ol_d_id = %d"
+	"SELECT SUM(ol_amount * ol_quantity)\n" \
+	"FROM order_line\n" \
+	"WHERE ol_o_id = %s\n" \
+	"  AND ol_w_id = %d\n" \
+	"  AND ol_d_id = %d"
 
 #define DELIVERY_7 \
-        "UPDATE customer\n" \
-        "SET c_delivery_cnt = c_delivery_cnt + 1,\n" \
-        "    c_balance = c_balance + %s\n" \
-        "WHERE c_id = %s\n" \
-        "  AND c_w_id = %d\n" \
-        "  AND c_d_id = %d"
+	"UPDATE customer\n" \
+	"SET c_delivery_cnt = c_delivery_cnt + 1,\n" \
+	"    c_balance = c_balance + %s\n" \
+	"WHERE c_id = %s\n" \
+	"  AND c_w_id = %d\n" \
+	"  AND c_d_id = %d"
 
 /* Prototypes to prevent potential gcc warnings. */
 
@@ -85,122 +85,122 @@ PG_FUNCTION_INFO_V1(delivery);
 
 Datum delivery(PG_FUNCTION_ARGS)
 {
-        /* Input variables. */
-        int32 w_id = PG_GETARG_INT32(0);
-        int32 o_carrier_id = PG_GETARG_INT32(1);
+	/* Input variables. */
+	int32 w_id = PG_GETARG_INT32(0);
+	int32 o_carrier_id = PG_GETARG_INT32(1);
 
-        TupleDesc tupdesc;
-        SPITupleTable *tuptable;
-        HeapTuple tuple;
+	TupleDesc tupdesc;
+	SPITupleTable *tuptable;
+	HeapTuple tuple;
 
-        char query[256];
-        int d_id;
-        int ret;
-        char *no_o_id = NULL;
-        char *o_c_id = NULL;
-        char *ol_amount = NULL;
+	char query[256];
+	int d_id;
+	int ret;
+	char *no_o_id = NULL;
+	char *o_c_id = NULL;
+	char *ol_amount = NULL;
 
-        SPI_connect();
+	SPI_connect();
 
-        for (d_id = 1; d_id <= 10; d_id++) {
-                sprintf(query, DELIVERY_1, w_id, d_id);
+	for (d_id = 1; d_id <= 10; d_id++) {
+		sprintf(query, DELIVERY_1, w_id, d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-                        tupdesc = SPI_tuptable->tupdesc;
-                        tuptable = SPI_tuptable;
-                        tuple = tuptable->vals[0];
+		ret = SPI_exec(query, 0);
+		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			tuple = tuptable->vals[0];
 
-                        no_o_id = SPI_getvalue(tuple, tupdesc, 1);
+			no_o_id = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
-                        elog(NOTICE, "no_o_id = %s", no_o_id);
+			elog(NOTICE, "no_o_id = %s", no_o_id);
 #endif /* DEBUG */
-                } else {
-                        /* Nothing to delivery for this district, try next. */
-                        continue;
-                }
+		} else {
+			/* Nothing to delivery for this district, try next. */
+			continue;
+		}
 
-                sprintf(query, DELIVERY_2, no_o_id, w_id, d_id);
+		sprintf(query, DELIVERY_2, no_o_id, w_id, d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret != SPI_OK_DELETE) {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
+		ret = SPI_exec(query, 0);
+		if (ret != SPI_OK_DELETE) {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
 
-                sprintf(query, DELIVERY_3, no_o_id, w_id, d_id);
+		sprintf(query, DELIVERY_3, no_o_id, w_id, d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-                        tupdesc = SPI_tuptable->tupdesc;
-                        tuptable = SPI_tuptable;
-                        tuple = tuptable->vals[0];
+		ret = SPI_exec(query, 0);
+		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			tuple = tuptable->vals[0];
 
-                        o_c_id = SPI_getvalue(tuple, tupdesc, 1);
+			o_c_id = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
-                        elog(NOTICE, "o_c_id = %s", no_o_id);
+			elog(NOTICE, "o_c_id = %s", no_o_id);
 #endif /* DEBUG */
-                } else {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
+		} else {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
 
-                sprintf(query, DELIVERY_4, o_carrier_id, no_o_id, w_id, d_id);
+		sprintf(query, DELIVERY_4, o_carrier_id, no_o_id, w_id, d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret != SPI_OK_UPDATE) {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
+		ret = SPI_exec(query, 0);
+		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
 
-                sprintf(query, DELIVERY_5, no_o_id, w_id, d_id);
+		sprintf(query, DELIVERY_5, no_o_id, w_id, d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret != SPI_OK_UPDATE) {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
+		ret = SPI_exec(query, 0);
+		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
 
-                sprintf(query, DELIVERY_6, no_o_id, w_id, d_id);
+		sprintf(query, DELIVERY_6, no_o_id, w_id, d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-                        tupdesc = SPI_tuptable->tupdesc;
-                        tuptable = SPI_tuptable;
-                        tuple = tuptable->vals[0];
+		ret = SPI_exec(query, 0);
+		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			tuple = tuptable->vals[0];
 
-                        ol_amount = SPI_getvalue(tuple, tupdesc, 1);
+			ol_amount = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
-                        elog(NOTICE, "ol_amount = %s", no_o_id);
+			elog(NOTICE, "ol_amount = %s", no_o_id);
 #endif /* DEBUG */
-                } else {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
+		} else {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
 
-                sprintf(query, DELIVERY_7, ol_amount, o_c_id, w_id, d_id);
+		sprintf(query, DELIVERY_7, ol_amount, o_c_id, w_id, d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret != SPI_OK_UPDATE) {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
-        }
+		ret = SPI_exec(query, 0);
+		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
+	}
 
-        SPI_finish();
-        PG_RETURN_INT32(1);
+	SPI_finish();
+	PG_RETURN_INT32(1);
 }

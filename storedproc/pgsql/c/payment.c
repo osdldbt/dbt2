@@ -30,65 +30,65 @@ PG_MODULE_MAGIC;
  */
 
 #define PAYMENT_1 \
-        "SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip\n" \
-        "FROM warehouse\n" \
-        "WHERE w_id = %d"
+	"SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip\n" \
+	"FROM warehouse\n" \
+	"WHERE w_id = %d"
 
 #define PAYMENT_2 \
-        "UPDATE warehouse\n" \
-        "SET w_ytd = w_ytd + %f\n" \
-        "WHERE w_id = %d"
+	"UPDATE warehouse\n" \
+	"SET w_ytd = w_ytd + %f\n" \
+	"WHERE w_id = %d"
 
 #define PAYMENT_3 \
-        "SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip\n" \
-        "FROM district\n" \
-        "WHERE d_id = %d\n" \
-        "  AND d_w_id = %d"
+	"SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip\n" \
+	"FROM district\n" \
+	"WHERE d_id = %d\n" \
+	"  AND d_w_id = %d"
 
 #define PAYMENT_4 \
-        "UPDATE district\n" \
-        "SET d_ytd = d_ytd + %f\n" \
-        "WHERE d_id = %d\n" \
-        "  AND d_w_id = %d"
+	"UPDATE district\n" \
+	"SET d_ytd = d_ytd + %f\n" \
+	"WHERE d_id = %d\n" \
+	"  AND d_w_id = %d"
 
 #define PAYMENT_5 \
-        "SELECT c_id\n" \
-        "FROM customer\n" \
-        "WHERE c_w_id = %d\n" \
-        "  AND c_d_id = %d\n" \
-        "  AND c_last = '%s'\n" \
-        "ORDER BY c_first ASC"
+	"SELECT c_id\n" \
+	"FROM customer\n" \
+	"WHERE c_w_id = %d\n" \
+	"  AND c_d_id = %d\n" \
+	"  AND c_last = '%s'\n" \
+	"ORDER BY c_first ASC"
 
 #define PAYMENT_6 \
-        "SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,\n" \
-        "       c_state, c_zip, c_phone, c_since, c_credit,\n" \
-        "       c_credit_lim, c_discount, c_balance, c_data, c_ytd_payment\n" \
-        "FROM customer\n" \
-        "WHERE c_w_id = %d\n" \
-        "  AND c_d_id = %d\n" \
-        "  AND c_id = %d"
+	"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,\n" \
+	"       c_state, c_zip, c_phone, c_since, c_credit,\n" \
+	"       c_credit_lim, c_discount, c_balance, c_data, c_ytd_payment\n" \
+	"FROM customer\n" \
+	"WHERE c_w_id = %d\n" \
+	"  AND c_d_id = %d\n" \
+	"  AND c_id = %d"
 
 #define PAYMENT_7_GC \
-        "UPDATE customer\n" \
-        "SET c_balance = c_balance - %f,\n" \
-        "    c_ytd_payment = c_ytd_payment + 1\n" \
-        "WHERE c_id = %d\n" \
-        "  AND c_w_id = %d\n" \
-        "  AND c_d_id = %d"
+	"UPDATE customer\n" \
+	"SET c_balance = c_balance - %f,\n" \
+	"    c_ytd_payment = c_ytd_payment + 1\n" \
+	"WHERE c_id = %d\n" \
+	"  AND c_w_id = %d\n" \
+	"  AND c_d_id = %d"
 
 #define PAYMENT_7_BC \
-        "UPDATE customer\n" \
-        "SET c_balance = c_balance - %f,\n" \
-        "    c_ytd_payment = c_ytd_payment + 1,\n" \
-        "    c_data = E'%s'\n" \
-        "WHERE c_id = %d\n" \
-        "  AND c_w_id = %d\n" \
-        "  AND c_d_id = %d"
+	"UPDATE customer\n" \
+	"SET c_balance = c_balance - %f,\n" \
+	"    c_ytd_payment = c_ytd_payment + 1,\n" \
+	"    c_data = E'%s'\n" \
+	"WHERE c_id = %d\n" \
+	"  AND c_w_id = %d\n" \
+	"  AND c_d_id = %d"
 
 #define PAYMENT_8 \
-        "INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,\n" \
-        "                     h_date, h_amount, h_data)\n" \
-        "VALUES (%d, %d, %d, %d, %d, current_timestamp, %f, E'%s    %s')"
+	"INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,\n" \
+	"		     h_date, h_amount, h_data)\n" \
+	"VALUES (%d, %d, %d, %d, %d, current_timestamp, %f, E'%s    %s')"
 
 /* Prototypes to prevent potential gcc warnings. */
 void escape_str(char *, char *);
@@ -99,274 +99,274 @@ PG_FUNCTION_INFO_V1(payment);
 
 Datum payment(PG_FUNCTION_ARGS)
 {
-        /* Input variables. */
-        int32 w_id = PG_GETARG_INT32(0);
-        int32 d_id = PG_GETARG_INT32(1);
-        int32 c_id = PG_GETARG_INT32(2);
-        int32 c_w_id = PG_GETARG_INT32(3);
-        int32 c_d_id = PG_GETARG_INT32(4);
-        text *c_last = PG_GETARG_TEXT_P(5);
-        float4 h_amount = PG_GETARG_FLOAT4(6);
+	/* Input variables. */
+	int32 w_id = PG_GETARG_INT32(0);
+	int32 d_id = PG_GETARG_INT32(1);
+	int32 c_id = PG_GETARG_INT32(2);
+	int32 c_w_id = PG_GETARG_INT32(3);
+	int32 c_d_id = PG_GETARG_INT32(4);
+	text *c_last = PG_GETARG_TEXT_P(5);
+	float4 h_amount = PG_GETARG_FLOAT4(6);
 
-        TupleDesc tupdesc;
-        SPITupleTable *tuptable;
-        HeapTuple tuple;
+	TupleDesc tupdesc;
+	SPITupleTable *tuptable;
+	HeapTuple tuple;
 
-        int ret;
-        char query[4096];
-        char *w_name = NULL;
-        char *w_street_1 = NULL;
-        char *w_street_2 = NULL;
-        char *w_city = NULL;
-        char *w_state = NULL;
-        char *w_zip = NULL;
+	int ret;
+	char query[4096];
+	char *w_name = NULL;
+	char *w_street_1 = NULL;
+	char *w_street_2 = NULL;
+	char *w_city = NULL;
+	char *w_state = NULL;
+	char *w_zip = NULL;
 
-        char *d_name = NULL;
-        char *d_street_1 = NULL;
-        char *d_street_2 = NULL;
-        char *d_city = NULL;
-        char *d_state = NULL;
-        char *d_zip = NULL;
+	char *d_name = NULL;
+	char *d_street_1 = NULL;
+	char *d_street_2 = NULL;
+	char *d_city = NULL;
+	char *d_state = NULL;
+	char *d_zip = NULL;
 
-        char *tmp_c_id = NULL;
-        int my_c_id = 0;
-        int count;
+	char *tmp_c_id = NULL;
+	int my_c_id = 0;
+	int count;
 
-        char *c_first = NULL;
-        char *c_middle = NULL;
-        char *my_c_last = NULL;
-        char *c_street_1 = NULL;
-        char *c_street_2 = NULL;
-        char *c_city = NULL;
-        char *c_state = NULL;
-        char *c_zip = NULL;
-        char *c_phone = NULL;
-        char *c_since = NULL;
-        char *c_credit = NULL;
-        char *c_credit_lim = NULL;
-        char *c_discount = NULL;
-        char *c_balance = NULL;
-        char *c_data = NULL;
-        char *c_ytd_payment = NULL;
+	char *c_first = NULL;
+	char *c_middle = NULL;
+	char *my_c_last = NULL;
+	char *c_street_1 = NULL;
+	char *c_street_2 = NULL;
+	char *c_city = NULL;
+	char *c_state = NULL;
+	char *c_zip = NULL;
+	char *c_phone = NULL;
+	char *c_since = NULL;
+	char *c_credit = NULL;
+	char *c_credit_lim = NULL;
+	char *c_discount = NULL;
+	char *c_balance = NULL;
+	char *c_data = NULL;
+	char *c_ytd_payment = NULL;
 
-        char my_w_name[20];
-        char my_d_name[20];
+	char my_w_name[20];
+	char my_d_name[20];
 
 #ifdef DEBUG
-        elog(NOTICE, "w_id = %d", w_id);
-        elog(NOTICE, "d_id = %d", d_id);
-        elog(NOTICE, "c_id = %d", c_id);
-        elog(NOTICE, "c_w_id = %d", c_w_id);
-        elog(NOTICE, "c_d_id = %d", c_d_id);
-        elog(NOTICE, "c_last = %s",
-                DatumGetCString(DirectFunctionCall1(textout,
-                PointerGetDatum(c_last))));
-        elog(NOTICE, "h_amount = %f", h_amount);
+	elog(NOTICE, "w_id = %d", w_id);
+	elog(NOTICE, "d_id = %d", d_id);
+	elog(NOTICE, "c_id = %d", c_id);
+	elog(NOTICE, "c_w_id = %d", c_w_id);
+	elog(NOTICE, "c_d_id = %d", c_d_id);
+	elog(NOTICE, "c_last = %s",
+		DatumGetCString(DirectFunctionCall1(textout,
+		PointerGetDatum(c_last))));
+	elog(NOTICE, "h_amount = %f", h_amount);
 #endif /* DEBUG */
 
-        SPI_connect();
+	SPI_connect();
 
-        sprintf(query, PAYMENT_1, w_id);
+	sprintf(query, PAYMENT_1, w_id);
 #ifdef DEBUG
-        elog(NOTICE, "%s", query);
+	elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-        ret = SPI_exec(query, 0);
-        if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-                tupdesc = SPI_tuptable->tupdesc;
-                tuptable = SPI_tuptable;
-                tuple = tuptable->vals[0];
+	ret = SPI_exec(query, 0);
+	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		tuple = tuptable->vals[0];
 
-                w_name = SPI_getvalue(tuple, tupdesc, 1);
-                w_street_1 = SPI_getvalue(tuple, tupdesc, 2);
-                w_street_2 = SPI_getvalue(tuple, tupdesc, 3);
-                w_city = SPI_getvalue(tuple, tupdesc, 4);
-                w_state = SPI_getvalue(tuple, tupdesc, 5);
-                w_zip = SPI_getvalue(tuple, tupdesc, 6);
+		w_name = SPI_getvalue(tuple, tupdesc, 1);
+		w_street_1 = SPI_getvalue(tuple, tupdesc, 2);
+		w_street_2 = SPI_getvalue(tuple, tupdesc, 3);
+		w_city = SPI_getvalue(tuple, tupdesc, 4);
+		w_state = SPI_getvalue(tuple, tupdesc, 5);
+		w_zip = SPI_getvalue(tuple, tupdesc, 6);
 #ifdef DEBUG
-                elog(NOTICE, "w_name = %s", w_name);
-                elog(NOTICE, "w_street_1 = %s", w_street_1);
-                elog(NOTICE, "w_street_2 = %s", w_street_2);
-                elog(NOTICE, "w_city = %s", w_city);
-                elog(NOTICE, "w_state = %s", w_state);
-                elog(NOTICE, "w_zip = %s", w_zip);
+		elog(NOTICE, "w_name = %s", w_name);
+		elog(NOTICE, "w_street_1 = %s", w_street_1);
+		elog(NOTICE, "w_street_2 = %s", w_street_2);
+		elog(NOTICE, "w_city = %s", w_city);
+		elog(NOTICE, "w_state = %s", w_state);
+		elog(NOTICE, "w_zip = %s", w_zip);
 #endif /* DEBUG */
-        } else {
-                SPI_finish();
-                PG_RETURN_INT32(-1);
-        }
+	} else {
+		SPI_finish();
+		PG_RETURN_INT32(-1);
+	}
 
-        sprintf(query, PAYMENT_2, h_amount, w_id);
+	sprintf(query, PAYMENT_2, h_amount, w_id);
 #ifdef DEBUG
-        elog(NOTICE, "%s", query);
+	elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-        ret = SPI_exec(query, 0);
-        if (ret != SPI_OK_UPDATE) {
-                SPI_finish();
-                PG_RETURN_INT32(-1);
-        }
+	ret = SPI_exec(query, 0);
+	if (ret != SPI_OK_UPDATE) {
+		SPI_finish();
+		PG_RETURN_INT32(-1);
+	}
 
-        sprintf(query, PAYMENT_3, d_id, w_id);
+	sprintf(query, PAYMENT_3, d_id, w_id);
 #ifdef DEBUG
-        elog(NOTICE, "%s", query);
+	elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-        ret = SPI_exec(query, 0);
-        if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-                tupdesc = SPI_tuptable->tupdesc;
-                tuptable = SPI_tuptable;
-                tuple = tuptable->vals[0];
+	ret = SPI_exec(query, 0);
+	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		tuple = tuptable->vals[0];
 
-                d_name = SPI_getvalue(tuple, tupdesc, 1);
-                d_street_1 = SPI_getvalue(tuple, tupdesc, 2);
-                d_street_2 = SPI_getvalue(tuple, tupdesc, 3);
-                d_city = SPI_getvalue(tuple, tupdesc, 4);
-                d_state = SPI_getvalue(tuple, tupdesc, 5);
-                d_zip = SPI_getvalue(tuple, tupdesc, 6);
+		d_name = SPI_getvalue(tuple, tupdesc, 1);
+		d_street_1 = SPI_getvalue(tuple, tupdesc, 2);
+		d_street_2 = SPI_getvalue(tuple, tupdesc, 3);
+		d_city = SPI_getvalue(tuple, tupdesc, 4);
+		d_state = SPI_getvalue(tuple, tupdesc, 5);
+		d_zip = SPI_getvalue(tuple, tupdesc, 6);
 #ifdef DEBUG
-                elog(NOTICE, "d_name = %s", d_name);
-                elog(NOTICE, "d_street_1 = %s", d_street_1);
-                elog(NOTICE, "d_street_2 = %s", d_street_2);
-                elog(NOTICE, "d_city = %s", d_city);
-                elog(NOTICE, "d_state = %s", d_state);
-                elog(NOTICE, "d_zip = %s", d_zip);
+		elog(NOTICE, "d_name = %s", d_name);
+		elog(NOTICE, "d_street_1 = %s", d_street_1);
+		elog(NOTICE, "d_street_2 = %s", d_street_2);
+		elog(NOTICE, "d_city = %s", d_city);
+		elog(NOTICE, "d_state = %s", d_state);
+		elog(NOTICE, "d_zip = %s", d_zip);
 #endif /* DEBUG */
-        } else {
-                SPI_finish();
-                PG_RETURN_INT32(-1);
-        }
+	} else {
+		SPI_finish();
+		PG_RETURN_INT32(-1);
+	}
 
-        sprintf(query, PAYMENT_4, h_amount, d_id, w_id);
+	sprintf(query, PAYMENT_4, h_amount, d_id, w_id);
 #ifdef DEBUG
-        elog(NOTICE, "%s", query);
+	elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-        ret = SPI_exec(query, 0);
-        if (ret != SPI_OK_UPDATE) {
-                SPI_finish();
-                PG_RETURN_INT32(-1);
-        }
+	ret = SPI_exec(query, 0);
+	if (ret != SPI_OK_UPDATE) {
+		SPI_finish();
+		PG_RETURN_INT32(-1);
+	}
 
-        if (c_id == 0) {
-                sprintf(query, PAYMENT_5, w_id, d_id,
-                        DatumGetCString(DirectFunctionCall1(textout,
-                        PointerGetDatum(c_last))));
+	if (c_id == 0) {
+		sprintf(query, PAYMENT_5, w_id, d_id,
+			DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(c_last))));
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                count = SPI_processed;
-                if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-                        tupdesc = SPI_tuptable->tupdesc;
-                        tuptable = SPI_tuptable;
-                        tuple = tuptable->vals[count / 2];
+		ret = SPI_exec(query, 0);
+		count = SPI_processed;
+		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			tuple = tuptable->vals[count / 2];
 
-                        tmp_c_id = SPI_getvalue(tuple, tupdesc, 1);
+			tmp_c_id = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
-                        elog(NOTICE, "c_id = %s, %d total, selected %d",
-                                tmp_c_id, count, count / 2);
+			elog(NOTICE, "c_id = %s, %d total, selected %d",
+				tmp_c_id, count, count / 2);
 #endif /* DEBUG */
-                        my_c_id = atoi(tmp_c_id);
-                } else {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
-        } else {
-                my_c_id = c_id;
-        }
+			my_c_id = atoi(tmp_c_id);
+		} else {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
+	} else {
+		my_c_id = c_id;
+	}
 
-        sprintf(query, PAYMENT_6, c_w_id, c_d_id, my_c_id);
+	sprintf(query, PAYMENT_6, c_w_id, c_d_id, my_c_id);
 #ifdef DEBUG
-        elog(NOTICE, "%s", query);
+	elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-        ret = SPI_exec(query, 0);
-        if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-                tupdesc = SPI_tuptable->tupdesc;
-                tuptable = SPI_tuptable;
-                tuple = tuptable->vals[0];
+	ret = SPI_exec(query, 0);
+	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		tuple = tuptable->vals[0];
 
-                c_first = SPI_getvalue(tuple, tupdesc, 1);
-                c_middle = SPI_getvalue(tuple, tupdesc, 2);
-                my_c_last = SPI_getvalue(tuple, tupdesc, 3);
-                c_street_1 = SPI_getvalue(tuple, tupdesc, 4);
-                c_street_2 = SPI_getvalue(tuple, tupdesc, 5);
-                c_city = SPI_getvalue(tuple, tupdesc, 6);
-                c_state = SPI_getvalue(tuple, tupdesc, 7);
-                c_zip = SPI_getvalue(tuple, tupdesc, 8);
-                c_phone = SPI_getvalue(tuple, tupdesc, 9);
-                c_since = SPI_getvalue(tuple, tupdesc, 10);
-                c_credit = SPI_getvalue(tuple, tupdesc, 11);
-                c_credit_lim = SPI_getvalue(tuple, tupdesc, 12);
-                c_discount = SPI_getvalue(tuple, tupdesc, 13);
-                c_balance = SPI_getvalue(tuple, tupdesc, 14);
-                c_data = SPI_getvalue(tuple, tupdesc, 15);
-                c_ytd_payment = SPI_getvalue(tuple, tupdesc, 16);
+		c_first = SPI_getvalue(tuple, tupdesc, 1);
+		c_middle = SPI_getvalue(tuple, tupdesc, 2);
+		my_c_last = SPI_getvalue(tuple, tupdesc, 3);
+		c_street_1 = SPI_getvalue(tuple, tupdesc, 4);
+		c_street_2 = SPI_getvalue(tuple, tupdesc, 5);
+		c_city = SPI_getvalue(tuple, tupdesc, 6);
+		c_state = SPI_getvalue(tuple, tupdesc, 7);
+		c_zip = SPI_getvalue(tuple, tupdesc, 8);
+		c_phone = SPI_getvalue(tuple, tupdesc, 9);
+		c_since = SPI_getvalue(tuple, tupdesc, 10);
+		c_credit = SPI_getvalue(tuple, tupdesc, 11);
+		c_credit_lim = SPI_getvalue(tuple, tupdesc, 12);
+		c_discount = SPI_getvalue(tuple, tupdesc, 13);
+		c_balance = SPI_getvalue(tuple, tupdesc, 14);
+		c_data = SPI_getvalue(tuple, tupdesc, 15);
+		c_ytd_payment = SPI_getvalue(tuple, tupdesc, 16);
 #ifdef DEBUG
-                elog(NOTICE, "c_first = %s", c_first);
-                elog(NOTICE, "c_middle = %s", c_middle);
-                elog(NOTICE, "c_last = %s", my_c_last);
-                elog(NOTICE, "c_street_1 = %s", c_street_1);
-                elog(NOTICE, "c_street_2 = %s", c_street_2);
-                elog(NOTICE, "c_city = %s", c_city);
-                elog(NOTICE, "c_state = %s", c_state);
-                elog(NOTICE, "c_zip = %s", c_zip);
-                elog(NOTICE, "c_phone = %s", c_phone);
-                elog(NOTICE, "c_since = %s", c_since);
-                elog(NOTICE, "c_credit = %s", c_credit);
-                elog(NOTICE, "c_credit_lim = %s", c_credit_lim);
-                elog(NOTICE, "c_discount = %s", c_discount);
-                elog(NOTICE, "c_balance = %s", c_balance);
-                elog(NOTICE, "c_data = %s", c_data);
-                elog(NOTICE, "c_ytd_payment = %s", c_ytd_payment);
+		elog(NOTICE, "c_first = %s", c_first);
+		elog(NOTICE, "c_middle = %s", c_middle);
+		elog(NOTICE, "c_last = %s", my_c_last);
+		elog(NOTICE, "c_street_1 = %s", c_street_1);
+		elog(NOTICE, "c_street_2 = %s", c_street_2);
+		elog(NOTICE, "c_city = %s", c_city);
+		elog(NOTICE, "c_state = %s", c_state);
+		elog(NOTICE, "c_zip = %s", c_zip);
+		elog(NOTICE, "c_phone = %s", c_phone);
+		elog(NOTICE, "c_since = %s", c_since);
+		elog(NOTICE, "c_credit = %s", c_credit);
+		elog(NOTICE, "c_credit_lim = %s", c_credit_lim);
+		elog(NOTICE, "c_discount = %s", c_discount);
+		elog(NOTICE, "c_balance = %s", c_balance);
+		elog(NOTICE, "c_data = %s", c_data);
+		elog(NOTICE, "c_ytd_payment = %s", c_ytd_payment);
 #endif /* DEBUG */
-        } else {
-                SPI_finish();
-                PG_RETURN_INT32(-1);
-        }
+	} else {
+		SPI_finish();
+		PG_RETURN_INT32(-1);
+	}
 
-        /* It's either "BC" or "GC". */
-        if (c_credit[0] == 'G') {
-                sprintf(query, PAYMENT_7_GC, h_amount, my_c_id, c_w_id, c_d_id);
+	/* It's either "BC" or "GC". */
+	if (c_credit[0] == 'G') {
+		sprintf(query, PAYMENT_7_GC, h_amount, my_c_id, c_w_id, c_d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret != SPI_OK_UPDATE) {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
-        } else {
-                char my_c_data[1000];
+		ret = SPI_exec(query, 0);
+		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
+	} else {
+		char my_c_data[1000];
 
-                sprintf(my_c_data, "%d %d %d %d %d %f ", my_c_id, c_d_id,
-                        c_w_id, d_id, w_id, h_amount);
-                /* Copy and escape all at once! */
-                escape_str(c_data, my_c_data);
+		sprintf(my_c_data, "%d %d %d %d %d %f ", my_c_id, c_d_id,
+			c_w_id, d_id, w_id, h_amount);
+		/* Copy and escape all at once! */
+		escape_str(c_data, my_c_data);
 
-                sprintf(query, PAYMENT_7_BC, h_amount, my_c_data, my_c_id,
-                        c_w_id, c_d_id);
+		sprintf(query, PAYMENT_7_BC, h_amount, my_c_data, my_c_id,
+			c_w_id, c_d_id);
 #ifdef DEBUG
-                elog(NOTICE, "%s", query);
+		elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-                ret = SPI_exec(query, 0);
-                if (ret != SPI_OK_UPDATE) {
-                        SPI_finish();
-                        PG_RETURN_INT32(-1);
-                }
-        }
+		ret = SPI_exec(query, 0);
+		if (ret != SPI_OK_UPDATE) {
+			SPI_finish();
+			PG_RETURN_INT32(-1);
+		}
+	}
 
-        /* Escape special characters. */
-        escape_str(w_name, my_w_name);
-        escape_str(d_name, my_d_name);
+	/* Escape special characters. */
+	escape_str(w_name, my_w_name);
+	escape_str(d_name, my_d_name);
 
-        sprintf(query, PAYMENT_8, my_c_id, c_d_id, c_w_id, d_id, w_id,
-                h_amount, my_w_name, my_d_name);
+	sprintf(query, PAYMENT_8, my_c_id, c_d_id, c_w_id, d_id, w_id,
+		h_amount, my_w_name, my_d_name);
 #ifdef DEBUG
-        elog(NOTICE, "%s", query);
+	elog(NOTICE, "%s", query);
 #endif /* DEBUG */
-        ret = SPI_exec(query, 0);
-        if (ret != SPI_OK_INSERT) {
-                SPI_finish();
-                PG_RETURN_INT32(-1);
-        }
+	ret = SPI_exec(query, 0);
+	if (ret != SPI_OK_INSERT) {
+		SPI_finish();
+		PG_RETURN_INT32(-1);
+	}
 
-        SPI_finish();
-        PG_RETURN_INT32(1);
+	SPI_finish();
+	PG_RETURN_INT32(1);
 }
