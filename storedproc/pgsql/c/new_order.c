@@ -22,11 +22,7 @@ PG_MODULE_MAGIC;
 #endif
 
 /*
-#define DEBUG
-*/
-
-/*
- * "sub"-queries for each type of transactions
+ * New Order transaction SQL statements.
  */
 
 #define NEW_ORDER_1 \
@@ -146,30 +142,26 @@ Datum new_order(PG_FUNCTION_ARGS)
 				&isnull));
 	}
 
-#ifdef DEBUG
-	elog(NOTICE, "%d w_id = %d", (int) getpid(), w_id);
-	elog(NOTICE, "%d d_id = %d", (int) getpid(), d_id);
-	elog(NOTICE, "%d c_id = %d", (int) getpid(), c_id);
-	elog(NOTICE, "%d o_all_local = %d", (int) getpid(), o_all_local);
-	elog(NOTICE, "%d o_ol_cnt = %d", (int) getpid(), o_ol_cnt);
+	elog(DEBUG1, "%d w_id = %d", (int) getpid(), w_id);
+	elog(DEBUG1, "%d d_id = %d", (int) getpid(), d_id);
+	elog(DEBUG1, "%d c_id = %d", (int) getpid(), c_id);
+	elog(DEBUG1, "%d o_all_local = %d", (int) getpid(), o_all_local);
+	elog(DEBUG1, "%d o_ol_cnt = %d", (int) getpid(), o_ol_cnt);
 
-	elog(NOTICE, "%d ##  ol_i_id  ol_supply_w_id  ol_quantity",
+	elog(DEBUG1, "%d ##  ol_i_id  ol_supply_w_id  ol_quantity",
 		(int) getpid());
-	elog(NOTICE, "%d --  -------  --------------  -----------",
+	elog(DEBUG1, "%d --  -------  --------------  -----------",
 		(int) getpid());
 	for (i = 0; i < o_ol_cnt; i++) {
-		elog(NOTICE, "%d %2d  %7d  %14d  %11d", (int) getpid(),
+		elog(DEBUG1, "%d %2d  %7d  %14d  %11d", (int) getpid(),
 				i + 1, ol_i_id[i], ol_supply_w_id[i], ol_quantity[i]);
 	}
-#endif /* DEBUG */
 
 	SPI_connect();
 
 	sprintf(query, NEW_ORDER_1, w_id);
 
-#ifdef DEBUG
-	elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+	elog(DEBUG1, "%d %s", (int) getpid(), query);
 
 	ret = SPI_exec(query, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
@@ -178,19 +170,15 @@ Datum new_order(PG_FUNCTION_ARGS)
 		tuple = tuptable->vals[0];
 
 		w_tax = SPI_getvalue(tuple, tupdesc, 1);
-#ifdef DEBUG
-		elog(NOTICE, "%d w_tax = %s", (int) getpid(), w_tax);
-#endif /* DEBUG */
+		elog(DEBUG1, "%d w_tax = %s", (int) getpid(), w_tax);
 	} else {
-		elog(NOTICE, "NEW_ORDER_1 failed");
+		elog(WARNING, "NEW_ORDER_1 failed");
 		SPI_finish();
 		PG_RETURN_INT32(10);
 	}
 
 	sprintf(query, NEW_ORDER_2, w_id, d_id);
-#ifdef DEBUG
-	elog(NOTICE, "%s", query);
-#endif /* DEBUG */
+	elog(DEBUG1, "%s", query);
 	ret = SPI_exec(query, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
@@ -199,32 +187,26 @@ Datum new_order(PG_FUNCTION_ARGS)
 
 		d_tax = SPI_getvalue(tuple, tupdesc, 1);
 		d_next_o_id = SPI_getvalue(tuple, tupdesc, 2);
-#ifdef DEBUG
-		elog(NOTICE, "%d d_tax = %s", (int) getpid(), d_tax);
-		elog(NOTICE, "%d d_next_o_id = %s", (int) getpid(),
+		elog(DEBUG1, "%d d_tax = %s", (int) getpid(), d_tax);
+		elog(DEBUG1, "%d d_next_o_id = %s", (int) getpid(),
 			d_next_o_id);
-#endif /* DEBUG */
 	} else {
-		elog(NOTICE, "NEW_ORDER_2 failed");
+		elog(WARNING, "NEW_ORDER_2 failed");
 		SPI_finish();
 		PG_RETURN_INT32(11);
 	}
 
 	sprintf(query, NEW_ORDER_3, w_id, d_id);
-#ifdef DEBUG
-	elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+	elog(DEBUG1, "%d %s", (int) getpid(), query);
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_UPDATE) {
-		elog(NOTICE, "NEW_ORDER_3 failed");
+		elog(WARNING, "NEW_ORDER_3 failed");
 		SPI_finish();
 		PG_RETURN_INT32(12);
 	}
 
 	sprintf(query, NEW_ORDER_4, w_id, d_id, c_id);
-#ifdef DEBUG
-	elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+	elog(DEBUG1, "%d %s", (int) getpid(), query);
 	ret = SPI_exec(query, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
@@ -234,45 +216,37 @@ Datum new_order(PG_FUNCTION_ARGS)
 		c_discount = SPI_getvalue(tuple, tupdesc, 1);
 		c_last = SPI_getvalue(tuple, tupdesc, 2);
 		c_credit = SPI_getvalue(tuple, tupdesc, 3);
-#ifdef DEBUG
-		elog(NOTICE, "%d c_discount = %s", (int) getpid(), c_discount);
-		elog(NOTICE, "%d c_last = %s", (int) getpid(), c_last);
-		elog(NOTICE, "%d c_credit = %s", (int) getpid(), c_credit);
-#endif /* DEBUG */
+		elog(DEBUG1, "%d c_discount = %s", (int) getpid(), c_discount);
+		elog(DEBUG1, "%d c_last = %s", (int) getpid(), c_last);
+		elog(DEBUG1, "%d c_credit = %s", (int) getpid(), c_credit);
 	} else {
-		elog(NOTICE, "NEW_ORDER_4 failed");
+		elog(WARNING, "NEW_ORDER_4 failed");
 		SPI_finish();
 		PG_RETURN_INT32(13);
 	}
 
 	sprintf(query, NEW_ORDER_5, d_next_o_id, w_id, d_id);
-#ifdef DEBUG
-	elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+	elog(DEBUG1, "%d %s", (int) getpid(), query);
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
-		elog(NOTICE, "NEW_ORDER_5 failed %d", ret);
+		elog(WARNING, "NEW_ORDER_5 failed %d", ret);
 		SPI_finish();
 		PG_RETURN_INT32(14);
 	}
 
 	sprintf(query, NEW_ORDER_6, d_next_o_id, d_id, w_id, c_id, o_ol_cnt,
 		o_all_local);
-#ifdef DEBUG
-	elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+	elog(DEBUG1, "%d %s", (int) getpid(), query);
 	ret = SPI_exec(query, 0);
 	if (ret != SPI_OK_INSERT) {
-		elog(NOTICE, "NEW_ORDER_6 failed");
+		elog(WARNING, "NEW_ORDER_6 failed");
 		SPI_finish();
 		PG_RETURN_INT32(15);
 	}
 
 	for (i = 0; i < o_ol_cnt; i++) {
 		sprintf(query, NEW_ORDER_7, ol_i_id[i]);
-#ifdef DEBUG
-		elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+		elog(DEBUG1, "%d %s", (int) getpid(), query);
 		ret = SPI_exec(query, 0);
 		/*
 		 * Shouldn't have to check if ol_i_id is 0, but if the row
@@ -286,14 +260,12 @@ Datum new_order(PG_FUNCTION_ARGS)
 			i_price[i] = SPI_getvalue(tuple, tupdesc, 1);
 			i_name[i] = SPI_getvalue(tuple, tupdesc, 2);
 			i_data[i] = SPI_getvalue(tuple, tupdesc, 3);
-#ifdef DEBUG
-			elog(NOTICE, "%d i_price[%d] = %s", (int) getpid(), i,
+			elog(DEBUG1, "%d i_price[%d] = %s", (int) getpid(), i,
 				i_price[i]);
-			elog(NOTICE, "%d i_name[%d] = %s", (int) getpid(), i,
+			elog(DEBUG1, "%d i_name[%d] = %s", (int) getpid(), i,
 				i_name[i]);
-			elog(NOTICE, "%d i_data[%d] = %s", (int) getpid(), i,
+			elog(DEBUG1, "%d i_data[%d] = %s", (int) getpid(), i,
 				i_data[i]);
-#endif /* DEBUG */
 		} else {
 			/* Item doesn't exist, rollback transaction. */
 			SPI_finish();
@@ -302,9 +274,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 
 		ol_amount[i] = atof(i_price[i]) * (float) ol_quantity[i];
 		sprintf(query, NEW_ORDER_8, s_dist[d_id - 1], ol_i_id[i], w_id);
-#ifdef DEBUG
-		elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+		elog(DEBUG1, "%d %s", (int) getpid(), query);
 		ret = SPI_exec(query, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
@@ -314,16 +284,14 @@ Datum new_order(PG_FUNCTION_ARGS)
 			s_quantity[i] = SPI_getvalue(tuple, tupdesc, 1);
 			my_s_dist[i] = SPI_getvalue(tuple, tupdesc, 2);
 			s_data[i] = SPI_getvalue(tuple, tupdesc, 3);
-#ifdef DEBUG
-			elog(NOTICE, "%d s_quantity[%d] = %s", (int) getpid(),
+			elog(DEBUG1, "%d s_quantity[%d] = %s", (int) getpid(),
 				i, s_quantity[i]);
-			elog(NOTICE, "%d my_s_dist[%d] = %s", (int) getpid(),
+			elog(DEBUG1, "%d my_s_dist[%d] = %s", (int) getpid(),
 				i, my_s_dist[i]);
-			elog(NOTICE, "%d s_data[%d] = %s", (int) getpid(), i,
+			elog(DEBUG1, "%d s_data[%d] = %s", (int) getpid(), i,
 				s_data[i]);
-#endif /* DEBUG */
 		} else {
-			elog(NOTICE, "NEW_ORDER_8 failed");
+			elog(WARNING, "NEW_ORDER_8 failed");
 			SPI_finish();
 			PG_RETURN_INT32(16);
 		}
@@ -336,12 +304,10 @@ Datum new_order(PG_FUNCTION_ARGS)
 			sprintf(query, NEW_ORDER_9, ol_quantity[i] - 91,
 				ol_i_id[i], w_id);
 		}
-#ifdef DEBUG
-		elog(NOTICE, "%d %s", (int) getpid(), query);
-#endif /* DEBUG */
+		elog(DEBUG1, "%d %s", (int) getpid(), query);
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_UPDATE) {
-			elog(NOTICE, "NEW_ORDER_9 failed");
+			elog(WARNING, "NEW_ORDER_9 failed");
 			SPI_finish();
 			PG_RETURN_INT32(17);
 		}
@@ -349,12 +315,10 @@ Datum new_order(PG_FUNCTION_ARGS)
 		sprintf(query, NEW_ORDER_10, d_next_o_id, d_id, w_id, i + 1,
 			ol_i_id[i], ol_supply_w_id[i], ol_quantity[i],
 			ol_amount[i], my_s_dist[i]);
-#ifdef DEBUG
-		elog(NOTICE, "%d %s", getpid(), query);
-#endif /* DEBUG */
+		elog(DEBUG1, "%d %s", getpid(), query);
 		ret = SPI_exec(query, 0);
 		if (ret != SPI_OK_INSERT) {
-			elog(NOTICE, "NEW_ORDER_10 failed");
+			elog(WARNING, "NEW_ORDER_10 failed");
 			SPI_finish();
 			PG_RETURN_INT32(18);
 		}

@@ -20,11 +20,7 @@ PG_MODULE_MAGIC;
 #endif
 
 /*
-#define DEBUG
-*/
-
-/*
- * "sub"-queries for each type of transactions
+ * Stock Level transaction SQL Statement.
  */
 
 #define STOCK_LEVEL_1 \
@@ -71,9 +67,7 @@ Datum stock_level(PG_FUNCTION_ARGS)
 	SPI_connect();
 
 	sprintf(query, STOCK_LEVEL_1, w_id, d_id);
-#ifdef DEBUG
-	elog(NOTICE, "%s", query);
-#endif /* DEBUG */
+	elog(DEBUG1, "%s", query);
 	ret = SPI_exec(query, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
@@ -81,9 +75,7 @@ Datum stock_level(PG_FUNCTION_ARGS)
 		tuple = tuptable->vals[0];
 
 		buf = SPI_getvalue(tuple, tupdesc, 1);
-#ifdef DEBUG
-		elog(NOTICE, "d_next_o_id = %s", buf);
-#endif /* DEBUG */
+		elog(DEBUG1, "d_next_o_id = %s", buf);
 		d_next_o_id = atoi(buf);
 	} else {
 		SPI_finish();
@@ -91,10 +83,8 @@ Datum stock_level(PG_FUNCTION_ARGS)
 	}
 
 	sprintf(query, STOCK_LEVEL_2, w_id, d_id, threshold, d_next_o_id - 20,
-		d_next_o_id - 1);
-#ifdef DEBUG
-	elog(NOTICE, "%s", query);
-#endif /* DEBUG */
+			d_next_o_id - 1);
+	elog(DEBUG1, "%s", query);
 	ret = SPI_exec(query, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
@@ -102,9 +92,7 @@ Datum stock_level(PG_FUNCTION_ARGS)
 		tuple = tuptable->vals[0];
 
 		buf = SPI_getvalue(tuple, tupdesc, 1);
-#ifdef DEBUG
-		elog(NOTICE, "low_stock = %s", buf);
-#endif /* DEBUG */
+		elog(DEBUG1, "low_stock = %s", buf);
 		low_stock = atoi(buf);
 	} else {
 		SPI_finish();

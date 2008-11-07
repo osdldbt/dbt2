@@ -22,11 +22,7 @@ PG_MODULE_MAGIC;
 #endif
 
 /*
-#define DEBUG
-*/
-
-/*
- * "sub"-queries for each type of transactions
+ * Order Status transaction SQL statements.
  */
 
 #define ORDER_STATUS_1 \
@@ -126,9 +122,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 			sprintf(query, ORDER_STATUS_1, c_w_id, c_d_id,
 					DatumGetCString(DirectFunctionCall1(textout,
 					PointerGetDatum(c_last))));
-#ifdef DEBUG
-			elog(NOTICE, "%s", query);
-#endif /* DEBUG */
+			elog(DEBUG1, "%s", query);
 			ret = SPI_exec(query, 0);
 			count = SPI_processed;
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
@@ -137,10 +131,8 @@ Datum order_status(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[count / 2];
 
 				tmp_c_id = SPI_getvalue(tuple, tupdesc, 1);
-#ifdef DEBUG
-				elog(NOTICE, "c_id = %s, %d total, selected %d",
+				elog(DEBUG1, "c_id = %s, %d total, selected %d",
 						tmp_c_id, count, count / 2);
-#endif /* DEBUG */
 				my_c_id = atoi(tmp_c_id);
 			} else {
 				SPI_finish();
@@ -151,9 +143,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 		}
 
 		sprintf(query, ORDER_STATUS_2, c_w_id, c_d_id, my_c_id);
-#ifdef DEBUG
-		elog(NOTICE, "%s", query);
-#endif /* DEBUG */
+		elog(DEBUG1, "%s", query);
 		ret = SPI_exec(query, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
@@ -164,12 +154,10 @@ Datum order_status(PG_FUNCTION_ARGS)
 			c_middle = SPI_getvalue(tuple, tupdesc, 2);
 			my_c_last = SPI_getvalue(tuple, tupdesc, 3);
 			c_balance = SPI_getvalue(tuple, tupdesc, 4);
-#ifdef DEBUG
-			elog(NOTICE, "c_first = %s", c_first);
-			elog(NOTICE, "c_middle = %s", c_middle);
-			elog(NOTICE, "c_last = %s", my_c_last);
-			elog(NOTICE, "c_balance = %s", c_balance);
-#endif /* DEBUG */
+			elog(DEBUG1, "c_first = %s", c_first);
+			elog(DEBUG1, "c_middle = %s", c_middle);
+			elog(DEBUG1, "c_last = %s", my_c_last);
+			elog(DEBUG1, "c_balance = %s", c_balance);
 		} else {
 			SPI_finish();
 			SRF_RETURN_DONE(funcctx);
@@ -177,9 +165,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 
 		/* Maybe this should be a join with the previous query. */
 		sprintf(query, ORDER_STATUS_3, c_w_id, c_d_id, my_c_id);
-#ifdef DEBUG
-		elog(NOTICE, "%s", query);
-#endif /* DEBUG */
+		elog(DEBUG1, "%s", query);
 		ret = SPI_exec(query, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
@@ -190,33 +176,26 @@ Datum order_status(PG_FUNCTION_ARGS)
 			o_carrier_id = SPI_getvalue(tuple, tupdesc, 2);
 			o_entry_d = SPI_getvalue(tuple, tupdesc, 3);
 			o_ol_cnt = SPI_getvalue(tuple, tupdesc, 4);
-#ifdef DEBUG
-			elog(NOTICE, "o_id = %s", o_id);
-			elog(NOTICE, "o_carrier_id = %s", o_carrier_id);
-			elog(NOTICE, "o_entry_d = %s", o_entry_d);
-			elog(NOTICE, "o_ol_cnt = %s", o_ol_cnt);
-#endif /* DEBUG */
+			elog(DEBUG1, "o_id = %s", o_id);
+			elog(DEBUG1, "o_carrier_id = %s", o_carrier_id);
+			elog(DEBUG1, "o_entry_d = %s", o_entry_d);
+			elog(DEBUG1, "o_ol_cnt = %s", o_ol_cnt);
 		} else {
 			SPI_finish();
 			SRF_RETURN_DONE(funcctx);
 		}
 
 		sprintf(query, ORDER_STATUS_4, c_w_id, c_d_id, o_id);
-#ifdef DEBUG
-		elog(NOTICE, "%s", query);
-#endif /* DEBUG */
+		elog(DEBUG1, "%s", query);
 
-#ifdef DEBUG
-		elog(NOTICE, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d");
-		elog(NOTICE, "--  -------  --------------  -----------  ---------  -------------");
-#endif /* DEBUG */
+		elog(DEBUG1, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d");
+		elog(DEBUG1, "--  -------  --------------  -----------  ---------  -------------");
 		ret = SPI_exec(query, 0);
 		count = SPI_processed;
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 
-#ifdef DEBUG
 			for (j = 0; j < count; j++) {
 
 				char *ol_i_id[15];
@@ -225,21 +204,21 @@ Datum order_status(PG_FUNCTION_ARGS)
 				char *ol_amount[15];
 				char *ol_delivery_d[15];
 
+				/* 15 is the buffer size */
+				int idx = j % 15;
+
 				tuple = tuptable->vals[j];
 
-				/* 15 is the buffer size */
-				int idx = j%15;
 				ol_i_id[idx] = SPI_getvalue(tuple, tupdesc, 1);
 				ol_supply_w_id[idx] = SPI_getvalue(tuple, tupdesc, 2);
 				ol_quantity[idx] = SPI_getvalue(tuple, tupdesc, 3);
 				ol_amount[idx] = SPI_getvalue(tuple, tupdesc, 4);
 				ol_delivery_d[idx] = SPI_getvalue(tuple, tupdesc, 5);
-				elog(NOTICE, "%2d  %7s  %14s  %11s  %9.2f  %13s",
+				elog(DEBUG1, "%2d  %7s  %14s  %11s  %9.2f  %13s",
 						j + 1, ol_i_id[idx], ol_supply_w_id[idx],
 						ol_quantity[idx], atof(ol_amount[idx]),
 						ol_delivery_d[idx]);
 			}
-#endif /* DEBUG */
 		} else {
 			SPI_finish();
 			SRF_RETURN_DONE(funcctx);
