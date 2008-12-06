@@ -26,8 +26,8 @@ make_directories()
 		COMMAND="ssh ${HOST}"
 	fi
 	${COMMAND} mkdir -p ${OUTPUT_DIR}
-	${COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}
-	${COMMAND} mkdir -p ${DRIVER_OUTPUT_DIR}
+	${COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}/`hostname`
+	${COMMAND} mkdir -p ${DRIVER_OUTPUT_DIR}/`hostname`
 	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
 }
 
@@ -136,7 +136,7 @@ oprofile_reset()
 	else
 		HOST=`hostname`
 	fi
-	echo "reseting oprofile counters: ${HOST}"
+	echo "resetting oprofile counters: ${HOST}"
 	${COMMAND} sudo opcontrol --reset
 }
 
@@ -155,8 +155,13 @@ oprofile_stop()
 
 post_process_sar()
 {
+	COMMAND=""
 	FILE=${1}
-	if [ -f ${FILE} ]; then
+	HOST=${2}
+	if [ ! "x${HOST}" = "x" ]; then
+		COMMAND="ssh ${HOST}"
+		${COMMAND} "sar -f ${FILE} -A > `dirname ${FILE}`/sar.out"
+	else
 		sar -f ${FILE} -A > `dirname ${FILE}`/sar.out
 	fi
 }
@@ -173,13 +178,14 @@ readprofile_collect()
 		HOST=`hostname`
 	fi
 	echo "collecting readprofile data: ${HOST}"
-	mkdir -p ${RP_DIR}
 	PROFILE=${RP_DIR}/readprofile.txt
 	if [ -n "${COMMAND}" ]; then
+		${COMMAND} mkdir -p ${RP_DIR}
 		${COMMAND} "/usr/sbin/readprofile -n -m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}"
 		${COMMAND} "cat ${PROFILE} | sort -n -r -k1 > ${RP_DIR}/readprofile_ticks.txt"
 		${COMMAND} "cat ${PROFILE} | sort -n -r -k3 > ${RP_DIR}/readprofile_load.txt"
 	else
+		mkdir -p ${RP_DIR}
 		/usr/sbin/readprofile -n -m /boot/System.map-`uname -r` > ${PROFILE}
 		cat ${PROFILE} | sort -n -r -k1 > ${RP_DIR}/readprofile_ticks.txt
 		cat ${PROFILE} | sort -n -r -k3 > ${RP_DIR}/readprofile_load.txt
@@ -206,12 +212,13 @@ usage()
 		echo "error: $1"
 	fi
 	echo
+	echo "usage: `basename $0` -h"
 	echo "usage: `basename $0` -a <mysql|pgsql|sqlite>"
 	echo "       -c <number of database connections> -d <seconds>"
 	echo "       -w <number of warehouses> -o <path> [options]"
 	echo "options:"
 	echo "       -d <duraction of test in seconds>"
-	echo "       -h <database host name. (default localhost)>"
+	echo "       -H <database host name. (default localhost)>"
 	echo "       -l <database port number>"
 	echo "       -q <enable oprofile data collection>"
 	echo "       -s <delay of starting of new threads in milliseconds>"
@@ -362,6 +369,8 @@ CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
 DRIVER_OUTPUT_DIR=${OUTPUT_DIR}/driver
 DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 
+REPORT_FILE="${OUTPUT_DIR}/report.txt"
+
 #
 # Create the directories we will need.
 #
@@ -414,25 +423,14 @@ fi
 #
 # Redisplay the test parameters.
 #
-echo "************************************************************************"
-echo "*              DBT-2 test for ${DBMS} started"
-echo "************************************************************************"
-echo "*                                                                      *"
-echo "*  Test consists of 3 stages:                                          *"
-echo "*                                                                      *"
-echo "*  1. Start of client to create pool of databases connections          *"
-echo "*  2. Start of driver to emulate terminals and transactions generation *"
-echo "*  3. Processing of results                                            *"
-echo "*                                                                      *"
-echo "************************************************************************"
+echo "DBT-2 test for ${DBMS} started..."
+echo ""
+echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
+echo "DATABASE NAME: ${DBNAME}"
 
 #
 # Build up the client command line arguments.
 #
-
-echo ""
-echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
-echo "DATABASE NAME: ${DBNAME}"
 
 if [ -n "${DB_USER}" ]; then
   echo "DATABASE USER: ${DB_USER}"
@@ -481,8 +479,8 @@ elif [ ${DBMS} = "mysql" ]; then
 elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 fi
-CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}"
-dbt2-client ${CLIENT_COMMAND_ARGS} > ${OUTPUT_DIR}/client.out 2>&1 || exit 1 &
+CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}/`hostname`"
+dbt2-client ${CLIENT_COMMAND_ARGS} > ${CLIENT_OUTPUT_DIR}/`hostname`/client.out 2>&1 || exit 1 &
 
 # Sleep long enough for all the client database connections to be established.
 SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY/1000 ))
@@ -496,15 +494,15 @@ ITERATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
 dbt2-sysstats \
 		--iter ${ITERATIONS} \
 		--sample ${SAMPLE_LENGTH} \
-		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
+		--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.out 2>&1 &
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
-if [ -x ${DB_COMMAND} ${DBMS}/dbt2-${DBMS}-db-stat ]; then
-	${DB_COMMAND} ${DBMS}/dbt2-${DBMS}-db-stat \
-			-o ${DB_OUTPUT_DIR} -i ${ITERATIONS} -s ${SAMPLE_LENGTH} \
-			${DB_PORT_ARG} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
-fi
+
+echo "collecting database statistics..."
+${DB_COMMAND} dbt2-${DBMS}-db-stat \
+		-o ${DB_OUTPUT_DIR} -i ${ITERATIONS} -s ${SAMPLE_LENGTH} \
+		${DB_PORT_ARG} > ${DB_OUTPUT_DIR}/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -520,17 +518,17 @@ echo "Stage 2. Starting up driver..."
 echo "${SLEEPY} threads started per millisecond"
 
 DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
-DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -l ${DURATION} -wmin 1 -wmax ${WAREHOUSES} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DRIVER_OUTPUT_DIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
+DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -l ${DURATION} -wmin 1 -wmax ${WAREHOUSES} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DRIVER_OUTPUT_DIR}/`hostname` -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
 dbt2-driver ${DRIVER_COMMAND_ARGS} > \
-		${OUTPUT_DIR}/driver.out 2>&1 || exit 1&
+		${DRIVER_OUTPUT_DIR}/`hostname`/driver.out 2>&1 || exit 1&
 
 echo -n "estimated rampup time: "
 do_sleep $SLEEP_RAMPUP
 echo "estimated rampup time has elapsed"
 
 # Clear the readprofile data after the driver ramps up.
-if [ -f /proc/profile ]; then
-	readprofile_clear()
+if [ -f "/proc/profile" ]; then
+	readprofile_clear
 	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		readprofile_clear ${DB_HOSTNAME}
 	fi
@@ -579,7 +577,7 @@ if [ ${DBMS} = "pgsql" ]; then
 fi
 
 # Run some post processing analysese.
-dbt2-post-process --dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
+dbt2-post-process --dir ${OUTPUT_DIR} > ${REPORT_FILE}
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
@@ -596,6 +594,11 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	fi
 fi
 
+post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
+post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
+
+# Postprocessing of Database Statistics
+
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 	#
 	# If a database system is specified, rsync all the logs back to here.
@@ -606,20 +609,16 @@ fi
 
 # Change the permissions on the database log, not readable by other users by
 # default.  (No, not the transaction log.)
-if [ -f ${DB_OUTPUT_DIR}/log ]; then
+if [ -f "${DB_OUTPUT_DIR}/log" ]; then
 	chmod 644 ${DB_OUTPUT_DIR}/log
 fi
 
-# Postprocessing of Database Statistics
-post_process_sar ${OUTPUT_DIR}/sar_raw.out
-post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
 if [ -f "dbt2-${DBMS}-analyze-stats" ]; then
 	dbt2-${DBMS}-analyze-stats --dir ${DB_OUTPUT_DIR}
 fi
-
 
 echo "Test completed."
 echo "Results are in: ${OUTPUT_DIR}"
 echo
 
-cat $DRIVER_OUTPUT_DIR/results.out
+cat ${REPORT_FILE}
