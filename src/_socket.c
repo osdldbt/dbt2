@@ -45,7 +45,7 @@ int _connect(char *address, unsigned short port) {
 	sa.sin_family = AF_INET;
 	sa.sin_port = htons(port);
 	if (sa.sin_port == 0) {
-                printf("Please specify port on which client listen for request\n");
+		printf("Please specify port on which client listen for request\n");
 		return -1;
 	}
 
@@ -55,7 +55,7 @@ int _connect(char *address, unsigned short port) {
 		/* If it is not an IP address, assume it is a hostname. */
 		if ((he = gethostbyname(address)) == NULL) {
 			close(sockfd);
-                        printf("Please specify correct hostname of box where client running\n");
+			printf("Please specify correct hostname of box where client running\n");
 			return -1;
 		}
 	} else {
@@ -63,7 +63,7 @@ int _connect(char *address, unsigned short port) {
 		if ((he = gethostbyaddr((char *) (&addr), sizeof(addr),
 			AF_INET)) == NULL) {
 			close(sockfd);
-                        printf("Please specify correct IP of box where client running\n");
+			printf("Please specify correct IP of box where client running\n");
 			return -1;
 		}
 		memcpy(&sa.sin_addr, &addr, sizeof(addr));
@@ -72,7 +72,7 @@ int _connect(char *address, unsigned short port) {
 
 	sockfd = socket(PF_INET, SOCK_STREAM, resolveproto("tcp"));
 	if (sockfd == -1) {
-	        printf("Can't create socket for connection to client\n");
+		printf("Can't create socket for connection to client\n");
 		return sockfd;
 	}
 
@@ -125,10 +125,10 @@ int _send(int s, void *data, int length)
 int _listen(int port)
 {
 	struct sockaddr_in sa;
-        int val;
+	int val;
 	int sockfd;
 
-        val= 1;
+	val= 1;
 
 	bzero(&sa, sizeof(struct sockaddr_in));
 	sa.sin_family = AF_INET;
@@ -137,20 +137,20 @@ int _listen(int port)
 
 	sockfd = socket(PF_INET, SOCK_STREAM, resolveproto("TCP"));
 	if (sockfd < 0) {
-                perror("_listen");
+		perror("_listen");
 		return ERR_SOCKET_CREATE;
 	}
 
-        setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof (val));
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof (val));
  
 	if (bind(sockfd, (struct sockaddr *)&sa,
 		sizeof(struct sockaddr_in)) < 0) {
-                perror("_listen");
+		perror("_listen");
 		return ERR_SOCKET_BIND;
 	}
 
 	if (listen(sockfd, 1) < 0) {
-                perror("_listen");
+		perror("_listen");
 		return ERR_SOCKET_LISTEN;
 	}
 	return sockfd;
