@@ -11,3 +11,18 @@ keep the scripts simple, the kit needs to be installed in the same location
 on each system.  Each user must also have sudo privileges, also preferbly
 without needing a password.  Also review each additional README-* related
 to your environment for any additional specific details.
+
+-----
+
+For multi-node testing, several addition system configurations need to be make.
+See operating system and database specific README's for more information
+relating to those environments.
+
+The use of 'ssh' is required and the ssh server needs to allow user environment
+processing.  This is because ssh usually has a limited set of environment
+variables set.  For example, /usr/local/bin is usually not in the path when
+using ssh to execute commands locally.  This is disabled by default.  To
+enable, make the following change to the sshd config file
+(typically '/etc/ssh/sshd_config') and restart the sshd server:
+
+PermitUserEnvironment yes

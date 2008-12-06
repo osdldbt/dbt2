@@ -1,3 +1,11 @@
+For multi-node testing, here is an example of a .ssh/environment file:
+
+PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
+PGDATA=/var/lib/data
+DBNAME=dbt2
+
+-----
+
 Your user environment needs to be set like in 'examples/dbt2_profile' in
 order for the scripts to work properly.
 

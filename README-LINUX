@@ -1,0 +1,24 @@
+If you want readprofile data, you need to give the database user sudo access
+to run readprofile.  Root privileges are required to clear the counter data.
+Here is an example of passwordless access for user 'postgres' to run
+'readprofile -r':
+
+postgres ALL = NOPASSWD: /usr/sbin/readprofile -r
+
+-----
+
+The number of open files will likely need to be raised for the on the systems
+that are driving the database.  One way to do this permanently is to edit
+/etc/security/limits.conf.  Here is an example for the user 'postgres':
+
+postgres         soft    nofile          40000
+postgres         hard    nofile          40000
+
+-----
+
+One of the shared memory parameters will likely needs to be raised on the
+database system in order to accomidate increasing the shared_buffers parameter
+in PostgreSQL.  One way to do this permanently is to edit /etc/sysctl.conf and
+add:
+
+kernel.shmmax = 41943040
