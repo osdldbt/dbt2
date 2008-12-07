@@ -35,7 +35,7 @@ int receive_transaction_data(int s, struct client_transaction_t *client_data)
 	} else if (length != sizeof(struct client_transaction_t)) {
 		LOG_ERROR_MESSAGE("did not receive all data");
 		return ERROR;
-        }
+	}
 
 	return length;
 }
