@@ -29,7 +29,11 @@ int _accept(int *s)
 	sockfd = accept(*s, (struct sockaddr *) &sa, &addrlen);
 	if (sockfd == -1)
 	{
-		printf("Can't accept driver connection\n");	  
+		perror("_accept");
+		printf("Can't accept driver connection, possible reasons may be\n");
+		printf("that the number of allowed open files may be exceeded.\n");
+		printf("This could be limited by the operating system or by the\n");
+		printf("user's security limits.\n");
 	}
 	return sockfd;
 }
@@ -55,7 +59,8 @@ int _connect(char *address, unsigned short port) {
 		/* If it is not an IP address, assume it is a hostname. */
 		if ((he = gethostbyname(address)) == NULL) {
 			close(sockfd);
-			printf("Please specify correct hostname of box where client running\n");
+			printf("specify correct hostname of system where client is running: %s\n",
+					address);
 			return -1;
 		}
 	} else {
@@ -93,6 +98,7 @@ int _receive(int s, void *data, int length)
 	do {
 		received = recv(s, data, remaining, 0);
 		if (received == -1) {
+			perror("recv");
 			return -1;
 		} else if (received == 0) {
 			return 0;
@@ -142,7 +148,7 @@ int _listen(int port)
 	}
 
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof (val));
- 
+
 	if (bind(sockfd, (struct sockaddr *)&sa,
 		sizeof(struct sockaddr_in)) < 0) {
 		perror("_listen");
