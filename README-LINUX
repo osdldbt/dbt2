@@ -8,11 +8,38 @@ postgres ALL = NOPASSWD: /usr/sbin/readprofile -r
 -----
 
 The number of open files will likely need to be raised for the on the systems
-that are driving the database.  One way to do this permanently is to edit
-/etc/security/limits.conf.  Here is an example for the user 'postgres':
+that are driving the database.  
+
+To increase this for a user edit '/etc/security/limits.conf'.  Here is an
+example for the user 'postgres':
 
 postgres         soft    nofile          40000
 postgres         hard    nofile          40000
+
+
+The Linux kernel parameter also needs to be adjusted because the user limits
+cannot be set above the operating system limits.  Edit '/etc/sysctl.conf':
+
+fs.file-max = 40000
+
+
+This can be verified in '/proc/sys/fs/file-max'.
+
+
+Additionally the driver for this workload may need to create more threads
+than allowed by default.  To increase the thread per process limit for the
+user in '/etc/security/limits.conf':
+
+postgres         soft    nproc           32768
+postgres         hard    nproc           32768
+
+
+Similarly in '/etc/sysctl.conf' for the same reasons as above:
+
+kernel.threads-max = 32768
+
+
+This can be verified in '/proc/sys/kernel/threads-max'.
 
 -----
 

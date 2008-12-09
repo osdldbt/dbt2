@@ -143,7 +143,7 @@ int integrity_terminal_worker()
 	sockfd = connect_to_client(hostname, client_port);
 	if (sockfd < 1) {
 		LOG_ERROR_MESSAGE("connect_to_client() failed, thread exiting...");
-		printf("connect_to_client() failed, thread exiting...");
+		printf("connect_to_client() failed, thread exiting...\n");
 		pthread_exit(NULL);
 	}
 
@@ -211,12 +211,16 @@ int recalculate_mix()
 int set_client_hostname(char *addr)
 {
 	strcpy(hostname, addr);
+	printf("connecting to client at '%s'\n", hostname);
+	fflush(stdout);
 	return OK;
 }
 
 int set_client_port(int port)
 {
 	client_port = port;
+	printf("connecting to client port at '%d'\n", client_port);
+	fflush(stdout);
 	return OK;
 }
 
@@ -280,6 +284,9 @@ int start_driver()
 	int i, j;
 	struct timespec ts, rem;
 
+	/* Just used to count the number of threads created. */
+	int count = 0;
+
 	ts.tv_sec = (time_t) (client_conn_sleep / 1000);
 	ts.tv_nsec = (long) (client_conn_sleep % 1000) * 1000000;
 #ifdef STANDALONE
@@ -321,22 +328,34 @@ int start_driver()
 			tc->w_id = i;
 			tc->d_id = j + 1;
 			if (pthread_attr_init(&attr) != 0) {
-				LOG_ERROR_MESSAGE("could not init pthread attr");
+				LOG_ERROR_MESSAGE("could not init pthread attr: %d",
+						(i + j + 1) * terminals_per_warehouse);
 				return ERROR;
 			}
 			if (pthread_attr_setstacksize(&attr, stacksize) != 0) {
-				LOG_ERROR_MESSAGE("could not set pthread stack size");
+				LOG_ERROR_MESSAGE("could not set pthread stack size: %d",
+						(i + j + 1) * terminals_per_warehouse);
 				return ERROR;
 			}
 			ret = pthread_create(&g_tid[i][j], &attr, &terminal_worker,
 					(void *) tc);
 			if (ret != 0) {
+				perror("pthread_create");
 				LOG_ERROR_MESSAGE( "error creating terminal thread: %d",
 						(i + j + 1) * terminals_per_warehouse);
 				if (ret == EAGAIN) {
-					LOG_ERROR_MESSAGE( "not enough system resources");
+					LOG_ERROR_MESSAGE( "not enough system resources: %d",
+							(i + j + 1) * terminals_per_warehouse);
 				}
 				return ERROR;
+			}
+
+			++count;
+			if ((count % 100) == 0) {
+				printf("%d / %d threads started...\n", count,
+						terminals_per_warehouse *
+								(w_id_max - w_id_min + 1) / spread);
+				fflush(stdout);
 			}
 
 			/* Sleep for between starting terminals. */
@@ -475,7 +494,7 @@ void *terminal_worker(void *data)
 	sockfd = connect_to_client(hostname, client_port);
 	if (sockfd < 1) {
 		LOG_ERROR_MESSAGE( "connect_to_client() failed, thread exiting...");
-		printf("connect_to_client() failed, thread exiting...");
+		printf("connect_to_client() failed, thread exiting...\n");
 		pthread_exit(NULL);
 	}
 #endif /* STANDALONE */

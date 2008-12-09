@@ -82,7 +82,8 @@ int _connect(char *address, unsigned short port) {
 	}
 
 	if (connect(sockfd, (struct sockaddr *) &sa,
-		sizeof(struct sockaddr_in)) == -1) {
+			sizeof(struct sockaddr_in)) == -1) {
+		perror("connect");
 		printf("Can't connect to client socket\n");
 		return -1;
 	}

@@ -8,9 +8,10 @@
 #
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall dbt2-client; killall dbt2-driver; killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} dbt2-${DBMS}-stop-db' INT
+	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COMMAND} dbt2-${DBMS}-stop-db sar sadc vmstat iostat mpstat iopp' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall dbt2-client; killall dbt2-driver;  killall sar; killall sadc; killall vmstat; killall iostat; ${DB_COMMAND} dbt2-${DBMS}-stop-db' TERM
+	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COM
+MAND} dbt2-${DBMS}-stop-db sar sadc vmstat iostat mpstat iop' TERM
 
 do_sleep()
 {
@@ -254,11 +255,19 @@ USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 
-while getopts "a:c:d:H:hl:no:p:qs:t:u:w:x:z:" opt; do
+#
+# Number of warehouses per driver.
+#
+W_CHUNK=500
+
+while getopts "a:b:c:d:H:hl:no:p:qs:t:u:w:x:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
 		export DATABASE=${DBMS}
+		;;
+	b)
+		W_CHUNK=${OPTARG}
 		;;
 	c)
 		# Check for numeric value
@@ -456,7 +465,8 @@ THREADS=$(( ${WAREHOUSES}*${THREADS_PER_WAREHOUSE} ))
 echo "DATABASE CONNECTIONS: ${DBCON}"
 echo "TERMINAL THREADS: ${THREADS}"
 echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
-echo "SCALE FACTOR(WAREHOUSES): ${WAREHOUSES}"
+echo "WAREHOUSES PER THREAD/CLIENT PAIR: ${W_CHUNK}"
+echo "SCALE FACTOR (WAREHOUSES): ${WAREHOUSES}"
 echo "DURATION OF TEST (in sec): ${DURATION}"
 echo "1 client stared every ${SLEEPY} millisecond(s)"
 echo ""
@@ -479,15 +489,36 @@ elif [ ${DBMS} = "mysql" ]; then
 elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 fi
-CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY} -o ${CLIENT_OUTPUT_DIR}/`hostname`"
-dbt2-client ${CLIENT_COMMAND_ARGS} > ${CLIENT_OUTPUT_DIR}/`hostname`/client.out 2>&1 || exit 1 &
+CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY}"
+END=0
+START=1
+#
+# Count of the number of clients run.
+#
+SEG=0
+PORT=30000
+while (( ${END} < ${WAREHOUSES} )); do
+	START=$(( ${END} + 1 ))
+	END=$(( ${START} + ${W_CHUNK} - 1 ))
+	SEG=$(( ${SEG} + 1 ))
+
+	if (( ${END} > ${WAREHOUSES} )); then
+		END=${WAREHOUSES}
+	fi
+
+	CDIR="${CLIENT_OUTPUT_DIR}/`hostname`.${SEG}"
+	mkdir -p ${CDIR}
+	dbt2-client ${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR} > \
+			${CLIENT_OUTPUT_DIR}/`hostname`/client-${SEG}.out 2>&1 || exit 1 &
+	PORT=$(( ${PORT} + 1 ))
+done
 
 # Sleep long enough for all the client database connections to be established.
-SLEEPYTIME=$(( (1+$DBCON)*$SLEEPY/1000 ))
+SLEEPYTIME=$(( (1 + ${W_CHUNK}) * ${SLEEPY} / 1000 ))
 do_sleep $SLEEPYTIME
 
 # Start collecting data before we start the test.
-SLEEP_RAMPUP=$(( (($WAREHOUSES+1)*10*$SLEEPY/1000) ))
+SLEEP_RAMPUP=$(( ((${W_CHUNK} + 1) * 10 * ${SLEEPY} / 1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
@@ -517,10 +548,29 @@ echo ''
 echo "Stage 2. Starting up driver..."
 echo "${SLEEPY} threads started per millisecond"
 
-DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
-DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -l ${DURATION} -wmin 1 -wmax ${WAREHOUSES} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DRIVER_OUTPUT_DIR}/`hostname` -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
-dbt2-driver ${DRIVER_COMMAND_ARGS} > \
-		${DRIVER_OUTPUT_DIR}/`hostname`/driver.out 2>&1 || exit 1&
+END=0
+START=1
+#
+# Count of the number of drivers run.
+#
+SEG=0
+PORT=30000
+while (( ${END} < ${WAREHOUSES} )); do
+	START=$(( ${END} + 1 ))
+	END=$(( ${START} + ${W_CHUNK} - 1 ))
+	SEG=$(( ${SEG} + 1 ))
+
+	if (( ${END} > ${WAREHOUSES} )); then
+		END=${WAREHOUSES}
+	fi
+
+	DDIR="${DRIVER_OUTPUT_DIR}/`hostname`.${SEG}"
+	mkdir -p ${DDIR}
+	DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -p ${PORT} -l ${DURATION} -wmin ${START} -wmax ${END} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DDIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
+	PORT=$(( ${PORT} + 1 ))
+	dbt2-driver ${DRIVER_COMMAND_ARGS} > \
+			${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.out 2>&1 || exit 1&
+done
 
 echo -n "estimated rampup time: "
 do_sleep $SLEEP_RAMPUP
