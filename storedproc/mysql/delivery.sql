@@ -10,7 +10,7 @@
 
 drop procedure if exists delivery;
 
-delimiter |;
+delimiter |
 
 CREATE PROCEDURE delivery(in_w_id INT, in_o_carrier_id INT)
 BEGIN
@@ -80,5 +80,5 @@ BEGIN
    END WHILE;
 END|
 
-delimiter ;|
+delimiter ;
 

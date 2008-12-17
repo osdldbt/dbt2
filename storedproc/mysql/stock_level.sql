@@ -10,7 +10,7 @@
 
 drop procedure if exists stock_level;
 
-delimiter |;
+delimiter |
 
 CREATE PROCEDURE stock_level(in_w_id INT,
                              in_d_id INT,
@@ -40,5 +40,5 @@ BEGIN
                         AND (tmp_d_next_o_id - 1);
 
 END|
-delimiter ;|
+delimiter ;
 

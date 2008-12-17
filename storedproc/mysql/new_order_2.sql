@@ -10,7 +10,7 @@
 
 drop procedure if exists new_order_2;
 
-delimiter |;
+delimiter |
 
 
 CREATE PROCEDURE new_order_2 (in_w_id INT,
@@ -112,5 +112,5 @@ DECLARE	tmp_s_data VARCHAR(255);
 	        in_ol_supply_w_id, NULL, in_ol_quantity, in_ol_amount,
 	        tmp_s_dist);
 END|
-delimiter ;|
+delimiter ;
 
