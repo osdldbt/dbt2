@@ -11,7 +11,7 @@
 
 drop procedure if exists order_status;
 
-delimiter |;
+delimiter |
 
 
 CREATE PROCEDURE order_status (in_c_id INT,
@@ -236,4 +236,4 @@ DECLARE out_ol_delivery_d15 VARCHAR(28);
 
 END|
 
-delimiter ;|
+delimiter ;

@@ -9,7 +9,7 @@
  */
 drop procedure if exists new_order;
 
-delimiter |;
+delimiter |
 
 CREATE PROCEDURE new_order(tmp_w_id INT,           
                            tmp_d_id INT,           
@@ -466,5 +466,5 @@ BEGIN
     END IF;
 
 END|
-delimiter ;|
+delimiter ;
 

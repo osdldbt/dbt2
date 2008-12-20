@@ -17,7 +17,7 @@
 
 drop procedure if exists payment;
 
-delimiter |;
+delimiter |
 
 CREATE PROCEDURE payment(in_w_id INT, in_d_id INT, in_c_id INT, in_c_w_id INT, in_c_d_id INT,
                          in_c_last VARCHAR(16), in_h_amount INT)
@@ -161,7 +161,7 @@ DECLARE  tmp_h_data VARCHAR(30);
 #        RETURN out_c_id;
 END|
 
-delimiter ;|
+delimiter ;
 
 
 
