@@ -31,21 +31,25 @@ fi
 PSQL="psql ${PORTARG} -e -d ${DBNAME}"
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
-	TS_PK_WAREHOUSE_DIR="${TSDIR}/pk_warehouse/ts"
-	TS_PK_DISTRICT_DIR="${TSDIR}/pk_district/ts"
-	TS_PK_CUSTOMER_DIR="${TSDIR}/pk_customer/ts"
-	TS_PK_NEW_ORDER_DIR="${TSDIR}/pk_new_order/ts"
-	TS_PK_ORDERS_DIR="${TSDIR}/pk_orders/ts"
-	TS_PK_ORDER_LINE_DIR="${TSDIR}/pk_order_line/ts"
-	TS_PK_ITEM_DIR="${TSDIR}/pk_item/ts"
-	TS_PK_STOCK_DIR="${TSDIR}/pk_stock/ts"
-	TS_INDEX1_DIR="${TSDIR}/index1/ts"
-	TS_INDEX2_DIR="${TSDIR}/index2/ts"
+	if [ "x${DBT2TSDIR}" = "x" ]; then
+		echo "DBT2TSDIR is not set."
+		exit 1
+	fi
+	TS_PK_WAREHOUSE_DIR="${DBT2TSDIR}/pk_warehouse/ts"
+	TS_PK_DISTRICT_DIR="${DBT2TSDIR}/pk_district/ts"
+	TS_PK_CUSTOMER_DIR="${DBT2TSDIR}/pk_customer/ts"
+	TS_PK_NEW_ORDER_DIR="${DBT2TSDIR}/pk_new_order/ts"
+	TS_PK_ORDERS_DIR="${DBT2TSDIR}/pk_orders/ts"
+	TS_PK_ORDER_LINE_DIR="${DBT2TSDIR}/pk_order_line/ts"
+	TS_PK_ITEM_DIR="${DBT2TSDIR}/pk_item/ts"
+	TS_PK_STOCK_DIR="${DBT2TSDIR}/pk_stock/ts"
+	TS_INDEX1_DIR="${DBT2TSDIR}/index1/ts"
+	TS_INDEX2_DIR="${DBT2TSDIR}/index2/ts"
 
 	#
 	# Creating 'ts' subdirectories because PostgreSQL doesn't like that
 	# 'lost+found' directory if a device was mounted at
-	# '${TSDIR}/warehouse'.
+	# '${DBT2TSDIR}/warehouse'.
 	#
 	mkdir -p ${TS_PK_WAREHOUSE_DIR} || exit 1
 	mkdir -p ${TS_PK_DISTRICT_DIR} || exit 1
