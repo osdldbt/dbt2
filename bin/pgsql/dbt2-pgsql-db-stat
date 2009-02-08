@@ -40,7 +40,8 @@ PSQL="psql ${PORTARG} -e -d ${DBNAME}"
 pg_config --version >> $OUTPUT_DIR/readme.txt
 
 # Get database parameters.
-${PSQL} -c "show all"  > $OUTPUT_DIR/param.out
+${PSQL} -c "select name, setting, source, short_desc from pg_settings order by source, name;"  > $OUTPUT_DIR/param.out
+${PSQL} -c "show all"  > $OUTPUT_DIR/param-all.out
 
 # Get indexes.
 ${PSQL} -c "select * from pg_stat_user_indexes;" -o $OUTPUT_DIR/indexes.out
