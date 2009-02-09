@@ -17,13 +17,10 @@ done
 
 OS=`uname -s`
 
-which sysctl > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    SYSCTL=sysctl
-else
-    SYSCTL=true
+SYSCTL="/sbin/sysctl"
+if [ ! -f "${SYSCTL}" ]; then
+	SYSCTL=true
 fi
-
 
 # I don't think capturing error messages is important here.
 if [ -f ${SYSCTL} ]; then
