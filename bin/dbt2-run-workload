@@ -404,8 +404,9 @@ echo "$COMMENT" >> ${OUTPUT_DIR}/readme.txt
 uname -a >> ${OUTPUT_DIR}/readme.txt
 echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
 
-# Get any OS specific information.
-dbt2-get-os-info -o ${OUTPUT_DIR}
+# Get any OS specific information, if this is a single trier test, then
+# the OS parameters will be in the driver output directory.
+dbt2-get-os-info -o ${DRIVER_OUTPUT_DIR}/`hostname`/
 
 # Output run information into the readme.txt.
 echo "Database Scale Factor: $WAREHOUSES warehouses" >> ${OUTPUT_DIR}/readme.txt
@@ -414,6 +415,9 @@ echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 
 if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
+	# Get the OS information from the database system.
+	${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}
+	${DB_COMMAND} "uname -a >> ${DB_OUTPUT_DIR}/readme.txt"
 fi
 
 ${DB_COMMAND} dbt2-${DBMS}-stop-db
