@@ -602,7 +602,7 @@ do_sleep $DURATION
 
 # Collect readprofile data.
 if [ -f "/proc/profile" ]; then
-	readprofile_collect ${OUTPUT_DIR}
+	readprofile_collect ${DRIVER_OUTPUT_DIR}/`hostname`
 	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
 		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
