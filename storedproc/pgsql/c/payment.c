@@ -14,6 +14,7 @@
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
+#include <utils/builtins.h>
 
 #include "dbt2common.h"
 
