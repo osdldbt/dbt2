@@ -1,4 +1,7 @@
-For multi-node testing, here is an example of a .ssh/environment file:
+Your user environment needs to be set like the 'examples/dbt2_profile'
+in order for the scripts to work properly.  For multi-node testing, it
+needs to go into the PostgreSQL's user on the database system's
+'~/.ssh/environment' file:
 
 PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 PGDATA=/var/lib/data
@@ -6,32 +9,27 @@ DBNAME=dbt2
 
 -----
 
-Your user environment needs to be set like in 'examples/dbt2_profile' in
-order for the scripts to work properly.
-
------
-
-The C stored functions must be built and installed separately from the rest of
-the kit.
+The C stored functions must be built and installed separately from the
+rest of the kit.
 
 cd storedproc/pgsql/c
 make
 make install
 
-The 'make install' function will need to be run by the owner of the database
-installation.
+The 'make install' function will need to be run by the owner of the
+database installation.
 
 -----
 
-The database parameter listen_addresses must be set to "*"
-(i.e. -c listen_addresses=*) otherwise the database will not accept remote
-tpc/ip connections.
+The database parameter listen_addresses must be set to "*" (i.e. -c
+listen_addresses=*) otherwise the database will not accept remote tpc/ip
+connections.
 
 -----
 
-For PostgreSQL 7.4 and earlier the kit is configured to expect PostgreSQL
-to have trusted connections defined.  So in the pg_hba.conf file, if you
-want to trust everyone, define this:
+For PostgreSQL 7.4 and earlier the kit is configured to expect
+PostgreSQL to have trusted connections defined.  So in the pg_hba.conf
+file, if you want to trust everyone, define this:
 
 local        all                                           trust
 host         all         127.0.0.1     255.0.0.0           trust
@@ -51,61 +49,69 @@ run the kit in a multi-tier environment for PostgreSQL.
 
 make install-all-headers
 
-Do this from the postgresql src if you're installing postgresql from source
-to make sure the server include files get installed.
-
-This command does not need to be run as of 8.0beta4.
-
------
-
-For PostgreSQL 8.0 and later, run configure with the --enable-thread-safety to
-avoid SIGPIPE handling for the multi-thread dbt2 client program.  This is a
-significant performance benefit.
+Prior to PostgreSQL 8.0 this is required to be run from the postgresql
+src if you're installing postgresql from source to make sure the server
+include files get installed.
 
 -----
 
-The kit now requires pg_autovacuum to be install from the PostgreSQL source.
-It's in contrib/pg_autovacuum.  Not sure which beta it was released in, but
-it's in 8.0 now, and current releases of 7.4 if you insist on using that
-release.  As of 8.1, pg_autovacuum is in the backend and is controlled
-through the GUC database settings.
+For PostgreSQL 8.0 and later, run configure with the
+--enable-thread-safety to avoid SIGPIPE handling for the multi-thread
+dbt2 client program.  This is a significant performance benefit.
+
+-----
+
+The kit now requires pg_autovacuum to be install from the PostgreSQL
+source.  It's in contrib/pg_autovacuum.  Not sure which beta it was
+released in, but it's in 8.0 now, and current releases of 7.4 if you
+insist on using that release.  As of 8.1, pg_autovacuum is in the
+backend and is controlled through the GUC database settings.
 
 -----
 
 A really quick howto.
 
 Edit bin/pgsql/pgsql_profile.in and follow the notes for the PGDATA and
-DBDATA directory.  PGDATA is where the database directory will be created and
-DBDATA is where the database table data will be generated.
+DBDATA directory.  PGDATA is where the database directory will be
+created and DBDATA is where the database table data will be generated.
 
 Run configure after editing bin/pgsql/pgsql_profile.in.
 
-Create a 1 warehouse database by running bin/pgsql/dbt2-pgsql-build-db:
-	dbt2-pgsql-build-db -g -w 1
+Create a 1 warehouse database by running bin/pgsql/dbt2-pgsql-build-db
+and put the data files in '/tmp/data':
+	dbt2-pgsql-build-db -g -w 1 -d /tmp/data
+
+Flag description:
+	-d <dir> -  Location for data files to load.
+	-g       -  Create the data files to load.
+	-w #     -  Set the warehouse scale factor.
 
 Additional flags:
-
-	-g    -  Create the table data in $DBDATA.
-	-r    -  Drop the database before loading, for rebuilding the database.
-	-w #  -  Set the warehouse scale factor.
-	-t    -  Use tablespaces, read tablespace notes below.
+	-h       -  Help.
+    -r       -  Drop the database before loading, for rebuilding the
+                database.
+	-t       -  Use tablespaces, read tablespace notes below.
 
 
 Run a 5 minute (300 second) test by running bin/dbt2-run-workload:
-	dbt2-run-workload -d 300 -w 1
+	dbt2-run-workload -a pgsql -d 300 -w 1 -o /tmp/result -c 10
+
+Flag description:
+    -a <db>  -  Select database software to test.
+	-c #     -  Set the number of database connections.
+    -d #     -  Duration of steady state portion of test in seconds.
+	-o <dir> -  Directory to put results.
+	-w #     -  Set the warehouse scale factor.
 
 Additional flags:
-
-	-o    -  Collect oprofile data.
-	-c #  -  Set the number of database connections.
-	-w #  -  Set the warehouse scale factor.
-	-t    -  Use tablespaces, read tablespace notes below.
+	-h       -  Help.
+	-p       -  Collect oprofile data.
 
 -----
 
 Tablespace Notes
 
-The scripts assumes a specfic tablespace layout.
+The scripts assumes a specific tablespace layout.
 
 The ${DBT2TSDIR} variable in pgsql_profile.in defines the directory where all
 tablespace devices will be mounted.  Directories or symlinks can be substituted
@@ -188,6 +194,14 @@ tuning:
     each warehouse supports 10 districts;
     each district serves 3000 customers;
     each warehouse maintains stock level of 100,000 items;
-    require ~10% orders are fullfilled from other warehouses due to not have
+    require ~10% orders are fulfilled from other warehouses due to not have
       all items in the company's catalog;
 
+-----
+
+Generate an HTML report using Test::Presenter:
+
+  dbt2-generate-report --indir /tmp/results --outdir /tmp/results/report
+
+Then open /tmp/results/report/index.html.  Use the '-h' flag for more
+options.
