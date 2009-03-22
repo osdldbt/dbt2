@@ -107,7 +107,7 @@ Tablespace Notes
 
 The scripts assumes a specfic tablespace layout.
 
-The $TSDIR variable in pgsql_profile.in defines the directory where all
+The ${DBT2TSDIR} variable in pgsql_profile.in defines the directory where all
 tablespace devices will be mounted.  Directories or symlinks can be substituted
 for what is assumed to be a mount point from this point forward.
 
@@ -115,17 +115,25 @@ In create_tables.sh is where the tablespaces are created.
 
 The mount points that need to be created, and must be owned by the user running
 the scripts are:
-	${TSDIR}/warehouse
-	${TSDIR}/district
-	${TSDIR}/customer
-	${TSDIR}/history
-	${TSDIR}/new_order
-	${TSDIR}/orders
-	${TSDIR}/order_line
-	${TSDIR}/item
-	${TSDIR}/stock
-	${TSDIR}/index1
-	${TSDIR}/index2
+	${DBT2TSDIR}/warehouse
+	${DBT2TSDIR}/district
+	${DBT2TSDIR}/customer
+	${DBT2TSDIR}/history
+	${DBT2TSDIR}/new_order
+	${DBT2TSDIR}/orders
+	${DBT2TSDIR}/order_line
+	${DBT2TSDIR}/item
+	${DBT2TSDIR}/stock
+	${DBT2TSDIR}/index1
+	${DBT2TSDIR}/index2
+	${DBT2TSDIR}/pk_customer
+	${DBT2TSDIR}/pk_district
+	${DBT2TSDIR}/pk_item
+	${DBT2TSDIR}/pk_new_order
+	${DBT2TSDIR}/pk_order_line
+	${DBT2TSDIR}/pk_orders
+	${DBT2TSDIR}/pk_stock
+	${DBT2TSDIR}/pk_warehouse
 
 -----
 
