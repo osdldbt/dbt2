@@ -159,11 +159,23 @@ post_process_sar()
 	COMMAND=""
 	FILE=${1}
 	HOST=${2}
-	if [ ! "x${HOST}" = "x" ]; then
+	if [ ! "x${HOST}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		COMMAND="ssh ${HOST}"
-		${COMMAND} "sar -f ${FILE} -A > `dirname ${FILE}`/sar.out"
+		${COMMAND} "which sar > /dev/null" 2>&1
+		if [ $? -eq 0 ]; then
+			SAR=sar
+		else
+			SAR=true
+		fi
+		${COMMAND} "${SAR} -f ${FILE} -A > `dirname ${FILE}`/sar.out"
 	else
-		sar -f ${FILE} -A > `dirname ${FILE}`/sar.out
+		which sar > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			SAR=sar
+		else
+			SAR=true
+		fi
+		${SAR} -f ${FILE} -A > `dirname ${FILE}`/sar.out
 	fi
 }
 
@@ -218,7 +230,6 @@ usage()
 	echo "       -c <number of database connections> -d <seconds>"
 	echo "       -w <number of warehouses> -o <path> [options]"
 	echo "options:"
-	echo "       -d <duraction of test in seconds>"
 	echo "       -H <database host name. (default localhost)>"
 	echo "       -l <database port number>"
 	echo "       -q <enable oprofile data collection>"
@@ -248,6 +259,7 @@ DB_HOSTNAME="localhost"
 DB_PASSWORD=""
 DB_PARAMS=""
 CLIENT_HOSTNAME="localhost"
+WORKING_DIR=""
 
 DB_USER=${DBUSER}
 SLEEPY=1000 # milliseconds
@@ -358,7 +370,8 @@ if [ -d "${OUTPUT_DIR}" ]; then
 	exit 1
 fi
 
-if [ $(( $THREADS_PER_WAREHOUSE*1 )) -lt 1 -o $(( $THREADS_PER_WAREHOUSE*1 )) -gt 1000 ]; then
+if [ ${THREADS_PER_WAREHOUSE} -lt 1 ] || [ ${THREADS_PER_WAREHOUSE} -gt 1000 ];
+then
 	usage "-t value should be in range [1..1000]. Please specify correct value"
 	exit 1
 fi
@@ -368,10 +381,12 @@ if [ ! "x${DB_PORT}" = "x" ]; then
 fi
 
 ULIMIT_N=`ulimit -n`
-ESTIMATED_ULIMIT=$(( 2*${WAREHOUSES}*${THREADS_PER_WAREHOUSE}+${DBCON} ))
-if [ ${ULIMIT_N} -lt $(( $ESTIMATED_ULIMIT )) ]; then
-  usage "you're open files ulimit is too small, must be at least ${ESTIMATED_ULIMIT}"
-  exit 1
+ESTIMATED_ULIMIT=`expr 2 \* ${WAREHOUSES}`
+ESTIMATED_ULIMIT=`expr ${ESTIMATED_ULIMIT} \* ${THREADS_PER_WAREHOUSE}`
+ESTIMATED_ULIMIT=`expr ${ESTIMATED_ULIMIT} + ${DBCON}`
+if [ ${ULIMIT_N} -lt ${ESTIMATED_ULIMIT} ]; then
+	usage "you're open files ulimit is too small, must be at least ${ESTIMATED_ULIMIT}"
+	exit 1
 fi
 
 CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
@@ -384,7 +399,7 @@ REPORT_FILE="${OUTPUT_DIR}/report.txt"
 # Create the directories we will need.
 #
 make_directories
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
 	# Create direcotires on the database server if specified.
 	#
@@ -413,7 +428,7 @@ echo "Database Scale Factor: $WAREHOUSES warehouses" >> ${OUTPUT_DIR}/readme.txt
 echo "Test Duration: $DURATION seconds" >> ${OUTPUT_DIR}/readme.txt
 echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 	# Get the OS information from the database system.
 	${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}
@@ -427,10 +442,9 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "dbt2-${DBMS}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
+	${DB_COMMAND} "dbt2-${DBMS}-start-db -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
 else
-	dbt2-${DBMS}-start-db ${START_DB_ARGS} \
-			-p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
+	dbt2-${DBMS}-start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
 fi
 
 #
@@ -439,33 +453,35 @@ fi
 echo "DBT-2 test for ${DBMS} started..."
 echo ""
 echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
-echo "DATABASE NAME: ${DBNAME}"
+if [ "${DBMS}" = "pgsql" ] || [ "${DBMS}" = "mysql" ]; then
+	echo "DATABASE NAME: ${DBNAME}"
+fi
 
 #
 # Build up the client command line arguments.
 #
 
 if [ -n "${DB_USER}" ]; then
-  echo "DATABASE USER: ${DB_USER}"
-  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -u ${DB_USER}"
+	echo "DATABASE USER: ${DB_USER}"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -u ${DB_USER}"
 fi
 
 if [ -n "${DB_PASSWORD}" ]; then
-  echo "DATABASE PASSWORD: *******"
-  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
+	echo "DATABASE PASSWORD: *******"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
 fi
 
 if [ -n "${DB_SOCKET}" ]; then
-  echo "DATABASE SOCKET: ${DB_SOCKET}"
-  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
+	echo "DATABASE SOCKET: ${DB_SOCKET}"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
 fi
 
 if [ -n "${DB_PORT}" ]; then
-  echo "DATABASE PORT: ${DB_PORT}"
-  CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
+	echo "DATABASE PORT: ${DB_PORT}"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
 fi
 
-THREADS=$(( ${WAREHOUSES}*${THREADS_PER_WAREHOUSE} ))
+THREADS=`expr ${WAREHOUSES} \* ${THREADS_PER_WAREHOUSE}`
 echo "DATABASE CONNECTIONS: ${DBCON}"
 echo "TERMINAL THREADS: ${THREADS}"
 echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
@@ -501,12 +517,13 @@ START=1
 #
 SEG=0
 PORT=30000
-while (( ${END} < ${WAREHOUSES} )); do
-	START=$(( ${END} + 1 ))
-	END=$(( ${START} + ${W_CHUNK} - 1 ))
-	SEG=$(( ${SEG} + 1 ))
+while [ ${END} -lt ${WAREHOUSES} ]; do
+	START=`expr ${END} + 1`
+	END=`expr ${START} + ${W_CHUNK}`
+	END=`expr ${END} - 1`
+	SEG=`expr ${SEG} + 1`
 
-	if (( ${END} > ${WAREHOUSES} )); then
+	if [ ${END} -gt ${WAREHOUSES} ]; then
 		END=${WAREHOUSES}
 	fi
 
@@ -514,23 +531,29 @@ while (( ${END} < ${WAREHOUSES} )); do
 	mkdir -p ${CDIR}
 	dbt2-client ${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR} > \
 			${CLIENT_OUTPUT_DIR}/`hostname`/client-${SEG}.out 2>&1 || exit 1 &
-	PORT=$(( ${PORT} + 1 ))
+	PORT=`expr ${PORT} + 1`
 done
 
 # Sleep long enough for all the client database connections to be established.
-SLEEPYTIME=$(( (1 + ${W_CHUNK}) * ${SLEEPY} / 1000 ))
-do_sleep $SLEEPYTIME
+SLEEPYTIME=`expr 1 + ${W_CHUNK}`
+SLEEPYTIME=`expr ${SLEEPYTIME} \* ${SLEEPY}`
+SLEEPYTIME=`expr ${SLEEPYTIME} / 1000`
+do_sleep ${SLEEPYTIME}
 
 # Start collecting data before we start the test.
-SLEEP_RAMPUP=$(( ((${W_CHUNK} + 1) * 10 * ${SLEEPY} / 1000) ))
-SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
+SLEEP_RAMPUP=`expr ${W_CHUNK} + 1`
+SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* 10`
+SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* ${SLEEPY}`
+SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} / 1000`
+SLEEPYTIME=`expr ${SLEEP_RAMPUP} + ${DURATION}`
 SAMPLE_LENGTH=60
-ITERATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
+ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
+ITERATIONS=`expr ${ITERATIONS} + 1`
 dbt2-sysstats \
 		--iter ${ITERATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.out 2>&1 &
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
 fi
 
@@ -542,7 +565,7 @@ ${DB_COMMAND} dbt2-${DBMS}-db-stat \
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_init
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_init ${DB_HOSTNAME}
 	fi
 fi
@@ -559,19 +582,20 @@ START=1
 #
 SEG=0
 PORT=30000
-while (( ${END} < ${WAREHOUSES} )); do
-	START=$(( ${END} + 1 ))
-	END=$(( ${START} + ${W_CHUNK} - 1 ))
-	SEG=$(( ${SEG} + 1 ))
+while [ ${END} -lt ${WAREHOUSES} ]; do
+	START=`expr ${END} + 1`
+	END=`expr ${START} + ${W_CHUNK}`
+	END=`expr ${END} - 1`
+	SEG=`expr ${SEG} + 1`
 
-	if (( ${END} > ${WAREHOUSES} )); then
+	if [ ${END} -gt ${WAREHOUSES} ]; then
 		END=${WAREHOUSES}
 	fi
 
 	DDIR="${DRIVER_OUTPUT_DIR}/`hostname`.${SEG}"
 	mkdir -p ${DDIR}
 	DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -p ${PORT} -l ${DURATION} -wmin ${START} -wmax ${END} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DDIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
-	PORT=$(( ${PORT} + 1 ))
+	PORT=`expr ${PORT} + 1`
 	dbt2-driver ${DRIVER_COMMAND_ARGS} > \
 			${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.out 2>&1 || exit 1&
 done
@@ -583,7 +607,7 @@ echo "estimated rampup time has elapsed"
 # Clear the readprofile data after the driver ramps up.
 if [ -f "/proc/profile" ]; then
 	readprofile_clear
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		readprofile_clear ${DB_HOSTNAME}
 	fi
 fi
@@ -591,7 +615,7 @@ fi
 # Reset the oprofile counters after the driver ramps up.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_reset
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_reset ${DB_HOSTNAME}
 	fi
 fi
@@ -603,7 +627,7 @@ do_sleep $DURATION
 # Collect readprofile data.
 if [ -f "/proc/profile" ]; then
 	readprofile_collect ${DRIVER_OUTPUT_DIR}/`hostname`
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
@@ -611,7 +635,7 @@ fi
 # Collect oprofile data.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
@@ -635,7 +659,7 @@ dbt2-post-process --dir ${OUTPUT_DIR} > ${REPORT_FILE}
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
 	wait
@@ -643,26 +667,27 @@ fi
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_stop
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_stop ${DB_HOSTNAME}
 	fi
 fi
 
 post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
-post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
 
 # Postprocessing of Database Statistics
-
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" = "localhost" ]; then
+if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
 	# If a database system is specified, rsync all the logs back to here.
 	#
 	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
 			${DB_OUTPUT_DIR}/
+	# There will only be a sar output file if the database is on a separate
+	# system.
+	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
 fi
 
 # Change the permissions on the database log, not readable by other users by
-# default.  (No, not the transaction log.)
+# default. (No, not the transaction log.)
 if [ -f "${DB_OUTPUT_DIR}/log" ]; then
 	chmod 644 ${DB_OUTPUT_DIR}/log
 fi

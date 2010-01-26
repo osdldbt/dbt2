@@ -181,6 +181,6 @@ int generate_integrity_data(int w_id, struct integrity_t *data)
 {
         bzero(data, sizeof(struct integrity_t));
         data->w_id = w_id;
-        
+
         return OK;
 }

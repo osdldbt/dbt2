@@ -90,7 +90,7 @@ int db_init(char *_dbname)
 #endif /* LIBPQ */
 
 #ifdef LIBMYSQL
-        rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass, 
+        rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,
                       _mysql_port, _mysql_socket);
 #endif /* LIBMYSQL */
 

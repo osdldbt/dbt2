@@ -21,121 +21,154 @@ ENDIF (GETCONF)
 
 IF (GETCONF_FOUND)
     EXECUTE_PROCESS(COMMAND ${GETCONF} LFS_CFLAGS COMMAND ${GETCONF}
-        LFS64_CFLAGS OUTPUT_VARIABLE LFS_CFLAGS
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
+            LFS64_CFLAGS OUTPUT_VARIABLE LFS_CFLAGS
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
 ENDIF (GETCONF_FOUND)
 
-#
-# Checking for PostgreSQL specific configuration.
-#
+IF (DBMS STREQUAL "pgsql")
+    #
+    # Create PostgreSQL specific configuration.
+    #
 
-FIND_PROGRAM(PG_CONFIG pg_config)
+    FIND_PROGRAM(PG_CONFIG pg_config)
 
-IF (PG_CONFIG)
-    SET(PG_CONFIG_FOUND TRUE)
-ENDIF (PG_CONFIG)
+    IF (PG_CONFIG)
+       SET(PG_CONFIG_FOUND TRUE)
+    ENDIF (PG_CONFIG)
 
-IF (PG_CONFIG_FOUND)
-    MESSAGE(STATUS "Found pg_config for PostgreSQL: ${PG_CONFIG}")
-    SET(LIBPQ_SOURCE src/libpq/dbc_common.c src/libpq/dbc_new_order.c
-        src/libpq/dbc_payment.c src/libpq/dbc_order_status.c
-        src/libpq/dbc_delivery.c src/libpq/dbc_stock_level.c
-        src/libpq/dbc_integrity.c)
-    EXECUTE_PROCESS(COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
-        PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    EXECUTE_PROCESS(COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
-        PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    SET(LIBPQ_FLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
-    SET(LIBPQ_LIBS "-L${PG_LIBDIR} -lpq")
-    SET(PGSQL_SCRIPTS bin/pgsql/dbt2-pgsql-analyze-stats
-        bin/pgsql/dbt2-pgsql-build-db bin/pgsql/dbt2-pgsql-check-db
-        bin/pgsql/dbt2-pgsql-create-db bin/pgsql/dbt2-pgsql-create-indexes
-        bin/pgsql/dbt2-pgsql-create-tables bin/pgsql/dbt2-pgsql-db-stat
-        bin/pgsql/dbt2-pgsql-drop-db bin/pgsql/dbt2-pgsql-drop-tables
-        bin/pgsql/dbt2-pgsql-load-db bin/pgsql/dbt2-pgsql-load-stored-procs
-        bin/pgsql/dbt2-pgsql-plans bin/pgsql/dbt2-pgsql-start-db
-        bin/pgsql/dbt2-pgsql-stop-db)
-ENDIF (PG_CONFIG_FOUND)
+    IF (PG_CONFIG_FOUND)
+        MESSAGE(STATUS "Found pg_config for PostgreSQL: ${PG_CONFIG}")
+        SET(DB_SOURCE src/libpq/dbc_common.c src/libpq/dbc_new_order.c
+                src/libpq/dbc_payment.c src/libpq/dbc_order_status.c
+                src/libpq/dbc_delivery.c src/libpq/dbc_stock_level.c
+                src/libpq/dbc_integrity.c)
+        EXECUTE_PROCESS(COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
+                PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+        EXECUTE_PROCESS(COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
+                PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+        SET(DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
+        SET(DB_LIBS "-L${PG_LIBDIR} -lpq")
+        SET(DB_SCRIPTS bin/pgsql/dbt2-pgsql-analyze-stats
+                bin/pgsql/dbt2-pgsql-build-db bin/pgsql/dbt2-pgsql-check-db
+                bin/pgsql/dbt2-pgsql-create-db
+                bin/pgsql/dbt2-pgsql-create-indexes
+                bin/pgsql/dbt2-pgsql-create-tables bin/pgsql/dbt2-pgsql-db-stat
+                bin/pgsql/dbt2-pgsql-drop-db bin/pgsql/dbt2-pgsql-drop-tables
+                bin/pgsql/dbt2-pgsql-load-db
+                bin/pgsql/dbt2-pgsql-load-stored-procs
+                bin/pgsql/dbt2-pgsql-plans bin/pgsql/dbt2-pgsql-start-db
+                bin/pgsql/dbt2-pgsql-stop-db)
+    ENDIF (PG_CONFIG_FOUND)
+ELSEIF (DBMS STREQUAL "sqlite")
+    FIND_PROGRAM(PKG_CONFIG pkg-config)
 
-#
-# Checking for MySQL specific configuration.
-#
+    IF (PKG_CONFIG)
+       SET(PKG_CONFIG_FOUND TRUE)
+    ENDIF (PKG_CONFIG)
 
-FIND_PROGRAM(MYSQL_CONFIG mysql_config)
+    IF (PKG_CONFIG_FOUND)
+        SET(DB_SOURCE src/sqlite/dbc_common.c src/nonsp/dbc_new_order.c
+                src/nonsp/dbc_payment.c src/nonsp/dbc_order_status.c
+                src/nonsp/dbc_delivery.c src/nonsp/dbc_stock_level.c
+                src/nonsp/dbc_integrity.c src/nonsp/dbc_nonsp.c)
+        EXECUTE_PROCESS(COMMAND ${PKG_CONFIG} --cflags sqlite3 OUTPUT_VARIABLE
+                SQLITE_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
+        EXECUTE_PROCESS(COMMAND ${PKG_CONFIG} --libs sqlite3 OUTPUT_VARIABLE
+                DB_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
+        SET(DBCFLAGS "-DLIBSQLITE ${SQLITE_CFLAGS}")
+        SET(DB_SCRIPTS bin/sqlite/dbt2-sqlite-build-db
+                bin/sqlite/dbt2-sqlite-plans bin/sqlite/dbt2-sqlite-start-db
+                bin/sqlite/dbt2-sqlite-stop-db)
+    ENDIF (PKG_CONFIG_FOUND)
+ELSEIF (DBMS STREQUAL "mysql")
+    #
+    # Create MySQL specific configuration.
+    #
 
-IF (MYSQL_CONFIG)
-    SET(MYSQL_CONFIG_FOUND TRUE)
-ENDIF (MYSQL_CONFIG)
+    FIND_PROGRAM(MYSQL_CONFIG mysql_config)
 
-IF (MYSQL_CONFIG_FOUND)
-    MESSAGE(STATUS "Found mysql_config for MySQL: ${MYSQL_CONFIG}")
-    SET(MYSQL_SOURCE src/mysql/dbc_common.c src/mysql/dbc_new_order.c
-        src/mysql/dbc_payment.c src/mysql/dbc_order_status.c
-        src/mysql/dbc_delivery.c src/mysql/dbc_stock_level.c
-        src/mysql/dbc_integrity.c)
-    EXECUTE_PROCESS(COMMAND ${MYSQL_CONFIG} --include OUTPUT_VARIABLE
-        MYSQL_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    EXECUTE_PROCESS(COMMAND ${MYSQL_CONFIG} --libs OUTPUT_VARIABLE
-        MYSQL_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-    SET(MYSQL_FLAGS "-DLIBMYSQL ${MYSQL_INCLUDEDIR}")
-    SET(MYSQL_SCRIPTS bin/mysql/dbt2-mysql-analyze-stats
-        bin/mysql/dbt2-mysql-build-db bin/mysql/dbt2-mysql-check-db
-        bin/mysql/dbt2-mysql-create-db bin/mysql/dbt2-mysql-create-indexes
-        bin/mysql/dbt2-mysql-create-tables bin/mysql/dbt2-mysql-db-stat
-        bin/mysql/dbt2-mysql-drop-db bin/mysql/dbt2-mysql-drop-tables
-        bin/mysql/dbt2-mysql-load-db bin/mysql/dbt2-mysql-load-stored-procs
-        bin/mysql/dbt2-mysql-plans bin/mysql/dbt2-mysql-start-db
-        bin/mysql/dbt2-mysql-stop-db)
-ENDIF (MYSQL_CONFIG_FOUND)
+    IF (MYSQL_CONFIG)
+        SET(MYSQL_CONFIG_FOUND TRUE)
+    ENDIF (MYSQL_CONFIG)
+
+    IF(NOT DEFINED MYSQL)
+        SET(MYSQL /usr/bin/sql )
+    ENDIF(NOT DEFINED MYSQL)
+
+    IF (MYSQL_CONFIG_FOUND)
+        MESSAGE(STATUS "Found mysql_config for MySQL: ${MYSQL_CONFIG}")
+        SET(DB_SOURCE src/mysql/dbc_common.c src/mysql/dbc_new_order.c
+                src/mysql/dbc_payment.c src/mysql/dbc_order_status.c
+                src/mysql/dbc_delivery.c src/mysql/dbc_stock_level.c
+                src/mysql/dbc_integrity.c)
+        EXECUTE_PROCESS(COMMAND ${MYSQL_CONFIG} --include OUTPUT_VARIABLE
+                MYSQL_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+        EXECUTE_PROCESS(COMMAND ${MYSQL_CONFIG} --libs OUTPUT_VARIABLE
+                DB_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
+        SET(DBCFLAGS "-DLIBMYSQL ${MYSQL_INCLUDEDIR}")
+        CONFIGURE_FILE(bin/mysql/dbt2-mysql-build-db.in
+                bin/mysql/dbt2-mysql-build-db  @ONLY)
+        CONFIGURE_FILE(bin/mysql/dbt2-mysql-plans.in
+                bin/mysql/dbt2-mysql-plans  @ONLY)
+        CONFIGURE_FILE(bin/mysql/dbt2-mysql-start-db.in
+                bin/mysql/dbt2-mysql-start-db  @ONLY)
+        CONFIGURE_FILE(bin/mysql/dbt2-mysql-stop-db.in
+                bin/mysql/dbt2-mysql-stop-db  @ONLY)
+        SET(DB_SCRIPTS
+                bin/mysql/dbt2-mysql-build-db
+                bin/mysql/dbt2-mysql-plans
+                bin/mysql/dbt2-mysql-start-db
+                bin/mysql/dbt2-mysql-stop-db)
+    ENDIF (MYSQL_CONFIG_FOUND)
+ELSE (NOT DEFINED DBMS)
+    MESSAGE(FATAL_ERROR "Need to specify -DDBMS=mysql|pgsql|sqlite")
+
+ENDIF (DBMS STREQUAL "pgsql")
 
 #
 # Defining commong groups of source files.
 #
 
-SET(COMMON_SOURCE src/common.c src/logging.c src/_socket.c 
-    src/client_interface.c src/transaction_data.c src/_semaphore.c)
+SET(COMMON_SOURCE src/common.c src/logging.c src/_socket.c
+        src/client_interface.c src/transaction_data.c src/_semaphore.c)
 
 #
 # Files to build.
 #
 
 ADD_EXECUTABLE(${DBT2_CLIENT} src/client.c src/transaction_queue.c
-    src/listener.c src/db_threadpool.c src/db.c ${COMMON_SOURCE}
-    ${LIBPQ_SOURCE} ${MYSQL_SOURCE})
+        src/listener.c src/db_threadpool.c src/db.c ${COMMON_SOURCE}
+        ${DB_SOURCE})
 ADD_EXECUTABLE(${DBT2_DATAGEN} src/datagen.c src/common.c)
 ADD_EXECUTABLE(${DBT2_DRIVER} ${COMMON_SOURCE} src/driver_main.c src/driver.c
-    src/input_data_generator.c)
+        src/input_data_generator.c)
 ADD_EXECUTABLE(${DBT2_TXN_TEST} src/transaction_test.c src/db.c
-    src/input_data_generator.c ${COMMON_SOURCE} ${LIBPQ_SOURCE} ${MYSQL_SOURCE})
-
-#      
+        src/input_data_generator.c ${COMMON_SOURCE} ${DB_SOURCE})
+#
 # Set compiler flags.
 #
 
-SET(CMAKE_C_FLAGS "-Wall -Isrc/include ${LFS_CFLAGS}")
+SET(CMAKE_C_FLAGS "-g -Wall -Isrc/include ${LFS_CFLAGS}")
 
 SET_SOURCE_FILES_PROPERTIES(src/db_threadpool.c src/db.c src/client.c
-    src/transaction_test.c
-    COMPILE_FLAGS "${LIBPQ_FLAGS} ${MYSQL_FLAGS}")
-SET_SOURCE_FILES_PROPERTIES(${LIBPQ_SOURCE}
-    COMPILE_FLAGS "${LIBPQ_FLAGS}")
-SET_SOURCE_FILES_PROPERTIES(${MYSQL_SOURCE}
-    COMPILE_FLAGS "${MYSQL_FLAGS}")
+        src/transaction_test.c src/common.c COMPILE_FLAGS "${DBCFLAGS}")
+SET_SOURCE_FILES_PROPERTIES(${DB_SOURCE} COMPILE_FLAGS "${DBCFLAGS}")
 
 #
 # Set linker flags.
 #
 
-SET_TARGET_PROPERTIES(${DBT2_CLIENT} PROPERTIES LINK_FLAGS "-lm ${LIBPQ_LIBS} ${MYSQL_LIBS}")
+SET_TARGET_PROPERTIES(${DBT2_CLIENT} PROPERTIES LINK_FLAGS
+        "-lm ${DB_LIBS} -lpthread")
 SET_TARGET_PROPERTIES(${DBT2_DATAGEN} PROPERTIES LINK_FLAGS -lm)
 SET_TARGET_PROPERTIES(${DBT2_DRIVER} PROPERTIES LINK_FLAGS "-lm -lpthread")
-SET_TARGET_PROPERTIES(${DBT2_TXN_TEST} PROPERTIES LINK_FLAGS "-lm ${LIBPQ_LIBS} ${MYSQL_LIBS}")
+SET_TARGET_PROPERTIES(${DBT2_TXN_TEST} PROPERTIES LINK_FLAGS "-lm ${DB_LIBS}")
 
 #
 # Install rules.
 #
 
 INSTALL(PROGRAMS ${DBT2_CLIENT} ${DBT2_DATAGEN} ${DBT2_DRIVER} ${DBT2_TXN_TEST}
-    bin/dbt2-generate-report bin/dbt2-get-os-info bin/dbt2-post-process
-    bin/dbt2-run-workload bin/dbt2-sysstats
-    ${PGSQL_SCRIPTS} DESTINATION "/bin")
+        bin/dbt2-generate-report bin/dbt2-get-os-info bin/dbt2-post-process
+        bin/dbt2-run-workload bin/dbt2-sysstats
+        ${DB_SCRIPTS} DESTINATION "/bin")

@@ -24,9 +24,9 @@ fi
 
 # I don't think capturing error messages is important here.
 if [ -f ${SYSCTL} ]; then
-	if [ "${OS}" == "Linux" ]; then
+	if [ "x${OS}" = "xLinux" ]; then
 		${SYSCTL} -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.out
-	elif [ "${OS}" == "SunOS" ]; then
+	elif [ "x${OS}" = "xSunOS" ]; then
 		${SYSCTL} -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.out
 	else
 		echo "Unknown OS: ${OS}"

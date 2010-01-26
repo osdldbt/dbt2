@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 	/* Ok, let's get started! */
 	init_logging();
 
-	printf("opening %d conenction(s) to %s...\n", db_connections, sname);
+	printf("opening %d connection(s) to %s...\n", db_connections, sname);
 	if (startup() != OK) {
 		LOG_ERROR_MESSAGE("startup() failed\n");
 		printf("startup() failed\n");
@@ -335,20 +335,20 @@ int startup()
 
 int create_pid_file()
 {
-  FILE * fpid;
-  char pid_filename[1024]; 
+	FILE * fpid;
+	char pid_filename[1024];
 
-  sprintf(pid_filename, "%s%s", output_path, CLIENT_PID_FILENAME);
- 
-  fpid = fopen(pid_filename,"w");
-  if (!fpid)
-  {
-    printf("cann't create pid file: %s\n", pid_filename);
-    return ERROR;
-  }
+	sprintf(pid_filename, "%s%s", output_path, CLIENT_PID_FILENAME);
 
-  fprintf(fpid,"%d", getpid());
-  fclose(fpid);
+	fpid = fopen(pid_filename,"w");
+	if (!fpid)
+	{
+		printf("cann't create pid file: %s\n", pid_filename);
+		return ERROR;
+	}
 
-  return OK;
+	fprintf(fpid,"%d", getpid());
+	fclose(fpid);
+
+	return OK;
 }

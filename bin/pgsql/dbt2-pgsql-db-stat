@@ -36,6 +36,10 @@ fi
 
 PSQL="psql ${PORTARG} -e -d ${DBNAME}"
 
+# Get the OS version that the database system is running on, in case it's
+# different.
+uname -a >> ${OUTPUT_DIR}/readme.txt
+
 # Get database version.
 pg_config --version >> $OUTPUT_DIR/readme.txt
 

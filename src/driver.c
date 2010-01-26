@@ -152,11 +152,11 @@ int integrity_terminal_worker()
 			&client_data.transaction_data, table_cardinality.warehouses);
 
 #ifdef DEBUG
-	printf("executing transaction %c\n", 
+	printf("executing transaction %c\n"
 			 transaction_short_name[client_data.transaction]);
 	fflush(stdout);
 
-	LOG_ERROR_MESSAGE("executing transaction %c", 
+	LOG_ERROR_MESSAGE("executing transaction %c",
 			transaction_short_name[client_data.transaction]);
 #endif /* DEBUG */
 
@@ -540,10 +540,10 @@ void *terminal_worker(void *data)
 		}
 
 #ifdef DEBUG
-		printf("executing transaction %c\n", 
+		printf("executing transaction %c\n",
 			transaction_short_name[client_data.transaction]);
 		fflush(stdout);
-		LOG_ERROR_MESSAGE("executing transaction %c", 
+		LOG_ERROR_MESSAGE("executing transaction %c",
 			transaction_short_name[client_data.transaction]);
 #endif /* DEBUG */
 

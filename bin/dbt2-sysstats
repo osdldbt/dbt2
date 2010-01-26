@@ -48,9 +48,9 @@ else
 fi
 
 if [ $# -lt 1 ]; then
-    echo "usage: sysstats.sh --outdir <output_dir> --iter <iterations> -sample <sample_length>"
+    echo "usage: $0 --outdir <output_dir> --iter <iterations> -sample <sample_length>"
     echo "	<output_dir> will be created if it doesn't exist"
-    exit
+    exit 1
 fi
 
 COUNTER=0
@@ -108,17 +108,17 @@ done
 
 if [ -z $OUTPUT_DIR ]; then
 	echo "use --outdir"
-	exit
+	exit 1
 fi
 
 if [ -z $ITERATIONS ]; then
 	echo "use --iter"
-	exit
+	exit 1
 fi
 
 if [ -z $SAMPLE_LENGTH ]; then
 	echo "use --sample"
-	exit
+	exit 1
 fi
 
 # create the output directory in case it doesn't exist
@@ -142,7 +142,7 @@ ${MPSTAT} -P ALL ${SAMPLE_LENGTH} ${ITERATIONS} >> ${OUTPUT_DIR}/mpstat.out &
 # collect vmstat data
 VMSTAT_OUTPUT=$OUTPUT_DIR/vmstat.out
 OS=`uname`
-if [ ${OS} == "SunOS" ]; then
+if [ "x${OS}" = "xSunOS" ]; then
 	${VMSTAT} $SAMPLE_LENGTH $ITERATIONS >> $VMSTAT_OUTPUT &
 else
 	${VMSTAT} -n $SAMPLE_LENGTH $ITERATIONS >> $VMSTAT_OUTPUT &
