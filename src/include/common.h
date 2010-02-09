@@ -20,14 +20,14 @@
 #include <time.h>
 #include <sys/time.h>
 
-#if defined(ODBC) || defined(LIBMYSQL)
+#if defined(ODBC) || defined(LIBMYSQL) || defined(LIBDRIZZLE)
 #define DB_USER "dbt"
 #define DB_PASS ""
-#endif /* ODBC || LIBMYSQL */
+#endif /* ODBC || LIBMYSQL || LIBDRIZZLE */
 
-#if defined(LIBPQ) || defined(LIBMYSQL)
+#if defined(LIBPQ) || defined(LIBMYSQL) || defined(LIBDRIZZLE)
 #define DB_NAME "dbt2"
-#endif /* LIBPQ || LIBMYSQL */
+#endif /* LIBPQ || LIBMYSQL || LIBDRIZZLE */
 
 #define DELIVERY 0
 #define NEW_ORDER 1

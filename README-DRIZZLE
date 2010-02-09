@@ -1,0 +1,52 @@
+To build and run with Drizzle, run the following steps:
+
+1. Build the tools
+	 % rm -f CMakeCache.txt
+	 % cmake CMakeLists.txt -DDB="drizzle" && make
+
+2. Generate the data, specifying the number of warehouses with the -w option and the location of where to store the generated data.
+
+	% ./bin/dbt2-datagen -w 10  -d /tmp/data --drizzle
+
+3. Load the data into the database (assumes you have a version of drizzled already running) specifying the path of the generated data and the path to the drizzle client
+
+	% ./bin/drizzle/dbt2-drizzle-load-db --path /tmp/data --drizzle_path <path to drizzle client>
+
+4. Set your path accordinglyl and then run the test and generate test results
+
+	% export PATH=$PATH:<dbt2 repository>/bin:<dbt2 repository/bin/drizzle
+	% chmod +x ./bin/drizzle/dbt2-drizzle-run
+        % mkdir -p /tmp/dbt2
+	% ./bin/drizzle/dbt2-drizzle-run --connections 10 --time 300 --warehouses 10 --output-base /tmp/dbt2 --host 127.0.0.1
+
+Output should look similar to:
+
+                         Response Time (s)
+ Transaction      %    Average :    90th %        Total        Rollbacks      %
+------------  -----  ---------------------  -----------  ---------------  -----
+    Delivery   5.45      0.621 :     0.576            6                0   0.00
+   New Order  47.27      0.147 :     0.327           52                2   3.85
+Order Status   3.64      0.032 :     0.049            4                0   0.00
+     Payment  35.45      0.028 :     0.042           39                0   0.00
+ Stock Level   3.64      0.454 :     0.545            4                0   0.00
+
+25.86 new-order transactions per minute (NOTPM)
+1.9 minute duration
+0 total unknown errors
+2 rollback transactions
+3 second(s) ramping up
+
+NOTE: Make sure that number of warehouses (option -w) is less of equal (not
+greater) to the number of warehouses that were created when you generated your
+data
+
+Results and log files can be found in <output dir>/output/<number>
+
+Some of the useful log files:
+
+  <output dir>/output/<number>/client/error.log - client errors
+  <output dir>/output/<number>/driver/error.log - driver errors
+  <output dir>/output/<number>/driver/mix.log - info about performed transactions
+  <output dir>/output/<number>/driver/statistics.out - results of the test
+
+

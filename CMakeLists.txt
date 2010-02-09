@@ -120,8 +120,39 @@ ELSEIF (DBMS STREQUAL "mysql")
                 bin/mysql/dbt2-mysql-start-db
                 bin/mysql/dbt2-mysql-stop-db)
     ENDIF (MYSQL_CONFIG_FOUND)
+ELSEIF (DBMS STREQUAL "drizzle")
+    #
+    # Create Drizzle specific configuration.
+    #
+
+    SET(DB_SOURCE src/drizzle/dbc_common.c
+                       src/nonsp/dbc_new_order.c
+                       src/nonsp/dbc_payment.c
+                       src/nonsp/dbc_order_status.c
+                       src/nonsp/dbc_delivery.c
+                       src/nonsp/dbc_stock_level.c
+                       src/nonsp/dbc_nonsp.c
+                       src/nonsp/dbc_integrity.c)
+
+    IF(NOT DEFINED DRIZZLE_INCLUDEDIR)
+        SET(DRIZZLE_INCLUDEDIR /usr/local/include )
+    ENDIF(NOT DEFINED DRIZZLE_INCLUDEDIR)
+
+    IF(NOT DEFINED DRIZZLE_LIBS)
+        SET(DB_LIBS "-ldrizzle  -lpthread")
+    ENDIF(NOT DEFINED DRIZZLE_LIBS)
+
+    SET(DBCFLAGS "-DLIBDRIZZLE -I${DRIZZLE_INCLUDEDIR}")
+
+    MESSAGE(STATUS "Drizzle configuration build flags :  ${DBCFLAGS}")
+    MESSAGE(STATUS "Drizzle configuration library flags:  ${DB_LIBS}")
+
+    SET(DB_SCRIPTS bin/drizzle/dbt2-drizzle_admin
+            bin/drizzle/dbt2-drizzle-load-db
+            bin/drizzle/dbt2-drizzle-start-db
+            bin/drizzle/dbt2-drizzle-stop-db)
 ELSE (NOT DEFINED DBMS)
-    MESSAGE(FATAL_ERROR "Need to specify -DDBMS=mysql|pgsql|sqlite")
+    MESSAGE(FATAL_ERROR "Need to specify -DDBMS=drizzle|mysql|pgsql|sqlite")
 
 ENDIF (DBMS STREQUAL "pgsql")
 

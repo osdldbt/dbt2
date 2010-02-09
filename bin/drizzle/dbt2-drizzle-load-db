@@ -1,0 +1,424 @@
+#! /bin/bash
+
+usage() {
+
+  if [ "$1" != "" ]; then
+    echo ''
+    echo "error: $1"
+  fi
+
+  echo ''
+  echo 'usage: $0 [options]'
+  echo 'options:'
+  echo 'Mandatory option:'
+  echo '----------------'
+  echo '       --path <path to dataset files> (mandatory unless only-create)'
+  echo ''
+  echo 'Configuration options:'
+  echo '----------------------'
+  echo '       --drizzle-path <path to drizzle client binary.'
+  echo '         (default /usr/local/drizzle/bin/drizzle)>'
+  echo '       --database <database name> (default dbt2)'
+  echo '       --socket <database socket> (default /tmp/drizzle.sock)'
+  echo '       --host <database host> (default localhost)'
+  echo '       --port <database port> (default 9306)'
+  echo '       --user <database user> (default root)'
+  echo '       --password <database password> (default not specified)'
+  echo ''
+  echo 'Table options:'
+  echo '--------------'
+  echo '       --using-hash'
+  echo '         (use hash index for primary keys, optimization for NDB)'
+  echo '       --engine <storage engine: [INNODB|PBXT]. (default INNODB)>'
+  echo ''
+  echo 'Runtime options:'
+  echo '----------------'
+  echo '       --local <to use LOCAL keyword while loading dataset>'
+  echo '       --parallel-load'
+  echo '         (only load data, if data-files use different'
+  echo '          warehouses parallel load is possible)'
+  echo '       --only-create (Using this parameter means no tables will be loaded)'
+  echo '       --verbose'
+  echo '       --help'
+  echo ''
+  echo 'Example: sh drizzle_load_db.sh --path /tmp/dbt2-w3'
+  echo ''
+}
+
+
+validate_parameter()
+{
+  if [ "$2" != "$3" ]; then
+    usage "wrong argument '$2' for parameter '-$1'"
+    exit 1
+  fi
+}
+
+
+command_exec()
+{
+  if [ -n "$VERBOSE" ]; then
+    echo "Executed command: $1"
+  fi
+
+  eval "$1"
+
+  rc=$?
+  if [ $rc -ne 0 ]; then
+   echo "ERROR: rc=$rc"
+   case $rc in
+     127) echo "COMMAND NOT FOUND"
+          ;;
+       *) echo "SCRIPT INTERRUPTED"
+          ;;
+    esac
+    exit 255
+  fi
+}
+
+load_tables()
+{
+
+if [ "$LOAD_TABLES" == "0" ]; then
+  TABLES="item"
+else
+  TABLES="customer district history item new_order order_line orders stock warehouse"
+fi
+
+for TABLE in $TABLES ; do
+  #if [ "$TABLE" != "item" -o "$DB_PARALLEL" != "1" -o "$LOAD_TABLES" == "0" ]; then
+  if [ "$DB_PARALLEL" != "1" -o "$LOAD_TABLES" == "0" ]; then
+    echo "Loading table $TABLE"
+    if [ "$TABLE" == "orders" ]; then
+      FN="order"
+    else
+      FN="$TABLE"
+    fi
+    command_exec "$DRIZZLE $DB_NAME -e \"LOAD DATA $LOCAL INFILE \\\"$DB_PATH/$FN.data\\\" INTO TABLE $TABLE FIELDS TERMINATED BY '\t'\""
+  fi
+done
+}
+
+create_tables()
+{
+
+CUSTOMER="CREATE TABLE customer (
+  c_id int NOT NULL default '0',
+  c_d_id int NOT NULL default '0',
+  c_w_id int NOT NULL default '0',
+  c_first varchar(16) default NULL,
+  c_middle char(2) default NULL,
+  c_last varchar(16) default NULL,
+  c_street_1 varchar(20) default NULL,
+  c_street_2 varchar(20) default NULL,
+  c_city varchar(20) default NULL,
+  c_state char(2) default NULL,
+  c_zip varchar(9) default NULL,
+  c_phone varchar(16) default NULL,
+  c_since timestamp NOT NULL,
+  c_credit char(2) default NULL,
+  c_credit_lim decimal(24,12) default NULL,
+  c_discount double default NULL,
+  c_balance decimal(24,12) default NULL,
+  c_ytd_payment decimal(24,12) default NULL,
+  c_payment_cnt double default NULL,
+  c_delivery_cnt double default NULL,
+  c_data varchar(500),
+  PRIMARY KEY $USING_HASH  (c_w_id,c_d_id,c_id),
+  KEY c_w_id (c_w_id,c_d_id,c_last,c_first)
+)"
+
+DISTRICT="CREATE TABLE district (
+  d_id int NOT NULL default '0',
+  d_w_id int NOT NULL default '0',
+  d_name varchar(10) default NULL,
+  d_street_1 varchar(20) default NULL,
+  d_street_2 varchar(20) default NULL,
+  d_city varchar(20) default NULL,
+  d_state char(2) default NULL,
+  d_zip varchar(9) default NULL,
+  d_tax double default NULL,
+  d_ytd decimal(24,12) default NULL,
+  d_next_o_id int default NULL,
+  PRIMARY KEY $USING_HASH (d_w_id,d_id)
+)"
+
+HISTORY="CREATE TABLE history (
+  h_c_id int default NULL,
+  h_c_d_id int default NULL,
+  h_c_w_id int default NULL,
+  h_d_id int default NULL,
+  h_w_id int default NULL,
+  h_date timestamp NOT NULL,
+  h_amount double default NULL,
+  h_data varchar(24) default NULL
+)"
+
+
+ITEM="CREATE TABLE item (
+  i_id int NOT NULL default '0',
+  i_im_id int default NULL,
+  i_name varchar(24) default NULL,
+  i_price double default NULL,
+  i_data varchar(50) default NULL,
+  PRIMARY KEY $USING_HASH (i_id)
+)"
+
+
+NEW_ORDER="CREATE TABLE new_order (
+  no_o_id int NOT NULL default '0',
+  no_d_id int NOT NULL default '0',
+  no_w_id int NOT NULL default '0',
+  PRIMARY KEY  (no_w_id,no_d_id,no_o_id)
+)"
+
+ORDER_LINE="CREATE TABLE order_line (
+  ol_o_id int NOT NULL default '0',
+  ol_d_id int NOT NULL default '0',
+  ol_w_id int NOT NULL default '0',
+  ol_number int NOT NULL default '0',
+  ol_i_id int default NULL,
+  ol_supply_w_id int default NULL,
+  ol_delivery_d timestamp default NOW() NOT NULL,
+  ol_quantity double default NULL,
+  ol_amount double default NULL,
+  ol_dist_info varchar(24) default NULL,
+  PRIMARY KEY  (ol_w_id,ol_d_id,ol_o_id,ol_number)
+)"
+
+ORDERS="CREATE TABLE orders (
+  o_id int NOT NULL default '0',
+  o_d_id int NOT NULL default '0',
+  o_w_id int NOT NULL default '0',
+  o_c_id int default NULL,
+  o_entry_d timestamp NOT NULL,
+  o_carrier_id int default NULL,
+  o_ol_cnt int default NULL,
+  o_all_local double default NULL,
+  PRIMARY KEY $USING_HASH (o_w_id,o_d_id,o_id),
+  KEY o_w_id (o_w_id,o_d_id,o_c_id,o_id)
+)"
+
+
+STOCK="CREATE TABLE stock (
+  s_i_id int NOT NULL default '0',
+  s_w_id int NOT NULL default '0',
+  s_quantity double NOT NULL default '0',
+  s_dist_01 varchar(24) default NULL,
+  s_dist_02 varchar(24) default NULL,
+  s_dist_03 varchar(24) default NULL,
+  s_dist_04 varchar(24) default NULL,
+  s_dist_05 varchar(24) default NULL,
+  s_dist_06 varchar(24) default NULL,
+  s_dist_07 varchar(24) default NULL,
+  s_dist_08 varchar(24) default NULL,
+  s_dist_09 varchar(24) default NULL,
+  s_dist_10 varchar(24) default NULL,
+  s_ytd decimal(16,8) default NULL,
+  s_order_cnt double default NULL,
+  s_remote_cnt double default NULL,
+  s_data varchar(50) default NULL,
+  PRIMARY KEY $USING_HASH (s_w_id,s_i_id),
+  KEY  (s_w_id,s_i_id,s_quantity)
+)"
+
+WAREHOUSE="CREATE TABLE warehouse (
+  w_id int NOT NULL default '0',
+  w_name varchar(10) default NULL,
+  w_street_1 varchar(20) default NULL,
+  w_street_2 varchar(20) default NULL,
+  w_city varchar(20) default NULL,
+  w_state char(2) default NULL,
+  w_zip varchar(9) default NULL,
+  w_tax double default NULL,
+  w_ytd decimal(24,12) default NULL,
+  PRIMARY KEY $USING_HASH (w_id)
+)"
+
+TABLES="STOCK ITEM ORDER_LINE ORDERS NEW_ORDER HISTORY CUSTOMER DISTRICT WAREHOUSE"
+if [ "$DB_PARALLEL" != "1" ]; then
+  for TABLE in $TABLES ; do
+     echo "Creating table $TABLE in $DB_ENGINE"
+     command_exec "$DRIZZLE $DB_NAME -e \"\$$TABLE ENGINE=$DB_ENGINE\""
+  done
+fi
+}
+
+#DEFAULTs
+
+LOAD_TABLES="1"
+LOCAL=""
+VERBOSE=""
+DB_PASSWORD=""
+DB_PATH=""
+DB_NAME="dbt2"
+DB_PARALLEL="0"
+
+DRIZZLE="/usr/local/drizzle/bin/drizzle"
+DB_HOST="localhost"
+DB_PORT="9306"
+DB_SOCKET=""
+DB_USER="root"
+DB_ENGINE="INNODB"
+USING_HASH=""
+
+while test $# -gt 0
+do
+  case $1 in
+   --drizzle-path | -drizzle-path | -drizzle | \
+   --drizzle_path | -drizzle_path | \
+   --drizzle )
+     shift
+     DRIZZLE=$1
+     ;;
+   --database | --db | -database | \
+   -db )
+     shift
+     DB_NAME=$1
+     ;;
+   --engine | -engine | --handler | -handler | --storage-engine | \
+   --storage_engine | \
+   -e )
+     shift
+      DB_ENGINE=$1
+      ;;
+    --path | -path | --data-file-path | -data-file-path | -datapath | \
+    --data_file_path | -data_file_path | \
+    -f )
+      shift
+      DB_PATH=$1
+      ;;
+    --host | -host | \
+    -h )
+      shift
+      DB_HOST=$1
+      ;;
+    --using-hash | -using-hash | --using_hash | \
+    -using_hash )
+      USING_HASH="USING HASH"
+      ;;
+    --parallel-load | --parallel | --parallel_load | --parallel_load | \
+    -parallel-load | -parallel | -parallel_load | -parallel_load | \
+    --parallell-load | --parallell | --parallell_load | --parallell_load | \
+    -parallell-load | -parallell | -parallell_load | -parallell_load | \
+    --par )
+      DB_PARALLEL="1"
+      ;;
+    --local | -local | \
+    -l )
+      LOCAL="LOCAL"
+      ;;
+    --only-create | --no-load | -only-create | -no-load | \
+    --only_create | --no_load | -only_create | -no_load | \
+    -o )
+      LOAD_TABLES="0"
+      ;;
+    --password | --passwd | -password | \
+    -passwd )
+      shift
+      DB_PASSWORD=$1
+      ;;
+    --socket | -socket | \
+    -s )
+      shift
+      DB_SOCKET=$1
+      ;;
+    --port | -port | \
+    -p )
+      opt=$1
+      shift
+      DB_PORT=`echo $1 | egrep "^[0-9]+$"`
+      validate_parameter $opt $1 $DB_PORT
+      ;;
+    --user | -user | \
+    -u )
+      shift
+      DB_USER=$1
+      ;;
+    --verbose | -verbose | \
+    -v )
+      VERBOSE=1
+      ;;
+    --help | -help | \
+    ? )
+      usage
+      exit 1
+      ;;
+    * )
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# Check parameters.
+if [ "$LOAD_TABLES" == "1" ]; then
+  if [ "$DB_PATH" == "" ]; then
+    usage "specify path where dataset txt files are located - using --path #"
+    exit 1
+  fi
+
+  if [ ! -d "$DB_PATH" ]; then
+    usage "Directory '$DB_PATH' not exists. Please specify
+         correct path to data files using --path #"
+    exit 1
+  fi
+fi
+
+if [ "$DB_HOST" != "localhost" ]; then
+  DB_SOCKET=""
+fi
+
+if [ "$DB_ENGINE" != "INNODB" -a "$DB_ENGINE" != "PBXT" ]; then
+  usage "$DB_ENGINE. Please specify correct storage engine [INNODB|PBXT]"
+  exit 1
+fi
+
+if [ ! -f "$DRIZZLE" ]; then
+  usage "Drizzle client binary '$DRIZZLE' not exists.
+       Please specify correct one using -drizzle-path #"
+  exit 1
+fi
+
+if [ "$DB_PASSWORD" != "" ]; then
+  DRIZZLE_ARGS="--password=$DB_PASSWORD"
+fi
+
+DRIZZLE_ARGS="$DRIZZLE_ARGS -h $DB_HOST -u $DB_USER"
+if [ "$DB_SOCKET" != "" ]; then
+  DRIZZLe_ARGS="$DRIZZLE_ARGS --socket=$DB_SOCKET"
+else
+  DRIZZLE_ARGS="$DRIZZLE_ARGS"
+fi
+DRIZZLE_ARGS="$DRIZZLE_ARGS --port $DB_PORT"
+DRIZZLE="$DRIZZLE $DRIZZLE_ARGS"
+
+echo ""
+echo "Loading of DBT2 dataset located in $DB_PATH to database $DB_NAME."
+echo ""
+echo "DB_ENGINE:      $DB_ENGINE"
+echo "DB_HOST:        $DB_HOST"
+echo "DB_PORT:        $DB_PORT"
+echo "DB_USER:        $DB_USER"
+echo "DB_SOCKET:      $DB_SOCKET"
+echo "USING_HASH:     $USING_HASH"
+
+if [ "$DB_PARALLEL" != "1" ]; then
+  echo "DROP/CREATE Database"
+  command_exec "$DRIZZLE -e \"drop database if exists $DB_NAME\" "
+  command_exec "$DRIZZLE -e \"create database $DB_NAME\" "
+else
+  echo "Running parallel load variant"
+  command_exec "$DRIZZLE -e \"create database if not exists $DB_NAME\" "
+fi
+
+# Create tables
+echo ""
+create_tables
+
+# Load tables
+echo ""
+load_tables
+
+

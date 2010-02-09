@@ -33,6 +33,7 @@
 #define MODE_SAPDB 0
 #define MODE_PGSQL 1
 #define MODE_MYSQL 2
+#define MODE_DRIZZLE 3
 
 void gen_customers();
 void gen_districts();
@@ -62,13 +63,15 @@ char null_str[16] = "\"NULL\"";
 #define FPRINTF(a, b, c) \
 	if (mode_string == MODE_SAPDB) { \
 		METAPRINTF((a, "\""b"\"", c)); \
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || \
+			mode_string == MODE_DRIZZLE) { \
 		METAPRINTF((a, b, c)); \
 	}
 #define FPRINTF2(a, b) \
 	if (mode_string == MODE_SAPDB) { \
 		METAPRINTF((a, "\""b"\"")); \
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || \
+			mode_string == MODE_DRIZZLE) { \
 		METAPRINTF((a, b)); \
 	}
 
@@ -81,7 +84,8 @@ void escape_me(char *str)
 	int k = 0;
 
 	/* Don't need to do anything for SAP DB. */
-	if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
+	if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL ||\
+			 mode_string == MODE_DRIZZLE) {
 		strcpy(buffer, str);
 		i = strlen(buffer);
 		for (k = 0; k <= i; k++) {
@@ -99,7 +103,8 @@ void print_timestamp(FILE *ofile, struct tm *date)
 		METAPRINTF((ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
 				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 				date->tm_hour, date->tm_min, date->tm_sec));
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || \
+			mode_string == MODE_DRIZZLE) {
 		METAPRINTF((ofile, "%04d-%02d-%02d %02d:%02d:%02d",
 				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 				date->tm_hour, date->tm_min, date->tm_sec));
@@ -637,10 +642,19 @@ void gen_orders()
 				METAPRINTF((order, "%c", delimiter));
 
 				/* o_carrier_id */
-				if (k < 2101) {
+				if (mode_string == MODE_DRIZZLE) {
+					/*
+					 * FIXME: Not to spec but Drizzle doesn't handle null
+					 * value for when reading from a file for now
+					 */
 					FPRINTF(order, "%d", get_random(9) + 1);
-				} else {
-					METAPRINTF((order, "%s", null_str));
+				}
+				else {
+					if (k < 2101) {
+						FPRINTF(order, "%d", get_random(9) + 1);
+					} else {
+						METAPRINTF((order, "%s", null_str));
+					}
 				}
 				METAPRINTF((order, "%c", delimiter));
 
@@ -685,18 +699,29 @@ void gen_orders()
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_delivery_d */
-					if (k < 2101) {
+					if (mode_string == MODE_DRIZZLE) {
+						/*
+						 * FIXME: Not to spec but Drizzle doesn't handle null
+						 * value for when reading from a file for now
+						 */
+						time(&t1);
+						tm1 = localtime(&t1);
+						print_timestamp(order_line, tm1);
+					}
+					else  {
+						if (k < 2101) {
 						/*
 						 * Milliseconds are not
 						 * calculated.  This should
 						 * also be the time when the
 						 * data is loaded, I think.
 						 */
-						time(&t1);
-						tm1 = localtime(&t1);
-						print_timestamp(order_line, tm1);
-					} else {
-						METAPRINTF((order_line, "%s", null_str));
+							time(&t1);
+							tm1 = localtime(&t1);
+							print_timestamp(order_line, tm1);
+						} else {
+							METAPRINTF((order_line, "%s", null_str));
+						}
 					}
 					METAPRINTF((order_line, "%c", delimiter));
 
@@ -948,12 +973,14 @@ int main(int argc, char *argv[])
 		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		printf("-d <path>\n");
 		printf("\toutput path of data files\n");
-		printf("--sapdb\n");
-		printf("\tformat data for SAP DB\n");
-		printf("--pgsql\n");
-		printf("\tformat data for PostgreSQL\n");
+		printf("--drizzle\n");
+		printf("\tformat data for Drizzle\n");
 		printf("--mysql\n");
 		printf("\tformat data for MySQL\n");
+		printf("--pgsql\n");
+		printf("\tformat data for PostgreSQL\n");
+		printf("--sapdb\n");
+		printf("\tformat data for SAP DB\n");
 		return 1;
 	}
 
@@ -963,12 +990,13 @@ int main(int argc, char *argv[])
 		static struct option long_options[] = {
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
-			{ "mysql", no_argument, &mode_string, MODE_MYSQL },			
+			{ "mysql", no_argument, &mode_string, MODE_MYSQL },
+			{ "drizzle", no_argument, &mode_string, MODE_DRIZZLE },
 			{ 0, 0, 0, 0 }
 		};
 
 		c = getopt_long(argc, argv, "c:d:i:n:o:w:",
-				long_options, &option_index); 
+				long_options, &option_index);
 		if (c == -1) {
 			break;
 		}
@@ -1009,13 +1037,14 @@ int main(int argc, char *argv[])
 			(st.st_mode & S_IFMT) != S_IFDIR)) {
 		printf("Output directory of data files '%s' not exists\n",output_path);
 		return 3;
-	} 
+	}
 
 	/* Set the correct delimiter. */
 	if (mode_string == MODE_SAPDB) {
 		delimiter = ',';
 		strcpy(null_str, "\"NULL\"");
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL ||
+			mode_string == MODE_DRIZZLE) {
 		delimiter = '\t';
 		strcpy(null_str, "");
 	}

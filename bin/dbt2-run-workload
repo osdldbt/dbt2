@@ -226,11 +226,14 @@ usage()
 	fi
 	echo
 	echo "usage: `basename $0` -h"
-	echo "usage: `basename $0` -a <mysql|pgsql|sqlite>"
+	echo "usage: `basename $0` -a <drizzle|mysql|pgsql|sqlite>"
 	echo "       -c <number of database connections> -d <seconds>"
 	echo "       -w <number of warehouses> -o <path> [options]"
 	echo "options:"
 	echo "       -H <database host name. (default localhost)>"
+	if [ "${DBMS}" = "drizzle" ]; then
+		echo "       -i <drizzle working or installation directory>"
+	fi
 	echo "       -l <database port number>"
 	echo "       -q <enable oprofile data collection>"
 	echo "       -s <delay of starting of new threads in milliseconds>"
@@ -272,7 +275,7 @@ USE_PGPOOL=0
 #
 W_CHUNK=500
 
-while getopts "a:b:c:d:H:hl:no:p:qs:t:u:w:x:z:" opt; do
+while getopts "a:b:c:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
@@ -296,6 +299,11 @@ while getopts "a:b:c:d:H:hl:no:p:qs:t:u:w:x:z:" opt; do
 	h)
 		usage
 		exit 1
+		;;
+	i)
+		# installation or working directory where drizzled and drizzle can be
+		# found
+		WORKING_DIR=${OPTARG}
 		;;
 	l)
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -340,7 +348,7 @@ done
 # Check parameters.
 
 if [ "x${DBMS}" = "x" ]; then
-	echo "specify which dbms system to test using -a <mysql|pgsql|sqlite>"
+	echo "specify which dbms system to test using -a <drizzle|mysql|pgsql|sqlite>"
 	exit 1
 fi
 
@@ -435,16 +443,26 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	${DB_COMMAND} "uname -a >> ${DB_OUTPUT_DIR}/readme.txt"
 fi
 
-${DB_COMMAND} dbt2-${DBMS}-stop-db
+if [ "x${DBMS}" = "xdrizzle" ]; then
+	${DB_COMMAND} dbt2-${DBMS}-stop-db ${WORKING_DIR}
+else
+	${DB_COMMAND} dbt2-${DBMS}-stop-db
+fi
 if [ $? -ne 0 ]; then
 	echo "cleaning up results..."
 	rm -rf ${OUTPUT_DIR}
 	exit 1
 fi
+
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "dbt2-${DBMS}-start-db -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
+	${DB_COMMAND} "dbt2-${DBMS}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
 else
-	dbt2-${DBMS}-start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
+	if [ "x${DBMS}" = "xdrizzle" ]; then
+		dbt2-${DBMS}-start-db ${WORKING_DIR} || exit 1
+	else
+		dbt2-${DBMS}-start-db ${START_DB_ARGS} -p "${DB_PARAMS}" \
+				-o ${DB_OUTPUT_DIR} || exit 1
+	fi
 fi
 
 #
@@ -508,6 +526,8 @@ elif [ ${DBMS} = "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
 elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
+elif [ ${DBMS} = "drizzle" ]; then
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
 fi
 CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY}"
 END=0
@@ -647,7 +667,11 @@ echo "Stage 3. Processing of results..."
 echo "Killing client..."
 killall dbt2-client dbt2-driver 2> /dev/null
 
-${DB_COMMAND} dbt2-${DBMS}-stop-db
+if [ "x${DBMS}" = "xdrizzle" ]; then
+	${DB_COMMAND} dbt2-${DBMS}-stop-db ${WORKING_DIR}
+else
+	${DB_COMMAND} dbt2-${DBMS}-stop-db
+fi
 if [ ${DBMS} = "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then
 		pgpool -f ${DIR}/pgsql/pgpool.conf stop

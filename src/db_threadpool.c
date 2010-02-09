@@ -45,7 +45,7 @@ extern FILE *log_mix;
 extern pthread_mutex_t mutex_mix_log;
 #endif /* STANDALONE */
 
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(LIBMYSQL) || defined(ODBC) || defined(LIBDRIZZLE)
 extern char dbt2_user[128];
 extern char dbt2_pass[128];
 #endif
@@ -59,6 +59,12 @@ extern char dbt2_mysql_port[32];
 extern char dbt2_mysql_host[128];
 extern char dbt2_mysql_socket[256];
 #endif /* LIBMYSQL */
+
+#ifdef LIBDRIZZLE
+extern char dbt2_drizzle_port[32];
+extern char dbt2_drizzle_host[128];
+extern char dbt2_drizzle_socket[256];
+#endif /* LIBDRIZZLE */
 
 void *db_worker(void *data)
 {
@@ -86,6 +92,11 @@ void *db_worker(void *data)
        printf("connect to mysql server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
        db_init(sname, dbt2_mysql_host , dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
 #endif /* LIBMYSQL */
+
+#ifdef LIBDRIZZLE
+       printf("connect to drizzle server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s| socket: |%s|\n", sname, dbt2_drizzle_host, dbt2_user, dbt2_pass, dbt2_drizzle_port, dbt2_drizzle_socket);
+       db_init(sname, dbt2_drizzle_host , dbt2_user, dbt2_pass, dbt2_drizzle_port, dbt2_drizzle_socket);
+#endif /* LIBDRIZZLE */
 
 #ifdef LIBSQLITE
 		db_init(sname);

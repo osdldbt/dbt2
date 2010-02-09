@@ -52,6 +52,14 @@
 #include "nonsp_integrity.h"
 #endif /* LIBSQLITE */
 
+#ifdef LIBDRIZZLE
+#include "drizzle_delivery.h"
+#include "drizzle_order_status.h"
+#include "drizzle_payment.h"
+#include "drizzle_stock_level.h"
+#include "drizzle_new_order.h"
+#include "drizzle_integrity.h"
+#endif /* LIBDRIZZLE */
 
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
@@ -74,6 +82,10 @@ int db_init(char *_dbname, char *_pghost, char *_pgport)
 int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
              char * _mysql_pass, char * _mysql_port, char * _mysql_socket)
 #endif /* LIBMYSQL */
+#ifdef LIBDRIZZLE
+int db_init(char * _drizzle_dbname, char *_drizzle_host, char * _drizzle_user,
+             char * _drizzle_pass, char * _drizzle_port, char * _drizzle_socket)
+#endif /* LIBDRIZZLE */
 #ifdef LIBSQLITE
 int db_init(char *_dbname)
 #endif /* LIBSQLITE */
@@ -93,6 +105,10 @@ int db_init(char *_dbname)
         rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,
                       _mysql_port, _mysql_socket);
 #endif /* LIBMYSQL */
+
+#ifdef LIBDRIZZLE
+        rc = _db_init(_drizzle_dbname, _drizzle_host, _drizzle_user, _drizzle_pass, _drizzle_port, _drizzle_socket);
+#endif /* LIBDRIZZLE */
 
 #ifdef LIBSQLITE
 	rc = _db_init(_dbname);

@@ -449,6 +449,10 @@ void *terminal_worker(void *data)
 	extern char dbt2_mysql_port[32];
 #endif /* LIBMYSQL */
 
+#ifdef LIBDRIZZLE
+        extern char dbt2_drizzle_port[32];
+#endif /* LIBDRIZZLE */
+
 #endif /* STANDALONE */
 
 	tc = (struct terminal_context_t *) data;
@@ -480,6 +484,10 @@ void *terminal_worker(void *data)
 	printf("CONNECTED TO DB |%s| |%s| |%s|\n", DB_NAME, sname, dbt2_mysql_port);
 	db_init(sname, "", dbt2_mysql_port);
 #endif /* LIBMYSQL */
+#ifdef LIBDRIZZLE
+        printf("CONNECTED TO DB |%s| |%s| |%s|\n", DB_NAME, sname, dbt2_drizzle_port);
+        db_init(sname, "", dbt2_drizzle_port);
+#endif /* LIBDRIZZLE */
 #ifdef LIBSQLITE
 	db_init(sname);
 #endif /* LIBSQLITE */

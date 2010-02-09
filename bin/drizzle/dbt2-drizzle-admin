@@ -1,0 +1,143 @@
+#! /bin/sh
+#
+# This file is released under the terms of the Artistic License.  Please see
+# the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2010 Sun Microsystems
+#
+
+# provide default value for the working or installation directory
+WORKING_DIR=/usr/local
+
+# -s  can be either start or stop
+# -w  is the working or installation directory
+while getopts  "s:w:" OPT; do
+	case ${OPT} in
+	s)
+		COMMAND=$OPTARG
+		;;
+	w)
+		WORKING_DIR=$OPTARG
+		;;
+	esac
+done
+
+ERRLOG=$WORKING_DIR/error.log
+PIDLOG=$WORKING_DIR/drizzle.pid
+VARDIR=$WORKING_DIR/var
+PORT=9306
+PORT2=`expr $PORT + 1`
+
+# check that drizzled has started and is now responding
+ping_drizzled()
+{
+        echo "Waiting for drizzled to start . . ."
+        waiting=5
+        total=5
+        while [ $total -le 20 ]
+        do
+                sleep $waiting
+                $WORKING_DIR/$drizzle --ping --port=$PORT 2> /dev/null
+                echo "$drizzle --ping --port=$port after waiting $total seconds"
+                status=$?
+                if [ "$status" -eq "0" ]
+                then
+                        return 0
+                fi
+                total=$((total+$waiting))
+        done
+        echo "drizzled is not running - status = $status"
+        exit 1
+}
+
+# make sure we have a valid working or installation directory
+if [ ! -d $WORKING_DIR ]
+then
+        echo "Cannot find $WORKING_DIR"
+	exit 1
+fi
+
+# make sure we have a valid drizzled in our path
+if [ -f $WORKING_DIR/sbin/drizzled  ]
+then
+	drizzled=$WORKING_DIR/sbin/drizzled
+elif [ -f $WORKING_DIR/drizzled/drizzled ]
+then
+	drizzled=$WORKING_DIR/drizzled/drizzled
+else
+	echo "Cannot find drizzled in $WORKING_DIR"
+	exit 1
+fi
+
+# make sure we have a valid drizzle in our path
+if [ -f $WORKING_DIR/bin/drizzle ]
+then
+	drizzle=./bin/drizzle
+elif [ -f $WORKING_DIR/client/drizzle ]
+then
+	drizzle=$WORKING_DIR/client/drizzle
+else
+	echo "Cannot find drizzle in $WORKING_DIR"
+	exit 1
+fi
+
+if [ "$COMMAND" = "start" ]
+then
+	# see if there is a drizzled already running
+	if [ -f $PIDLOG ]
+	then
+		pid=`cat $PIDLOG`
+		found_pid=`ps -a | grep drizzled | head -1 | awk '{print $1}'`
+		if [ "$found_pid" = "$pid" ]
+		then
+			echo "Already have a running version of drizzled, pid = $pid"
+			exit 1
+		fi
+	fi
+
+	# create the data directory if it doesn't exist
+	mkdir -p $VARDIR
+
+	$drizzled --no-defaults --drizzle-protocol-port=$PORT --mysql-protocol-port=$PORT2 --user=root --basedir=$WORKING_DIR --datadir=$VARDIR > $ERRLOG 2>&1 &
+	status=$?
+	if [ $status != 0 ]
+	then
+		echo "Couldn't start drizzled, status = $status"
+		exit 1
+	else
+		echo "Starting drizzle on PORT $PORT"
+		echo "Drizzle error log can be found at $ERRLOG"
+		echo "Drizzle pidlog can be found at $PIDLOG"
+		echo "$COMMAND of drizzled status = $status"
+		pid=`ps -a | grep drizzled | head -1 | awk '{print $1}'`
+		echo "PID = $pid "
+		echo $pid > $PIDLOG
+	fi
+
+	# make sure drizzled is now running
+	ping_drizzled
+
+elif [ "$COMMAND" = "stop" ]
+then
+	#  stop drizzled by finding PIDLOG and issue a shutdown command
+	if [ -f $PIDLOG ]
+	then
+		pid=`cat $PIDLOG`
+		echo "Shutting down drizzled process $pid"
+		$drizzle --shutdown --port=$PORT
+		if [ $? != 0 ]
+		then
+			kill -9 $pid
+			echo "Ran kill -9 to stop drizzled"
+		fi
+		rm -f $PIDLOG
+	else
+		echo "Cannot find $PIDLOG"
+	fi
+# else we have an invalid command
+else
+	echo "Usage $0:  -s <start>|<stop>   -w <working or installation directory>"
+	exit  1
+fi
+
+exit 0

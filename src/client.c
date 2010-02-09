@@ -37,7 +37,7 @@ int sockfd;
 int exiting = 0;
 int force_sleep = 0;
 
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(LIBMYSQL) || defined(ODBC) || defined(LIBDRIZZLE)
 char dbt2_user[128] = DB_USER;
 char dbt2_pass[128] = DB_PASS;
 #endif
@@ -52,6 +52,11 @@ char dbt2_mysql_port[32];
 char dbt2_mysql_socket[256];
 #endif /* LIBMYSQL */
 
+#ifdef LIBDRIZZLE
+char dbt2_drizzle_host[128];
+char dbt2_drizzle_port[32];
+char dbt2_drizzle_socket[256];
+#endif /* LIBDRIZZLE */
 
 int startup();
 
@@ -92,9 +97,19 @@ int main(int argc, char *argv[])
 		printf("-t <socket>\n");
 		printf("\tsocket for connection to mysql server\n");
 #endif /* LIBMYSQL */
+#ifdef LIBDRIZZLE
+		printf("-h <hostname of drizzle server>\n");
+		printf("\tname of host where drizzle server is running\n");
+		printf("-d <db_name>\n");
+		printf("\tdatabase name\n");
+		printf("-l #\n");
+		printf("\tport number to use for connection to drizzle server\n");
+		printf("-t <socket>\n");
+		printf("\tsocket for connection to drizzle server\n");
+#endif /* LIBDRIZZLE */
 		printf("-s #\n");
 		printf("\tseconds to sleep between openning db connections, default 1 s\n");
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(LIBMYSQL) || defined(ODBC) || defined (LIBDRIZZLE)
 		printf("-u <db user>\n");
 		printf("-a <db password>\n");
 #endif
@@ -115,7 +130,7 @@ int main(int argc, char *argv[])
 		return 3;
 	}
 
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(LIBMYSQL) || defined(ODBC) || defined(LIBDRIZZLE)
 	printf("User %s Pass %s\n", dbt2_user, dbt2_pass);
 #endif
 
@@ -206,11 +221,17 @@ int parse_arguments(int argc, char *argv[])
 #if defined(LIBMYSQL)
 			strcpy(dbt2_mysql_port, optarg);
 #endif
+#if defined(LIBDRIZZLE)
+			strcpy(dbt2_drizzle_port, optarg);
+#endif
 
 			break;
 		case 'h':
 #if defined(LIBMYSQL)
 			strcpy(dbt2_mysql_host, optarg);
+#endif
+#if defined(LIBDRIZZLE)
+			strcpy(dbt2_drizzle_host, optarg);
 #endif
 
 			break;
@@ -335,20 +356,20 @@ int startup()
 
 int create_pid_file()
 {
-	FILE * fpid;
-	char pid_filename[1024];
+  FILE * fpid;
+  char pid_filename[1024];
 
-	sprintf(pid_filename, "%s%s", output_path, CLIENT_PID_FILENAME);
+  sprintf(pid_filename, "%s%s", output_path, CLIENT_PID_FILENAME);
 
-	fpid = fopen(pid_filename,"w");
-	if (!fpid)
-	{
-		printf("cann't create pid file: %s\n", pid_filename);
-		return ERROR;
-	}
+  fpid = fopen(pid_filename,"w");
+  if (!fpid)
+  {
+    printf("cann't create pid file: %s\n", pid_filename);
+    return ERROR;
+  }
 
-	fprintf(fpid,"%d", getpid());
-	fclose(fpid);
+  fprintf(fpid,"%d", getpid());
+  fclose(fpid);
 
-	return OK;
+  return OK;
 }
