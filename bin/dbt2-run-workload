@@ -238,6 +238,7 @@ usage()
 	echo "       -q <enable oprofile data collection>"
 	echo "       -s <delay of starting of new threads in milliseconds>"
 	echo "       -n <no thinking or keying time (default no)>"
+	echo "       -D <database name>"
 	if [ "${DBMS}" = "mysql" ]; then
 		echo "       -u <database user>"
 		echo "       -x <database password>"
@@ -275,7 +276,7 @@ USE_PGPOOL=0
 #
 W_CHUNK=500
 
-while getopts "a:b:c:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
+while getopts "a:b:c:D:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
@@ -288,6 +289,9 @@ while getopts "a:b:c:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
 		# Check for numeric value
 		DBCON=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DBCON
+		;;
+	D)
+		DBNAME=${OPTARG}
 		;;
 	d)
 		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -471,7 +475,7 @@ fi
 echo "DBT-2 test for ${DBMS} started..."
 echo ""
 echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
-if [ "${DBMS}" = "pgsql" ] || [ "${DBMS}" = "mysql" ]; then
+if [ "${DBMS}" = "pgsql" ] || [ "${DBMS}" = "mysql" ] || [ "${DBMS}" = "drizzle" ]; then
 	echo "DATABASE NAME: ${DBNAME}"
 fi
 
