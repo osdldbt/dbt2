@@ -2,7 +2,7 @@ To build and run with Drizzle, run the following steps:
 
 1. Build the tools
 	 % rm -f CMakeCache.txt
-	 % cmake CMakeLists.txt -DDB="drizzle" && make
+	 % cmake CMakeLists.txt -DDBMS="drizzle" && make
 
 2. Generate the data, specifying the number of warehouses with the -w option and the location of where to store the generated data.
 
