@@ -50,6 +50,7 @@ int _connect_to_db(struct db_context_t *dbc)
 
     drizzle_con_set_tcp(dbc->drizzle_con, drizzle_host, atoi(drizzle_port));
     drizzle_con_set_db(dbc->drizzle_con, drizzle_dbname);
+    drizzle_con_set_options(dbc->drizzle_con, DRIZZLE_CON_MYSQL);
 
     /* Disable AUTOCOMMIT mode for connection */
     (void)drizzle_query_str(dbc->drizzle_con, dbc->drizzle_result_set, "SET AUTOCOMMIT=0", &drizzle_return);

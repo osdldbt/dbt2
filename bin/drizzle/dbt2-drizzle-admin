@@ -97,8 +97,7 @@ then
 
 	# create the data directory if it doesn't exist
 	mkdir -p $VARDIR
-
-	$drizzled --no-defaults --drizzle-protocol-port=$PORT --mysql-protocol-port=$PORT2 --user=root --basedir=$WORKING_DIR --datadir=$VARDIR > $ERRLOG 2>&1 &
+	$drizzled --no-defaults --mysql-protocol-port=$PORT --drizzle-protocol-port=$PORT2 --user=root --basedir=$WORKING_DIR --datadir=$VARDIR > $ERRLOG 2>&1 &
 	status=$?
 	if [ $status != 0 ]
 	then
