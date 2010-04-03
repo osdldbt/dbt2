@@ -4,21 +4,18 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2005-2008 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2005-2006 Open Source Development Labs, Inc.
+# Copyright (C) 2005-2010 Mark Wong
 #
 
 usage()
 {
 	echo "Usage:"
-	echo "    dbt2-pgsql-build-db -d <dir> [options]"
+	echo "    dbt2-pgsql-build-db [options]"
 	echo "    dbt2-pgsql-build-db -h"
 	echo "Options:"
 	echo "    -b"
 	echo "        Load tables and create indexes in parallel."
-	echo "    -d <path>"
-	echo "        Location of raw database files to load."
-	echo "    -g"
-	echo "        Generate raw database files."
 	echo "    -l <port>"
 	echo "        PostgreSQL port"
 	echo "    -p <database_parameters>"
@@ -34,16 +31,10 @@ usage()
 WAREHOUSES=1
 GENERATE_DATAFILE=0
 REBUILD_DB=0
-while getopts "bd:ghl:p:rtw:" OPT; do
+while getopts "bhl:p:rtw:" OPT; do
 	case ${OPT} in
 	b)
 		BACKGROUND_FLAG="-b"
-		;;
-	d)
-		DBDATA=${OPTARG}
-		;;
-	g)
-		GENERATE_DATAFILE=1
 		;;
 	h)
 		usage
@@ -67,16 +58,6 @@ while getopts "bd:ghl:p:rtw:" OPT; do
 	esac
 done
 
-if [ "x${DBDATA}" = "x" ]; then
-	echo "must use '-d' to specify database data files for loading"
-	usage
-	exit 1
-fi
-
-if [ ${GENERATE_DATAFILE} -eq 1 ]; then
-	dbt2-datagen -d ${DBDATA} -w ${WAREHOUSES} --pgsql || exit 1
-fi
-
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-l ${PORT}"
 fi
@@ -90,8 +71,12 @@ fi
 
 dbt2-pgsql-create-db ${PORTARG} || exit 1
 dbt2-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
-dbt2-pgsql-load-db ${PORTARG} -d ${DBDATA} ${BACKGROUND_FLAG} \
-		${TABLESPACES_FLAG} || exit 1
+
+# FIXME: Make datagen take argument instead of setting environment variables
+# for psql.
+export PGPORT="${PORT}"
+export PGDATABASE="${DBNAME}"
+dbt2-datagen --direct -w ${WAREHOUSES} --pgsql || exit 1
 
 dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 
