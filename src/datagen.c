@@ -2,12 +2,13 @@
  * This file is released under the terms of the Artistic License.
  * Please see the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002 Open Source Development Labs, Inc.
+ *               2002-2010 Mark Wong
  *
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
-#include <common.h>
+#include "common.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +36,9 @@
 #define MODE_MYSQL 2
 #define MODE_DRIZZLE 3
 
+#define MODE_FLAT 0
+#define MODE_DIRECT 1
+
 void gen_customers();
 void gen_districts();
 void gen_history();
@@ -49,6 +53,8 @@ int customers = CUSTOMER_CARDINALITY;
 int items = ITEM_CARDINALITY;
 int orders = ORDER_CARDINALITY;
 int new_orders = NEW_ORDER_CARDINALITY;
+
+int mode_load = MODE_FLAT;
 
 int mode_string = MODE_PGSQL;
 char delimiter = ',';
@@ -127,15 +133,41 @@ void gen_customers()
 	srand(0);
 	printf("Generating customer table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, CUSTOMER_DATA);
-	output = fopen(filename, "w");
-	if (output == NULL) {
-		printf("cannot open %s\n", CUSTOMER_DATA);
-		return;
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, CUSTOMER_DATA);
+		output = fopen(filename, "w");
+		if (output == NULL) {
+			printf("cannot open %s\n", CUSTOMER_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			output = popen("psql", "w");
+			if (output == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output,
+					"COPY customer FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < warehouses; i++) {
@@ -258,7 +290,25 @@ void gen_customers()
 			}
 		}
 	}
-	fclose(output);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(output);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(output, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			pclose(output);
+			break;
+		}
+	}
+
 	printf("Finished customer table data...\n");
 	return;
 }
@@ -274,15 +324,41 @@ void gen_districts()
 	srand(0);
 	printf("Generating district table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, DISTRICT_DATA);
-	output = fopen(filename, "w");
-	if (output == NULL) {
-		printf("cannot open %s\n", DISTRICT_DATA);
-		return;
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, DISTRICT_DATA);
+		output = fopen(filename, "w");
+		if (output == NULL) {
+			printf("cannot open %s\n", DISTRICT_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			output = popen("psql", "w");
+			if (output == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output,
+					"COPY district FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < warehouses; i++) {
@@ -343,7 +419,25 @@ void gen_districts()
 			METAPRINTF((output, "\n"));
 		}
 	}
-	fclose(output);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(output);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(output, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			pclose(output);
+			break;
+		}
+	}
+
 	printf("Finished district table data...\n");
 	return;
 }
@@ -361,15 +455,41 @@ void gen_history()
 	srand(0);
 	printf("Generating history table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, HISTORY_DATA);
-	output = fopen(filename, "w");
-	if (output == NULL) {
-		printf("cannot open %s\n", HISTORY_DATA);
-		return;
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, HISTORY_DATA);
+		output = fopen(filename, "w");
+		if (output == NULL) {
+			printf("cannot open %s\n", HISTORY_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			output = popen("psql", "w");
+			if (output == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output,
+					"COPY history FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < warehouses; i++) {
@@ -419,7 +539,25 @@ void gen_history()
 			}
 		}
 	}
-	fclose(output);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(output);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(output, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			pclose(output);
+			break;
+		}
+	}
+
 	printf("Finished history table data...\n");
 	return;
 }
@@ -436,15 +574,41 @@ void gen_items()
 	srand(0);
 	printf("Generating item table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, ITEM_DATA);
-	output = fopen(filename, "w");
-	if (output == NULL) {
-		printf("cannot open %s\n", ITEM_DATA);
-		return;
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, ITEM_DATA);
+		output = fopen(filename, "w");
+		if (output == NULL) {
+			printf("cannot open %s\n", ITEM_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			output = popen("psql", "w");
+			if (output == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output,
+					"COPY item FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < items; i++) {
@@ -477,7 +641,25 @@ void gen_items()
 
 		METAPRINTF((output, "\n"));
 	}
-	fclose(output);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(output);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(output, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			pclose(output);
+			break;
+		}
+	}
+
 	printf("Finished item table data...\n");
 	return;
 }
@@ -492,15 +674,41 @@ void gen_new_orders()
 	srand(0);
 	printf("Generating new-order table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, NEW_ORDER_DATA);
-	output = fopen(filename, "w");
-	if (output == NULL) {
-		printf("cannot open %s\n", NEW_ORDER_DATA);
-		return;
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, NEW_ORDER_DATA);
+		output = fopen(filename, "w");
+		if (output == NULL) {
+			printf("cannot open %s\n", NEW_ORDER_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			output = popen("psql", "w");
+			if (output == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output,
+					"COPY new_order FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < warehouses; i++) {
@@ -521,7 +729,25 @@ void gen_new_orders()
 			}
 		}
 	}
-	fclose(output);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(output);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(output, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			pclose(output);
+			break;
+		}
+	}
+
 	printf("Finished new-order table data...\n");
 	return;
 }
@@ -551,27 +777,71 @@ void gen_orders()
 	srand(0);
 	printf("Generating order and order-line table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, ORDER_DATA);
-	order = fopen(filename, "w");
-	if (order == NULL) {
-		printf("cannot open %s\n", ORDER_DATA);
-		return;
-	}
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, ORDER_DATA);
+		order = fopen(filename, "w");
+		if (order == NULL) {
+			printf("cannot open %s\n", ORDER_DATA);
+			return;
+		}
 
-	filename[0] = '\0';
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, ORDER_LINE_DATA);
-	order_line = fopen(filename, "w");
-	if (order_line == NULL) {
-		printf("cannot open %s\n", ORDER_LINE_DATA);
-		return;
+		filename[0] = '\0';
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, ORDER_LINE_DATA);
+		order_line = fopen(filename, "w");
+		if (order_line == NULL) {
+			printf("cannot open %s\n", ORDER_LINE_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			order = popen("psql", "w");
+			if (order == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order) != EOF) ;
+
+			fprintf(order, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order) != EOF) ;
+
+			fprintf(order,
+					"COPY orders FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order) != EOF) ;
+
+			order_line = popen("psql", "w");
+			if (order_line == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order_line) != EOF) ;
+
+			fprintf(order_line, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order_line) != EOF) ;
+
+			fprintf(order_line,
+					"COPY order_line FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order_line) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < warehouses; i++) {
@@ -752,8 +1022,32 @@ void gen_orders()
 			}
 		}
 	}
-	fclose(order);
-	fclose(order_line);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(order);
+		fclose(order_line);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(order, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order) != EOF) ;
+			fprintf(order_line, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order_line) != EOF) ;
+
+			fprintf(order, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order) != EOF) ;
+			fprintf(order_line, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(order_line) != EOF) ;
+
+			pclose(order);
+			pclose(order_line);
+			break;
+		}
+	}
 	printf("Finished order and order-line table data...\n");
 	return;
 }
@@ -769,15 +1063,41 @@ void gen_stock()
 	srand(0);
 	printf("Generating stock table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, STOCK_DATA);
-	output = fopen(filename, "w");
-	if (output == NULL) {
-		printf("cannot open %s\n", STOCK_DATA);
-		return;
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, STOCK_DATA);
+		output = fopen(filename, "w");
+		if (output == NULL) {
+			printf("cannot open %s\n", STOCK_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			output = popen("psql", "w");
+			if (output == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output,
+					"COPY stock FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < warehouses; i++) {
@@ -868,7 +1188,25 @@ void gen_stock()
 			METAPRINTF((output, "\n"));
 		}
 	}
-	fclose(output);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(output);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(output, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			pclose(output);
+			break;
+		}
+	}
+
 	printf("Finished stock table data...\n");
 	return;
 }
@@ -884,16 +1222,41 @@ void gen_warehouses()
 	srand(0);
 	printf("Generating warehouse table data...\n");
 
-	if (strlen(output_path) > 0) {
-		strcpy(filename, output_path);
-		strcat(filename, "/");
-	}
-	strcat(filename, WAREHOUSE_DATA);
+	if (mode_load == MODE_FLAT) {
+		if (strlen(output_path) > 0) {
+			strcpy(filename, output_path);
+			strcat(filename, "/");
+		}
+		strcat(filename, WAREHOUSE_DATA);
+		output = fopen(filename, "w");
+		if (output == NULL) {
+			printf("cannot open %s\n", WAREHOUSE_DATA);
+			return;
+		}
+	} else if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			output = popen("psql", "w");
+			if (output == NULL) {
+				printf("error cannot open pipe for direct load\n");
+				return;
+			}
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
 
-	output = fopen(filename, "w");
-	if (output == NULL) {
-		printf("cannot open %s\n", WAREHOUSE_DATA);
-		return;
+			fprintf(output, "BEGIN;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output,
+					"COPY warehouse FROM STDIN DELIMITER '%c' NULL '%s';\n",
+					delimiter, null_str);
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+			break;
+		}
+	} else {
+		printf("error unknown load mode: %d\n", mode_load);
 	}
 
 	for (i = 0; i < warehouses; i++) {
@@ -944,7 +1307,25 @@ void gen_warehouses()
 
 		METAPRINTF((output, "\n"));
 	}
-	fclose(output);
+
+	if (mode_load == MODE_FLAT) {
+		fclose(output);
+	} else {
+		switch (mode_string) {
+		case MODE_PGSQL:
+			fprintf(output, "\\.\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			fprintf(output, "COMMIT;\n");
+			/* FIXME: Handle properly instead of blindly reading the output. */
+			while (fgetc(output) != EOF) ;
+
+			pclose(output);
+			break;
+		}
+	}
+
 	printf("Finished warehouse table data...\n");
 	return;
 }
@@ -959,7 +1340,8 @@ int main(int argc, char *argv[])
 	init_common();
 
 	if (argc < 2) {
-		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #] [-d <str>]\n", argv[0]);
+		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #] [-d <str>]\n",
+				argv[0]);
 		printf("\n");
 		printf("-w #\n");
 		printf("\twarehouse cardinality\n");
@@ -981,6 +1363,8 @@ int main(int argc, char *argv[])
 		printf("\tformat data for PostgreSQL\n");
 		printf("--sapdb\n");
 		printf("\tformat data for SAP DB\n");
+		printf("--direct\n");
+		printf("\tdon't generate flat files, load directly into database\n");
 		return 1;
 	}
 
@@ -988,6 +1372,7 @@ int main(int argc, char *argv[])
 	while (1) {
 		int option_index = 0;
 		static struct option long_options[] = {
+			{ "direct", no_argument, &mode_load, MODE_DIRECT },
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
 			{ "mysql", no_argument, &mode_string, MODE_MYSQL },
@@ -1035,8 +1420,19 @@ int main(int argc, char *argv[])
 
 	if (strlen(output_path) > 0 && ((stat(output_path, &st) < 0) ||
 			(st.st_mode & S_IFMT) != S_IFDIR)) {
-		printf("Output directory of data files '%s' not exists\n",output_path);
+		printf("Output directory of data files '%s' not exists\n", output_path);
 		return 3;
+	}
+
+	/* Verify that datagen supports a direct load for the selected database. */
+	if (mode_load == MODE_DIRECT) {
+		switch (mode_string) {
+		case MODE_SAPDB:
+		case MODE_MYSQL:
+		case MODE_DRIZZLE:
+			printf("the rdbms select does not support direct loading\n");
+			return 4;
+		}
 	}
 
 	/* Set the correct delimiter. */
