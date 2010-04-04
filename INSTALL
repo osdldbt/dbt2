@@ -1,13 +1,15 @@
 Building DBT-2:
 
-    cmake CMakeLists.txt
-    make
+	# Configure
+	cmake -DDBMS=<drizzle|mysql|pgsql|sapdb>
+	# Build
+	make
 
 -----
 
 Installing DBT-2:
 
-    make install DESTDIR=/usr/local
+	make install DESTDIR=/usr/local
 
 This will put all binaries in '/usr/local/bin'.
 
@@ -15,6 +17,6 @@ This will put all binaries in '/usr/local/bin'.
 
 Uninstalling DBT-2:
 
-    xargs rm < install_manifest.txt
+	xargs rm < install_manifest.txt
 
 The file 'install_manifest.txt' will be created after running 'make install'.
