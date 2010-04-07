@@ -11,7 +11,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <_socket.h>
+#include <strings.h>
+
+#include "_socket.h"
 
 #ifndef INADDR_NONE
 #define INADDR_NONE     -1

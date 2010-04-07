@@ -368,7 +368,7 @@ int create_pid_file()
     return ERROR;
   }
 
-  fprintf(fpid,"%d", getpid());
+  fprintf(fpid,"%d", (unsigned int) getpid());
   fclose(fpid);
 
   return OK;

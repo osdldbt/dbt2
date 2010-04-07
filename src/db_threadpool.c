@@ -18,6 +18,8 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+#include <strings.h>
+
 #include "common.h"
 #include "listener.h"
 #include "logging.h"
