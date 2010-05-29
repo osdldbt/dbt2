@@ -87,7 +87,7 @@ int create_pid_file()
 		return ERROR;
 	}
 
-	fprintf(fpid,"%d", getpid());
+	fprintf(fpid,"%d", (unsigned int) getpid());
 	fclose(fpid);
 
 	return OK;
@@ -469,7 +469,8 @@ void *terminal_worker(void *data)
 	} else {
 		local_seed = seed;
 	}
-	printf("seed for %d:%x : %u\n", pid, (unsigned int)tid, local_seed);
+	printf("seed for %d:%x : %u\n",
+			(unsigned int) pid, (unsigned int) tid, local_seed);
 	fflush(stdout);
 	srand(local_seed);
 

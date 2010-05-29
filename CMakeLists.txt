@@ -1,5 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
-PROJECT(DBT2 C)
+PROJECT(dbt2 C)
+
+INCLUDE(CheckLibraryExists)
 
 #
 # Defining binaries so to minimized typoes.
@@ -24,6 +26,44 @@ IF (GETCONF_FOUND)
             LFS64_CFLAGS OUTPUT_VARIABLE LFS_CFLAGS
             OUTPUT_STRIP_TRAILING_WHITESPACE)
 ENDIF (GETCONF_FOUND)
+
+# Check for libraries.
+
+# Solaris links nanosleep via librt.  Linux does not.  Check if the library
+# exists and set the linker flags below if it does.  If we don't fint this
+# library, then assume we don't need to link anything.
+CHECK_LIBRARY_EXISTS(rt nanosleep "" HAVE_NANOSLEEP)
+IF (HAVE_NANOSLEEP)
+    SET (NEED_LIBRT TRUE)
+ENDIF (HAVE_NANOSLEEP)
+
+# FIXME: If one of these passes, then hopefully the rest will pass.  libsocket
+# is required on Solaris.
+CHECK_LIBRARY_EXISTS(socket bind "" HAVE_BIND)
+CHECK_LIBRARY_EXISTS(socket recv "" HAVE_RECV)
+CHECK_LIBRARY_EXISTS(socket send "" HAVE_SEND)
+CHECK_LIBRARY_EXISTS(socket accept "" HAVE_ACCEPT)
+CHECK_LIBRARY_EXISTS(socket listen "" HAVE_LISTEN)
+CHECK_LIBRARY_EXISTS(socket getprotobyname "" HAVE_GETPROTOBYNAME)
+CHECK_LIBRARY_EXISTS(socket socket "" HAVE_SOCKET)
+CHECK_LIBRARY_EXISTS(socket setsockopt "" HAVE_SETSOCKOPT)
+CHECK_LIBRARY_EXISTS(socket connect "" HAVE_CONNECT)
+IF (HAVE_BIND AND HAVE_RECV AND HAVE_SEND AND HAVE_ACCEPT AND
+    HAVE_LISTEN AND HAVE_GETPROTOBYNAME AND HAVE_SOCKET AND
+    HAVE_SETSOCKOPT AND HAVE_CONNECT)
+    SET (NEED_LIBSOCKET TRUE)
+ENDIF (HAVE_BIND AND HAVE_RECV AND HAVE_SEND AND HAVE_ACCEPT AND
+       HAVE_LISTEN AND HAVE_GETPROTOBYNAME AND HAVE_SOCKET AND
+       HAVE_SETSOCKOPT AND HAVE_CONNECT)
+
+# FIXME: If one of these passes, then hopefully the rest will pass.  libnsl
+# is required on Solaris.
+CHECK_LIBRARY_EXISTS(nsl gethostbyaddr "" HAVE_GETHOSTBYADDR)
+CHECK_LIBRARY_EXISTS(nsl gethostbyname "" HAVE_GETHOSTBYNAME)
+CHECK_LIBRARY_EXISTS(nsl inet_addr "" HAVE_INET_ADDR)
+IF (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
+    SET (NEED_LIBNSL TRUE)
+ENDIF (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
 
 IF (DBMS STREQUAL "pgsql")
     #
@@ -58,6 +98,8 @@ IF (DBMS STREQUAL "pgsql")
                 bin/pgsql/dbt2-pgsql-load-stored-procs
                 bin/pgsql/dbt2-pgsql-plans bin/pgsql/dbt2-pgsql-start-db
                 bin/pgsql/dbt2-pgsql-stop-db)
+    ELSE (NOT DEFINED PKG_CONFIG_FOUND)
+        MESSAGE(FATAL_ERROR "pg_config not found in path")
     ENDIF (PG_CONFIG_FOUND)
 ELSEIF (DBMS STREQUAL "sqlite")
     FIND_PROGRAM(PKG_CONFIG pkg-config)
@@ -170,11 +212,39 @@ SET(COMMON_SOURCE src/common.c src/logging.c src/_socket.c
 ADD_EXECUTABLE(${DBT2_CLIENT} src/client.c src/transaction_queue.c
         src/listener.c src/db_threadpool.c src/db.c ${COMMON_SOURCE}
         ${DB_SOURCE})
+IF (NEED_LIBRT)
+    TARGET_LINK_LIBRARIES(${DBT2_CLIENT} rt)
+ENDIF (NEED_LIBRT)
+IF (NEED_LIBSOCKET)
+    TARGET_LINK_LIBRARIES(${DBT2_CLIENT} socket)
+ENDIF (NEED_LIBSOCKET)
+IF (NEED_LIBNSL)
+    TARGET_LINK_LIBRARIES(${DBT2_CLIENT} nsl)
+ENDIF (NEED_LIBNSL)
+
 ADD_EXECUTABLE(${DBT2_DATAGEN} src/datagen.c src/common.c)
+
 ADD_EXECUTABLE(${DBT2_DRIVER} ${COMMON_SOURCE} src/driver_main.c src/driver.c
         src/input_data_generator.c)
+IF (NEED_LIBRT)
+    TARGET_LINK_LIBRARIES(${DBT2_DRIVER} rt)
+ENDIF (NEED_LIBRT)
+IF (NEED_LIBSOCKET)
+    TARGET_LINK_LIBRARIES(${DBT2_DRIVER} socket)
+ENDIF (NEED_LIBSOCKET)
+IF (NEED_LIBNSL)
+    TARGET_LINK_LIBRARIES(${DBT2_DRIVER} nsl)
+ENDIF (NEED_LIBNSL)
+
 ADD_EXECUTABLE(${DBT2_TXN_TEST} src/transaction_test.c src/db.c
         src/input_data_generator.c ${COMMON_SOURCE} ${DB_SOURCE})
+IF (NEED_LIBSOCKET)
+    TARGET_LINK_LIBRARIES(${DBT2_TXN_TEST} socket)
+ENDIF (NEED_LIBSOCKET)
+IF (NEED_LIBNSL)
+    TARGET_LINK_LIBRARIES(${DBT2_TXN_TEST} nsl)
+ENDIF (NEED_LIBNSL)
+
 #
 # Set compiler flags.
 #
