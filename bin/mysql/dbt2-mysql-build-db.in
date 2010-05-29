@@ -372,7 +372,7 @@ DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
 WAREHOUSES=1
 
-while getopts "d:h:f:gs:e:m:u:p:vw:" opt; do
+while getopts "d:h:f:gs:e:lm:u:p:vw:" opt; do
 	case $opt in
 	d)
 		DB_NAME=${OPTARG}
