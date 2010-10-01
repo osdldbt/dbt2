@@ -271,11 +271,6 @@ USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 
-#
-# Number of warehouses per driver.
-#
-W_CHUNK=500
-
 while getopts "a:b:c:D:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
 	case $opt in
 	a)
@@ -283,6 +278,7 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
 		export DATABASE=${DBMS}
 		;;
 	b)
+		# Number of warehouses per driver.
 		W_CHUNK=${OPTARG}
 		;;
 	c)
@@ -348,6 +344,12 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
 		;;
 	esac
 done
+
+# If no chunking of warehouses per process is defined, assumed we want to run
+# everything from one process.
+if [ "x${W_CHUNK}" = "x" ]; then
+	W_CHUNK=${WAREHOUSES}
+fi
 
 # Check parameters.
 
@@ -559,9 +561,10 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 done
 
 # Sleep long enough for all the client database connections to be established.
-SLEEPYTIME=`expr 1 + ${W_CHUNK}`
+SLEEPYTIME=${W_CHUNK}
 SLEEPYTIME=`expr ${SLEEPYTIME} \* ${SLEEPY}`
 SLEEPYTIME=`expr ${SLEEPYTIME} / 1000`
+SLEEPYTIME=`expr ${SLEEPYTIME} + 1`
 do_sleep ${SLEEPYTIME}
 
 # Start collecting data before we start the test.
