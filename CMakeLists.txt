@@ -88,8 +88,8 @@ IF (DBMS STREQUAL "pgsql")
                 PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
         SET(DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
         SET(DB_LIBS "-L${PG_LIBDIR} -lpq")
-        SET(DB_SCRIPTS bin/pgsql/dbt2-pgsql-analyze-stats
-                bin/pgsql/dbt2-pgsql-build-db bin/pgsql/dbt2-pgsql-check-db
+        SET(DB_SCRIPTS bin/pgsql/dbt2-pgsql-build-db
+                bin/pgsql/dbt2-pgsql-check-db
                 bin/pgsql/dbt2-pgsql-create-db
                 bin/pgsql/dbt2-pgsql-create-indexes
                 bin/pgsql/dbt2-pgsql-create-tables bin/pgsql/dbt2-pgsql-db-stat
@@ -271,5 +271,5 @@ SET_TARGET_PROPERTIES(${DBT2_TXN_TEST} PROPERTIES LINK_FLAGS "-lm ${DB_LIBS}")
 
 INSTALL(PROGRAMS ${DBT2_CLIENT} ${DBT2_DATAGEN} ${DBT2_DRIVER} ${DBT2_TXN_TEST}
         bin/dbt2-generate-report bin/dbt2-get-os-info bin/dbt2-post-process
-        bin/dbt2-run-workload bin/dbt2-sysstats
+        bin/dbt2-run-workload bin/dbt2-sysstats bin/dbt2-plot-transaction-rate
         ${DB_SCRIPTS} DESTINATION "/bin")

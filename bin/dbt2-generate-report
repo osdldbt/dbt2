@@ -1,182 +1,324 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env python
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2006      Open Source Development Labs, Inc.
+#               2006-2010 Mark Wong
 #
 
-use strict;
-use warnings;
-use Getopt::Long;
-use Test::Parser::Dbt2;
-use Test::Presenter::Dbt2;
+# Because of the massive number of arguments we could have, use long-style only
+# options.
 
-my $dir;
-my $format = "png";
-my $indir;
-my $outdir = "report";
-my $xml_file;
+from optparse import OptionParser
+from os import system
+from os.path import isfile, realpath
+from subprocess import PIPE, Popen
+from re import match
 
-#
-# Disk devices per tablespace.
-#
-my $customer;
-my $district;
-my $history;
-my $item;
-my $log;
-my $new_order;
-my $order_line;
-my $orders;
-my $stock;
-my $warehouse;
-#
-# Primary key tablespaces.
-#
-my $pkcustomer;
-my $pkdistrict;
-my $pkitem;
-my $pknew_order;
-my $pkorder_line;
-my $pkorders;
-my $pkstock;
-my $pkwarehouse;
-#
-# Index tablespaces
-#
-my $index1;
-my $index2;
+parser = OptionParser(usage = 'usage: %prog --dbms <dbms> --i <dir> --o <dir> [options]')
+parser.add_option('--dbms', help = 'dbms used <pgsql>')
+parser.add_option('--dbname', help = 'dbname, for use with pgsql')
+parser.add_option('--devices',
+		help = 'comma delimited devices to plot (iostat)')
+parser.add_option('--i', help = 'dbt2 results directory')
+parser.add_option('--o', help = 'output directory')
+options, args = parser.parse_args()
 
-GetOptions(
-    'customer=s' => \$customer,
-    'dir=s' => \$dir,
-    'district=s' => \$district,
-    'format=s' => \$format,
-    'history=s' => \$history,
-    'item=s' => \$item,
-    'indir=s' => \$indir,
-    'index1=s' => \$index1,
-    'index2=s' => \$index2,
-    'log=s' => \$log,
-    'new_order=s' => \$new_order,
-    'order_line=s' => \$order_line,
-    'orders=s' => \$orders,
-    'outdir=s' => \$outdir,
-    'pkcustomer=s' => \$pkcustomer,
-    'pkdistrict=s' => \$pkdistrict,
-    'pkitem=s' => \$pkitem,
-    'pknew_order=s' => \$pknew_order,
-    'pkorder_line=s' => \$pkorder_line,
-    'pkorders=s' => \$pkorders,
-    'pkstock=s' => \$pkstock,
-    'pkwarehouse=s' => \$pkwarehouse,
-    'stock=s' => \$stock,
-    'warehouse=s' => \$warehouse,
-    'xml-file=s' => \$xml_file
-);
+if not options.dbms:
+    parser.error('--dbms flag required')
+else:
+    # Validate supported dbms.
 
-my $presenter;
-if ($xml_file) {
-  if (-f $xml_file) {
-    $presenter = Test::Presenter::Dbt2->new($xml_file);
-  } else {
-    print "'$xml_file' does not exist.\n";
-    exit(1);
-  }
-} elsif (-d $indir) {
-  my $parser = new Test::Parser::Dbt2;;
-  $parser->parse($indir);
-  $presenter = Test::Presenter::Dbt2->new($parser->data());
-} else {
-  #usage
-  exit(1);
-}
+    dbms = options.dbms
+    if dbms == 'pgsql':
+        if not options.dbname:
+            parser.error('"--dbms pgsql" requires --dbname to be used')
+        else:
+            dbname = options.dbname
+    else:
+        parser.error('unrecognized dbms')
+        exit(1)
 
-unless ($presenter) {
-  print "no xml data\n";
-  exit(1);
-}
+if not options.i:
+    parser.error('--i flag required')
 
-#
-# Tables.
-#
-if ($customer) {
-  $presenter->set_devices('customer_devices', split(/,/, $customer));
-}
-if ($district) {
-  $presenter->set_devices('district_devices', split(/,/, $district));
-}
-if ($history) {
-  $presenter->set_devices('history_devices', split(/,/, $history));
-}
-if ($item) {
-  $presenter->set_devices('item_devices', split(/,/, $item));
-}
-if ($log) {
-  $presenter->set_devices('log_devices', split(/,/, $log));
-}
-if ($new_order) {
-  $presenter->set_devices('new_order_devices', split(/,/, $new_order));
-}
-if ($order_line) {
-  $presenter->set_devices('order_line_devices', split(/,/, $order_line));
-}
-if ($orders) {
-  $presenter->set_devices('orders_devices', split(/,/, $orders));
-}
-if ($stock) {
-  $presenter->set_devices('stock_devices', split(/,/, $stock));
-}
-if ($warehouse) {
-  $presenter->set_devices('warehouse_devices', split(/,/, $warehouse));
-}
-#
-# Primary key indexes.
-#
-if ($pkcustomer) {
-  $presenter->set_devices('pkcustomer_devices', split(/,/, $pkcustomer));
-}
-if ($pkdistrict) {
-  $presenter->set_devices('pkdistrict_devices', split(/,/, $pkdistrict));
-}
-if ($pkitem) {
-  $presenter->set_devices('pkitem_devices', split(/,/, $pkitem));
-}
-if ($pknew_order) {
-  $presenter->set_devices('pknew_order_devices', split(/,/, $pknew_order));
-}
-if ($pkorder_line) {
-  $presenter->set_devices('pkorder_line_devices', split(/,/, $pkorder_line));
-}
-if ($pkorders) {
-  $presenter->set_devices('pkorders_devices', split(/,/, $pkorders));
-}
-if ($pkstock) {
-  $presenter->set_devices('pkstock_devices', split(/,/, $pkstock));
-}
-if ($pkwarehouse) {
-  $presenter->set_devices('pkwarehouse_devices', split(/,/, $pkwarehouse));
-}
-#
-# Indexes.
-#
-if ($index1) {
-  $presenter->set_devices('index1_devices', split(/,/, $index1));
-}
-if ($index2) {
-  $presenter->set_devices('index2_devices', split(/,/, $index2));
-}
+if not options.o:
+    parser.error('--o flag required')
 
-#
-# Start creating report.
-#
-$presenter->format($format);
-$presenter->outdir($outdir);
-$presenter->plot();
-system "mkdir -p $outdir";
-open(H, "> $outdir/index.html")
-    or die "Couldn't open $outdir/index.html for writing: $!\n";
-print H $presenter->to_html();
-close(H);
-print "DBT-2 report generated.\n";
+indir = realpath(options.i)
+outdir = realpath(options.o)
+mixfile = '%s/mix.log' % indir
+
+device_arg = ''
+if options.devices:
+    device_arg = options.devices
+
+de = 'd'
+no = 'n'
+os = 'o'
+pa = 'p'
+sl = 's'
+
+transaction_name = dict()
+transaction_name[de] = 'Delivery'
+transaction_name[no] = 'New Order'
+transaction_name[os] = 'Order Status'
+transaction_name[pa] = 'Payment'
+transaction_name[sl] = 'Stock Level'
+
+print 'Generating transaction distribution charts...'
+count = 0
+for key in [de, no, os, pa, sl]:
+    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn 5 %d' % \
+            (transaction_name[key], key, mixfile, outdir, int(count) + 1))
+    count += 1
+
+print 'Generating mpstat charts...'
+mpstatfile = '%s/driver/mpstat.out' % indir
+if isfile(mpstatfile):
+    system('dbt-plot-mpstat %s %s/driver/mpstat' % (mpstatfile, outdir))
+
+mpstatfile = '%s/db/mpstat.out' % indir
+if isfile(mpstatfile):
+    system('dbt-plot-mpstat %s %s/db/mpstat' % (mpstatfile, outdir))
+
+print 'Generating iostat charts...'
+iostatfile = '%s/driver/iostatx.out' % indir
+if isfile(mpstatfile):
+    system('dbt-plot-iostat %s %s/driver/iostat %s' % \
+            (iostatfile, outdir, device_arg))
+
+iostatfile = '%s/db/iostatx.out' % indir
+if isfile(iostatfile):
+    system('dbt-plot-iostat %s %s/db/iostat %s' % \
+            (iostatfile, outdir, device_arg))
+
+print 'Generating vmstat charts...'
+vmstatfile = '%s/driver/vmstat.out' % indir
+if isfile(vmstatfile):
+    system('dbt-plot-vmstat %s %s/driver/vmstat' % (vmstatfile, outdir))
+
+vmstatfile = '%s/db/vmstat.out' % indir
+if isfile(vmstatfile):
+    system('dbt-plot-vmstat %s %s/db/vmstat' % (vmstatfile, outdir))
+
+print 'Generating transaction rate charts...'
+system('dbt2-plot-transaction-rate %s %s/txn' % (mixfile, outdir))
+
+print 'Generating database statistics charts...'
+if dbms == 'pgsql':
+    system('dbt-pgsql-plot-database-stats ' \
+            '%s/db/pg_stat_databases.out %s %s/db' % (indir, dbname, outdir))
+
+    # This relies on the scripts for PostgreSQL to generate these
+    # table-list.txt and index-list.txt files.
+    f = None
+    try:
+        f = open('%s/db/table-list.txt' % indir)
+    except:
+        print 'Cannot open table list to generate database table stats, ' \
+                'continuing...'
+
+    if f is not None:
+        for table in f:
+            system('dbt-pgsql-plot-table-stats %s/db/pg_stat_tables.out ' \
+                    '%s %s/db/tables' % (indir, table.strip(), outdir))
+        f.close()
+
+    f = None
+    try:
+        f = open('%s/db/index-list.txt' % indir)
+    except:
+        print 'Cannot open index list to generate database index stats, ' \
+                'continuing...'
+
+    if f is not None:
+        for index in f:
+            system('dbt-pgsql-plot-index-stats %s/db/pg_stat_indexes.out ' \
+                    '%s %s/db/indexes' % (indir, index.strip(), outdir))
+        f.close()
+
+reportfile = '%s/index.html' % outdir
+try:
+    h = open(reportfile, 'w')
+except:
+    print 'Cannot open file: %s' % reportfile
+    exit(3)
+
+h.write('<html>\n')
+h.write('<head>\n')
+h.write('<title>Database Test 2 Report</title>\n')
+h.write('</head>\n')
+h.write('<body>\n')
+h.write('<h1>Database Test 2 Report</h1>\n')
+
+h.write('<p>\n')
+
+cmd = 'head -n 1 %s/readme.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write(p.communicate()[0])
+
+h.write('</p>\n')
+
+h.write('<table>\n')
+
+h.write('<tr>\n')
+h.write('<td>\n')
+h.write('<table>\n')
+h.write('<caption>Results Summary</caption>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">New Order Transactions per Minute (notpm):</td>\n')
+
+cmd = 'grep NOTPM %s/report.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write('<td>%s</td>\n' % p.communicate()[0].split()[0])
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Scale Factor:</td>\n')
+
+cmd = 'grep Factor %s/readme.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write('<td>%s</td>\n' % p.communicate()[0].split()[3])
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Test Duration (min.):</td>\n')
+
+cmd = 'grep Duration %s/readme.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write('<td>%0.1f</td>\n' % (float(p.communicate()[0].split()[2]) / 60.0))
+
+h.write('</tr>\n')
+
+h.write('</table>\n')
+h.write('</td>\n')
+h.write('<td>\n')
+chart = 'txn/tn-transaction-rate.png'
+h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
+        (chart, chart))
+h.write('</td>\n')
+h.write('</tr>\n')
+
+h.write('</table>\n')
+
+h.write('<table border="1">\n')
+h.write('<caption>Transaction Summary</caption>\n')
+
+h.write('<tr>\n')
+h.write('<th colspan="3">Transaction</th>\n')
+h.write('<th colspan="2">Response Time (seconds)</th>\n')
+h.write('<th colspan="2">Rollbacks</th>\n')
+h.write('<th colspan="2">Charts</th>\n')
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<th>Name</th>\n')
+h.write('<th>Mix %</th>\n')
+h.write('<th>Total</th>\n')
+h.write('<th>Average (s)</th>\n')
+h.write('<th>90th %</th>\n')
+h.write('<th>Total</th>\n')
+h.write('<th>%</th>\n')
+h.write('<th>Response Time</th>\n')
+h.write('<th>Time Distribution</th>\n')
+h.write('</tr>\n')
+
+count = 0
+short_name = ['d', 'n', 'o', 'p', 's']
+for transaction in ['Delivery', 'New', 'Status', 'Payment', 'Stock']:
+    cmd = 'grep %s %s/report.txt' % (transaction, indir)
+    p = Popen(cmd.split(), stdout=PIPE)
+
+    m = match(r'(\D+?) +(\d+.\d+) +(\d+.\d+)\D+(\d+.\d+) +(\d+) +(\d+) +(\d+.\d+)', p.communicate()[0])
+
+    h.write('<tr>\n')
+    h.write('<td>%s</td>\n' % m.group(1))
+    h.write('<td>%s</td>\n' % m.group(2))
+    h.write('<td>%s</td>\n' % m.group(3))
+    h.write('<td>%s</td>\n' % m.group(4))
+    h.write('<td>%s</td>\n' % m.group(5))
+    h.write('<td>%s</td>\n' % m.group(6))
+    h.write('<td>%s</td>\n' % m.group(7))
+    chart = 'txn/t%s-transaction-rate.png' % short_name[count]
+    h.write('<td align="center">\n')
+    h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
+            (chart, chart))
+    h.write('</td>\n')
+    chart = 'txn/t%s-distribution.png' % short_name[count]
+    h.write('<td align="center">\n')
+    h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
+            (chart, chart))
+    h.write('</td>\n')
+    h.write('</tr>\n')
+    count += 1
+
+h.write('</table>\n')
+
+h.write('<table>\n')
+h.write('<caption>System Summary</caption>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Operating System:</td>\n')
+
+file = '%s/db/readme.txt' % indir
+cmd = 'head -n 2 %s' % file
+p = Popen(cmd.split(), stdout=PIPE)
+c = p.communicate()[0].split('\n')
+c1 = c[0].split()
+c2 = c[1]
+settings = 'db/proc.txt'
+system('cp -p %s/db/proc.out %s/%s' % (indir, outdir, settings))
+h.write('<td>%s %s %s</td>\n' % (c1[0], c1[2], c1[11]))
+h.write('<td><a href="%s">Settings</a></td>\n' % settings)
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Database Management System:</td>\n')
+h.write('<td>%s</td>\n' % c2)
+
+file1 = 'db/param.out'
+if isfile('%s/%s' % (indir, file1)):
+    file2 = 'db/param.txt'
+    system('cp -p %s/%s %s/%s' % (indir, file1, outdir, file2))
+    h.write('<td><a href="%s">Settings</a></td>\n' % file2)
+
+file1 = 'db/plan0.out'
+if isfile('%s/%s' % (indir, file1)):
+    file2 = 'db/plan0.txt'
+    system('cp -p %s/%s %s/%s' % (indir, file1, outdir, file2))
+    h.write('<td><a href="%s">Query Plans</a></td>\n' % file2)
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+
+file = '%s/readme.txt' % indir
+cmd = 'head -n 2 %s' % file
+p = Popen(cmd.split(), stdout=PIPE)
+c = p.communicate()[0].split('\n')
+
+h.write('<td align="right">Notes:</td>\n')
+h.write('<td>%s</td>\n' % c[1])
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Driver Charts:</td>\n')
+h.write('<td><a href="driver">View Directories</a></td>\n')
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Database Charts:</td>\n')
+h.write('<td><a href="db">View Directories</a></td>\n')
+h.write('</tr>\n')
+
+h.write('</table>\n')
+
+h.write('</body>\n')
+h.write('</html>\n')

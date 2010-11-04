@@ -1,11 +1,6 @@
 Please refer to the user manual for instructions on how to use this
 package.  After that, read README-* if they apply to your case.
 
-The data analysis scripts requires additional Perl packages to be
-installed, which are not checked by configure.  They are
-Statistics::Descriptive, Test::Presenter and Test::Parser.
-To generate HTML reports, Test::Presenter is required.
-
 To use the scripts for multi-tier testing, ssh keys needs to be set up
 for the user that owns the kit, preferably without a passphrase being
 set.  To keep the scripts simple, the kit needs to be installed in the

@@ -199,9 +199,10 @@ tuning:
 
 -----
 
-Generate an HTML report using Test::Presenter:
+Generate an HTML report:
 
-  dbt2-generate-report --indir /tmp/results --outdir /tmp/results/report
+  dbt2-generate-report --dbms pgsql --dbname dbt2 --i /tmp/results \
+  		--o /tmp/results/report
 
 Then open /tmp/results/report/index.html.  Use the '-h' flag for more
 options.

@@ -686,7 +686,12 @@ if [ ${DBMS} = "pgsql" ]; then
 fi
 
 # Run some post processing analysese.
-dbt2-post-process --dir ${OUTPUT_DIR} > ${REPORT_FILE}
+MIXAGG="${OUTPUT_DIR}/mix.log"
+# Aggregate all the mix.log file from all possible driver processes into a
+# single location to be ananlyzed.
+find ${DRIVER_OUTPUT_DIR} -name mix.log | xargs cat | \
+		sort -t ',' -k 1 > ${MIXAGG}
+dbt2-post-process ${MIXAGG} > ${REPORT_FILE}
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
@@ -717,14 +722,10 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
 fi
 
-# Change the permissions on the database log, not readable by other users by
-# default. (No, not the transaction log.)
+# Change the permissions on the database error log, not readable by other
+# users by default.
 if [ -f "${DB_OUTPUT_DIR}/log" ]; then
 	chmod 644 ${DB_OUTPUT_DIR}/log
-fi
-
-if [ -f "dbt2-${DBMS}-analyze-stats" ]; then
-	dbt2-${DBMS}-analyze-stats --dir ${DB_OUTPUT_DIR}
 fi
 
 echo "Test completed."
