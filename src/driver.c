@@ -386,7 +386,7 @@ int start_driver()
 
 	/* Note that the driver has started up all threads in the log. */
 	pthread_mutex_lock(&mutex_mix_log);
-	fprintf(log_mix, "%d,START\n", (int) time(NULL));
+	fprintf(log_mix, "%d,START,,,\n", (int) time(NULL));
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);
 
@@ -433,6 +433,7 @@ void *terminal_worker(void *data)
 	int local_seed;
 	pid_t pid;
 	pthread_t tid;
+	char code;
 
 #ifdef STANDALONE
 	struct db_context_t dbc;
@@ -618,17 +619,15 @@ void *terminal_worker(void *data)
 		response_time = difftimeval(rt1, rt0);
 		pthread_mutex_lock(&mutex_mix_log);
 		if (rc == OK) {
-			fprintf(log_mix, "%d,%c,%f,%d\n", (int) time(NULL),
-					transaction_short_name[client_data.transaction],
-					response_time, (int) pthread_self());
+			code = 'C';
 		} else if (rc == STATUS_ROLLBACK) {
-			fprintf(log_mix, "%d,%c,%f,%d\n", (int) time(NULL),
-					toupper(transaction_short_name[client_data.transaction]),
-					response_time, (int) pthread_self());
+			code = 'R';
 		} else if (rc == ERROR) {
-			fprintf(log_mix, "%d,%c,%f,%d\n", (int) time(NULL),
-					'E', response_time, (int) pthread_self());
+			code = 'E';
 		}
+		fprintf(log_mix, "%d,%c,%c,%f,%lld\n", (int) time(NULL),
+				transaction_short_name[client_data.transaction], code,
+				response_time, (long long) pthread_self());
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
@@ -665,7 +664,7 @@ void *terminal_worker(void *data)
 #endif /* STANDALONE */
 	/* Note when each thread has exited. */
 	pthread_mutex_lock(&mutex_mix_log);
-	fprintf(log_mix, "%d,TERMINATED,%d\n", (int) time(NULL),
+	fprintf(log_mix, "%d,TERMINATED,,,%d\n", (int) time(NULL),
 			(int) pthread_self());
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);

@@ -67,10 +67,7 @@ total_transaction_count = 0
 for line in f:
     c = line.strip().split(',')
 
-    if len(c) == 3:
-        continue
-
-    if len(c) != 4 and len(c) != 2:
+    if len(c) != 5:
         print 'unknown number of columns: %d' % len(c)
         print 'exiting'
         exit(2)
@@ -78,20 +75,24 @@ for line in f:
     if rampup_start is None:
         rampup_start = long(c[0])
 
-    if c[1] == 'START':
+    key = c[1]
+    code = c[2]
+
+    if key == 'START':
         rampup_end = long(c[0])
         steadystate_start = long(c[0])
         continue
+    elif key == 'TERMINATED':
+        continue
 
-    if c[1] in ['d', 'n', 'o', 'p', 's']:
-        transaction_count[c[1]] += 1
-        response_time[c[1]].append(float(c[2]))
-    elif c[1] in ['D', 'N', 'O', 'P', 'S']:
-        key = c[1].lower()
-        rollback_count[key] += 1
-        transaction_count[key] += 1
-    elif c[1] == 'E':
+    if code == 'E':
         error_count += 1
+    else:
+        transaction_count[key] += 1
+        if code == 'C':
+            response_time[key].append(float(c[3]))
+        elif code == 'R':
+            rollback_count[key] += 1
 
     total_transaction_count += 1
 
