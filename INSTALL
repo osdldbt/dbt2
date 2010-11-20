@@ -20,3 +20,9 @@ Uninstalling DBT-2:
 	xargs rm < install_manifest.txt
 
 The file 'install_manifest.txt' will be created after running 'make install'.
+
+-----
+
+Running DBT-2
+
+The scripts require R and the python rpy packages to be installed.

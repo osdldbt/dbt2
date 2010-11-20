@@ -9,25 +9,10 @@
 #
 
 import sys
-from math import ceil, floor, fsum
+import os
 
-def average(values):
-    count = float(len(values))
-    if count == 0:
-        return 0
-    return fsum(values) / float(len(values))
-
-def percentile_90(values):
-    index = 0.9 * float(len(values))
-    findex = int(floor(index))
-    cindex = int(ceil(index))
-    values.sort()
-    try:
-        if findex == cindex:
-            return values[findex - 1]
-        return (values[findex - 1] + values [cindex - 1]) / 2.0
-    except:
-        return 0
+import rpy2.robjects as robjects
+from rpy2.robjects.vectors import DataFrame
 
 if len(sys.argv) != 2:
     print 'usage: %s <mix.log>' % sys.argv[0]
@@ -35,16 +20,9 @@ if len(sys.argv) != 2:
 
 filename = sys.argv[1]
 
-try:
-    f = open(filename, 'r')
-except:
+if not os.path.exists(filename):
     print 'cannot open file: %s' % filename
     exit(1)
-
-rampup_start = None
-rampup_end = None
-steadystate_start = None
-steadystate_end = None
 
 d = 'd'
 n = 'n'
@@ -52,53 +30,29 @@ o = 'o'
 p = 'p'
 s = 's'
 
-error_count = 0
-response_time = dict()
-rollback_count = dict()
+dataframe = dict()
 transaction_count = dict()
+rollback_count = dict()
+per90 = dict()
+average_rt = dict()
+
+r = robjects.r
+df = DataFrame.from_csvfile(filename, header=False)
+rampup_start = df[0][0]
+
+steadystate_start = r.subset(df, df.rx('V2').ro == "START")[0][0]
+steadystate_end = df[0][df.nrow - 1]
+steadystate = r.subset(df, df.rx('V1').ro > steadystate_start)
+error_count = r.subset(steadystate, steadystate.rx('V3').ro == "E").nrow
+total_transaction_count = steadystate.nrow
 
 for key in [d, n, o, p, s]:
-    response_time[key] = list()
-    rollback_count[key] = 0
-    transaction_count[key] = 0
-
-total_transaction_count = 0
-
-for line in f:
-    c = line.strip().split(',')
-
-    if len(c) != 5:
-        print 'unknown number of columns: %d' % len(c)
-        print 'exiting'
-        exit(2)
-
-    if rampup_start is None:
-        rampup_start = long(c[0])
-
-    key = c[1]
-    code = c[2]
-
-    if key == 'START':
-        rampup_end = long(c[0])
-        steadystate_start = long(c[0])
-        continue
-    elif key == 'TERMINATED':
-        continue
-
-    if code == 'E':
-        error_count += 1
-    else:
-        transaction_count[key] += 1
-        if code == 'C':
-            response_time[key].append(float(c[3]))
-        elif code == 'R':
-            rollback_count[key] += 1
-
-    total_transaction_count += 1
-
-if rampup_end is None:
-    print 'START marker not found'
-    exit(3)
+    dataframe[key] = r.subset(steadystate, steadystate.rx('V2').ro == key)
+    transaction_count[key] = dataframe[key].nrow
+    rollback_count[key] = r.subset(dataframe[key],
+                                   dataframe[key].rx('V3').ro == "R").nrow
+    per90[key] = r.quantile(dataframe[key].rx('V4')[0], .9)[0]
+    average_rt[key] = r.mean(dataframe[key].rx('V4'))[0]
 
 transaction_name = dict()
 transaction_name[d] = 'Delivery'
@@ -106,8 +60,6 @@ transaction_name[n] = 'New Order'
 transaction_name[o] = 'Order Status'
 transaction_name[p] = 'Payment'
 transaction_name[s] = 'Stock Level'
-
-steadystate_end = long(c[0])
 
 print '                         Response Time (s)'
 print ' Transaction      %    Average :    90th %        Total        Rollbacks      %'
@@ -129,16 +81,11 @@ for key in [d, n, o, p, s]:
     print '%12s  %5.2f  %9.3f : %9.3f  %11d  %15d  %5.2f' % (
             transaction_name[key],
             mix_percentage,
-            average(response_time[key]),
-            percentile_90(response_time[key]),
+            average_rt[key],
+            per90[key],
             transaction_count[key],
             rollback_count[key],
             rollback_percentage)
-try:
-    rollback_percentage = float(rollback_count[dm]) / \
-            float(transaction_count[dm]) * 100.0
-except:
-    rollback_percentage = 0
 
 print '------------  -----  ---------------------  -----------  ---------------  -----'
 
@@ -148,4 +95,5 @@ print '%0.2f new-order transactions per minute (NOTPM)' % \
         (float(transaction_count[n]) / duration)
 print '%0.1f minute duration' % (duration / 60.0)
 print '%d total unknown errors' % error_count
-print '%0.1f seconds(s) ramping up' % (float(rampup_end - rampup_start) / 60.0)
+print '%0.1f seconds(s) ramping up' % \
+      (float(steadystate_start - rampup_start) / 60.0)
