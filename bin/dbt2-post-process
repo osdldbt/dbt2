@@ -16,13 +16,13 @@ from rpy2.robjects.vectors import DataFrame
 
 if len(sys.argv) != 2:
     print 'usage: %s <mix.log>' % sys.argv[0]
-    exit(1)
+    sys.exit(1)
 
 filename = sys.argv[1]
 
 if not os.path.exists(filename):
     print 'cannot open file: %s' % filename
-    exit(1)
+    sys.exit(1)
 
 d = 'd'
 n = 'n'
@@ -40,9 +40,16 @@ r = robjects.r
 df = DataFrame.from_csvfile(filename, header=False)
 rampup_start = df[0][0]
 
+start_subset = r.subset(df, df.rx('V2').ro == "START")
+if start_subset.nrow == 0:
+    print 'START market not found in: %s' % filename
+    sys.exit(1)
 steadystate_start = r.subset(df, df.rx('V2').ro == "START")[0][0]
 steadystate_end = df[0][df.nrow - 1]
 steadystate = r.subset(df, df.rx('V1').ro > steadystate_start)
+if steadystate.nrow == 0:
+    print 'No data was collected during the steady state portion of the test.'
+    sys.exit(1)
 error_count = r.subset(steadystate, steadystate.rx('V3').ro == "E").nrow
 total_transaction_count = steadystate.nrow
 
