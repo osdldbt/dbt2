@@ -1,0 +1,206 @@
+#!/usr/bin/env python
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2010 Mark Wong
+#
+
+import sys
+from math import fsum
+from os import makedirs, system
+from os.path import exists, realpath
+
+import rpy2.robjects as robjects
+from rpy2.robjects.vectors import DataFrame
+
+if len(sys.argv) != 3:
+    print 'Create a plot the rate of transactions.'
+    print 'usage: %s <mix.log> <output directory>' % sys.argv[0]
+    print
+    print '    <mix.log> - full path to the mix.log file'
+    print '    <output directory> - location to write output files'
+    print
+    print 'Will attempt to create <output directory> if it does not exist.'
+    exit(1)
+
+infilename = sys.argv[1]
+outputdir = sys.argv[2]
+
+de = 'd'
+no = 'n'
+os = 'o'
+pa = 'p'
+sl = 's'
+
+# Make sure we can open the files to write to.
+if not exists(outputdir):
+    try:
+        # FIXME: Don't know why makedirs sometimes fails.
+        #makedirs(outputdir)
+        system('mkdir -p %s' % outputdir)
+    except:
+        print 'cannot create directory "%s"' % outputdir
+        exit(2)
+
+outputdir = realpath(outputdir)
+
+# Make sure the file exists.
+if not exists(infilename):
+    print 'cannot open file: %s' % infilename
+    exit(1)
+
+r = robjects.r
+
+df = DataFrame.from_csvfile(infilename, header=False)
+
+count = 1
+for key in [de, no, os, pa, sl]:
+    r.bitmap('%s/t%s-transaction-rate.png' % (outputdir, key),
+             type='png16m', units='px', width=1280, height=800, res=150, taa=4,
+             gaa=4)
+    subset = r.subset(df, df.rx('V2').ro == key)
+    xmax = r.max(df.rx('V1'))[0]
+    ymax = r.max(subset.rx('V1'))[0]
+    print xmax
+    count += 1
+#    r.write('       color <- rainbow(5)\n')
+
+#    r.write('bitmap("t%s-transaction-rate.png",\n' % key)
+#    r.write('       type = "png16m",\n')
+#    r.write('       units = "px",\n')
+#    r.write('       width = 1280,\n')
+#    r.write('       height = 800,\n')
+#    r.write('       res = 150,\n')
+#    r.write('       taa = 4,\n')
+#    r.write('       gaa = 4)\n')
+#    r.write('       color <- rainbow(5)\n')
+#    r.write('xmax = max(d$V1)\n')
+#    r.write('ymax = max(d$V%d)\n' % column[key])
+#    r.write('plot(d$V1,\n')
+#    r.write('     d$V%d,\n' % column[key])
+#    r.write('     xlim = c(0,xmax),\n')
+#    r.write('     ylim = c(0,ymax),\n')
+#    r.write('     type = "b",\n')
+#    r.write('     col = color[%d],\n' % count)
+#    r.write('     main = "%s Transaction Rate",\n' % \
+#            transaction_name[key])
+#    r.write('     xlab = "Elapsed Time (minutes)",\n')
+#    r.write('     ylab = "Transactions per Minute")\n')
+#    r.write('grid(col = "gray")\n')
+#    r.write('\n')
+
+exit(0)
+
+datafilename = 'transaction-rate.data'
+try:
+    d = open(outputdir + '/' + datafilename, 'w')
+except:
+    print 'cannot open file to write: %s/%s' % (outputdir, datafilename)
+    exit(3)
+    
+rfilename = 'transaction-rate.r'
+try:
+    r = open(outputdir + '/' + rfilename, 'w')
+except:
+    print 'cannot open file to write: %s/%s' % (outputdir, rfilename)
+    exit(4)
+
+# Read in the data and write out the datafile for R.
+
+response_time = dict()
+for key in [de, no, os, pa, sl]:
+    response_time[key] = list()
+
+start_ctime = None
+ctime1 = None
+ctime2 = None
+count = 1
+
+for line in f:
+    c = line.strip().split(',')
+
+    if len(c) != 5:
+        continue
+
+    if start_ctime is None:
+        start_ctime = long(c[0])
+        ctime1 = long(c[0])
+        ctime2 = long(c[0])
+
+    ctime2 = long(c[0])
+
+    key = c[1]
+    response_time[key].append(float(c[3]))
+
+    if (ctime2 - ctime1 + 1) >= 60:
+        d.write('%d' % count)
+        for key in [de, no, os, pa, sl]:
+            rate = len(response_time[key])
+            d.write(' %d' % rate)
+            response_time[key] = list()
+        d.write('\n')
+        ctime1 = ctime2
+        count += 1
+
+# This should take care of the last minute of data since it won't be a full
+# minute.
+d.write('%d' % count)
+for key in [de, no, os, pa, sl]:
+    rate = len(response_time[key])
+    d.write(' %d' % rate)
+    response_time[key] = list()
+d.write('\n')
+
+f.close()
+d.close()
+
+# Create the R file.
+
+transaction_name = dict()
+transaction_name[de] = 'Delivery'
+transaction_name[no] = 'New Order'
+transaction_name[os] = 'Order Status'
+transaction_name[pa] = 'Payment'
+transaction_name[sl] = 'Stock Level'
+
+column = dict()
+column[de] = 2
+column[no] = 3
+column[os] = 4
+column[pa] = 5
+column[sl] = 6
+
+r.write('d <- read.table("%s", header = FALSE)\n' % datafilename)
+
+count = 1
+for key in [de, no, os, pa, sl]:
+    r.write('bitmap("t%s-transaction-rate.png",\n' % key)
+    r.write('       type = "png16m",\n')
+    r.write('       units = "px",\n')
+    r.write('       width = 1280,\n')
+    r.write('       height = 800,\n')
+    r.write('       res = 150,\n')
+    r.write('       taa = 4,\n')
+    r.write('       gaa = 4)\n')
+    r.write('       color <- rainbow(5)\n')
+    r.write('xmax = max(d$V1)\n')
+    r.write('ymax = max(d$V%d)\n' % column[key])
+    r.write('plot(d$V1,\n')
+    r.write('     d$V%d,\n' % column[key])
+    r.write('     xlim = c(0,xmax),\n')
+    r.write('     ylim = c(0,ymax),\n')
+    r.write('     type = "b",\n')
+    r.write('     col = color[%d],\n' % count)
+    r.write('     main = "%s Transaction Rate",\n' % \
+            transaction_name[key])
+    r.write('     xlab = "Elapsed Time (minutes)",\n')
+    r.write('     ylab = "Transactions per Minute")\n')
+    r.write('grid(col = "gray")\n')
+    r.write('\n')
+    count += 1
+
+r.close()
+
+system('(cd %s && R --slave --no-save < %s)' % (outputdir, rfilename))
