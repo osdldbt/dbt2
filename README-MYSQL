@@ -9,47 +9,24 @@ There are two versions of DBT2(TPC-C) test:
 It is possible to run C based(nonSP) test with any version of MySQL 
 server.
 
-To run SP based test you have to build test with includes and libraries 
+To run test you have to build test with includes and libraries 
 from MySQL 5.0 or higher.
 
-Don't forget to run 'mysql_install_db'!
+See examples/mysql/mysql-dbt2.cnf for example MySQL defaults file.
 
 PREPARATION FOR TEST
 --------------------
 
 0. Build test binaries
 
-aclocal
-autoheader
-autoconf
-automake
-
 NOTE:
 
    If you want to compile with MySQL support, you must either make sure 
-   that path to 'mysql_config' is listed in your PATH environment variable 
-   or specify file locations explicitly using options --with-mysql-includes 
-   and --with-mysql-libs options.
+   that path to 'mysql_config' is listed in your PATH environment variable.
 
-./configure --help 
-
-...
-  --enable-nonsp          Force to build nonSP version of dbt2 test 
-                          (default is no)
-  --enable-debug-query    Dump all queries to client log file
-...
-
-  --with-mysql[=DIR]      Build C based version of dbt2 test. Set to the path
-                          of the MySQL's installation, or leave unset if the
-                          path is already in the search path
-  --with-mysql-includes   path to MySQL header files
-  --with-mysql-libs       path to MySQL libraries
-
-
-./configure --with-mysql [--enable-nonsp] [--with-mysql-libs=<path>] \
-            [--with-mysql-includes=<path>] 
-
-make
+   cmake CMakeLists.txt -DDBMS=mysql
+   make
+   make install
 
 1. How to generate data files for test?
 
@@ -68,15 +45,14 @@ make
    You should run shell script which will create database scheme
    and will load all data files. 
 
-   cd bin/mysql
-   ./dbt2-mysql-build-db
+   dbt2-mysql-build-db -d dbt2 -f /tmp/dbt2-w3 -v -w 2 -s /tmp/mydbt2.sock
 
    usage: dbt2-mysql-build-db [options]
    options:
        -d <database name>
        -f <path to dataset files>
        -m <database scheme [OPTIMIZED|ORIG] (default scheme OPTIMIZED)>
-       -c <path to mysql client binary. (default /usr/bin/mysql)>
+       -c <mysql.cnf defaults file>
        -s <database socket>
        -h <database host>
        -u <database user>
@@ -87,16 +63,13 @@ make
 
    Example: dbt2-mysql-build-db -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock
 
-3. How to load SP procedures? (optional, only if you ran configure with 
-   --enable-mysql-sp)
+3. How to load SP procedures?
 
-   cd bin/mysql
-   ./dbt2-mysql-load-sp
+   dbt2-mysql-load-stored-procs
 
    usage: dbt2-mysql-load-sp [options]
    options:
        -d <database name>
-       -c <path to mysql client binary. (default: /usr/bin/mysql)>
        -f <path to SPs>
        -h <database host (default: localhost)>
        -s <database socket>
@@ -104,36 +77,36 @@ make
        -p <database password>
        -t <database port>
 
-   Example: dbt2-mysql-load-sp -d dbt2 -f ../../storedproc/mysql/
+   Example: dbt2-mysql-load-stored-procs -d dbt2 -f ~/src/dbt2/storedproc/mysql/ -s /tmp/mysql.sock
 
 RUN TEST
 --------
 
-   cd bin
    dbt2-run-workload
 
-   usage: dbt2-run-workload -c <number of database connections> -t <duration of test> -w <number of warehouses>
+   usage: dbt2-run-workload -a mysql -c <number of database connections> -t <duration of test> -w <number of warehouses>
    other options:
-       -n <database name. (default dbt2)>
+       -D <database name. (default dbt2)>
        -h <database host name. (default localhost)>
        -l <database port number. (default 3306)>
-       -o <database socket>
+       -S <database socket>
        -u <database user>
-       -p <database password>
+       -x <database password>
        -s <delay of starting of new thread in milliseconds(default 300ms)>
-       -k <stack size. (default 256k)>
-       -m <terminals per warehouse. [1..10] (default 10)>
+       -t <terminals per warehouse. [1..10] (default 10)>
        -z <comments for the test>
-       -e <use zero delays for test (default no)>
+       -n <use zero delays for test (default no)>
        -v <verbose output>
+       -o <output dir>
+       -p <mysql defaults file
 
-   Example: dbt2-run-workload -c 20 -t 300 -w 3
+   Example: dbt2-run-workload -a mysql -D dbt2 -c 20 -t 300 -w 3 -o results -S /tmp/mysql.sock -p ~/src/dbt2/examples/mysql/mysql-dbt2.cnf
 
    Test will be run for 300 seconds with 20 database connections and 
    scale factor(num of warehouses) 3
 
     -c number of database connections 
-    -t duration of test in seconds
+    -d duration of test in seconds
     -w number of warehouses (scale factor)
 
 WARNING: If you break test (by Control-C for instance) or some kind of error
@@ -152,9 +125,7 @@ Results can be found in bin/output/<number>
 
 some of the usefull log files:
 
-  bin/output/<number>/client/error.log - errors from backend C|SP based
-  bin/output/<number>/driver/error.log - errors from terminals(driver)
-  bin/output/<number>/driver/mix.log - info about performed transactions
-  bin/output/<number>/driver/results.out - results of the test
-
-
+  results/client/${HOSTNAME}.*/error.log - errors from backend C|SP based
+  results/driver/${HOSTNAME}.*/error.log - errors from terminals(driver)
+  results/mix.log - info about performed transactions
+  results/report.txt - results of the test

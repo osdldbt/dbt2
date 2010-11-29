@@ -1,14 +1,18 @@
 #!/bin/bash
 
-# dbt2-mysql-build-db
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2010 Mark Wong
+#
 
-TOPDIR="@abs_top_srcdir@"
-export DATABASE="mysql"
-if [ -f "${HOME}/.dbt2_profile" ]; then
-	source ${HOME}/.dbt2_profile || exit 1
-else
-	source ${TOPDIR}/bin/dbt2_profile || exit 1
+if [ "x" = "x${MYSQLDIR}" ]; then
+    echo "ERROR: MYSQLDIR must be set"
+    exit 1
 fi
+
+HOSTNAME=`hostname`
 
 usage() {
 
@@ -20,6 +24,7 @@ usage() {
   echo ''
   echo 'usage: dbt2-mysql-build-db [options]'
   echo 'options:'
+  echo '       -p <defaults file>'
   echo '       -d <database name>'
   echo '       -f <path to dataset files>'
   echo '       -g (generate data files)'
@@ -27,7 +32,7 @@ usage() {
   echo '       -s <database socket>'
   echo '       -h <database host>'
   echo '       -u <database user>'
-  echo '       -p <database password>'
+  echo '       -P <database password>'
   echo '       -e <storage engine: [MYISAM|INNODB|BDB]. (default INNODB)>'
   echo '       -l <to use LOCAL keyword while loading dataset>'
   echo '       -v <verbose>'  
@@ -361,19 +366,21 @@ DB_PASSWORD=""
 DB_PATH=""
 DB_NAME=""
 
-MYSQL="@MYSQL@"
 DB_HOST="localhost"
 DB_NAME=${DBNAME}
-DB_PATH=${DBDATA}
-DB_SOCKET="/tmp/mysql.sock"
-DB_USER=${DBUSER}
+DB_PATH=${DB_PATH}
+DB_USER="root"
 DB_ENGINE="INNODB"
 DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
 WAREHOUSES=1
 
-while getopts "d:h:f:gs:e:lm:u:p:vw:" opt; do
+while getopts "d:h:f:gs:e:lm:u:P:p:vw:" opt; do
 	case $opt in
+	p)
+		DEFAULTS_FILE=${OPTARG}
+		DEFAULTS_FILE_ARG="-p ${DEFAULTS_FILE}"
+		;;
 	d)
 		DB_NAME=${OPTARG}
 		;;
@@ -386,6 +393,7 @@ while getopts "d:h:f:gs:e:lm:u:p:vw:" opt; do
 
 	s)
 		DB_SOCKET=$OPTARG
+		DB_SOCKET_ARG="-s ${DB_SOCKET}"
 		;;
 	l)
 		LOCAL="LOCAL"
@@ -396,7 +404,7 @@ while getopts "d:h:f:gs:e:lm:u:p:vw:" opt; do
 	u)
 		DB_USER=$OPTARG
 		;;
-	p)
+	P)
 		DB_PASSWORD=$OPTARG
 		;;	
 	e)
@@ -449,19 +457,23 @@ if [ "${DB_PASSWORD}" != "" ]; then
   MYSQL_ARGS="--password=${DB_PASSWORD}"
 fi
 
-if [ ! -f "@MYSQLDIR@/var/localhost.pid" ]; then
-	${DIR}/dbt2-mysql-start-db || exit 1
+if [ ! -d "${MYSQLDIR}" ]; then
+  mysql_install_db --datadir=${MYSQLDIR} || exit 1
+fi
+
+if [ ! -f "${MYSQLDIR}/${HOSTNAME}.pid" ]; then
+  ${DIR}/dbt2-mysql-start-db ${DEFAULTS_FILE_ARG} || exit 1
 fi
 
 if [ ${GENERATE_DATAFILE} -eq 1 ]; then
-	#
-	# Generate data files.
-	#
-	${TOPDIR}/src/dbt2-datagen -d ${DBDATA} -w ${WAREHOUSES} --mysql || exit 1
+  #
+  # Generate data files.
+  #
+  dbt2-datagen -d ${DB_PATH} -w ${WAREHOUSES} --mysql || exit 1
 fi
 
 MYSQL_ARGS="$MYSQL_ARGS -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"
-MYSQL="$MYSQL $MYSQL_ARGS"
+MYSQL="mysql $MYSQL_ARGS"
 
 echo ""
 echo "Loading of DBT2 dataset located in $DB_PATH to database $DB_NAME."
@@ -471,6 +483,7 @@ echo "DB_SCHEME:      $DB_SCHEME"
 echo "DB_HOST:        $DB_HOST"
 echo "DB_USER:        $DB_USER"
 echo "DB_SOCKET:      $DB_SOCKET"
+echo "DEFAULTS_FILE:  ${DEFAULTS_FILE}"
 
 command_exec "$MYSQL -e \"drop database if exists $DB_NAME\" "
 command_exec "$MYSQL -e \"create database $DB_NAME\" "
@@ -482,5 +495,3 @@ create_tables
 # Load tables
 echo ""
 load_tables
-
-

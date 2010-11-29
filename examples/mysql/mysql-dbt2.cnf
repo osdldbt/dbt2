@@ -1,0 +1,3 @@
+[mysqld]
+datadir = /tmp/mydbt2
+socket=/tmp/mydbt2.sock

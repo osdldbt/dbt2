@@ -148,16 +148,11 @@ ELSEIF (DBMS STREQUAL "mysql")
         EXECUTE_PROCESS(COMMAND ${MYSQL_CONFIG} --libs OUTPUT_VARIABLE
                 DB_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
         SET(DBCFLAGS "-DLIBMYSQL ${MYSQL_INCLUDEDIR}")
-        CONFIGURE_FILE(bin/mysql/dbt2-mysql-build-db.in
-                bin/mysql/dbt2-mysql-build-db  @ONLY)
         CONFIGURE_FILE(bin/mysql/dbt2-mysql-plans.in
                 bin/mysql/dbt2-mysql-plans  @ONLY)
-        CONFIGURE_FILE(bin/mysql/dbt2-mysql-start-db.in
-                bin/mysql/dbt2-mysql-start-db  @ONLY)
-        CONFIGURE_FILE(bin/mysql/dbt2-mysql-stop-db.in
-                bin/mysql/dbt2-mysql-stop-db  @ONLY)
         SET(DB_SCRIPTS
                 bin/mysql/dbt2-mysql-build-db
+                bin/mysql/dbt2-mysql-load-stored-procs
                 bin/mysql/dbt2-mysql-plans
                 bin/mysql/dbt2-mysql-start-db
                 bin/mysql/dbt2-mysql-stop-db)

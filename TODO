@@ -9,6 +9,8 @@ MySQL
 
   - to adjust sysstat.sh 
 
+  - Incorporate the loading of stored procedures into the build script.
+
 PostgreSQL
 ----------
 

@@ -4,7 +4,8 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2006 Open Source Development Labs, Inc.
+#               2002-2010 Mark Wong
 #
 
 trap 'echo "Test was interrupted by Control-C."; \
@@ -261,7 +262,6 @@ validate_parameter()
 
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
-DB_PARAMS=""
 CLIENT_HOSTNAME="localhost"
 WORKING_DIR=""
 
@@ -271,7 +271,7 @@ USE_OPROFILE=0
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 
-while getopts "a:b:c:D:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
+while getopts "a:b:c:D:d:H:hi:l:no:p:qS:s:t:u:w:x:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
@@ -317,9 +317,14 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qs:t:u:w:x:z:" opt; do
 		;;
 	p)
 		DB_PARAMS=${OPTARG}
+		DB_PARAMS_ARG="-p ${DB_PARAMS}"
 		;;
 	q)
 		USE_OPROFILE=1
+		;;
+	S)
+		SOCK_FILE=${OPTARG}
+		SOCK_FILE_ARG="-t ${OPTARG}"
 		;;
 	s)
 		SLEEPY=`echo ${OPTARG} | egrep "^[0-9]+$"`
@@ -462,13 +467,12 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "dbt2-${DBMS}-start-db ${START_DB_ARGS} -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
+	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} -o ${DB_OUTPUT_DIR}" || exit 1
 else
 	if [ "x${DBMS}" = "xdrizzle" ]; then
 		dbt2-${DBMS}-start-db ${WORKING_DIR} || exit 1
 	else
-		dbt2-${DBMS}-start-db ${START_DB_ARGS} -p "${DB_PARAMS}" \
-				-o ${DB_OUTPUT_DIR} || exit 1
+		dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} -o ${DB_OUTPUT_DIR} || exit 1
 	fi
 fi
 
@@ -530,7 +534,7 @@ if [ ${DBMS} = "pgsql" ]; then
 	fi
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME}"
 elif [ ${DBMS} = "mysql" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} -t /tmp/mysql.sock"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} ${SOCK_FILE_ARG} -u root"
 elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 elif [ ${DBMS} = "drizzle" ]; then
@@ -711,7 +715,7 @@ fi
 
 post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
 
-# Postprocessing of Database Statistics
+# Post processing of Database Statistics
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
 	# If a database system is specified, rsync all the logs back to here.
