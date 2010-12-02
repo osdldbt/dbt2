@@ -1,0 +1,45 @@
+#!/bin/bash
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Open Source Development Labs, Inc.
+#               2006-2010 Mark Wong
+#
+
+if [ "x" = "x${MYSQLDIR}" ]; then
+	echo "ERROR: MYSQLDIR must be set"
+	exit 1
+fi
+
+LOGFILE="dbt2.log"
+OUTDIR="."
+HOSTNAME=`hostname`
+
+while getopts "fo:p:s:" OPT; do
+	case ${OPT} in
+	f)
+		if [ -f "${MYSQLDIR}/${HOSTNAME}.pid" ]; then
+			rm ${MYSQLDIR}/${HOSTNAME}.pid
+		fi
+		;;
+	o)
+		OUTDIR=$OPTARG
+		;;
+	p)
+		DEFAULTS_FILE=${OPTARG}
+		DEFAULTS_FILE_ARG="--defaults-file=${DEFAULTS_FILE}"
+		;;
+	esac
+done
+
+if [ -f "${MYSQLDIR}/${HOSTNAME}.pid" ]; then
+	echo "MySQL pid file '${MYSQLDIR}/${HOSTNAME}.pid' already exists."
+	exit 1
+fi
+nohup mysqld_safe ${DEFAULTS_FILE_ARG} \
+		--log-error=${OUTDIR}/${LOGFILE} > /dev/null 2>&1 &
+sleep 10
+
+exit 0
