@@ -14,6 +14,26 @@ from MySQL 5.0 or higher.
 
 See examples/mysql/mysql-dbt2.cnf for example MySQL defaults file.
 
+MULTI-TIER TESTING
+------------------
+
+- Enable 'PermitUserEnvironment' in sshd_config.
+
+- Set MYSQLDIR in the database system user's '.ssh/environment' file:
+
+  MYSQLDIR=/tmp/mydbt2
+
+- Enalbe tcp/ip listening in the defaults file (see example from above).  This
+  binds to all network interfaces:
+
+  bind-address = 0.0.0.0
+
+- The build scripts automatically grants remote access to DB_USER
+  (default root) for everything from any ip address.  If there are other users
+  that require access, the grant will have to be done manually:
+
+  grant all on *.* to ${DB_USER}@'%';
+
 PREPARATION FOR TEST
 --------------------
 
@@ -61,7 +81,7 @@ NOTE:
        -l <to use LOCAL keyword while loading dataset>
        -v <verbose output>
 
-   Example: dbt2-mysql-build-db -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock
+   Example: dbt2-mysql-build-db -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock -p ~/src/dbt2/examples/mysql/mysql-dbt2.cnf
 
 3. How to load SP procedures?
 
