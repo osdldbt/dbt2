@@ -1,12 +1,14 @@
 To build the kit:
 
-    ./configure --with-sqlite --enable-nonsp
+    cmake CMakeLists.txt -DDBMS=sqlite
     make
+    make install
 
 To create a database:
 
-    bin/sqlite/dbt2-sqlite-build-db -g -w 1 -d /tmp/dbt2-w1
+    dbt2-sqlite-build-db -g -w 1 -d /tmp/dbt2-w1 -f /tmp/dbt2data
 
 To run a test:
 
-    bin/dbt2-run-workload -a sqlite -p /tmp/dbt2-w1 -c 1 -d 30 -w 1 -n
+    dbt2-run-workload -a sqlite -p /tmp/dbt2-w1 -c 1 -d 120 -w 1 -n \
+            -o /tmp/results

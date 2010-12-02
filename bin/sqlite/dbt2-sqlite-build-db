@@ -1,14 +1,6 @@
 #!/bin/bash
 
-# build_db.sh
-
-export DATABASE="sqlite"
-TOPDIR="@abs_top_srcdir@"
-if [ -f "${HOME}/.dbt2_profile" ]; then
-	source ${HOME}/.dbt2_profile || exit 1
-else
-	source ${TOPDIR}/bin/dbt2_profile || exit 1
-fi
+# dbt2-sqlite-build-db
 
 usage() {
 
@@ -18,7 +10,7 @@ usage() {
   fi
 
   echo ''
-  echo 'usage: build_db.sh [options]'
+  echo 'usage: $0 [options]'
   echo 'options:'
   echo '       -d <database filename>'
   echo '       -f <path to dataset files>'
@@ -27,7 +19,7 @@ usage() {
   echo '       -v <verbose>'  
   echo '       -w <scale factor>'  
   echo ''
-  echo 'Example: bash build_db.sh -d ~/dbt2 -f /tmp/dbt2-w3'
+  echo 'Example: $0 -d ~/dbt2 -f /tmp/dbt2-w3'
   echo ''
 }
 
@@ -363,7 +355,7 @@ VERBOSE=""
 DB_PATH=""
 DB_NAME=""
 
-SQLITE="@SQLITE3_BIN@"
+SQLITE="sqlite3"
 DB_NAME=${DBNAME}
 DB_PATH=${DBDATA}
 DB_SCHEME="OPTIMIZED"
@@ -423,7 +415,7 @@ if [ ${GENERATE_DATAFILE} -eq 1 ]; then
 	#
 	# Generate data files.
 	#
-	${TOPDIR}/src/dbt2-datagen -d ${DB_PATH} -w ${WAREHOUSES} --mysql || exit 1
+	dbt2-datagen -d ${DB_PATH} -w ${WAREHOUSES} --mysql || exit 1
 fi
 
 echo ""
