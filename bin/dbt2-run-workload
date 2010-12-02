@@ -467,7 +467,8 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} -o ${DB_OUTPUT_DIR}" || exit 1
+	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} \
+			-o ${DB_OUTPUT_DIR}" || exit 1
 else
 	if [ "x${DBMS}" = "xdrizzle" ]; then
 		dbt2-${DBMS}-start-db ${WORKING_DIR} || exit 1
@@ -534,7 +535,9 @@ if [ ${DBMS} = "pgsql" ]; then
 	fi
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME}"
 elif [ ${DBMS} = "mysql" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME} ${SOCK_FILE_ARG} -u root"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
 elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 elif [ ${DBMS} = "drizzle" ]; then
