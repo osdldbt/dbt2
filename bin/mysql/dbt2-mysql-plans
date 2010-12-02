@@ -51,11 +51,12 @@ if [ "$OUTPUT_FILE" == "" ]; then
 fi
 
 if [ "$MYSQL" == "" ]; then
-  MYSQL="/usr/bin/mysql"
+  MYSQL="mysql"
 fi
 
 if [ "$DB_SOCKET" == "" ]; then
-  DB_SOCKET="/tmp/mysql.sock"
+  usage "specify socket file using -s <file>"
+  exit 1
 fi
 
 if [ "$DB_HOST" == "" ]; then
@@ -68,7 +69,7 @@ if [ "$DB_NAME" == "" ]; then
 fi
 
 
-MYSQL="$MYSQL -vvv"
+MYSQL="$MYSQL -vvv -u root"
 
 echo "--------------------" >> $OUTPUT_FILE
 echo "Delivery Transaction" >> $OUTPUT_FILE
