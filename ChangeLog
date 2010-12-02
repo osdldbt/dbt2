@@ -4,8 +4,13 @@ v0.41
 - Added SQLite support.
 - Renamed all the script with 'dbt2-' prefixes to facilitate a better
   'make install' in the future.
-- Support .dbt_profile and .pgsql_profile, .mysql_profile, etc in user's home
-  directory.
+- Use cmake over autotools.
+- Added Drizzle support.
+- Removed use of Test::Parser and Test::Presenter perl modules and require use
+  of dbttools instead.
+- Use R for post processing.
+- Run scripts capable of running multiple instances of clients and drivers.
+- Direct load data for Postgres.
 
 v0.40
 
