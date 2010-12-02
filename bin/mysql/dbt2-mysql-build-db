@@ -487,6 +487,7 @@ echo "DEFAULTS_FILE:  ${DEFAULTS_FILE}"
 
 command_exec "$MYSQL -e \"drop database if exists $DB_NAME\" "
 command_exec "$MYSQL -e \"create database $DB_NAME\" "
+command_exec "$MYSQL -e \"grant all on *.* to ${DB_USER}@'%'\" "
 
 # Create tables
 echo ""
