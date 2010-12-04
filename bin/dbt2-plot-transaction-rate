@@ -8,7 +8,6 @@
 #
 
 import sys
-from math import fsum
 from os import makedirs, system
 from os.path import exists, realpath
 
@@ -23,7 +22,7 @@ if len(sys.argv) != 3:
     print '    <output directory> - location to write output files'
     print
     print 'Will attempt to create <output directory> if it does not exist.'
-    exit(1)
+    sys.exit(1)
 
 infilename = sys.argv[1]
 outputdir = sys.argv[2]
@@ -42,14 +41,14 @@ if not exists(outputdir):
         system('mkdir -p %s' % outputdir)
     except:
         print 'cannot create directory "%s"' % outputdir
-        exit(2)
+        sys.exit(2)
 
 outputdir = realpath(outputdir)
 
 # Make sure the file exists.
 if not exists(infilename):
     print 'cannot open file: %s' % infilename
-    exit(1)
+    sys.exit(1)
 
 r = robjects.r
 
@@ -63,7 +62,6 @@ for key in [de, no, os, pa, sl]:
     subset = r.subset(df, df.rx('V2').ro == key)
     xmax = r.max(df.rx('V1'))[0]
     ymax = r.max(subset.rx('V1'))[0]
-    print xmax
     count += 1
 #    r.write('       color <- rainbow(5)\n')
 
@@ -91,21 +89,21 @@ for key in [de, no, os, pa, sl]:
 #    r.write('grid(col = "gray")\n')
 #    r.write('\n')
 
-exit(0)
+sys.exit(0)
 
 datafilename = 'transaction-rate.data'
 try:
     d = open(outputdir + '/' + datafilename, 'w')
 except:
     print 'cannot open file to write: %s/%s' % (outputdir, datafilename)
-    exit(3)
+    sys.exit(3)
     
 rfilename = 'transaction-rate.r'
 try:
     r = open(outputdir + '/' + rfilename, 'w')
 except:
     print 'cannot open file to write: %s/%s' % (outputdir, rfilename)
-    exit(4)
+    sys.exit(4)
 
 # Read in the data and write out the datafile for R.
 

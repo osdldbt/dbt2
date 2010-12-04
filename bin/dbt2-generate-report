@@ -10,6 +10,7 @@
 # Because of the massive number of arguments we could have, use long-style only
 # options.
 
+import sys
 from optparse import OptionParser
 from os import system
 from os.path import isfile, realpath
@@ -38,7 +39,7 @@ else:
             dbname = options.dbname
     else:
         parser.error('unrecognized dbms')
-        exit(1)
+        sys.exit(1)
 
 if not options.i:
     parser.error('--i flag required')
@@ -144,7 +145,7 @@ try:
     h = open(reportfile, 'w')
 except:
     print 'Cannot open file: %s' % reportfile
-    exit(3)
+    sys.exit(3)
 
 h.write('<html>\n')
 h.write('<head>\n')
