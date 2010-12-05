@@ -27,11 +27,20 @@ if len(sys.argv) != 3:
 infilename = sys.argv[1]
 outputdir = sys.argv[2]
 
+sample_length = 60
+
 de = 'd'
 no = 'n'
 os = 'o'
 pa = 'p'
 sl = 's'
+
+transaction_name = dict()
+transaction_name[de] = 'Delivery'
+transaction_name[no] = 'New Order'
+transaction_name[os] = 'Order Status'
+transaction_name[pa] = 'Payment'
+transaction_name[sl] = 'Stock Level'
 
 # Make sure we can open the files to write to.
 if not exists(outputdir):
@@ -54,151 +63,54 @@ r = robjects.r
 
 df = DataFrame.from_csvfile(infilename, header=False)
 
-count = 1
+starttime = df[0][0]
+endtime = df[0][df.nrow - 1]
+iterations = r.ceiling((endtime - starttime) / sample_length)[0]
+
+j = 0
 for key in [de, no, os, pa, sl]:
+    i = 0
+
+    # Create a list of data then pass it to R.
+    # TODO: Figure out how to append data to an R data frame instead of making
+    # Python lists and then generating the R data frame.  Then determine which
+    # way is better.
+    x = [0]
+    y = [0]
+
+    subset = r.subset(df, df.rx('V2').ro == key)
+    while i < iterations:
+        # Calculate 1 minute intervals starting from the first transaction
+        # response time.
+        istart = starttime + i * sample_length
+        iend = istart + sample_length
+
+        isubset = r.subset(subset, subset.rx('V1').ro >= istart)
+        isubset = r.subset(isubset, isubset.rx('V1').ro < iend)
+
+        x.append(i + 1)
+        # Aggregate the mean response time per interval.
+        y.append(r.mean(isubset.rx('V4'))[0])
+
+        i += 1
+
+    # Set the data frame column names to default V1 and V2 values R would use
+    # for lack of better names.
+    data = {'V1': robjects.IntVector(x), 'V2': robjects.FloatVector(y)}
+    tmp_df = r['data.frame'](**data)
+
+    # Create the plots!
     r.bitmap('%s/t%s-transaction-rate.png' % (outputdir, key),
              type='png16m', units='px', width=1280, height=800, res=150, taa=4,
              gaa=4)
-    subset = r.subset(df, df.rx('V2').ro == key)
-    xmax = r.max(df.rx('V1'))[0]
-    ymax = r.max(subset.rx('V1'))[0]
-    count += 1
-#    r.write('       color <- rainbow(5)\n')
+    xmax = r.max(tmp_df.rx(1))[0]
+    ymax = r.max(tmp_df.rx(2))[0]
+    color = r.rainbow(len(transaction_name))
+    r.plot(tmp_df[0], tmp_df[1], xlim=r.c(0, xmax), ylim=r.c(0, ymax),
+           type='b', col=color[j],
+           main='%s Transaction Rate' % transaction_name[key],
+           xlab='Elapsed Time (minutes)', ylab='Transactions per Minute')
+    r.grid(col='gray')
+    r('dev.off()')
 
-#    r.write('bitmap("t%s-transaction-rate.png",\n' % key)
-#    r.write('       type = "png16m",\n')
-#    r.write('       units = "px",\n')
-#    r.write('       width = 1280,\n')
-#    r.write('       height = 800,\n')
-#    r.write('       res = 150,\n')
-#    r.write('       taa = 4,\n')
-#    r.write('       gaa = 4)\n')
-#    r.write('       color <- rainbow(5)\n')
-#    r.write('xmax = max(d$V1)\n')
-#    r.write('ymax = max(d$V%d)\n' % column[key])
-#    r.write('plot(d$V1,\n')
-#    r.write('     d$V%d,\n' % column[key])
-#    r.write('     xlim = c(0,xmax),\n')
-#    r.write('     ylim = c(0,ymax),\n')
-#    r.write('     type = "b",\n')
-#    r.write('     col = color[%d],\n' % count)
-#    r.write('     main = "%s Transaction Rate",\n' % \
-#            transaction_name[key])
-#    r.write('     xlab = "Elapsed Time (minutes)",\n')
-#    r.write('     ylab = "Transactions per Minute")\n')
-#    r.write('grid(col = "gray")\n')
-#    r.write('\n')
-
-sys.exit(0)
-
-datafilename = 'transaction-rate.data'
-try:
-    d = open(outputdir + '/' + datafilename, 'w')
-except:
-    print 'cannot open file to write: %s/%s' % (outputdir, datafilename)
-    sys.exit(3)
-    
-rfilename = 'transaction-rate.r'
-try:
-    r = open(outputdir + '/' + rfilename, 'w')
-except:
-    print 'cannot open file to write: %s/%s' % (outputdir, rfilename)
-    sys.exit(4)
-
-# Read in the data and write out the datafile for R.
-
-response_time = dict()
-for key in [de, no, os, pa, sl]:
-    response_time[key] = list()
-
-start_ctime = None
-ctime1 = None
-ctime2 = None
-count = 1
-
-for line in f:
-    c = line.strip().split(',')
-
-    if len(c) != 5:
-        continue
-
-    if start_ctime is None:
-        start_ctime = long(c[0])
-        ctime1 = long(c[0])
-        ctime2 = long(c[0])
-
-    ctime2 = long(c[0])
-
-    key = c[1]
-    response_time[key].append(float(c[3]))
-
-    if (ctime2 - ctime1 + 1) >= 60:
-        d.write('%d' % count)
-        for key in [de, no, os, pa, sl]:
-            rate = len(response_time[key])
-            d.write(' %d' % rate)
-            response_time[key] = list()
-        d.write('\n')
-        ctime1 = ctime2
-        count += 1
-
-# This should take care of the last minute of data since it won't be a full
-# minute.
-d.write('%d' % count)
-for key in [de, no, os, pa, sl]:
-    rate = len(response_time[key])
-    d.write(' %d' % rate)
-    response_time[key] = list()
-d.write('\n')
-
-f.close()
-d.close()
-
-# Create the R file.
-
-transaction_name = dict()
-transaction_name[de] = 'Delivery'
-transaction_name[no] = 'New Order'
-transaction_name[os] = 'Order Status'
-transaction_name[pa] = 'Payment'
-transaction_name[sl] = 'Stock Level'
-
-column = dict()
-column[de] = 2
-column[no] = 3
-column[os] = 4
-column[pa] = 5
-column[sl] = 6
-
-r.write('d <- read.table("%s", header = FALSE)\n' % datafilename)
-
-count = 1
-for key in [de, no, os, pa, sl]:
-    r.write('bitmap("t%s-transaction-rate.png",\n' % key)
-    r.write('       type = "png16m",\n')
-    r.write('       units = "px",\n')
-    r.write('       width = 1280,\n')
-    r.write('       height = 800,\n')
-    r.write('       res = 150,\n')
-    r.write('       taa = 4,\n')
-    r.write('       gaa = 4)\n')
-    r.write('       color <- rainbow(5)\n')
-    r.write('xmax = max(d$V1)\n')
-    r.write('ymax = max(d$V%d)\n' % column[key])
-    r.write('plot(d$V1,\n')
-    r.write('     d$V%d,\n' % column[key])
-    r.write('     xlim = c(0,xmax),\n')
-    r.write('     ylim = c(0,ymax),\n')
-    r.write('     type = "b",\n')
-    r.write('     col = color[%d],\n' % count)
-    r.write('     main = "%s Transaction Rate",\n' % \
-            transaction_name[key])
-    r.write('     xlab = "Elapsed Time (minutes)",\n')
-    r.write('     ylab = "Transactions per Minute")\n')
-    r.write('grid(col = "gray")\n')
-    r.write('\n')
-    count += 1
-
-r.close()
-
-system('(cd %s && R --slave --no-save < %s)' % (outputdir, rfilename))
+    j += 1
