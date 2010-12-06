@@ -25,8 +25,7 @@ done
 ERRLOG=$WORKING_DIR/error.log
 PIDLOG=$WORKING_DIR/drizzle.pid
 VARDIR=$WORKING_DIR/var
-PORT=9306
-PORT2=`expr $PORT + 1`
+PORT=4427
 
 # check that drizzled has started and is now responding
 ping_drizzled()
@@ -39,7 +38,7 @@ ping_drizzled()
                 sleep $waiting
                 $drizzle --ping --port=$PORT 2> /dev/null
                 status=$?
-                echo "$drizzle --ping --port=$port after waiting $total seconds"
+                echo "$drizzle --ping --port=$PORT after waiting $total seconds"
                 if [ "$status" -eq "0" ]
                 then
                         return 0
@@ -97,7 +96,7 @@ then
 
 	# create the data directory if it doesn't exist
 	mkdir -p $VARDIR
-	$drizzled --no-defaults --mysql-protocol.port $PORT --drizzle-protocol.port $PORT2 --user=root --basedir=$WORKING_DIR --datadir=$VARDIR > $ERRLOG 2>&1 &
+	$drizzled --no-defaults --drizzle-protocol.port $PORT --user=root --basedir=$WORKING_DIR --datadir=$VARDIR > $ERRLOG 2>&1 &
 	status=$?
 	if [ $status != 0 ]
 	then

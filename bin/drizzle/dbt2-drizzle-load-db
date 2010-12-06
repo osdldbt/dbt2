@@ -256,7 +256,7 @@ DB_PARALLEL="0"
 
 DRIZZLE="/usr/local/drizzle/bin/drizzle"
 DB_HOST="localhost"
-DB_PORT="9306"
+DB_PORT="4427"
 DB_SOCKET=""
 DB_USER="root"
 DB_ENGINE="INNODB"

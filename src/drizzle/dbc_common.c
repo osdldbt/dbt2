@@ -16,7 +16,7 @@ char drizzle_dbname[32] = "dbt2";
 char drizzle_host[32] = "localhost";
 char drizzle_user[32] = "root";
 char drizzle_pass[32] = "";
-char drizzle_port[32] = "0";
+char drizzle_port[32] = "4427";
 char drizzle_socket_t[256] = "/tmp/drizzle.sock";
 
 int commit_transaction(struct db_context_t *dbc)
