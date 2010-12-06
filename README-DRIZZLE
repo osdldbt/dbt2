@@ -1,29 +1,34 @@
 To build and run with Drizzle, run the following steps:
 
 1. Build the tools
+
 	 % rm -f CMakeCache.txt
 	 % cmake CMakeLists.txt -DDBMS="drizzle" && make && make install
 
-2. Generate the data, specifying the number of warehouses with the -w
+2. Set the DBT2DATADIR environment variable to the path of the datadir.
+
+	 % export DBT2DATADIR=/tmp/dbt2
+
+3. Generate the data, specifying the number of warehouses with the -w
    option and the location of where to store the generated data.
 
 	% mkdir /tmp/data
 	% dbt2-datagen -w 10 -d /tmp/data --drizzle
 
-3. Create the database.
+4. Create the database.
 
+	% mkdir -p /tmp/dbt2
 	% dbt2-drizzle-admin -w /usr -s start \
 	  -p "--no-defaults --datadir /tmp/dbt2"
 
-4. Load the data into the database (assumes you have a version of
+5. Load the data into the database (assumes you have a version of
    drizzled already running) specifying the path of the generated data and
    the path to the drizzle client
 
 	% dbt2-drizzle-load-db --path /tmp/data --drizzle_path /usr/bin/drizzle
 
-5. Run the test and generate test results
+6. Run the test and generate test results
 
-	% mkdir -p /tmp/dbt2
 	% dbt2-run-workload -a drizzle -i /usr -c 10 -d 300 -w 10 -o /tmp/results \
 	  -D dbt2 -p "--no-defaults --datadir /tmp/dbt2"
 

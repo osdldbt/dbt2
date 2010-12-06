@@ -6,14 +6,14 @@
 # Copyright (C) 2010 Sun Microsystems
 #
 
-if [ "x" = "x${DATADIR}" ]; then
-	echo "ERROR: DATADIR must be set"
+if [ "x" = "x${DBT2DATADIR}" ]; then
+	echo "ERROR: DBT2DATADIR must be set"
 	exit 1
 fi
 
 # provide default value for the working or installation directory
 WORKING_DIR=/usr/local
-VARDIR=${DATADIR}
+VARDIR=${DBT2DATADIR}
 OUTDIR=${VARDIR}
 
 # prodive default port value if not specified
