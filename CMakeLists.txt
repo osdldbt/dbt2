@@ -182,7 +182,7 @@ ELSEIF (DBMS STREQUAL "drizzle")
     MESSAGE(STATUS "Drizzle configuration build flags :  ${DBCFLAGS}")
     MESSAGE(STATUS "Drizzle configuration library flags:  ${DB_LIBS}")
 
-    SET(DB_SCRIPTS bin/drizzle/dbt2-drizzle_admin
+    SET(DB_SCRIPTS bin/drizzle/dbt2-drizzle-admin
             bin/drizzle/dbt2-drizzle-load-db
             bin/drizzle/dbt2-drizzle-start-db
             bin/drizzle/dbt2-drizzle-stop-db)
