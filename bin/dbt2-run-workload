@@ -304,6 +304,7 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qS:s:t:u:w:x:z:" opt; do
 		# installation or working directory where drizzled and drizzle can be
 		# found
 		WORKING_DIR=${OPTARG}
+		MISC_ARG="-w ${WORKING_DIR}"
 		;;
 	l)
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -316,8 +317,8 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qS:s:t:u:w:x:z:" opt; do
 		OUTPUT_DIR=${OPTARG}
 		;;
 	p)
-		DB_PARAMS=${OPTARG}
-		DB_PARAMS_ARG="-p ${DB_PARAMS}"
+		DB_PARAMS="${OPTARG}"
+		DB_PARAMS_ARG="-p \"${OPTARG}\""
 		;;
 	q)
 		USE_OPROFILE=1
@@ -455,10 +456,10 @@ else
 	dbt2-get-os-info -o ${DB_OUTPUT_DIR}
 fi
 
-if [ "x${DBMS}" = "xdrizzle" ]; then
-	${DB_COMMAND} dbt2-${DBMS}-stop-db ${WORKING_DIR}
+if [ "x${DB_COMMAND}" = "x" ]; then
+	dbt2-${DBMS}-stop-db ${MISC_ARG}
 else
-	${DB_COMMAND} dbt2-${DBMS}-stop-db
+	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
 fi
 if [ $? -ne 0 ]; then
 	echo "cleaning up results..."
@@ -466,15 +467,12 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} \
-			-o ${DB_OUTPUT_DIR}" || exit 1
+if [ "x${DB_COMMAND}" = "x" ]; then
+	eval dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
+			-o ${DB_OUTPUT_DIR} || exit 1
 else
-	if [ "x${DBMS}" = "xdrizzle" ]; then
-		dbt2-${DBMS}-start-db ${WORKING_DIR} || exit 1
-	else
-		dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} -o ${DB_OUTPUT_DIR} || exit 1
-	fi
+	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
+			-o ${DB_OUTPUT_DIR}" || exit 1
 fi
 
 #
@@ -541,7 +539,7 @@ elif [ ${DBMS} = "mysql" ]; then
 elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 elif [ ${DBMS} = "drizzle" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME} -d ${DBNAME} -u root"
 fi
 CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY}"
 END=0
@@ -682,10 +680,10 @@ echo "Stage 3. Processing of results..."
 echo "Killing client..."
 killall dbt2-client dbt2-driver 2> /dev/null
 
-if [ "x${DBMS}" = "xdrizzle" ]; then
-	${DB_COMMAND} dbt2-${DBMS}-stop-db ${WORKING_DIR}
+if [ "x${DB_COMMAND}" = "x" ]; then
+	dbt2-${DBMS}-stop-db ${MISC_ARG}
 else
-	${DB_COMMAND} dbt2-${DBMS}-stop-db
+	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
 fi
 if [ ${DBMS} = "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then

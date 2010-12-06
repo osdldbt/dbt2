@@ -6,13 +6,18 @@
 # Copyright (C) 2010 Sun Microsystems
 #
 
-if [ $# != 1 ]
-then
-	echo "Usage $0 <working or installation directory>"
-	exit 1
-else
-	WORKING_DIR=$1
-fi
+while getopts "o:p:w:" OPT; do
+	case ${OPT} in
+	o)
+		OUTPUT_ARG="-o \"${OPTARG}\""
+		;;
+	p)
+		PARAMS_ARG="-p \"${OPTARG}\""
+		;;
+	w)
+		WORKING_DIR_ARG="-w ${OPTARG}"
+		;;
+	esac
+done
 
-dbt2-drizzle-admin -s start -w $WORKING_DIR
-
+eval dbt2-drizzle-admin -s start ${WORKING_DIR_ARG} ${PARAMS_ARG} ${OUTPUT_ARG}

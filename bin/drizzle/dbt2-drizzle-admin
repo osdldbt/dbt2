@@ -6,13 +6,32 @@
 # Copyright (C) 2010 Sun Microsystems
 #
 
+if [ "x" = "x${DATADIR}" ]; then
+	echo "ERROR: DATADIR must be set"
+	exit 1
+fi
+
 # provide default value for the working or installation directory
 WORKING_DIR=/usr/local
+VARDIR=${DATADIR}
+OUTDIR=${VARDIR}
+
+# prodive default port value if not specified
+PORT=4427
 
 # -s  can be either start or stop
 # -w  is the working or installation directory
-while getopts  "s:w:" OPT; do
+while getopts  "l:o:p:s:w:" OPT; do
 	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	o)
+		OUTDIR=${OPTARG}
+		;;
+	p)
+		PARAMETERS=${OPTARG}
+		;;
 	s)
 		COMMAND=$OPTARG
 		;;
@@ -22,23 +41,23 @@ while getopts  "s:w:" OPT; do
 	esac
 done
 
-ERRLOG=$WORKING_DIR/error.log
-PIDLOG=$WORKING_DIR/drizzle.pid
-VARDIR=$WORKING_DIR/var
-PORT=4427
+ERRLOG=${OUTDIR}/error.log
+PIDLOG=${VARDIR}/drizzle.pid
 
 # check that drizzled has started and is now responding
 ping_drizzled()
 {
+        port=$1
+
         echo "Waiting for drizzled to start . . ."
         waiting=5
         total=5
         while [ $total -le 20 ]
         do
                 sleep $waiting
-                $drizzle --ping --port=$PORT 2> /dev/null
+                $drizzle --ping --port=$port 2> /dev/null
                 status=$?
-                echo "$drizzle --ping --port=$PORT after waiting $total seconds"
+                echo "$drizzle --ping --port=$port after waiting $total seconds"
                 if [ "$status" -eq "0" ]
                 then
                         return 0
@@ -96,7 +115,7 @@ then
 
 	# create the data directory if it doesn't exist
 	mkdir -p $VARDIR
-	$drizzled --no-defaults --drizzle-protocol.port $PORT --user=root --basedir=$WORKING_DIR --datadir=$VARDIR > $ERRLOG 2>&1 &
+	$drizzled --user=root --basedir=$WORKING_DIR ${PARAMETERS} > $ERRLOG 2>&1 &
 	status=$?
 	if [ $status != 0 ]
 	then
@@ -113,7 +132,7 @@ then
 	fi
 
 	# make sure drizzled is now running
-	ping_drizzled
+	ping_drizzled ${PORT}
 
 elif [ "$COMMAND" = "stop" ]
 then
@@ -122,7 +141,7 @@ then
 	then
 		pid=`cat $PIDLOG`
 		echo "Shutting down drizzled process $pid"
-		$drizzle --shutdown --port=$PORT
+		$drizzle --shutdown --port=${PORT}
 		if [ $? != 0 ]
 		then
 			kill -9 $pid

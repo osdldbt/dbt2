@@ -41,7 +41,7 @@ usage() {
   echo '       --verbose'
   echo '       --help'
   echo ''
-  echo 'Example: sh drizzle_load_db.sh --path /tmp/dbt2-w3'
+  echo 'Example: dbt2-drizzle-load-db --path /tmp/dbt2-w3'
   echo ''
 }
 
@@ -420,5 +420,3 @@ create_tables
 # Load tables
 echo ""
 load_tables
-
-
