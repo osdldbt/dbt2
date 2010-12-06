@@ -249,7 +249,7 @@ int parse_arguments(int argc, char *argv[])
 			strcpy(dbt2_mysql_socket, optarg);
 #endif
 			break;
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(LIBMYSQL) || defined(ODBC) || defined(LIBDRIZZLE)
 		case 'u':
 			strncpy(dbt2_user, optarg, 127);
 			break;
