@@ -7,13 +7,13 @@
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
-if [ -z ${PGDATA} ]; then
-    echo "PGDATA not defined."
+if [ -z ${DBT2PGDATA} ]; then
+    echo "DBT2PGDATA not defined."
     exit 1
 fi
 
-if [ -z ${DBNAME} ]; then
-    echo "DBNAME not defined."
+if [ -z ${DBT2DBNAME} ]; then
+    echo "DBT2DBNAME not defined."
     exit 1
 fi
 
@@ -30,10 +30,10 @@ done
 
 # Create database
 echo "Creating database..."
-if [ -d ${PGDATA} ]; then
-	echo "PGData directory '${PGDATA}' already exists, skipping initdb..."
+if [ -d ${DBT2PGDATA} ]; then
+	echo "PGData directory '${DBT2PGDATA}' already exists, skipping initdb..."
 else
-	initdb -D ${PGDATA} --locale=C || exit 1
+	initdb -D ${DBT2PGDATA} --locale=C || exit 1
 fi
 
 if [ ! "x${PARAMETERS}" = "x" ]; then
@@ -49,7 +49,7 @@ if [ ! "x${PORT}" = "x" ]; then
     PORTOPT="-p ${PORT}"
 fi
 
-createdb ${PORTOPT} ${DBNAME} || exit 1
-createlang ${PORTOPT} plpgsql ${DBNAME}
+createdb ${PORTOPT} ${DBT2DBNAME} || exit 1
+createlang ${PORTOPT} plpgsql ${DBT2DBNAME}
 
 exit 0

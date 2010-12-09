@@ -7,12 +7,12 @@
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
 #
 
-if [ "x${DBNAME}" = "x" ]; then
-    echo "DBNAME not defined."
+if [ "x${DBT2DBNAME}" = "x" ]; then
+    echo "DBT2DBNAME not defined."
     exit 1
 fi
 
-PSQL="psql -d ${DBNAME}"
+PSQL="psql -d ${DBT2DBNAME}"
 
 ${PSQL} -c "DROP TABLE customer;"
 ${PSQL} -c "DROP TABLE district;"

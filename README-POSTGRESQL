@@ -4,8 +4,8 @@ needs to go into the PostgreSQL's user on the database system's
 '~/.ssh/environment' file:
 
 PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
-PGDATA=/var/lib/data
-DBNAME=dbt2
+DBT2PGDATA=/var/lib/data
+DBT2DBNAME=dbt2
 
 -----
 
@@ -71,9 +71,10 @@ backend and is controlled through the GUC database settings.
 
 A really quick howto.
 
-Edit bin/pgsql/pgsql_profile.in and follow the notes for the PGDATA and
-DBDATA directory.  PGDATA is where the database directory will be
-created and DBDATA is where the database table data will be generated.
+Edit bin/pgsql/pgsql_profile.in and follow the notes for the DBT2PGDATA
+and DBDATA directory.  DBT2PGDATA is where the database directory will
+be created and DBDATA is where the database table data will be
+generated.
 
 Run configure after editing bin/pgsql/pgsql_profile.in.
 

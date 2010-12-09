@@ -7,8 +7,8 @@
 # Copyright (C) 2002-2008 Rod Taylor & Open Source Development Lab, Inc.
 #
 
-if [ -z ${PGDATA} ]; then
-	echo "PGDATA not defined."
+if [ -z ${DBT2PGDATA} ]; then
+	echo "DBT2PGDATA not defined."
 	exit 1
 fi
 
@@ -17,7 +17,7 @@ OUTDIR="."
 while getopts "fo:p:" OPT; do
 	case ${OPT} in
 	f)
-		rm -f ${PGDATA}/postmaster.pid
+		rm -f ${DBT2PGDATA}/postmaster.pid
 		;;
 	o)
 		OUTDIR=${OPTARG}
@@ -28,22 +28,22 @@ while getopts "fo:p:" OPT; do
 	esac
 done
 
-if [ -f "${PGDATA}/postmaster.pid" ]; then
-	echo "Database is already started: ${PGDATA}/postmaster.pid."
+if [ -f "${DBT2PGDATA}/postmaster.pid" ]; then
+	echo "Database is already started: ${DBT2PGDATA}/postmaster.pid."
 	exit 0
 fi
 
 sleep 1
 
 if [ "x${PARAMETERS}" = "x" ]; then
-	pg_ctl -D ${PGDATA} -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -D ${DBT2PGDATA} -l ${OUTDIR}/${LOGFILE} start
 else
-	pg_ctl -D ${PGDATA} -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -D ${DBT2PGDATA} -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start
 fi
 
 sleep 10
 
-if [ ! -f "${PGDATA}/postmaster.pid" ]; then
+if [ ! -f "${DBT2PGDATA}/postmaster.pid" ]; then
 	echo "database did not start correctly, check database log"
 	exit 1
 fi

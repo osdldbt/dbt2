@@ -11,14 +11,14 @@
 # If the SQL in funcs.c is updated, this file should be updated to match.
 #
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
+if [ "x${DBT2DBNAME}" = "x" ]; then
+	echo "DBT2DBNAME not defined."
 	exit 1
 fi
 
 explain() {
 	SQL="EXPLAIN ${@}"
-	psql ${PORTARG} -e -d ${DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
+	psql ${PORTARG} -e -d ${DBT2DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
 }
 
 while getopts "l:o:" opt; do

@@ -7,8 +7,8 @@
 # Copyright (C) 2002-2008 Mark Wong & Open Source Development Labss, Inc.
 #
 
-if [ -z ${DBNAME} ]; then
-    echo "DBNAME not defined."
+if [ -z ${DBT2DBNAME} ]; then
+    echo "DBT2DBNAME not defined."
     exit 1
 fi
 
@@ -27,7 +27,7 @@ done
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
-PSQL="psql ${PORTARG} -e -d ${DBNAME}"
+PSQL="psql ${PORTARG} -e -d ${DBT2DBNAME}"
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
 	if [ "x${DBT2TSDIR}" = "x" ]; then

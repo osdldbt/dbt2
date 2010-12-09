@@ -8,8 +8,8 @@
 #               2002-2010 Mark Wong
 #
 
-if [ -z ${DBNAME} ]; then
-	echo "DBNAME not defined."
+if [ -z ${DBT2DBNAME} ]; then
+	echo "DBT2DBNAME not defined."
 	exit 1
 fi
 
@@ -35,8 +35,8 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG2="-l ${PORT}"
 fi
 
-PSQL="psql ${PORTARG} -e -d ${DBNAME} -t --no-align"
-PSQL2="psql ${PORTARG} -d ${DBNAME} -t --no-align"
+PSQL="psql ${PORTARG} -e -d ${DBT2DBNAME} -t --no-align"
+PSQL2="psql ${PORTARG} -d ${DBT2DBNAME} -t --no-align"
 
 # Get the OS version that the database system is running on, in case it's
 # different.

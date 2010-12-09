@@ -7,15 +7,15 @@
 # Copyright (C) 2002-2008 Rod Taylor & Open Source Development Lab, Inc.
 #
 
-if [ -z ${PGDATA} ]; then
-	echo "PGDATA not defined."
+if [ -z ${DBT2PGDATA} ]; then
+	echo "DBT2PGDATA not defined."
 	exit 1
 fi
 
 # We only need to stop the database if it's running.
-if [ -f "${PGDATA}/postmaster.pid" ]; then
+if [ -f "${DBT2PGDATA}/postmaster.pid" ]; then
 	killall ${PG_AUTOVACUUM} > /dev/null 2>&1
 	sleep 1
-	pg_ctl -D ${PGDATA} stop ${1}
+	pg_ctl -D ${DBT2PGDATA} stop ${1}
 	sleep 1
 fi

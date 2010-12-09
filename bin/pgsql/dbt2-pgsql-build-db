@@ -75,7 +75,7 @@ dbt2-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 # FIXME: Make datagen take argument instead of setting environment variables
 # for psql.
 export PGPORT="${PORT}"
-export PGDATABASE="${DBNAME}"
+export PGDATABASE="${DBT2DBNAME}"
 dbt2-datagen --direct -w ${WAREHOUSES} --pgsql || exit 1
 
 dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
@@ -91,13 +91,13 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-psql ${PORTARG} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
+psql ${PORTARG} -e -d ${DBT2DBNAME} -c "SELECT setseed(0);" || exit 1
 
 # VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
 # tables. The VACUUM FULL is probably unnecessary; we want to scan the
 # heap and update the commit-hint bits on each new tuple, but a regular
 # VACUUM ought to suffice for that.
 
-vacuumdb ${PORTARG} -z -f -d ${DBNAME} || exit 1
+vacuumdb ${PORTARG} -z -f -d ${DBT2DBNAME} || exit 1
 
 exit 0
