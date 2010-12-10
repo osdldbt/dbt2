@@ -7,8 +7,8 @@
 # Copyright (C) 2010 Mark Wong
 #
 
-if [ "x" = "x${MYSQLDIR}" ]; then
-    echo "ERROR: MYSQLDIR must be set"
+if [ "x" = "x${DBT2DATADIR}" ]; then
+    echo "ERROR: DBT2DATADIR must be set"
     exit 1
 fi
 
@@ -457,11 +457,11 @@ if [ "${DB_PASSWORD}" != "" ]; then
   MYSQL_ARGS="--password=${DB_PASSWORD}"
 fi
 
-if [ ! -d "${MYSQLDIR}" ]; then
-  mysql_install_db --datadir=${MYSQLDIR} || exit 1
+if [ ! -d "${DBT2DATADIR}" ]; then
+  mysql_install_db --datadir=${DBT2DATADIR} || exit 1
 fi
 
-if [ ! -f "${MYSQLDIR}/${HOSTNAME}.pid" ]; then
+if [ ! -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
   ${DIR}/dbt2-mysql-start-db ${DEFAULTS_FILE_ARG} || exit 1
 fi
 
