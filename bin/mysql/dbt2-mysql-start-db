@@ -8,8 +8,8 @@
 #               2006-2010 Mark Wong
 #
 
-if [ "x" = "x${MYSQLDIR}" ]; then
-	echo "ERROR: MYSQLDIR must be set"
+if [ "x" = "x${DBT2DATADIR}" ]; then
+	echo "ERROR: DBT2DATADIR must be set"
 	exit 1
 fi
 
@@ -20,8 +20,8 @@ HOSTNAME=`hostname`
 while getopts "fo:p:s:" OPT; do
 	case ${OPT} in
 	f)
-		if [ -f "${MYSQLDIR}/${HOSTNAME}.pid" ]; then
-			rm ${MYSQLDIR}/${HOSTNAME}.pid
+		if [ -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
+			rm ${DBT2DATADIR}/${HOSTNAME}.pid
 		fi
 		;;
 	o)
@@ -34,8 +34,8 @@ while getopts "fo:p:s:" OPT; do
 	esac
 done
 
-if [ -f "${MYSQLDIR}/${HOSTNAME}.pid" ]; then
-	echo "MySQL pid file '${MYSQLDIR}/${HOSTNAME}.pid' already exists."
+if [ -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
+	echo "MySQL pid file '${DBT2DATADIR}/${HOSTNAME}.pid' already exists."
 	exit 1
 fi
 nohup mysqld_safe ${DEFAULTS_FILE_ARG} \

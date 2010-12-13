@@ -19,9 +19,9 @@ MULTI-TIER TESTING
 
 - Enable 'PermitUserEnvironment' in sshd_config.
 
-- Set MYSQLDIR in the database system user's '.ssh/environment' file:
+- Set DBT2DATADIR in the database system user's '.ssh/environment' file:
 
-  MYSQLDIR=/tmp/mydbt2
+  DBT2DATADIR=/tmp/mydbt2
 
 - Enalbe tcp/ip listening in the defaults file (see example from above).  This
   binds to all network interfaces:
