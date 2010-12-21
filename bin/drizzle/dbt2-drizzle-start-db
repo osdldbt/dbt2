@@ -6,8 +6,11 @@
 # Copyright (C) 2010 Sun Microsystems
 #
 
-while getopts "o:p:w:" OPT; do
+while getopts "l:o:p:w:" OPT; do
 	case ${OPT} in
+	l)
+		PORT_ARG="-l ${OPTARG}}"
+		;;
 	o)
 		OUTPUT_ARG="-o \"${OPTARG}\""
 		;;
@@ -20,4 +23,5 @@ while getopts "o:p:w:" OPT; do
 	esac
 done
 
-eval dbt2-drizzle-admin -s start ${WORKING_DIR_ARG} ${PARAMS_ARG} ${OUTPUT_ARG}
+eval dbt2-drizzle-admin -s start ${WORKING_DIR_ARG} ${PARAMS_ARG} \
+		${OUTPUT_ARG} ${PORT_ARG}
