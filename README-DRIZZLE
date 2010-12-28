@@ -1,3 +1,5 @@
+This release of dbt2 was proofed again the 2010.11.04 build.
+
 To build and run with Drizzle, run the following steps:
 
 1. Build the tools

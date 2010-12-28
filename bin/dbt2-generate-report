@@ -37,6 +37,10 @@ else:
             parser.error('"--dbms pgsql" requires --dbname to be used')
         else:
             dbname = options.dbname
+    elif dbms == 'mysql':
+        # No special scripts yet to run for MySQL but this is needed in order
+        # for the report script to run.
+       pass
     else:
         parser.error('unrecognized dbms')
         sys.exit(1)
