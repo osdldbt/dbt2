@@ -86,7 +86,7 @@ if isfile(mpstatfile):
 
 print 'Generating iostat charts...'
 iostatfile = '%s/driver/iostatx.out' % indir
-if isfile(mpstatfile):
+if isfile(iostatfile):
     system('dbt-plot-iostat %s %s/driver/iostat %s' % \
             (iostatfile, outdir, device_arg))
 
