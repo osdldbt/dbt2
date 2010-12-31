@@ -582,12 +582,18 @@ SLEEPYTIME=`expr ${SLEEP_RAMPUP} + ${DURATION}`
 SAMPLE_LENGTH=60
 ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
 ITERATIONS=`expr ${ITERATIONS} + 1`
-dbt2-sysstats \
-		--iter ${ITERATIONS} \
-		--sample ${SAMPLE_LENGTH} \
-		--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.out 2>&1 &
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+	dbt2-sysstats \
+			--iter ${ITERATIONS} \
+			--sample ${SAMPLE_LENGTH} \
+			--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.out 2>&1 &
+
 	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
+else
+	dbt2-sysstats \
+			--iter ${ITERATIONS} \
+			--sample ${SAMPLE_LENGTH} \
+			--outdir ${DB_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.out 2>&1 &
 fi
 
 echo "collecting database statistics..."
@@ -714,8 +720,6 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	fi
 fi
 
-post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
-
 # Post processing of Database Statistics
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
@@ -723,9 +727,12 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
 	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
 			${DB_OUTPUT_DIR}/
+	post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
 	# There will only be a sar output file if the database is on a separate
 	# system.
 	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
+else
+	post_process_sar ${DB_OUTPUT_DIR}/`hostname`/sar_raw.out
 fi
 
 # Change the permissions on the database error log, not readable by other
