@@ -304,7 +304,7 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qS:s:t:u:w:x:z:" opt; do
 		# installation or working directory where drizzled and drizzle can be
 		# found
 		WORKING_DIR=${OPTARG}
-		MISC_ARG="-w ${WORKING_DIR}"
+		MISC_ARG="${MISC_ARG} -w ${WORKING_DIR}"
 		;;
 	l)
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -350,6 +350,7 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qS:s:t:u:w:x:z:" opt; do
 		;;
 	esac
 done
+
 
 # If no chunking of warehouses per process is defined, assumed we want to run
 # everything from one process.
@@ -398,6 +399,11 @@ fi
 
 if [ ! "x${DB_PORT}" = "x" ]; then
 	DB_PORT_ARG="-l ${DB_PORT}"
+
+	# Drizzle specific handling of passing around non-standard port.
+	if [ "x${DBMS}" = "xdrizzle" ]; then
+		MISC_ARG="${MISC_ARG} ${DB_PORT_ARG}"
+	fi
 fi
 
 ULIMIT_N=`ulimit -n`
