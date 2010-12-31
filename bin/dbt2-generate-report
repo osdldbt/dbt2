@@ -235,20 +235,28 @@ h.write('</tr>\n')
 
 count = 0
 short_name = ['d', 'n', 'o', 'p', 's']
+c_name = 1
+c_mix = 2
+c_avg = 3
+c_90 = 4
+c_total = 5
+c_rollback = 6
+c_rper = 7
 for transaction in ['Delivery', 'New', 'Status', 'Payment', 'Stock']:
     cmd = 'grep %s %s/report.txt' % (transaction, indir)
     p = Popen(cmd.split(), stdout=PIPE)
 
-    m = match(r'(\D+?) +(\d+.\d+) +(\d+.\d+)\D+(\d+.\d+) +(\d+) +(\d+) +(\d+.\d+)', p.communicate()[0])
+    m = match(r'(\D+?) +(\d+.\d+) +(\d+.\d+)\D+(\d+.\d+) +(\d+) +(\d+)' \
+               ' +(\d+.\d+)', p.communicate()[0])
 
     h.write('<tr>\n')
-    h.write('<td>%s</td>\n' % m.group(1))
-    h.write('<td>%s</td>\n' % m.group(2))
-    h.write('<td>%s</td>\n' % m.group(3))
-    h.write('<td>%s</td>\n' % m.group(4))
-    h.write('<td>%s</td>\n' % m.group(5))
-    h.write('<td>%s</td>\n' % m.group(6))
-    h.write('<td>%s</td>\n' % m.group(7))
+    h.write('<td>%s</td>\n' % m.group(c_name))
+    h.write('<td>%s</td>\n' % m.group(c_mix))
+    h.write('<td>%s</td>\n' % m.group(c_total))
+    h.write('<td>%s</td>\n' % m.group(c_avg))
+    h.write('<td>%s</td>\n' % m.group(c_90))
+    h.write('<td>%s</td>\n' % m.group(c_rollback))
+    h.write('<td>%s</td>\n' % m.group(c_rper))
     chart = 'txn/t%s-transaction-rate.png' % short_name[count]
     h.write('<td align="center">\n')
     h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
