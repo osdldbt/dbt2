@@ -12,8 +12,8 @@
 
 import sys
 from optparse import OptionParser
-from os import system
-from os.path import isfile, realpath
+from os import listdir, system
+from os.path import isdir, isfile, realpath
 from subprocess import PIPE, Popen
 from re import match
 
@@ -72,38 +72,44 @@ transaction_name[os] = 'Order Status'
 transaction_name[pa] = 'Payment'
 transaction_name[sl] = 'Stock Level'
 
+print 'Generating mpstat, iostat, and vmstat charts for driver systems...'
+for dir in listdir('%s/driver' % indir):
+    if isdir('%s/driver/%s' % (indir, dir)):
+        mpstatfile = '%s/driver/%s/mpstat.out' % (indir, dir)
+        if isfile(mpstatfile):
+            system('dbt-plot-mpstat %s %s/driver/%s/mpstat' % (mpstatfile,
+                   outdir, dir))
+
+        iostatfile = '%s/driver/%s/iostatx.out' % (indir, dir)
+        if isfile(iostatfile):
+            system('dbt-plot-iostat %s %s/driver/%s/iostat %s' % \
+                    (iostatfile, outdir, dir, device_arg))
+
+        vmstatfile = '%s/driver/%s/vmstat.out' % (indir, dir)
+        if isfile(vmstatfile):
+            system('dbt-plot-vmstat %s %s/driver/%s/vmstat' % (vmstatfile,
+                   outdir, dir))
+
+print 'Moving on to database system stats...'
 print 'Generating transaction distribution charts...'
 count = 0
 for key in [de, no, os, pa, sl]:
-    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn 5 %d' % \
+    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn min 5 %d' % \
             (transaction_name[key], key, mixfile, outdir, int(count) + 1))
     count += 1
 
 print 'Generating mpstat charts...'
-mpstatfile = '%s/driver/mpstat.out' % indir
-if isfile(mpstatfile):
-    system('dbt-plot-mpstat %s %s/driver/mpstat' % (mpstatfile, outdir))
-
 mpstatfile = '%s/db/mpstat.out' % indir
 if isfile(mpstatfile):
     system('dbt-plot-mpstat %s %s/db/mpstat' % (mpstatfile, outdir))
 
 print 'Generating iostat charts...'
-iostatfile = '%s/driver/iostatx.out' % indir
-if isfile(iostatfile):
-    system('dbt-plot-iostat %s %s/driver/iostat %s' % \
-            (iostatfile, outdir, device_arg))
-
 iostatfile = '%s/db/iostatx.out' % indir
 if isfile(iostatfile):
     system('dbt-plot-iostat %s %s/db/iostat %s' % \
             (iostatfile, outdir, device_arg))
 
 print 'Generating vmstat charts...'
-vmstatfile = '%s/driver/vmstat.out' % indir
-if isfile(vmstatfile):
-    system('dbt-plot-vmstat %s %s/driver/vmstat' % (vmstatfile, outdir))
-
 vmstatfile = '%s/db/vmstat.out' % indir
 if isfile(vmstatfile):
     system('dbt-plot-vmstat %s %s/db/vmstat' % (vmstatfile, outdir))
