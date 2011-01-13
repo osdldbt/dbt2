@@ -107,17 +107,17 @@ Datum order_status(PG_FUNCTION_ARGS)
 		/* SRF setup */
 		funcctx = SRF_FIRSTCALL_INIT();
 
-		/*
-		 * switch into the multi_call_memory_ctx, anything that is
-		 * palloc'ed will be preserved across calls .
-		 */
-		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
-
 		/* Connect to SPI manager */
 		if (( ret = SPI_connect()) < 0) {
 			/* internal error */
 			elog(ERROR, "order_status: SPI connect returned %d", ret);
 		}
+
+		/*
+		 * switch into the multi_call_memory_ctx, anything that is
+		 * palloc'ed will be preserved across calls .
+		 */
+		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		if (c_id == 0) {
 			sprintf(query, ORDER_STATUS_1, c_w_id, c_d_id,
