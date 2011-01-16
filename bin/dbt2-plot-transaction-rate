@@ -89,14 +89,13 @@ for key in [de, no, os, pa, sl]:
         isubset = r.subset(isubset, isubset.rx('V1').ro < iend)
 
         x.append(i + 1)
-        # Aggregate the mean response time per interval.
-        y.append(r.mean(isubset.rx('V4'))[0])
-
+        # Aggregate count of transaction.
+        y.append(isubset.nrow)
         i += 1
 
     # Set the data frame column names to default V1 and V2 values R would use
     # for lack of better names.
-    data = {'V1': robjects.IntVector(x), 'V2': robjects.FloatVector(y)}
+    data = {'V1': robjects.IntVector(x), 'V2': robjects.IntVector(y)}
     tmp_df = r['data.frame'](**data)
 
     # Create the plots!

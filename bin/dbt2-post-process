@@ -99,7 +99,7 @@ print '------------  -----  ---------------------  -----------  --------------- 
 duration = float(steadystate_end - steadystate_start)
 print
 print '%0.2f new-order transactions per minute (NOTPM)' % \
-        (float(transaction_count[n]) / duration)
+        (float(transaction_count[n]) * 60.0 / duration)
 print '%0.1f minute duration' % (duration / 60.0)
 print '%d total unknown errors' % error_count
 print '%0.1f seconds(s) ramping up' % \
