@@ -9,10 +9,9 @@
 #
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COMMAND} dbt2-${DBMS}-stop-db sar sadc vmstat iostat mpstat iopp' INT
+	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc vmstat iostat mpstat iopp' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COM
-MAND} dbt2-${DBMS}-stop-db sar sadc vmstat iostat mpstat iop' TERM
+	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc vmstat iostat mpstat iop' TERM
 
 do_sleep()
 {
