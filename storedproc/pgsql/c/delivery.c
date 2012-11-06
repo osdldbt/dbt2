@@ -29,7 +29,9 @@ PG_MODULE_MAGIC;
 	"SELECT no_o_id\n" \
 	"FROM new_order\n" \
 	"WHERE no_w_id = %d\n" \
-	"  AND no_d_id = %d"
+	"  AND no_d_id = %d" \
+	"ORDER BY no_o_id " \
+	"LIMIT 1"
 
 #define DELIVERY_2 \
 	"DELETE FROM new_order\n" \
