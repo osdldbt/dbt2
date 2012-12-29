@@ -252,9 +252,6 @@ Datum order_status(PG_FUNCTION_ARGS)
 		/* get tupdesc from the type name */
 		tupdesc = RelationNameGetTupleDesc("status_info");
 
-		/* allocate a slot for a tuple with this tupdesc */
-		funcctx->slot = TupleDescGetSlot(tupdesc);
-
 		/*
 		 * generate attribute metadata needed later to produce tuples
 		 * from raw C strings
@@ -296,7 +293,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 		result_tuple = BuildTupleFromCStrings(funcctx->attinmeta, cstr_values);
 
 		/* make the tuple into a datum */
-		result = TupleGetDatum(funcctx->slot, result_tuple);
+		result = HeapTupleGetDatum(result_tuple);
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
 		/* Here we are done returning items and just need to clean up: */

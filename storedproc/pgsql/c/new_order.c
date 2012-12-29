@@ -390,7 +390,6 @@ Datum make_new_order_info(PG_FUNCTION_ARGS)
 
 	/* tuple manipulating variables */
 	TupleDesc tupdesc;
-	TupleTableSlot *slot;
 	AttInMetadata *attinmeta;
 
 	/* loop variables. */
@@ -398,9 +397,6 @@ Datum make_new_order_info(PG_FUNCTION_ARGS)
 
 	/* get tupdesc from the type name */
 	tupdesc = RelationNameGetTupleDesc("new_order_info");
-
-	/* allocate a slot for a tuple with this tupdesc */
-	slot = TupleDescGetSlot(tupdesc);
 
 	/*
 	 * generate attribute metadata needed later to produce tuples
@@ -418,6 +414,6 @@ Datum make_new_order_info(PG_FUNCTION_ARGS)
 	result_tuple = BuildTupleFromCStrings(attinmeta, cstr_values);
 
 	/* make the tuple into a datum */
-	result = TupleGetDatum(slot, result_tuple);
+	result = HeapTupleGetDatum(result_tuple);
 	return result;
 }
