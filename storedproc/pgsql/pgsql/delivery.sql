@@ -26,7 +26,7 @@ BEGIN
 		WHERE no_w_id = in_w_id
 		  AND no_d_id = tmp_d_id
 		ORDER BY no_o_id
-		LIMIT 1;;
+		LIMIT 1;
 
 		IF tmp_o_id > 0 THEN
 			DELETE FROM new_order
