@@ -11,8 +11,8 @@
 #include <unistd.h>
 #include <postgres.h>
 #include <fmgr.h>
+#include <catalog/pg_type.h> /* for type OIDs */
 #include <executor/spi.h> /* this should include most necessary APIs */
-#include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/builtins.h>
 
@@ -26,70 +26,101 @@ PG_MODULE_MAGIC;
  * Payment transaction SQL statements.
  */
 
-#define PAYMENT_1 \
+#define PAYMENT_1 statements[0].plan
+#define PAYMENT_2 statements[1].plan
+#define PAYMENT_3 statements[2].plan
+#define PAYMENT_4 statements[3].plan
+#define PAYMENT_5 statements[4].plan
+#define PAYMENT_6 statements[5].plan
+#define PAYMENT_7_GC statements[6].plan
+#define PAYMENT_7_BC statements[7].plan
+#define PAYMENT_8 statements[8].plan
+
+static cached_statement statements[] =
+{
+	{ /* PAYMENT_1 */
 	"SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip\n" \
 	"FROM warehouse\n" \
-	"WHERE w_id = %d"
+	"WHERE w_id = $1",
+	1, { INT4OID }
+	},
 
-#define PAYMENT_2 \
+	{ /* PAYMENT_2 */
 	"UPDATE warehouse\n" \
-	"SET w_ytd = w_ytd + %f\n" \
-	"WHERE w_id = %d"
+	"SET w_ytd = w_ytd + $1\n" \
+	"WHERE w_id = $2",
+	2, { FLOAT4OID, INT4OID }
+	},
 
-#define PAYMENT_3 \
+	{ /* PAYMENT_3 */
 	"SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip\n" \
 	"FROM district\n" \
-	"WHERE d_id = %d\n" \
-	"  AND d_w_id = %d"
+	"WHERE d_id = $1\n" \
+	"  AND d_w_id = $2",
+	2, { INT4OID, INT4OID }
+	},
 
-#define PAYMENT_4 \
+	{ /* PAYMENT_4 */
 	"UPDATE district\n" \
-	"SET d_ytd = d_ytd + %f\n" \
-	"WHERE d_id = %d\n" \
-	"  AND d_w_id = %d"
+	"SET d_ytd = d_ytd + $1\n" \
+	"WHERE d_id = $2\n" \
+	"  AND d_w_id = $3",
+	3, { FLOAT4OID, INT4OID, INT4OID }
+	},
 
-#define PAYMENT_5 \
+	{ /* PAYMENT_5 */
 	"SELECT c_id\n" \
 	"FROM customer\n" \
-	"WHERE c_w_id = %d\n" \
-	"  AND c_d_id = %d\n" \
-	"  AND c_last = '%s'\n" \
-	"ORDER BY c_first ASC"
+	"WHERE c_w_id = $1\n" \
+	"  AND c_d_id = $2\n" \
+	"  AND c_last = $3\n" \
+	"ORDER BY c_first ASC",
+	3, { INT4OID, INT4OID, TEXTOID }
+	},
 
-#define PAYMENT_6 \
+	{ /* PAYMENT_6 */
 	"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,\n" \
 	"       c_state, c_zip, c_phone, c_since, c_credit,\n" \
 	"       c_credit_lim, c_discount, c_balance, c_data, c_ytd_payment\n" \
 	"FROM customer\n" \
-	"WHERE c_w_id = %d\n" \
-	"  AND c_d_id = %d\n" \
-	"  AND c_id = %d"
+	"WHERE c_w_id = $1\n" \
+	"  AND c_d_id = $2\n" \
+	"  AND c_id = $3",
+	3, { INT4OID, INT4OID, INT4OID }
+	},
 
-#define PAYMENT_7_GC \
+	{ /* PAYMENT_7_GC */
 	"UPDATE customer\n" \
-	"SET c_balance = c_balance - %f,\n" \
+	"SET c_balance = c_balance - $1,\n" \
 	"    c_ytd_payment = c_ytd_payment + 1\n" \
-	"WHERE c_id = %d\n" \
-	"  AND c_w_id = %d\n" \
-	"  AND c_d_id = %d"
+	"WHERE c_id = $2\n" \
+	"  AND c_w_id = $3\n" \
+	"  AND c_d_id = $4",
+	4, { FLOAT4OID, INT4OID, INT4OID, INT4OID }
+	},
 
-#define PAYMENT_7_BC \
+	{ /* PAYMENT_7_BC */
 	"UPDATE customer\n" \
-	"SET c_balance = c_balance - %f,\n" \
+	"SET c_balance = c_balance - $1,\n" \
 	"    c_ytd_payment = c_ytd_payment + 1,\n" \
-	"    c_data = E'%s'\n" \
-	"WHERE c_id = %d\n" \
-	"  AND c_w_id = %d\n" \
-	"  AND c_d_id = %d"
+	"    c_data = $2\n" \
+	"WHERE c_id = $3\n" \
+	"  AND c_w_id = $4\n" \
+	"  AND c_d_id = $5",
+	5, { FLOAT4OID, TEXTOID, INT4OID, INT4OID, INT4OID }
+	},
 
-#define PAYMENT_8 \
+	{ /* PAYMENT_8 */
 	"INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,\n" \
 	"		     h_date, h_amount, h_data)\n" \
-	"VALUES (%d, %d, %d, %d, %d, current_timestamp, %f, E'%s    %s')"
+	"VALUES ($1, $2, $3, $4, $5, current_timestamp, $6, $7 || '    ' || $8)",
+	8, { INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, FLOAT4OID, TEXTOID, TEXTOID }
+	},
+
+	{ NULL }
+};
 
 /* Prototypes to prevent potential gcc warnings. */
-void escape_str(char *, char *);
-
 Datum payment(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(payment);
@@ -110,7 +141,6 @@ Datum payment(PG_FUNCTION_ARGS)
 	HeapTuple tuple;
 
 	int ret;
-	char query[4096];
 	char *w_name = NULL;
 	char *w_street_1 = NULL;
 	char *w_street_2 = NULL;
@@ -146,8 +176,8 @@ Datum payment(PG_FUNCTION_ARGS)
 	char *c_data = NULL;
 	char *c_ytd_payment = NULL;
 
-	char my_w_name[20];
-	char my_d_name[20];
+	Datum	args[7];
+	char	nulls[7] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 
 	elog(DEBUG1, "w_id = %d", w_id);
 	elog(DEBUG1, "d_id = %d", d_id);
@@ -161,9 +191,10 @@ Datum payment(PG_FUNCTION_ARGS)
 
 	SPI_connect();
 
-	sprintf(query, PAYMENT_1, w_id);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	plan_queries(statements);
+
+	args[0] = Int32GetDatum(w_id);
+	ret = SPI_execute_plan(PAYMENT_1, args, nulls, true, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -186,17 +217,17 @@ Datum payment(PG_FUNCTION_ARGS)
 		PG_RETURN_INT32(-1);
 	}
 
-	sprintf(query, PAYMENT_2, h_amount, w_id);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	args[0] = Float4GetDatum(h_amount);
+	args[1] = Int32GetDatum(w_id);
+	ret = SPI_execute_plan(PAYMENT_2, args, nulls, false, 0);
 	if (ret != SPI_OK_UPDATE) {
 		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
-	sprintf(query, PAYMENT_3, d_id, w_id);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	args[0] = Int32GetDatum(d_id);
+	args[1] = Int32GetDatum(w_id);
+	ret = SPI_execute_plan(PAYMENT_3, args, nulls, true, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -219,20 +250,20 @@ Datum payment(PG_FUNCTION_ARGS)
 		PG_RETURN_INT32(-1);
 	}
 
-	sprintf(query, PAYMENT_4, h_amount, d_id, w_id);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	args[0] = Float4GetDatum(h_amount);
+	args[1] = Int32GetDatum(d_id);
+	args[2] = Int32GetDatum(w_id);
+	ret = SPI_execute_plan(PAYMENT_4, args, nulls, false, 0);
 	if (ret != SPI_OK_UPDATE) {
 		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
 
 	if (c_id == 0) {
-		sprintf(query, PAYMENT_5, w_id, d_id,
-				DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(c_last))));
-		elog(DEBUG1, "%s", query);
-		ret = SPI_exec(query, 0);
+		args[0] = Int32GetDatum(w_id);
+		args[1] = Int32GetDatum(d_id);
+		args[2] = PointerGetDatum(c_last);
+		ret = SPI_execute_plan(PAYMENT_5, args, nulls, true, 0);
 		count = SPI_processed;
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
@@ -251,9 +282,10 @@ Datum payment(PG_FUNCTION_ARGS)
 		my_c_id = c_id;
 	}
 
-	sprintf(query, PAYMENT_6, c_w_id, c_d_id, my_c_id);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	args[0] = Int32GetDatum(c_w_id);
+	args[1] = Int32GetDatum(c_d_id);
+	args[2] = Int32GetDatum(my_c_id);
+	ret = SPI_execute_plan(PAYMENT_6, args, nulls, true, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -298,9 +330,11 @@ Datum payment(PG_FUNCTION_ARGS)
 
 	/* It's either "BC" or "GC". */
 	if (c_credit[0] == 'G') {
-		sprintf(query, PAYMENT_7_GC, h_amount, my_c_id, c_w_id, c_d_id);
-		elog(DEBUG1, "%s", query);
-		ret = SPI_exec(query, 0);
+		args[0] = Float4GetDatum(h_amount);
+		args[1] = Int32GetDatum(my_c_id);
+		args[2] = Int32GetDatum(c_w_id);
+		args[3] = Int32GetDatum(c_d_id);
+		ret = SPI_execute_plan(PAYMENT_7_GC, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			SPI_finish();
 			PG_RETURN_INT32(-1);
@@ -310,27 +344,31 @@ Datum payment(PG_FUNCTION_ARGS)
 
 		sprintf(my_c_data, "%d %d %d %d %d %f ", my_c_id, c_d_id,
 				c_w_id, d_id, w_id, h_amount);
-		/* Copy and escape all at once! */
-		escape_str(c_data, my_c_data);
 
-		sprintf(query, PAYMENT_7_BC, h_amount, my_c_data, my_c_id,
-				c_w_id, c_d_id);
-		elog(DEBUG1, "%s", query);
-		ret = SPI_exec(query, 0);
+		args[0] = Float4GetDatum(h_amount);
+		/* FIXME: This is bogus. We're not updating the value with what we
+		 * just constructed, we're just storing back the old value. This is
+		 * probably a bug, but this is the way it's been forever.   */
+		args[1] = CStringGetTextDatum(c_data);
+		args[2] = Int32GetDatum(my_c_id);
+		args[3] = Int32GetDatum(c_w_id);
+		args[4] = Int32GetDatum(c_d_id);
+		ret = SPI_execute_plan(PAYMENT_7_BC, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
 	}
 
-	/* Escape special characters. */
-	escape_str(w_name, my_w_name);
-	escape_str(d_name, my_d_name);
-
-	sprintf(query, PAYMENT_8, my_c_id, c_d_id, c_w_id, d_id, w_id,
-			h_amount, my_w_name, my_d_name);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	args[0] = Int32GetDatum(my_c_id);
+	args[1] = Int32GetDatum(c_d_id);
+	args[2] = Int32GetDatum(c_w_id);
+	args[3] = Int32GetDatum(d_id);
+	args[4] = Int32GetDatum(w_id);
+	args[5] = Float4GetDatum(h_amount);
+	args[6] = CStringGetTextDatum(w_name);
+	args[7] = CStringGetTextDatum(d_name);
+	ret = SPI_execute_plan(PAYMENT_8, args, nulls, false, 0);
 	if (ret != SPI_OK_INSERT) {
 		SPI_finish();
 		PG_RETURN_INT32(-1);

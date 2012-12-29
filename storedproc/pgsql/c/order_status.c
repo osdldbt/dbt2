@@ -11,8 +11,8 @@
 #include <unistd.h>
 #include <postgres.h>
 #include <fmgr.h>
+#include <catalog/pg_type.h>    /* for OIDs */
 #include <executor/spi.h> /* this should include most necessary APIs */
-#include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/builtins.h>
 
@@ -26,36 +26,54 @@ PG_MODULE_MAGIC;
  * Order Status transaction SQL statements.
  */
 
-#define ORDER_STATUS_1 \
+#define ORDER_STATUS_1 statements[0].plan
+#define ORDER_STATUS_2 statements[1].plan
+#define ORDER_STATUS_3 statements[2].plan
+#define ORDER_STATUS_4 statements[3].plan
+
+
+static cached_statement statements[] = {
+	{ /* ORDER_STATUS_1 */
 	"SELECT c_id\n" \
 	"FROM customer\n" \
-	"WHERE c_w_id = %d\n" \
-	"  AND c_d_id = %d\n" \
-	"  AND c_last = '%s'\n" \
-	"ORDER BY c_first ASC"
+	"WHERE c_w_id = $1\n" \
+	"  AND c_d_id = $2\n" \
+	"  AND c_last = $3\n" \
+	"ORDER BY c_first ASC",
+	3, { INT4OID, INT4OID, TEXTOID }
+	},
 
-#define ORDER_STATUS_2 \
+	{ /* ORDER_STATUS_2 */
 	"SELECT c_first, c_middle, c_last, c_balance\n" \
 	"FROM customer\n" \
-	"WHERE c_w_id = %d\n" \
-	"  AND c_d_id = %d\n" \
-	"  AND c_id = %d"
+	"WHERE c_w_id = $1\n" \
+	"  AND c_d_id = $2\n" \
+	"  AND c_id = $3",
+	3, { INT4OID, INT4OID, INT4OID }
+	},
 
-#define ORDER_STATUS_3 \
+	{ /* ORDER_STATUS_3 */
 	"SELECT o_id, o_carrier_id, o_entry_d, o_ol_cnt\n" \
 	"FROM orders\n" \
-	"WHERE o_w_id = %d\n" \
-	"  AND o_d_id = %d\n" \
-	"  AND o_c_id = %d\n" \
-	"ORDER BY o_id DESC"
+	"WHERE o_w_id = $1\n" \
+	"  AND o_d_id = $2\n" \
+	"  AND o_c_id = $3\n" \
+	"ORDER BY o_id DESC",
+	3, { INT4OID, INT4OID, INT4OID }
+	},
 
-#define ORDER_STATUS_4 \
+	{ /* ORDER_STATUS_4 */
 	"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,\n" \
 	"	ol_delivery_d\n" \
 	"FROM order_line\n" \
-	"WHERE ol_w_id = %d\n" \
-	"  AND ol_d_id = %d\n" \
-	"  AND ol_o_id = %s"
+	"WHERE ol_w_id = $1\n" \
+	"  AND ol_d_id = $2\n" \
+	"  AND ol_o_id = $3",
+	3, { INT4OID, INT4OID, INT4OID }
+	},
+
+	{ NULL }
+};
 
 
 /* Prototypes to prevent potential gcc warnings. */
@@ -89,7 +107,6 @@ Datum order_status(PG_FUNCTION_ARGS)
 		/* temp variables */
 		int ret;
 		int count;
-		char query[512];
 
 		char *tmp_c_id;
 		int my_c_id = 0;
@@ -99,10 +116,13 @@ Datum order_status(PG_FUNCTION_ARGS)
 		char *my_c_last = NULL;
 		char *c_balance = NULL;
 
-		char *o_id = NULL;
+		int o_id;
 		char *o_carrier_id = NULL;
 		char *o_entry_d = NULL;
 		char *o_ol_cnt = NULL;
+
+		Datum args[4];
+		char nulls[4] = { ' ', ' ', ' ', ' ' };
 
 		/* SRF setup */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -113,6 +133,8 @@ Datum order_status(PG_FUNCTION_ARGS)
 			elog(ERROR, "order_status: SPI connect returned %d", ret);
 		}
 
+		plan_queries(statements);
+
 		/*
 		 * switch into the multi_call_memory_ctx, anything that is
 		 * palloc'ed will be preserved across calls .
@@ -120,11 +142,10 @@ Datum order_status(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		if (c_id == 0) {
-			sprintf(query, ORDER_STATUS_1, c_w_id, c_d_id,
-					DatumGetCString(DirectFunctionCall1(textout,
-					PointerGetDatum(c_last))));
-			elog(DEBUG1, "%s", query);
-			ret = SPI_exec(query, 0);
+			args[0] = Int32GetDatum(c_w_id);
+			args[1] = Int32GetDatum(c_d_id);
+			args[2] = PointerGetDatum(c_last);
+			ret = SPI_execute_plan(ORDER_STATUS_1, args, nulls, true, 0);
 			count = SPI_processed;
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				tupdesc = SPI_tuptable->tupdesc;
@@ -143,9 +164,10 @@ Datum order_status(PG_FUNCTION_ARGS)
 			my_c_id = c_id;
 		}
 
-		sprintf(query, ORDER_STATUS_2, c_w_id, c_d_id, my_c_id);
-		elog(DEBUG1, "%s", query);
-		ret = SPI_exec(query, 0);
+		args[0] = Int32GetDatum(c_w_id);
+		args[1] = Int32GetDatum(c_d_id);
+		args[2] = Int32GetDatum(my_c_id);
+		ret = SPI_execute_plan(ORDER_STATUS_2, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -165,19 +187,20 @@ Datum order_status(PG_FUNCTION_ARGS)
 		}
 
 		/* Maybe this should be a join with the previous query. */
-		sprintf(query, ORDER_STATUS_3, c_w_id, c_d_id, my_c_id);
-		elog(DEBUG1, "%s", query);
-		ret = SPI_exec(query, 0);
+		args[0] = Int32GetDatum(c_w_id);
+		args[1] = Int32GetDatum(c_d_id);
+		args[2] = Int32GetDatum(my_c_id);
+		ret = SPI_execute_plan(ORDER_STATUS_3, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			o_id = SPI_getvalue(tuple, tupdesc, 1);
+			o_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
 			o_carrier_id = SPI_getvalue(tuple, tupdesc, 2);
 			o_entry_d = SPI_getvalue(tuple, tupdesc, 3);
 			o_ol_cnt = SPI_getvalue(tuple, tupdesc, 4);
-			elog(DEBUG1, "o_id = %s", o_id);
+			elog(DEBUG1, "o_id = %d", o_id);
 			elog(DEBUG1, "o_carrier_id = %s", o_carrier_id);
 			elog(DEBUG1, "o_entry_d = %s", o_entry_d);
 			elog(DEBUG1, "o_ol_cnt = %s", o_ol_cnt);
@@ -186,13 +209,14 @@ Datum order_status(PG_FUNCTION_ARGS)
 			SRF_RETURN_DONE(funcctx);
 		}
 
-		sprintf(query, ORDER_STATUS_4, c_w_id, c_d_id, o_id);
-		elog(DEBUG1, "%s", query);
+		args[0] = Int32GetDatum(c_w_id);
+		args[1] = Int32GetDatum(c_d_id);
+		args[2] = Int32GetDatum(o_id);
+		ret = SPI_execute_plan(ORDER_STATUS_4, args, nulls, true, 0);
+		count = SPI_processed;
 
 		elog(DEBUG1, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d");
 		elog(DEBUG1, "--  -------  --------------  -----------  ---------  -------------");
-		ret = SPI_exec(query, 0);
-		count = SPI_processed;
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;

@@ -11,9 +11,11 @@
 #include <unistd.h>
 #include <postgres.h>
 #include <fmgr.h>
+#include <catalog/pg_type.h> /* for OIDs */
 #include <executor/spi.h> /* this should include most necessary APIs */
-#include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
+
+#include "dbt2common.h"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -23,24 +25,36 @@ PG_MODULE_MAGIC;
  * Stock Level transaction SQL Statement.
  */
 
-#define STOCK_LEVEL_1 \
+#define STOCK_LEVEL_1 statements[0].plan
+#define STOCK_LEVEL_2 statements[1].plan
+
+static cached_statement statements[] = {
+	{ /* STOCK_LEVEL_1 */
 	"SELECT d_next_o_id\n" \
 	"FROM district\n" \
-	"WHERE d_w_id = %d\n" \
-	"AND d_id = %d"
+	"WHERE d_w_id = $1\n" \
+	"AND d_id = $2",
+	2, { INT4OID, INT4OID }
+	},
 
-#define STOCK_LEVEL_2 \
+	{ /*1 STOCK_LEVEL_2 */
 	"SELECT count(*)\n" \
 	"FROM order_line, stock, district\n" \
-	"WHERE d_id = %d\n" \
-	"  AND d_w_id = %d\n" \
+	"WHERE d_id = $1\n" \
+	"  AND d_w_id = $2\n" \
 	"  AND d_id = ol_d_id\n" \
 	"  AND d_w_id = ol_w_id\n" \
 	"  AND ol_i_id = s_i_id\n" \
 	"  AND ol_w_id = s_w_id\n" \
-	"  AND s_quantity < %d\n" \
-	"  AND ol_o_id BETWEEN (%d)\n" \
-	"		  AND (%d)"
+	"  AND s_quantity < $3\n" \
+	"  AND ol_o_id BETWEEN ($4)\n" \
+	"		  AND ($5)",
+	5, { INT4OID, INT4OID, INT4OID, INT4OID, INT4OID }
+	},
+
+	{ NULL }
+};
+
 
 /* Prototypes to prevent potential gcc warnings. */
 Datum stock_level(PG_FUNCTION_ARGS);
@@ -61,14 +75,18 @@ Datum stock_level(PG_FUNCTION_ARGS)
 	int d_next_o_id = 0;
 	int low_stock = 0;
 	int ret;
-	char query[256];
 	char *buf;
+
+	Datum args[4];
+	char nulls[4] = { ' ', ' ', ' ', ' ' };
 
 	SPI_connect();
 
-	sprintf(query, STOCK_LEVEL_1, w_id, d_id);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	plan_queries(statements);
+
+	args[0] = Int32GetDatum(w_id);
+	args[1] = Int32GetDatum(d_id);
+	ret = SPI_execute_plan(STOCK_LEVEL_1, args, nulls, true, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -82,10 +100,12 @@ Datum stock_level(PG_FUNCTION_ARGS)
 		PG_RETURN_INT32(-1);
 	}
 
-	sprintf(query, STOCK_LEVEL_2, w_id, d_id, threshold, d_next_o_id - 20,
-			d_next_o_id - 1);
-	elog(DEBUG1, "%s", query);
-	ret = SPI_exec(query, 0);
+	args[0] = Int32GetDatum(w_id);
+	args[1] = Int32GetDatum(d_id);
+	args[2] = Int32GetDatum(threshold);
+	args[3] = Int32GetDatum(d_next_o_id - 20);
+	args[4] = Int32GetDatum(d_next_o_id - 1);
+	ret = SPI_execute_plan(STOCK_LEVEL_2, args, nulls, true, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
