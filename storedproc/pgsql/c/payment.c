@@ -103,7 +103,7 @@ static cached_statement statements[] =
 	"UPDATE customer\n" \
 	"SET c_balance = c_balance - $1,\n" \
 	"    c_ytd_payment = c_ytd_payment + 1,\n" \
-	"    c_data = $2\n" \
+	"    c_data = substring($2 || c_data, 1 , 500)\n" \
 	"WHERE c_id = $3\n" \
 	"  AND c_w_id = $4\n" \
 	"  AND c_d_id = $5",
@@ -176,7 +176,7 @@ Datum payment(PG_FUNCTION_ARGS)
 	char *c_data = NULL;
 	char *c_ytd_payment = NULL;
 
-	Datum	args[7];
+	Datum	args[8];
 	char	nulls[7] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 
 	elog(DEBUG1, "w_id = %d", w_id);
@@ -346,9 +346,6 @@ Datum payment(PG_FUNCTION_ARGS)
 				c_w_id, d_id, w_id, h_amount);
 
 		args[0] = Float4GetDatum(h_amount);
-		/* FIXME: This is bogus. We're not updating the value with what we
-		 * just constructed, we're just storing back the old value. This is
-		 * probably a bug, but this is the way it's been forever.   */
 		args[1] = CStringGetTextDatum(c_data);
 		args[2] = Int32GetDatum(my_c_id);
 		args[3] = Int32GetDatum(c_w_id);
