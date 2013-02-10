@@ -221,10 +221,12 @@ Datum delivery(PG_FUNCTION_ARGS)
 			PG_RETURN_INT32(-1);
 		}
 
-		args[0] = DirectFunctionCall1(numeric_in, CStringGetDatum(ol_amount));
+		args[0] = DirectFunctionCall3(numeric_in, CStringGetDatum(ol_amount),
+				ObjectIdGetDatum(InvalidOid),
+				Int32GetDatum(((24 << 16) | 12) + VARHDRSZ));
 		args[1] = Int32GetDatum(o_c_id);
 		args[2] = Int32GetDatum(w_id);
-		args[2] = Int32GetDatum(d_id);
+		args[3] = Int32GetDatum(d_id);
 		ret = SPI_execute_plan(DELIVERY_7, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			SPI_finish();
