@@ -238,6 +238,9 @@ usage()
 	echo "       -q <enable oprofile data collection>"
 	echo "       -s <delay of starting of new threads in milliseconds>"
 	echo "       -n <no thinking or keying time (default no)>"
+	if [ "${DBMS}" = "pgsql" ]; then
+		echo "       -p <GUC overrides>"
+	fi
 	echo "       -D <database name>"
 	if [ "${DBMS}" = "mysql" ]; then
 		echo "       -u <database user>"

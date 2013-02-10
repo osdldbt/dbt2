@@ -3,16 +3,16 @@
 #
 
 # Database listener port.
-PORT=5432; export PORT
+DBT2PORT=5432; export DBT2PORT
 
 # Database instance name.
-DBNAME=dbt2; export DBNAME
+DBT2DBNAME=dbt2; export DBT2DBNAME
 
 # Database instance path.
-PGDATA=${HOME}/local/dbt2/pgdata; export PGDATA
+DBT2PGDATA=${HOME}/local/dbt2/pgdata; export DBT2PGDATA
 
 # Directory with tablespace mount points, if using tablespaces.
-TSDIR=${HOME}/local/dbt2; export TSDIR
+DBT2TSDIR=${HOME}/local/dbt2; export DBT2TSDIR
 
 # Flag to use PGPOOL.
 USE_PGPOOL=0; export USE_PGPOOL

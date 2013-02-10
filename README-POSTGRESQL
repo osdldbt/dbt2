@@ -76,11 +76,11 @@ and DBDATA directory.  DBT2PGDATA is where the database directory will
 be created and DBDATA is where the database table data will be
 generated.
 
-Run configure after editing bin/pgsql/pgsql_profile.in.
+Set environment variables, see examples/dbt2_profile.
 
 Create a 1 warehouse database by running bin/pgsql/dbt2-pgsql-build-db
 and put the data files in '/tmp/data':
-	dbt2-pgsql-build-db -g -w 1 -d /tmp/data
+	dbt2-pgsql-build-db -w 1
 
 Flag description:
 	-d <dir> -  Location for data files to load.
@@ -89,7 +89,7 @@ Flag description:
 
 Additional flags:
 	-h       -  Help.
-    -r       -  Drop the database before loading, for rebuilding the
+	-r       -  Drop the database before loading, for rebuilding the
                 database.
 	-t       -  Use tablespaces, read tablespace notes below.
 
@@ -114,7 +114,7 @@ Tablespace Notes
 
 The scripts assumes a specific tablespace layout.
 
-The ${DBT2TSDIR} variable in pgsql_profile.in defines the directory where all
+The ${DBT2TSDIR} variable in dbt2_profile defines the directory where all
 tablespace devices will be mounted.  Directories or symlinks can be substituted
 for what is assumed to be a mount point from this point forward.
 
@@ -152,13 +152,13 @@ tiny db 500 warehouse (scaling other factors)
 
 generated from: (tpcc only allow scaling warehouse)
 mkdir DB.small
-./src/datagen --pgsql -w 2 -d DB.small -c 300 -i 10000 -o 300 -n 90
+dbt2-datagen --pgsql -w 2 -d DB.small -c 300 -i 10000 -o 300 -n 90
 mkdir DB.big
-./src/datagen --pgsql -w 20 -d DB.big -c 300 -i 10000 -o 300 -n 90
+dbt2-datagen --pgsql -w 20 -d DB.big -c 300 -i 10000 -o 300 -n 90
 
 # scaling the other factor
 mkdir DB.tiny
-./src/datagen --pgsql -w 500 -d DB.tiny -c 3 -i 10 -o 3 -n 9
+dbt2-datagen --pgsql -w 500 -d DB.tiny -c 3 -i 10 -o 3 -n 9
 
 You can get # of warehouse from psql: select count(*) from warehouse;
 
@@ -169,12 +169,12 @@ Then run "client" program manually,
 you can monitor the query queue length by type "status" command.
 
 cd <dbt2_home>/bin/pgsql
-../../src/client -d localhost -c 2 -l 5432 -o ../output/0
+dbt2-client -d localhost -c 2 -l 5432 -o ../output/0
 
 Then run "driver" program manually,
 you can control tpw (terminal per warehouse) and think time etc.
 
-../../src/driver -d localhost -l 360 -wmin 1 -wmax 20 -w 20 \
+dbt2-src/driver -d localhost -l 360 -wmin 1 -wmax 20 -w 20 \
   -c 3 -i 10 -o 3 -n 9 \
   -ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 \
   -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 -tpw 80 -outdir ../output/0
