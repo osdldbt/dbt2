@@ -78,7 +78,7 @@ Datum stock_level(PG_FUNCTION_ARGS)
 	char *buf;
 
 	Datum args[5];
-	char nulls[4] = { ' ', ' ', ' ', ' ' };
+	char nulls[5] = { ' ', ' ', ' ', ' ', ' ' };
 
 	SPI_connect();
 

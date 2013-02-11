@@ -177,7 +177,7 @@ Datum payment(PG_FUNCTION_ARGS)
 	char *c_ytd_payment = NULL;
 
 	Datum	args[8];
-	char	nulls[7] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
+	char	nulls[8] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 
 	elog(DEBUG1, "w_id = %d", w_id);
 	elog(DEBUG1, "d_id = %d", d_id);
