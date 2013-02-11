@@ -346,7 +346,7 @@ Datum payment(PG_FUNCTION_ARGS)
 				c_w_id, d_id, w_id, h_amount);
 
 		args[0] = Float4GetDatum(h_amount);
-		args[1] = CStringGetTextDatum(c_data);
+		args[1] = CStringGetTextDatum(my_c_data);
 		args[2] = Int32GetDatum(my_c_id);
 		args[3] = Int32GetDatum(c_w_id);
 		args[4] = Int32GetDatum(c_d_id);
