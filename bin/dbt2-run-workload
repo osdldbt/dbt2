@@ -154,6 +154,44 @@ oprofile_stop()
 	${COMMAND} sudo opcontrol --shutdown
 }
 
+perf_start()
+{
+	COMMAND=""
+	DIR=${1}
+	HOST=${2}
+
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+
+	${COMMAND} sudo perf record -o ${DIR}/perf.data -a -g -s sleep ${DURATION}
+}
+
+perf_collect()
+{
+	COMMAND=""
+	DIR=${1}
+	HOST=${2}
+
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+
+	echo "Generating perf report on '${HOST}'..."
+	${COMMAND} sudo perf report \
+			-i ${DIR}/perf.data -n > ${DIR}/perf-report.txt &
+	echo "Generating perf annotated source on '${HOST}'..."
+	${COMMAND} sudo perf annotate -l -P \
+			-i ${DIR}/perf.data > ${DIR}/perf-annotate.txt &
+	echo "Generating perf trace on '${HOST}'..."
+	${COMMAND} sudo perf script -L \
+			-i ${DIR}/perf.data > ${DIR}/perf-trace.txt &
+}
+
 post_process_sar()
 {
 	COMMAND=""
@@ -236,6 +274,7 @@ usage()
 	fi
 	echo "       -l <database port number>"
 	echo "       -q <enable oprofile data collection>"
+	echo "       -r <enable perf data collection>"
 	echo "       -s <delay of starting of new threads in milliseconds>"
 	echo "       -n <no thinking or keying time (default no)>"
 	if [ "${DBMS}" = "pgsql" ]; then
@@ -270,10 +309,11 @@ WORKING_DIR=""
 DB_USER=${DBUSER}
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
+USE_PERF=0
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 
-while getopts "a:b:c:D:d:H:hi:l:no:p:qS:s:t:u:w:x:z:" opt; do
+while getopts "a:b:c:D:d:H:hi:l:no:p:qrS:s:t:u:w:x:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
@@ -324,6 +364,9 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qS:s:t:u:w:x:z:" opt; do
 		;;
 	q)
 		USE_OPROFILE=1
+		;;
+	r)
+		USE_PERF=1
 		;;
 	S)
 		SOCK_FILE=${OPTARG}
@@ -667,6 +710,14 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	fi
 fi
 
+# Start perf data collection
+if [ ${USE_PERF} -eq 1 ]; then
+	perf_start ${OUTPUT_DIR} &
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		perf_start ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
+	fi
+fi
+
 # Sleep for the duration of the run.
 echo -n "estimated steady state time: "
 do_sleep $DURATION
@@ -684,6 +735,14 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_collect ${OUTPUT_DIR}
 	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+	fi
+fi
+
+# Collect perf data.
+if [ ${USE_PERF} -eq 1 ]; then
+	perf_collect ${OUTPUT_DIR}
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		perf_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
 
