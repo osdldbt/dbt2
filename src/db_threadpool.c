@@ -40,6 +40,7 @@ time_t *last_txn;
 
 /* These should probably be handled differently. */
 extern char sname[32];
+extern char dname[32];
 extern int exiting;
 sem_t db_worker_count;
 #ifdef STANDALONE
@@ -87,7 +88,7 @@ void *db_worker(void *data)
         db_init(sname, dbt2_user, dbt2_pass);
 #endif /* ODBC */
 #ifdef LIBPQ
-        db_init(DB_NAME, sname, postmaster_port);
+        db_init(dname, sname, postmaster_port);
 #endif /* LIBPQ */
 
 #ifdef LIBMYSQL

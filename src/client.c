@@ -32,6 +32,7 @@ int parse_command(char *command);
 
 /* Global Variables */
 char sname[32] = "";
+char dname[32] = "";
 int port = CLIENT_PORT;
 int sockfd;
 int exiting = 0;
@@ -86,6 +87,8 @@ int main(int argc, char *argv[])
 		printf("\tdatabase hostname\n");
 		printf("-l #\n");
 		printf("\tpostmaster port\n");
+                printf("-b <dbname>\n");
+                printf("\tdatabase name\n");
 #endif /* LIBPQ */
 #ifdef LIBMYSQL
 		printf("-h <hostname of mysql server>\n");
@@ -196,7 +199,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:l:o:p:s:t:h:u:a:f",
+		c = getopt_long(argc, argv, "c:d:b:l:o:p:s:t:h:u:a:f",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -211,6 +214,9 @@ int parse_arguments(int argc, char *argv[])
 		case 'd':
 			strcpy(sname, optarg);
 			break;
+                case 'b':
+                        strcpy(dname, optarg);
+                        break;
 		case 'f':
 			force_sleep=1;
 			break;
