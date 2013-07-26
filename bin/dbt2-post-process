@@ -59,7 +59,7 @@ for key in [d, n, o, p, s]:
     rollback_count[key] = r.subset(dataframe[key],
                                    dataframe[key].rx('V3').ro == "R").nrow
     per90[key] = r.quantile(dataframe[key].rx('V4')[0], .9)[0]
-    average_rt[key] = r.mean(dataframe[key].rx('V4'))[0]
+    average_rt[key] = r.mean(dataframe[key].rx('V4')[0])[0]
 
 transaction_name = dict()
 transaction_name[d] = 'Delivery'
