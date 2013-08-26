@@ -56,10 +56,15 @@ total_transaction_count = steadystate.nrow
 for key in [d, n, o, p, s]:
     dataframe[key] = r.subset(steadystate, steadystate.rx('V2').ro == key)
     transaction_count[key] = dataframe[key].nrow
-    rollback_count[key] = r.subset(dataframe[key],
+    if transaction_count[key] == 0:
+        rollback_count[key] = 0
+        per90[key] = 0.0
+        average_rt[key] = 0.0
+    else:
+        rollback_count[key] = r.subset(dataframe[key],
                                    dataframe[key].rx('V3').ro == "R").nrow
-    per90[key] = r.quantile(dataframe[key].rx('V4')[0], .9)[0]
-    average_rt[key] = r.mean(dataframe[key].rx('V4')[0])[0]
+        per90[key] = r.quantile(dataframe[key].rx('V4')[0], .9)[0]
+        average_rt[key] = r.mean(dataframe[key].rx('V4')[0])[0]
 
 transaction_name = dict()
 transaction_name[d] = 'Delivery'
