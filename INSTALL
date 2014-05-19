@@ -1,7 +1,7 @@
 Building DBT-2:
 
-	# Configure
-	cmake -DDBMS=<drizzle|mysql|pgsql|sapdb>
+	# Configure (-DDESTDIR: DESTDIR to be used by make install)
+	cmake -DDBMS=<drizzle|mysql|pgsql|sapdb> -DDESTDIR=/usr/local
 	# Build
 	make
 
@@ -11,6 +11,7 @@ Installing DBT-2:
 
 	make install DESTDIR=/usr/local
 
+DESTDIR could be omitted here if already specified in cmake as -DDESTDIR.
 This will put all binaries in '/usr/local/bin'.
 
 -----
