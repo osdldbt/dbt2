@@ -1,0 +1,24 @@
+*.o
+*.so
+
+bin/dbt2-client
+bin/dbt2-datagen
+bin/dbt2-driver
+bin/dbt2-transaction-test
+
+# vim
+*.swp
+
+# cmake
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+install_manifest.txt
+
+# psql generated .sql files
+storedproc/pgsql/c/delivery.sql
+storedproc/pgsql/c/new_order.sql
+storedproc/pgsql/c/order_status.sql
+storedproc/pgsql/c/payment.sql
+storedproc/pgsql/c/stock_level.sql
