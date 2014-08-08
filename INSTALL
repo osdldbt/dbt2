@@ -25,4 +25,5 @@ The file 'install_manifest.txt' will be created after running 'make install'.
 
 Running DBT-2
 
-The scripts require R and the python rpy2 packages to be installed.
+The kit requires R to be installed for basic post processing and plotting of
+transaction data.

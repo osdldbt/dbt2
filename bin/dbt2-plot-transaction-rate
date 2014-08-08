@@ -1,115 +1,55 @@
-#!/usr/bin/env python
-
+#!/bin/sh
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2010 Mark Wong
+# Copyright (C) 2010-2014 Mark Wong
+#               2014      2ndQuadrant, Ltd.
 #
 
-import sys
-from os import makedirs, system
-from os.path import exists, realpath
+MIXLOG=$1
+OUTPUTDIR=$2
 
-import rpy2.robjects as robjects
-from rpy2.robjects.vectors import DataFrame
+if [ $# -ne 2 ]; then
+    echo "Create a plot the rate of transactions."
+    echo "usage: `basename $0` <mix.log> <output directory>"
+    echo
+    echo "    <mix.log> - full path to the mix.log file"
+    echo "    <output directory> - location to write output files"
+    echo
+    echo "Will attempt to create <output directory> if it does not exist."
+    exit 1
+fi
 
-if len(sys.argv) != 3:
-    print 'Create a plot the rate of transactions.'
-    print 'usage: %s <mix.log> <output directory>' % sys.argv[0]
-    print
-    print '    <mix.log> - full path to the mix.log file'
-    print '    <output directory> - location to write output files'
-    print
-    print 'Will attempt to create <output directory> if it does not exist.'
-    sys.exit(1)
+R --slave --no-save << __EOF__
+txn <- c("d", "n", "o", "p", "s")
+txn_name <- c("Delivery", "New Order", "Order Status", "Payment",
+              "Stock Level")
+color <- rainbow(5)
 
-infilename = sys.argv[1]
-outputdir = sys.argv[2]
+df <- read.csv("$MIXLOG", header=F)
+colnames(df)[1] <- 'ctime'
+colnames(df)[2] <- 'txn'
+# This is really the transaction "status" column, but we're going to count the
+# number of occurances here.
+colnames(df)[3] <- 'count'
 
-sample_length = 60
+starttime = df[1,]\$ctime
 
-de = 'd'
-no = 'n'
-os = 'o'
-pa = 'p'
-sl = 's'
+# Aggregate counts by into minutes.
+df\$ctime <- ceiling((df\$ctime - starttime) / 60)
+df <- aggregate(count ~ txn + ctime, df, length)
 
-transaction_name = dict()
-transaction_name[de] = 'Delivery'
-transaction_name[no] = 'New Order'
-transaction_name[os] = 'Order Status'
-transaction_name[pa] = 'Payment'
-transaction_name[sl] = 'Stock Level'
-
-# Make sure we can open the files to write to.
-if not exists(outputdir):
-    try:
-        # FIXME: Don't know why makedirs sometimes fails.
-        #makedirs(outputdir)
-        system('mkdir -p %s' % outputdir)
-    except:
-        print 'cannot create directory "%s"' % outputdir
-        sys.exit(2)
-
-outputdir = realpath(outputdir)
-
-# Make sure the file exists.
-if not exists(infilename):
-    print 'cannot open file: %s' % infilename
-    sys.exit(1)
-
-r = robjects.r
-
-df = DataFrame.from_csvfile(infilename, header=False)
-
-starttime = df[0][0]
-endtime = df[0][df.nrow - 1]
-iterations = r.ceiling((endtime - starttime) / sample_length)[0]
-
-j = 0
-for key in [de, no, os, pa, sl]:
-    i = 0
-
-    # Create a list of data then pass it to R.
-    # TODO: Figure out how to append data to an R data frame instead of making
-    # Python lists and then generating the R data frame.  Then determine which
-    # way is better.
-    x = [0]
-    y = [0]
-
-    subset = r.subset(df, df.rx('V2').ro == key)
-    while i < iterations:
-        # Calculate 1 minute intervals starting from the first transaction
-        # response time.
-        istart = starttime + i * sample_length
-        iend = istart + sample_length
-
-        isubset = r.subset(subset, subset.rx('V1').ro >= istart)
-        isubset = r.subset(isubset, isubset.rx('V1').ro < iend)
-
-        x.append(i + 1)
-        # Aggregate count of transaction.
-        y.append(isubset.nrow)
-        i += 1
-
-    # Set the data frame column names to default V1 and V2 values R would use
-    # for lack of better names.
-    data = {'V1': robjects.IntVector(x), 'V2': robjects.IntVector(y)}
-    tmp_df = r['data.frame'](**data)
-
-    # Create the plots!
-    r.bitmap('%s/t%s-transaction-rate.png' % (outputdir, key),
-             type='png16m', units='px', width=1280, height=800, res=150, taa=4,
-             gaa=4)
-    xmax = r.max(tmp_df.rx(1))[0]
-    ymax = r.max(tmp_df.rx(2))[0]
-    color = r.rainbow(len(transaction_name))
-    r.plot(tmp_df[0], tmp_df[1], xlim=r.c(0, xmax), ylim=r.c(0, ymax),
-           type='b', col=color[j],
-           main='%s Transaction Rate' % transaction_name[key],
-           xlab='Elapsed Time (minutes)', ylab='Transactions per Minute')
-    r.grid(col='gray')
-    r('dev.off()')
-
-    j += 1
+for (i in 1:5) {
+  bitmap(paste("${OUTPUTDIR}/", txn[i], "-transaction-rate.png", sep = ""),
+         type="png16m", units="px", width=1280, height=800, res=150, taa=4,
+         gaa=4)
+  dfsub <- subset(df, df\$txn == txn[i])
+  plot(dfsub\$ctime, dfsub\$count,  xlim=c(0, max(dfsub\$ctime)),
+       ylim=c(0, max(dfsub\$count)), type = "b", col = color[i],
+       main=paste(txn_name[i], " Transaction Rate", sep=""),
+       xlab="Elapsed Time (minutes)", ylab="Transactions per Minute")
+  grid(col="gray")
+  invisible(dev.off())
+}
+__EOF__

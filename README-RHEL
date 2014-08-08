@@ -29,13 +29,6 @@ install R
             libRmath-devel-2.10.0-2.el5.x86_64.rpm R-2.10.0-2.el5.x86_64.rpm \
             R-core-2.10.0-2.el5.x86_64.rpm R-devel-2.10.0-2.el5.x86_64.rpm
 
-install rpy
-
-    yum install python-setuptools python-devel
-    # I'm just used to pip, you can just use easy_install...
-    easy_install pip
-    pip install rpy2
-
 install cmake
 
     yum install gcc-c++

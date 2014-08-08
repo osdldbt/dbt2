@@ -1,111 +1,87 @@
-#!/usr/bin/env python
-
+#!/bin/sh
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2006      Open Source Development Labs, Inc.
-#               2006-2010 Mark Wong
+#               2006-2014 Mark Wong
+#               2014      2ndQuadrant, Ltd.
 #
 
-import sys
-import os
+MIXFILE=$1
 
-import rpy2.robjects as robjects
-from rpy2.robjects.vectors import DataFrame
+if [ $# -ne 1 ]; then
+	echo "usage: `basename $0` <mix.log>"
+	exit 1
+fi
 
-if len(sys.argv) != 2:
-    print 'usage: %s <mix.log>' % sys.argv[0]
-    sys.exit(1)
+R --slave --no-save << __EOF__
+# Is there an escape error in pipe()? It shouldn't print the START marker line
+# nor the TERMINATED line.
+cmd <- "sed -n '/START/,/TERMINATED/{/START|TERMINATED/!p}' ${MIXFILE}"
+mix <- read.csv(pipe(cmd), header=F)
+mix <- mix[-1,]
+mix <- mix[-nrow(mix),]
 
-filename = sys.argv[1]
+colnames(mix)[1] <- 'ctime'
+colnames(mix)[2] <- 'txn'
+colnames(mix)[3] <- 'status'
+colnames(mix)[4] <- 'response'
 
-if not os.path.exists(filename):
-    print 'cannot open file: %s' % filename
-    sys.exit(1)
+# Get the ctime after the START marker and the ctime before the first
+# TERMINATED marker.
+start <- mix[1,]\$ctime
+total_txn <- nrow(mix)
+end <- mix[total_txn:total_txn,]\$ctime
 
-d = 'd'
-n = 'n'
-o = 'o'
-p = 'p'
-s = 's'
+duration = end - start
+errors <- sum(mix\$status == "E")
 
-dataframe = dict()
-transaction_count = dict()
-rollback_count = dict()
-per90 = dict()
-average_rt = dict()
+cat("                         Response Time (s)\n")
+cat(paste(" Transaction      %    Average :    90th %        Total        ",
+          "Rollbacks      %\n", sep = ""))
+cat(paste("------------  -----  ---------------------  -----------  ",
+          "---------------  -----\n", sep = ""))
 
-r = robjects.r
-df = DataFrame.from_csvfile(filename, header=False)
-rampup_start = df[0][0]
+txn <- c("d", "n", "o", "p", "s")
+txn_name <- c("Delivery", "New Order", "Order Status", "Payment",
+              "Stock Level")
 
-start_subset = r.subset(df, df.rx('V2').ro == "START")
-if start_subset.nrow == 0:
-    print 'START market not found in: %s' % filename
-    sys.exit(1)
-steadystate_start = r.subset(df, df.rx('V2').ro == "START")[0][0]
-steadystate_end = df[0][df.nrow - 1]
-steadystate = r.subset(df, df.rx('V1').ro > steadystate_start)
-if steadystate.nrow == 0:
-    print 'No data was collected during the steady state portion of the test.'
-    sys.exit(1)
-error_count = r.subset(steadystate, steadystate.rx('V3').ro == "E").nrow
-total_transaction_count = steadystate.nrow
+for (i in 1:5) {
+  t_total <- sum(mix\$txn == txn[i])
+  if (i == 2) {
+    total_n <- t_total
+  }
+  t_rollback <- sum(mix\$txn == txn[i] & mix\$status == "R")
+  t_mean <- mean(mix\$response[mix\$txn == txn[i]])
+  t_q90 <- quantile(mix\$response[mix\$txn == txn[i]], .9)
+  cat(sprintf("%12s  %5.2f  %9.3f : %9.3f  %11d  %15d  %5.2f\n",
+              txn_name[i], t_total / total_txn * 100, t_mean, t_q90,
+              t_total, t_rollback, t_rollback / t_total * 100))
+}
 
-for key in [d, n, o, p, s]:
-    dataframe[key] = r.subset(steadystate, steadystate.rx('V2').ro == key)
-    transaction_count[key] = dataframe[key].nrow
-    if transaction_count[key] == 0:
-        rollback_count[key] = 0
-        per90[key] = 0.0
-        average_rt[key] = 0.0
-    else:
-        rollback_count[key] = r.subset(dataframe[key],
-                                   dataframe[key].rx('V3').ro == "R").nrow
-        per90[key] = r.quantile(dataframe[key].rx('V4')[0], .9)[0]
-        average_rt[key] = r.mean(dataframe[key].rx('V4')[0])[0]
+cat(paste("------------  -----  ---------------------  -----------  ",
+          "---------------  -----\n", sep = ""))
+cat(sprintf("%0.2f new-order transactions per minute (NOTPM)\n",
+            total_n / (duration / 60)))
+cat(sprintf("%0.1f minute duration\n", duration / 60))
+cat(sprintf("%d total unknown errors\n", errors))
 
-transaction_name = dict()
-transaction_name[d] = 'Delivery'
-transaction_name[n] = 'New Order'
-transaction_name[o] = 'Order Status'
-transaction_name[p] = 'Payment'
-transaction_name[s] = 'Stock Level'
+# Calculate the ramp up time.
 
-print '                         Response Time (s)'
-print ' Transaction      %    Average :    90th %        Total        Rollbacks      %'
-print '------------  -----  ---------------------  -----------  ---------------  -----'
+cmd <- "sed -e '/START/q' ${MIXFILE}"
+mix <- read.csv(pipe(cmd), header=F)
+mix <- mix[-nrow(mix),]
 
-for key in [d, n, o, p, s]:
-    try:
-        mix_percentage = float(transaction_count[key]) / \
-                float(total_transaction_count) * 100.0
-    except:
-        mix_percentage = 0
+colnames(mix)[1] <- 'ctime'
+colnames(mix)[2] <- 'txn'
+colnames(mix)[3] <- 'status'
+colnames(mix)[4] <- 'response'
 
-    try:
-        rollback_percentage = float(rollback_count[key]) / \
-                float(transaction_count[key]) * 100.0
-    except:
-        rollback_percentage = 0
+start <- mix[1,]\$ctime
+total_txn <- dim(mix)[1]
+end <- mix[total_txn:total_txn,]\$ctime
+duration = end - start
 
-    print '%12s  %5.2f  %9.3f : %9.3f  %11d  %15d  %5.2f' % (
-            transaction_name[key],
-            mix_percentage,
-            average_rt[key],
-            per90[key],
-            transaction_count[key],
-            rollback_count[key],
-            rollback_percentage)
-
-print '------------  -----  ---------------------  -----------  ---------------  -----'
-
-duration = float(steadystate_end - steadystate_start)
-print
-print '%0.2f new-order transactions per minute (NOTPM)' % \
-        (float(transaction_count[n]) * 60.0 / duration)
-print '%0.1f minute duration' % (duration / 60.0)
-print '%d total unknown errors' % error_count
-print '%0.1f seconds(s) ramping up' % \
-      (float(steadystate_start - rampup_start) / 60.0)
+cat(sprintf("%0.1f seconds(s) ramping up\n", duration))
+__EOF__
