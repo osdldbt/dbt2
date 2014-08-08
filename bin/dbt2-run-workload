@@ -312,6 +312,7 @@ USE_OPROFILE=0
 USE_PERF=0
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
+DBNAME=${DBT2DBNAME}
 
 while getopts "a:b:c:D:d:H:hi:l:no:p:qrS:s:t:u:w:x:z:" opt; do
 	case $opt in
@@ -407,6 +408,12 @@ fi
 
 if [ "x${DBMS}" = "x" ]; then
 	echo "specify which dbms system to test using -a <drizzle|mysql|pgsql|sqlite>"
+	exit 1
+fi
+
+if [ "x${DBNAME}" = "x" ]; then
+	echo "specify the database name using -D "
+	echo "or by setting the DBT2DBNAME environment variable"
 	exit 1
 fi
 
