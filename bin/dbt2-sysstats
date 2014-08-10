@@ -4,34 +4,15 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2008 Open Source Development Labs, Inc.
+#               2002-2014 Mark Wong
+#               2014      2ndQuadrant, Ltd.
 #
 
 #
-# Check if iostat, sar and vmstat are in the user's path.  If not, set to
-# true so the script doesn't complain.
+# Check if sar is in the user's path.  If not, set to true so the script
+# doesn't complain.
 #
-
-which iopp > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	IOPP=iopp
-else
-	IOPP=true
-fi
-
-which iostat > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	IOSTAT=iostat
-else
-	IOSTAT=true
-fi
-
-which mpstat > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	MPSTAT=mpstat
-else
-	MPSTAT=true
-fi
 
 which sar > /dev/null 2>&1
 if [ $? -eq 0 ]; then
@@ -40,11 +21,11 @@ else
 	SAR=true
 fi
 
-which vmstat > /dev/null 2>&1
+which pidstat > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-	VMSTAT=vmstat
+	PIDSTAT=pidstat
 else
-	VMSTAT=true
+	PIDSTAT=true
 fi
 
 if [ $# -lt 1 ]; then
@@ -127,25 +108,10 @@ mkdir -p $OUTPUT_DIR
 echo "starting system statistics data collection"
 
 # collect all sar data in binary form
-${SAR} -o $OUTPUT_DIR/sar_raw.out $SAMPLE_LENGTH $ITERATIONS &
+${SAR} -o ${OUTPUT_DIR}/sar_raw.out ${SAMPLE_LENGTH} ${ITERATIONS} &
 
-# collect i/o data per process
-${IOPP} -c ${SAMPLE_LENGTH} ${ITERATIONS} >> ${OUTPUT_DIR}/iopp.out &
-
-# collect i/o data per physical device
-${IOSTAT} -d $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostat.out &
-${IOSTAT} -d -x $SAMPLE_LENGTH $ITERATIONS >> $OUTPUT_DIR/iostatx.out &
-
-# collect mpstat data
-${MPSTAT} -P ALL ${SAMPLE_LENGTH} ${ITERATIONS} >> ${OUTPUT_DIR}/mpstat.out &
-
-# collect vmstat data
-VMSTAT_OUTPUT=$OUTPUT_DIR/vmstat.out
-OS=`uname`
-if [ "x${OS}" = "xSunOS" ]; then
-	${VMSTAT} $SAMPLE_LENGTH $ITERATIONS >> $VMSTAT_OUTPUT &
-else
-	${VMSTAT} -n $SAMPLE_LENGTH $ITERATIONS >> $VMSTAT_OUTPUT &
-fi
+# collect per process statistics as best we can...
+${PIDSTAT} -h -l -d -r -s -u -w ${SAMPLE_LENGTH} ${ITERATIONS} \
+		> ${OUTPUT_DIR}/pidstat.txt &
 
 exit 0

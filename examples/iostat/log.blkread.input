@@ -1,7 +1,0 @@
-plot  "iostat.out.sde.blkread.data" title "sde" with lines, "iostat.out.sdf.blkread.data" title "sdf" with lines, "iostat.out.sdg.blkread.data" title "sdg" with lines, "iostat.out.sdh.blkread.data" title "sdh" with lines, "iostat.out.sdi.blkread.data" title "sdi" with lines, "iostat.out.sdj.blkread.data" title "sdj" with lines, "iostat.out.sdk.blkread.data" title "sdk" with lines, "iostat.out.sdl.blkread.data" title "sdl" with lines, "iostat.out.sdm.blkread.data" title "sdm" with lines, "iostat.out.sdn.blkread.data" title "sdn" with lines, "iostat.out.sdo.blkread.data" title "sdo" with lines, "iostat.out.sdp.blkread.data" title "sdp" with lines, "iostat.out.sdq.blkread.data" title "sdq" with lines, "iostat.out.sdr.blkread.data" title "sdr" with lines
-set xlabel "Elapsed Time (Minutes)"
-set ylabel "Blocks Read"
-set term png small color
-set output "log_blkread.png"
-set yrange [0:]
-replot

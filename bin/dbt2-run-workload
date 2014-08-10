@@ -9,9 +9,9 @@
 #
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc vmstat iostat mpstat iopp' INT
+	killall dbt2-client dbt2-driver sar sadc pidstat; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc pidstat' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall dbt2-client dbt2-driver sar sadc vmstat iostat mpstat iopp; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc vmstat iostat mpstat iop' TERM
+	killall dbt2-client dbt2-driver sar sadc pidstat; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc pidstat' TERM
 
 do_sleep()
 {
@@ -194,26 +194,39 @@ perf_collect()
 
 post_process_sar()
 {
+	# Sar data should be processed on the system they are collected on as sar
+	# versions can vary between systems and thus not be able to read another
+	# version's file.
 	COMMAND=""
 	FILE=${1}
 	HOST=${2}
 	if [ ! "x${HOST}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		COMMAND="ssh ${HOST}"
-		${COMMAND} "which sar > /dev/null" 2>&1
+		${COMMAND} "which sadf > /dev/null" 2>&1
 		if [ $? -eq 0 ]; then
-			SAR=sar
+			SADF="sadf -d -U"
 		else
-			SAR=true
+			SADF=true
 		fi
-		${COMMAND} "${SAR} -f ${FILE} -A > `dirname ${FILE}`/sar.out"
+		${COMMAND} "${SADF} -P ALL ${FILE} > `dirname ${FILE}`/sar-cpu.csv"
+		${COMMAND} "${SADF} ${FILE} -- -B > `dirname ${FILE}`/sar-paging.csv"
+		${COMMAND} "${SADF} ${FILE} -- -d -p > `dirname ${FILE}`/sar-blockdev.csv"
+		${COMMAND} "${SADF} ${FILE} -- -R > `dirname ${FILE}`/sar-mem1.csv"
+		${COMMAND} "${SADF} ${FILE} -- -r > `dirname ${FILE}`/sar-mem2.csv"
+		${COMMAND} "${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv"
 	else
-		which sar > /dev/null 2>&1
+		which sadf > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
-			SAR=sar
+			SADF="sadf -d -U"
 		else
-			SAR=true
+			SADF=true
 		fi
-		${SAR} -f ${FILE} -A > `dirname ${FILE}`/sar.out
+		${SADF} -P ALL ${FILE} > `dirname ${FILE}`/sar-cpu.csv
+		${SADF} ${FILE} -- -B > `dirname ${FILE}`/sar-paging.csv
+		${SADF} ${FILE} -- -d -p > `dirname ${FILE}`/sar-blockdev.csv
+		${SADF} ${FILE} -- -R > `dirname ${FILE}`/sar-mem1.csv
+		${SADF} ${FILE} -- -r > `dirname ${FILE}`/sar-mem2.csv
+		${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv
 	fi
 }
 
