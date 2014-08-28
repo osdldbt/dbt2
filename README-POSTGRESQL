@@ -42,11 +42,6 @@ For PostgreSQL 7.4 edit the line in postgresql.conf that says
 
 -----
 
-Contrary to the documentation, run 'make' instead of 'make standalone' and
-run the kit in a multi-tier environment for PostgreSQL.
-
------
-
 make install-all-headers
 
 Prior to PostgreSQL 8.0 this is required to be run from the postgresql

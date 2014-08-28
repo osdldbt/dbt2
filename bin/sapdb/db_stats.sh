@@ -21,7 +21,7 @@ dbmcli dbm_version >> $OUTPUT_DIR/readme.txt
 echo >> $OUTPUT_DIR/readme.txt
 
 # save the database parameters
-dbmcli -d $SID -u dbm,dbm -uSQL dbt,dbt -c param_extgetall | sort > $OUTPUT_DIR/param.out
+dbmcli -d $SID -u dbm,dbm -uSQL dbt,dbt -c param_extgetall | sort > $OUTPUT_DIR/param.txt
 read RN < .run_number
 CURRENT_NUM=`expr $RN - 1`
 PREV_NUM=`expr $RN - 2`
@@ -30,7 +30,7 @@ CURRENT_DIR=output/$CURRENT_NUM
 PREV_DIR=output/$PREV_NUM
 
 echo "Changed SAP DB parameters:" >> $OUTPUT_DIR/readme.txt
-diff -U 0 $CURRENT_DIR/param.out $PREV_DIR/param.out >> $OUTPUT_DIR/readme.txt
+diff -U 0 $CURRENT_DIR/param.txt $PREV_DIR/param.txt >> $OUTPUT_DIR/readme.txt
 echo >> $OUTPUT_DIR/readme.txt
 
 # record data and log devspace space information before the test
@@ -49,7 +49,7 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 	x_cons $1 show all >> $OUTPUT_DIR/x_cons.out
 	
 	# check lock statistics
-	dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute "SELECT * FROM LOCKSTATISTICS" >> $OUTPUT_DIR/lockstats.out
+	dbmcli -d $SID -u dba,dba -uSQL dbt,dbt sql_execute "SELECT * FROM LOCKSTATISTICS" >> $OUTPUT_DIR/lockstats.txt
 
 	# read the monitor tables
 	dbmcli -s -d $1 -u dba,dba -uSQL dbt,dbt "sql_execute select * from monitor_caches" >> $OUTPUT_DIR/m_cache.out

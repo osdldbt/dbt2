@@ -1,313 +1,341 @@
-#!/usr/bin/env python
+#!/bin/sh
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2006      Open Source Development Labs, Inc.
-#               2006-2010 Mark Wong
+#               2006-2014 Mark Wong
+#               2014      2ndQuadrant, Ltd.
 #
 
-# Because of the massive number of arguments we could have, use long-style only
-# options.
+while getopts "a:b:D:i:o:" opt; do
+	case $opt in
+	a)
+		DBMS=${OPTARG}
+		;;
+	b)
+		BLKDEVICES=${OPTARG}
+		;;
+	D)
+		DBNAME=${OPTARG}
+		;;
+	i)
+		INDIR=${OPTARG}
+        MIXLOG=${INDIR}/mix.log
+		;;
+	o)
+		OUTDIR=${OPTARG}
+		;;
+	esac
+done
 
-import sys
-from optparse import OptionParser
-from os import listdir, system
-from os.path import isdir, isfile, realpath
-from subprocess import PIPE, Popen
-from re import match
+echo "Moving on to database system stats..."
+echo "Generating transaction distribution charts..."
+mkdir -p ${OUTDIR}/txn || exit 1
+dbt-plot-transaction-distribution Delivery d ${MIXLOG} ${OUTDIR}/txn 1 \
+		|| exit 1
+dbt-plot-transaction-distribution "New Order" n ${MIXLOG} ${OUTDIR}/txn 2 \
+		|| exit 1
+dbt-plot-transaction-distribution "Order Status" o ${MIXLOG} ${OUTDIR}/txn 3 \
+		|| exit 1
+dbt-plot-transaction-distribution "Payments" p ${MIXLOG} ${OUTDIR}/txn 4 \
+		|| exit 1
+dbt-plot-transaction-distribution "Stock Level" s ${MIXLOG} ${OUTDIR}/txn 5 \
+		|| exit 1
 
-parser = OptionParser(usage = 'usage: %prog --dbms <dbms> --i <dir> --o <dir> [options]')
-parser.add_option('--dbms', help = 'dbms used <pgsql>')
-parser.add_option('--dbname', help = 'dbname, for use with pgsql')
-parser.add_option('--devices', help = 'comma delimited devices to plot')
-parser.add_option('--i', help = 'dbt2 results directory')
-parser.add_option('--o', help = 'output directory')
-options, args = parser.parse_args()
+mkdir -p ${OUTDIR}/db/sar || exit 1
 
-if not options.dbms:
-    parser.error('--dbms flag required')
-else:
-    # Validate supported dbms.
+echo "Generating iostat charts..."
+SARBLOCKDEVFILE="${INDIR}/db/sar-blockdev.csv"
+if [ -f "${SARBLOCKDEVFILE}" ]; then
+	dbt-plot-sar-blockdev ${SARBLOCKDEVFILE} ${OUTDIR}/db/sar ${BLKDEVICES} \
+			|| exit 1
+fi
 
-    dbms = options.dbms
-    if dbms == 'pgsql':
-        if not options.dbname:
-            parser.error('"--dbms pgsql" requires --dbname to be used')
-        else:
-            dbname = options.dbname
-    elif dbms == 'mysql' or dbms == 'drizzle' or dbms == 'sqlite':
-        # No special scripts yet to run for these databases but this is needed
-        # in order for the report script to run.
-       pass
-    else:
-        parser.error('unrecognized dbms')
-        sys.exit(1)
+echo "Generating processor utilization charts..."
+SARCPUFILE="${INDIR}/db/sar-cpu.csv"
+if [ -f "${SARCPUFILE}" ]; then
+	dbt-plot-sar-cpu ${SARCPUFILE} ${OUTDIR}/db/sar || exit 1
+fi
 
-if not options.i:
-    parser.error('--i flag required')
+echo "Generating transaction rate charts..."
+dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn || exit 1
 
-if not options.o:
-    parser.error('--o flag required')
+echo "Generating database statistics charts..."
+if [ "${DBMS}" = "pgsql" ]; then
+	mkdir -p ${OUTDIR}/db/tables || exit 1
+	mkdir -p ${OUTDIR}/db/indexes || exit 1
+	dbt-pgsql-plot-database-stats ${INDIR}/db/pg_stat_databases.csv ${DBNAME} \
+			${OUTDIR}/db || exit 1
+	for TABLENAME in `cat ${INDIR}/db/table-list.txt`; do
+		dbt-pgsql-plot-table-stats ${INDIR}/db/pg_stat_tables.csv \
+				${TABLENAME} ${OUTDIR}/db/tables
+	done
+	for INDEXNAME in `cat ${INDIR}/db/index-list.txt`; do
+		dbt-pgsql-plot-index-stats ${INDIR}/db/pg_stat_indexes.csv \
+				${INDEXNAME} ${OUTDIR}/db/indexes || exit 1
+	done
+elif [ "${DBMS}" = "mysql" ]; then
+	echo "hi"
+elif [ "${DMBS}" = "drizzle" ]; then
+	echo "hi"
+elif [ "${DBMS}" = "sqlite" ]; then
+	echo "hi"
+else
+	echo "unrecognized dbms"
+	exit 1
+fi
 
-indir = realpath(options.i)
-outdir = realpath(options.o)
-mixfile = '%s/mix.log' % indir
+DMIX=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $2}'`
+DAVG=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $3}'`
+D90P=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $5}'`
+DTOT=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $6}'`
+DROL=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $7}'`
+DRPE=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $8}'`
 
-device_arg = ''
-if options.devices:
-    device_arg = options.devices
+NMIX=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $3}'`
+NAVG=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $4}'`
+N90P=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $6}'`
+NTOT=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $7}'`
+NROL=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $8}'`
+NRPE=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $9}'`
 
-de = 'd'
-no = 'n'
-os = 'o'
-pa = 'p'
-sl = 's'
+OMIX=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $3}'`
+OAVG=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $4}'`
+O90P=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $6}'`
+OTOT=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $7}'`
+OROL=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $8}'`
+ORPE=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $9}'`
 
-transaction_name = dict()
-transaction_name[de] = 'Delivery'
-transaction_name[no] = 'New Order'
-transaction_name[os] = 'Order Status'
-transaction_name[pa] = 'Payment'
-transaction_name[sl] = 'Stock Level'
+PMIX=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $2}'`
+PAVG=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $3}'`
+P90P=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $5}'`
+PTOT=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $6}'`
+PROL=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $7}'`
+PRPE=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $8}'`
 
-print 'Moving on to database system stats...'
-print 'Generating transaction distribution charts...'
-count = 0
-for key in [de, no, os, pa, sl]:
-    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn min 5 %d' % \
-            (transaction_name[key], key, mixfile, outdir, int(count) + 1))
-    count += 1
+SMIX=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $3}'`
+SAVG=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $4}'`
+S90P=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $6}'`
+STOT=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $7}'`
+SROL=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $8}'`
+SRPE=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $9}'`
 
-print 'Generating processor utilization charts...'
-sarcpufile = '%s/db/sar-cpu.csv' % indir
-if isfile(sarcpufile):
-    system('dbt-plot-sar-cpu %s %s/db/sar' % (sarcpufile, outdir))
+cp -p ${INDIR}/db/proc.txt ${OUTDIR}/
+cp -p ${INDIR}/db/param.txt ${OUTDIR}/db/
+cp -p ${INDIR}/db/plan0.txt ${OUTDIR}/db/
 
-print 'Generating transaction rate charts...'
-system('dbt2-plot-transaction-rate %s %s/txn' % (mixfile, outdir))
+OS=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 1`
+OSVER=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 3`
+ARCH=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 12`
+DBVER=`head -n 2 ${INDIR}/db/readme.txt | tail -n 1`
 
-print 'Generating database statistics charts...'
-if dbms == 'pgsql':
-    system('dbt-pgsql-plot-database-stats ' \
-            '%s/db/pg_stat_databases.out %s %s/db' % (indir, dbname, outdir))
+if [ -d "${OUTDIR}/driver" ]; then
+	DRIVER_CHART_LINK="\
+<tr>\n\
+<td align="right">Driver Charts:</td>\n\
+<td><a href="driver">View Directories</a></td>\n\
+</tr>\n\
+"
+fi
 
-    # This relies on the scripts for PostgreSQL to generate these
-    # table-list.txt and index-list.txt files.
-    f = None
-    try:
-        f = open('%s/db/table-list.txt' % indir)
-    except:
-        print 'Cannot open table list to generate database table stats, ' \
-                'continuing...'
+cat > ${OUTDIR}/index.html << __EOF__
+<html>
+<head>
+<title>Database Test 2 Report</title>
+</head>
+<body>
+<h1>Database Test 2 Report</h1>
 
-    if f is not None:
-        for table in f:
-            system('dbt-pgsql-plot-table-stats %s/db/pg_stat_tables.out ' \
-                    '%s %s/db/tables' % (indir, table.strip(), outdir))
-        f.close()
+<p>
+`head -n 1 ${INDIR}/readme.txt`
+</p>
 
-    f = None
-    try:
-        f = open('%s/db/index-list.txt' % indir)
-    except:
-        print 'Cannot open index list to generate database index stats, ' \
-                'continuing...'
+<table>
 
-    if f is not None:
-        for index in f:
-            system('dbt-pgsql-plot-index-stats %s/db/pg_stat_indexes.out ' \
-                    '%s %s/db/indexes' % (indir, index.strip(), outdir))
-        f.close()
+<tr>
+<td>
+<table>
+<caption>Results Summary</caption>
 
-reportfile = '%s/index.html' % outdir
-try:
-    h = open(reportfile, 'w')
-except:
-    print 'Cannot open file: %s' % reportfile
-    sys.exit(3)
+<tr>
+<td align="right">New Order Transactions per Minute (notpm):</td>
+<td>`grep NOTPM ${INDIR}/report.txt | cut -d " " -f 1`</td>
+</tr>
 
-h.write('<html>\n')
-h.write('<head>\n')
-h.write('<title>Database Test 2 Report</title>\n')
-h.write('</head>\n')
-h.write('<body>\n')
-h.write('<h1>Database Test 2 Report</h1>\n')
+<tr>
+<td align="right">Scale Factor:</td>
+<td>`grep "Database Scale Factor" ${INDIR}/readme.txt | cut -d " " -f 4`</td>
+</tr>
 
-h.write('<p>\n')
+<tr>
+<td align="right">Test Duration (min):</td>
+<td>`grep Duration ${INDIR}/readme.txt | cut -d " " -f 3`</td>
 
-cmd = 'head -n 1 %s/readme.txt' % indir
-p = Popen(cmd.split(), stdout=PIPE)
-h.write(p.communicate()[0])
+</tr>
 
-h.write('</p>\n')
+</table>
+</td>
+<td>
+  <a href="txn/n-transaction-rate.png">
+    <img width="128" src="txn/n-transaction-rate.png" height="96" />
+  </a>
+</td>
+</tr>
 
-h.write('<table>\n')
+</table>
 
-h.write('<tr>\n')
-h.write('<td>\n')
-h.write('<table>\n')
-h.write('<caption>Results Summary</caption>\n')
+<table border="1">
+<caption>Transaction Summary</caption>
 
-h.write('<tr>\n')
-h.write('<td align="right">New Order Transactions per Minute (notpm):</td>\n')
+<tr>
+<th colspan="3">Transaction</th>
+<th colspan="2">Response Time (seconds)</th>
+<th colspan="2">Rollbacks</th>
+<th colspan="2">Charts</th>
+</tr>
 
-cmd = 'grep NOTPM %s/report.txt' % indir
-p = Popen(cmd.split(), stdout=PIPE)
-h.write('<td>%s</td>\n' % p.communicate()[0].split()[0])
+<tr>
+<th>Name</th>
+<th>Mix %</th>
+<th>Total</th>
+<th>Average (s)</th>
+<th>90th %</th>
+<th>Total</th>
+<th>%</th>
+<th>Response Time</th>
+<th>Time Distribution</th>
+</tr>
 
-h.write('</tr>\n')
+<tr>
+<td>Delivery</td>
+<td align="right">${DMIX}</td>
+<td align="right">${DTOT}</td>
+<td align="right">${DAVG}</td>
+<td align="right">${D90P}</td>
+<td align="right">${DROL}</td>
+<td align="right">${DRPE}</td>
+<td align="center">
+  <a href="txn/d-transaction-rate.png">
+    <img width="128" src="txn/d-transaction-rate.png" height="96" />
+  </a>
+</td>
+<td align="center">
+  <a href="txn/td-distribution.png">
+    <img width="128" src="txn/td-distribution.png" height="96" />
+  </a>
+</td>
+</tr>
 
-h.write('<tr>\n')
-h.write('<td align="right">Scale Factor:</td>\n')
+<tr>
+<td>New Order</td>
+<td align="right">${NMIX}</td>
+<td align="right">${NTOT}</td>
+<td align="right">${NAVG}</td>
+<td align="right">${N90P}</td>
+<td align="right">${NROL}</td>
+<td align="right">${NRPE}</td>
+<td align="center">
+  <a href="txn/n-transaction-rate.png">
+    <img width="128" src="txn/n-transaction-rate.png" height="96" />
+  </a>
+</td>
+<td align="center">
+  <a href="txn/tn-distribution.png">
+    <img width="128" src="txn/tn-distribution.png" height="96" />
+  </a>
+</td>
+</tr>
 
-cmd = 'grep Factor %s/readme.txt' % indir
-p = Popen(cmd.split(), stdout=PIPE)
-h.write('<td>%s</td>\n' % p.communicate()[0].split()[3])
+<tr>
+<td>Order Status</td>
+<td align="right">${OMIX}</td>
+<td align="right">${OTOT}</td>
+<td align="right">${OAVG}</td>
+<td align="right">${O90P}</td>
+<td align="right">${OROL}</td>
+<td align="right">${ORPE}</td>
+<td align="center">
+  <a href="txn/o-transaction-rate.png">
+    <img width="128" src="txn/o-transaction-rate.png" height="96" />
+  </a>
+</td>
+<td align="center">
+  <a href="txn/to-distribution.png">
+    <img width="128" src="txn/to-distribution.png" height="96" />
+  </a>
+</td>
+</tr>
 
-h.write('</tr>\n')
+<tr>
+<td>Payment</td>
+<td align="right">${PMIX}</td>
+<td align="right">${PTOT}</td>
+<td align="right">${PAVG}</td>
+<td align="right">${P90P}</td>
+<td align="right">${PROL}</td>
+<td align="right">${PRPE}</td>
+<td align="center">
+  <a href="txn/p-transaction-rate.png">
+    <img width="128" src="txn/p-transaction-rate.png" height="96" />
+  </a>
+</td>
+<td align="center">
+  <a href="txn/tp-distribution.png">
+    <img width="128" src="txn/tp-distribution.png" height="96" />
+  </a>
+</td>
+</tr>
 
-h.write('<tr>\n')
-h.write('<td align="right">Test Duration (min.):</td>\n')
+<tr>
+<td>Stock Level</td>
+<td align="right">${SMIX}</td>
+<td align="right">${STOT}</td>
+<td align="right">${SAVG}</td>
+<td align="right">${S90P}</td>
+<td align="right">${SROL}</td>
+<td align="right">${SRPE}</td>
+<td align="center">
+  <a href="txn/s-transaction-rate.png">
+    <img width="128" src="txn/s-transaction-rate.png" height="96" />
+  </a>
+</td>
+<td align="center">
+  <a href="txn/ts-distribution.png">
+    <img width="128" src="txn/ts-distribution.png" height="96" />
+  </a>
+</td>
+</tr>
 
-cmd = 'grep Duration %s/readme.txt' % indir
-p = Popen(cmd.split(), stdout=PIPE)
-h.write('<td>%0.1f</td>\n' % (float(p.communicate()[0].split()[2]) / 60.0))
+</table>
 
-h.write('</tr>\n')
+<table>
+<caption>System Summary</caption>
 
-h.write('</table>\n')
-h.write('</td>\n')
-h.write('<td>\n')
-chart = 'txn/tn-transaction-rate.png'
-h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
-        (chart, chart))
-h.write('</td>\n')
-h.write('</tr>\n')
+<tr>
+<td align="right">Operating System:</td>
+<td>${OS} ${ARCH} ${OSVER}</td>
+<td><a href="proc.txt">Settings</a></td>
+</tr>
 
-h.write('</table>\n')
+<tr>
+<td align="right">Database Management System:</td>
+<td>${DBVER}</td>
+<td><a href="db/plan0.txt">Query Plans</a></td>
+</tr>
 
-h.write('<table border="1">\n')
-h.write('<caption>Transaction Summary</caption>\n')
+<tr>
+<td align="right">Notes:</td>
+<td>`head -n 1 ${INDIR}/readme.txt`</td>
+</tr>
+${DRIVER_CHART_LINK}
+<tr>
+<td align="right">Database Charts:</td>
+<td><a href="db">View Directories</a></td>
+</tr>
 
-h.write('<tr>\n')
-h.write('<th colspan="3">Transaction</th>\n')
-h.write('<th colspan="2">Response Time (seconds)</th>\n')
-h.write('<th colspan="2">Rollbacks</th>\n')
-h.write('<th colspan="2">Charts</th>\n')
-h.write('</tr>\n')
+</table>
 
-h.write('<tr>\n')
-h.write('<th>Name</th>\n')
-h.write('<th>Mix %</th>\n')
-h.write('<th>Total</th>\n')
-h.write('<th>Average (s)</th>\n')
-h.write('<th>90th %</th>\n')
-h.write('<th>Total</th>\n')
-h.write('<th>%</th>\n')
-h.write('<th>Response Time</th>\n')
-h.write('<th>Time Distribution</th>\n')
-h.write('</tr>\n')
-
-count = 0
-short_name = ['d', 'n', 'o', 'p', 's']
-c_name = 1
-c_mix = 2
-c_avg = 3
-c_90 = 4
-c_total = 5
-c_rollback = 6
-c_rper = 7
-for transaction in ['Delivery', 'New', 'Status', 'Payment', 'Stock']:
-    cmd = 'grep %s %s/report.txt' % (transaction, indir)
-    p = Popen(cmd.split(), stdout=PIPE)
-
-    m = match(r'(\D+?) +(\d+.\d+) +(\d+.\d+)\D+(\d+.\d+) +(\d+) +(\d+)' \
-               ' +(\d+.\d+)', p.communicate()[0])
-
-    h.write('<tr>\n')
-    h.write('<td>%s</td>\n' % m.group(c_name))
-    h.write('<td>%s</td>\n' % m.group(c_mix))
-    h.write('<td>%s</td>\n' % m.group(c_total))
-    h.write('<td>%s</td>\n' % m.group(c_avg))
-    h.write('<td>%s</td>\n' % m.group(c_90))
-    h.write('<td>%s</td>\n' % m.group(c_rollback))
-    h.write('<td>%s</td>\n' % m.group(c_rper))
-    chart = 'txn/t%s-transaction-rate.png' % short_name[count]
-    h.write('<td align="center">\n')
-    h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
-            (chart, chart))
-    h.write('</td>\n')
-    chart = 'txn/t%s-distribution.png' % short_name[count]
-    h.write('<td align="center">\n')
-    h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
-            (chart, chart))
-    h.write('</td>\n')
-    h.write('</tr>\n')
-    count += 1
-
-h.write('</table>\n')
-
-h.write('<table>\n')
-h.write('<caption>System Summary</caption>\n')
-
-h.write('<tr>\n')
-h.write('<td align="right">Operating System:</td>\n')
-
-file = '%s/db/readme.txt' % indir
-cmd = 'head -n 2 %s' % file
-p = Popen(cmd.split(), stdout=PIPE)
-c = p.communicate()[0].split('\n')
-c1 = c[0].split()
-c2 = c[1]
-settings = 'db/proc.txt'
-system('cp -p %s/db/proc.out %s/%s' % (indir, outdir, settings))
-h.write('<td>%s %s %s</td>\n' % (c1[0], c1[2], c1[11]))
-h.write('<td><a href="%s">Settings</a></td>\n' % settings)
-
-h.write('</tr>\n')
-
-h.write('<tr>\n')
-h.write('<td align="right">Database Management System:</td>\n')
-h.write('<td>%s</td>\n' % c2)
-
-file1 = 'db/param.out'
-if isfile('%s/%s' % (indir, file1)):
-    file2 = 'db/param.txt'
-    system('cp -p %s/%s %s/%s' % (indir, file1, outdir, file2))
-    h.write('<td><a href="%s">Settings</a></td>\n' % file2)
-
-file1 = 'db/plan0.out'
-if isfile('%s/%s' % (indir, file1)):
-    file2 = 'db/plan0.txt'
-    system('cp -p %s/%s %s/%s' % (indir, file1, outdir, file2))
-    h.write('<td><a href="%s">Query Plans</a></td>\n' % file2)
-
-h.write('</tr>\n')
-
-h.write('<tr>\n')
-
-file = '%s/readme.txt' % indir
-cmd = 'head -n 2 %s' % file
-p = Popen(cmd.split(), stdout=PIPE)
-c = p.communicate()[0].split('\n')
-
-h.write('<td align="right">Notes:</td>\n')
-h.write('<td>%s</td>\n' % c[1])
-
-h.write('</tr>\n')
-
-h.write('<tr>\n')
-h.write('<td align="right">Driver Charts:</td>\n')
-h.write('<td><a href="driver">View Directories</a></td>\n')
-h.write('</tr>\n')
-
-h.write('<tr>\n')
-h.write('<td align="right">Database Charts:</td>\n')
-h.write('<td><a href="db">View Directories</a></td>\n')
-h.write('</tr>\n')
-
-h.write('</table>\n')
-
-h.write('</body>\n')
-h.write('</html>\n')
+</body>
+</html>
+__EOF__

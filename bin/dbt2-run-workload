@@ -633,7 +633,7 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 	CDIR="${CLIENT_OUTPUT_DIR}/`hostname`.${SEG}"
 	mkdir -p ${CDIR}
 	dbt2-client ${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR} > \
-			${CLIENT_OUTPUT_DIR}/`hostname`/client-${SEG}.out 2>&1 || exit 1 &
+			${CLIENT_OUTPUT_DIR}/`hostname`/client-${SEG}.txt 2>&1 || exit 1 &
 	PORT=`expr ${PORT} + 1`
 done
 
@@ -657,20 +657,20 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	dbt2-sysstats \
 			--iter ${ITERATIONS} \
 			--sample ${SAMPLE_LENGTH} \
-			--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.out 2>&1 &
+			--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.txt 2>&1 &
 
-	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1" &
+	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.txt 2>&1" &
 else
 	dbt2-sysstats \
 			--iter ${ITERATIONS} \
 			--sample ${SAMPLE_LENGTH} \
-			--outdir ${DB_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.out 2>&1 &
+			--outdir ${DB_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.txt 2>&1 &
 fi
 
 echo "collecting database statistics..."
 ${DB_COMMAND} dbt2-${DBMS}-db-stat \
 		-o ${DB_OUTPUT_DIR} -i ${ITERATIONS} -s ${SAMPLE_LENGTH} \
-		${DB_PORT_ARG} > ${DB_OUTPUT_DIR}/dbstats.out 2>&1 &
+		${DB_PORT_ARG} > ${DB_OUTPUT_DIR}/dbstats.txt 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -707,7 +707,7 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 	DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -p ${PORT} -l ${DURATION} -wmin ${START} -wmax ${END} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DDIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
 	PORT=`expr ${PORT} + 1`
 	dbt2-driver ${DRIVER_COMMAND_ARGS} > \
-			${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.out 2>&1 || exit 1&
+			${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 || exit 1&
 done
 
 echo -n "estimated rampup time: "
@@ -819,7 +819,7 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	# system.
 	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
 else
-	post_process_sar ${DB_OUTPUT_DIR}/`hostname`/sar_raw.out
+	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
 fi
 
 # Change the permissions on the database error log, not readable by other

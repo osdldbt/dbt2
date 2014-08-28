@@ -410,7 +410,7 @@ For example, if ``-drivers'' is set to 8 in run\_test.sh and the run number is
 sub-directories will contain five files after a test is completed:
 
 \begin{tabular}[c]{ll}
-driver.out	&	A capture of messages to stdout by the driver. \\
+driver.txt	&	A capture of messages to stdout by the driver. \\
 error.log	&	Any errors occurring during the test. \\
 mix.log		&	Raw transaction statistics. \\
 results.txt	&	A brief analysis summary of mix.log \\
@@ -451,7 +451,7 @@ m\_row.out	&	MONITOR\_ROW contains information on operations at the
 \end{tabular}
 
 \noindent
-Additional database locking statistics are collected in lockstats.out.  The
+Additional database locking statistics are collected in lockstats.csv.  The
 data and log devspaces statistics are collected in datadev0.txt, datadev1.txt,
 logdev0.txt, and logdev1.txt, respectively.
 
