@@ -16,6 +16,12 @@ Makefile
 cmake_install.cmake
 install_manifest.txt
 
+# cpack
+_CPack_Packages/
+*.Z
+*.gz
+*.bz2
+
 # psql generated .sql files
 storedproc/pgsql/c/delivery.sql
 storedproc/pgsql/c/new_order.sql
