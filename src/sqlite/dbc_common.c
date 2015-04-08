@@ -197,7 +197,7 @@ char * dbt2_sql_getvalue(struct db_context_t *dbc, struct sql_result_t * sql_res
   else
   {
 #ifdef DEBUG_QUERY
-    LOG_ERROR_MESSAGE("dbt2_sql_getvalue: POSSIBLE NULL VALUE or ERROR\n\Query: %s\nField: %d from %d", 
+    LOG_ERROR_MESSAGE("dbt2_sql_getvalue: POSSIBLE NULL VALUE or ERROR\nQuery: %s\nField: %d from %d",
                        sqlite3_sql(sql_result->pStmt), field, sql_result->num_fields);
 #endif
   }
