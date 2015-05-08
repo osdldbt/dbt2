@@ -8,16 +8,19 @@
 #               2014      2ndQuadrant, Ltd.
 #
 
-while getopts "a:b:D:i:o:" opt; do
+error() {
+	echo "ERROR: $@"
+	exit 1
+}
+
+warning() {
+	echo "WARNING: $@"
+}
+
+while getopts "b:i:o:" opt; do
 	case $opt in
-	a)
-		DBMS=${OPTARG}
-		;;
 	b)
 		BLKDEVICES=${OPTARG}
-		;;
-	D)
-		DBNAME=${OPTARG}
 		;;
 	i)
 		INDIR=${OPTARG}
@@ -29,61 +32,83 @@ while getopts "a:b:D:i:o:" opt; do
 	esac
 done
 
-echo "Moving on to database system stats..."
+if [ "x$OUTDIR" = "x" ]; then
+	OUTDIR=$INDIR
+fi
+
+DBMS=`grep RDBMS $INDIR/readme.txt | cut -d " " -f 2`
+if [ "x$DBMS" = "x" ]; then
+	error "Could not determine what RDBMS used from results"
+fi
+
+DBNAME=`grep "Database Name" $INDIR/readme.txt | cut -d " " -f 3`
+if [ "x$DBNAME" = "x" ]; then
+	warning "Could not determine what the database name used from results"
+fi
+
 echo "Generating transaction distribution charts..."
 mkdir -p ${OUTDIR}/txn || exit 1
 dbt-plot-transaction-distribution Delivery d ${MIXLOG} ${OUTDIR}/txn 1 \
-		|| exit 1
+		|| warning "Could not create Delivery response time distribution char"
 dbt-plot-transaction-distribution "New Order" n ${MIXLOG} ${OUTDIR}/txn 2 \
-		|| exit 1
+		|| warning "Could not create New Order response time distribution char"
 dbt-plot-transaction-distribution "Order Status" o ${MIXLOG} ${OUTDIR}/txn 3 \
-		|| exit 1
+		|| warning "Could not create Order Status response time distribution char"
 dbt-plot-transaction-distribution "Payments" p ${MIXLOG} ${OUTDIR}/txn 4 \
-		|| exit 1
+		|| warning "Could not create Payments response time distribution char"
 dbt-plot-transaction-distribution "Stock Level" s ${MIXLOG} ${OUTDIR}/txn 5 \
-		|| exit 1
+		|| warning "Could not create Stock Level response time distribution char"
 
 mkdir -p ${OUTDIR}/db/sar || exit 1
 
-echo "Generating iostat charts..."
+echo "Generating sar io charts..."
 SARBLOCKDEVFILE="${INDIR}/db/sar-blockdev.csv"
 if [ -f "${SARBLOCKDEVFILE}" ]; then
 	dbt-plot-sar-blockdev ${SARBLOCKDEVFILE} ${OUTDIR}/db/sar ${BLKDEVICES} \
-			|| exit 1
+			|| warning "Could not create sar blockdev charts"
 fi
 
 echo "Generating processor utilization charts..."
 SARCPUFILE="${INDIR}/db/sar-cpu.csv"
 if [ -f "${SARCPUFILE}" ]; then
-	dbt-plot-sar-cpu ${SARCPUFILE} ${OUTDIR}/db/sar || exit 1
+	dbt-plot-sar-cpu ${SARCPUFILE} ${OUTDIR}/db/sar \
+			|| warning "Could not create sar cpu charts"
 fi
 
 echo "Generating transaction rate charts..."
-dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn || exit 1
+dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn \
+		|| warning "Could not create transaction rate charts"
 
 echo "Generating database statistics charts..."
 if [ "${DBMS}" = "pgsql" ]; then
-	mkdir -p ${OUTDIR}/db/tables || exit 1
-	mkdir -p ${OUTDIR}/db/indexes || exit 1
-	dbt-pgsql-plot-database-stats ${INDIR}/db/pg_stat_databases.csv ${DBNAME} \
-			${OUTDIR}/db || exit 1
+	export PGDATABASE=$DBNAME
+	TABLEDIR=$OUTDIR/db/table
+	INDEXDIR=$OUTDIR/db/indexes
+
+	mkdir -p $TABLEDIR || exit 1
+	mkdir -p $INDEXDIR || exit 1
+
+	dbt-pgsql-plot-database-stats ${INDIR}/db/pg_stat_databases.csv $DBNAME \
+			$OUTDIR/db || warning "Could not create database stats charts"
 	for TABLENAME in `cat ${INDIR}/db/table-list.txt`; do
 		dbt-pgsql-plot-table-stats ${INDIR}/db/pg_stat_tables.csv \
-				${TABLENAME} ${OUTDIR}/db/tables
+				$TABLENAME $TABLEDIR \
+				> $TABLEDIR/r.log 2>&1 \
+				|| warning "Could not create table stats charts for $TABLENAME"
 	done
 	for INDEXNAME in `cat ${INDIR}/db/index-list.txt`; do
-		dbt-pgsql-plot-index-stats ${INDIR}/db/pg_stat_indexes.csv \
-				${INDEXNAME} ${OUTDIR}/db/indexes || exit 1
+		dbt-pgsql-plot-index-stats $INDIR/db/pg_stat_indexes.csv \
+				$INDEXNAME $INDEXDIR > $INDEXDIR/r.log 2>&1 \
+				|| warning "Could not create index stats charts for $INDEXNAME"
 	done
 elif [ "${DBMS}" = "mysql" ]; then
-	echo "hi"
+	warning "Charting for MySQL database statistics not implementd"
 elif [ "${DMBS}" = "drizzle" ]; then
-	echo "hi"
+	warning "Charting for Drizzle database statistics not implementd"
 elif [ "${DBMS}" = "sqlite" ]; then
-	echo "hi"
+	warning "Charting for SQLite database statistics not implementd"
 else
-	echo "unrecognized dbms"
-	exit 1
+	error "unrecognized dbms"
 fi
 
 DMIX=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $2}'`
@@ -121,10 +146,6 @@ STOT=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $7}'`
 SROL=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $8}'`
 SRPE=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $9}'`
 
-cp -p ${INDIR}/db/proc.txt ${OUTDIR}/
-cp -p ${INDIR}/db/param.txt ${OUTDIR}/db/
-cp -p ${INDIR}/db/plan0.txt ${OUTDIR}/db/
-
 OS=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 1`
 OSVER=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 3`
 ARCH=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 12`
@@ -132,10 +153,10 @@ DBVER=`head -n 2 ${INDIR}/db/readme.txt | tail -n 1`
 
 if [ -d "${OUTDIR}/driver" ]; then
 	DRIVER_CHART_LINK="\
-<tr>\n\
-<td align="right">Driver Charts:</td>\n\
-<td><a href="driver">View Directories</a></td>\n\
-</tr>\n\
+<tr>\
+<td align="right">Driver Charts:</td>\
+<td><a href="driver">View Directories</a></td>\
+</tr>\
 "
 fi
 
