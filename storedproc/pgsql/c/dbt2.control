@@ -1,0 +1,5 @@
+# dbt-2 extension
+comment = 'dbt-2 c stored functions'
+default_version = '0.41.0'
+module_pathname = '$libdir/dbt2'
+relocatable = true
