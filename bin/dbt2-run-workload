@@ -166,7 +166,13 @@ perf_start()
 		HOST=`hostname`
 	fi
 
-	${COMMAND} sudo perf record -o ${DIR}/perf.data -a -g -s sleep ${DURATION}
+	RC=`$COMMAND cat /proc/sys/kernel/perf_event_paranoid`
+	if [ $RC -ne -1 ]; then
+		echo "WARNING: Give the current user permission to use perf by setting"
+		echo "         /proc/sys/kernel/perf_event_paranoid to -1"
+		return 0
+	fi
+	$COMMAND perf record -o $DIR/perf.data -a -g -s sleep $DURATION
 }
 
 perf_collect()
@@ -181,15 +187,15 @@ perf_collect()
 		HOST=`hostname`
 	fi
 
+	if [ ! -f "$DIR/perf.data" ]; then
+		return 0
+	fi
 	echo "Generating perf report on '${HOST}'..."
-	${COMMAND} sudo perf report \
-			-i ${DIR}/perf.data -n > ${DIR}/perf-report.txt &
+	$COMMAND perf report -i $DIR/perf.data -n > $DIR/perf-report.txt &
 	echo "Generating perf annotated source on '${HOST}'..."
-	${COMMAND} sudo perf annotate -l -P \
-			-i ${DIR}/perf.data > ${DIR}/perf-annotate.txt &
+	$COMMAND perf annotate -l -P -i $DIR/perf.data > $DIR/perf-annotate.txt &
 	echo "Generating perf trace on '${HOST}'..."
-	${COMMAND} sudo perf script -L \
-			-i ${DIR}/perf.data > ${DIR}/perf-trace.txt &
+	$COMMAND perf script -L -i $DIR/perf.data > $DIR/perf-trace.txt &
 }
 
 post_process_sar()
