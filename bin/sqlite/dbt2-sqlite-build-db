@@ -395,6 +395,7 @@ if [ "$DB_PATH" == "" ]; then
   exit 1
 fi
 
+mkdir -p $DB_PATH
 if [ ! -d "$DB_PATH" ]; then
   usage "Directory '$DB_PATH' not exists. Please specify
        correct path to data files using -f <absolute path>"
