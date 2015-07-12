@@ -1,103 +1,36 @@
-Your user environment needs to be set like the 'examples/dbt2_profile'
-in order for the scripts to work properly.  For multi-node testing, it
-needs to go into the PostgreSQL's user on the database system's
-'~/.ssh/environment' file:
-
-PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
-DBT2PGDATA=/var/lib/data
-DBT2DBNAME=dbt2
-
------
-
-The C stored functions must be built and installed separately from the
-rest of the kit.
-
-cd storedproc/pgsql/c
-make
-make install
-
-The 'make install' function will need to be run by the owner of the
-database installation.
-
------
-
-The database parameter listen_addresses must be set to "*" (i.e. -c
-listen_addresses=*) otherwise the database will not accept remote tpc/ip
-connections.
-
------
-
-For PostgreSQL 7.4 and earlier the kit is configured to expect
-PostgreSQL to have trusted connections defined.  So in the pg_hba.conf
-file, if you want to trust everyone, define this:
-
-local        all                                           trust
-host         all         127.0.0.1     255.0.0.0           trust
-host         all         0.0.0.0       0.0.0.0             reject
-
------
-
-For PostgreSQL 7.4 edit the line in postgresql.conf that says
-"tcpip_socket = false", uncomment, set to true, and restart the daemon.
-
------
-
-make install-all-headers
-
-Prior to PostgreSQL 8.0 this is required to be run from the postgresql
-src if you're installing postgresql from source to make sure the server
-include files get installed.
-
------
-
-For PostgreSQL 8.0 and later, run configure with the
---enable-thread-safety to avoid SIGPIPE handling for the multi-thread
-dbt2 client program.  This is a significant performance benefit.
-
------
-
-The kit now requires pg_autovacuum to be install from the PostgreSQL
-source.  It's in contrib/pg_autovacuum.  Not sure which beta it was
-released in, but it's in 8.0 now, and current releases of 7.4 if you
-insist on using that release.  As of 8.1, pg_autovacuum is in the
-backend and is controlled through the GUC database settings.
-
------
-
 A really quick howto.
 
-Edit bin/pgsql/pgsql_profile.in and follow the notes for the DBT2PGDATA
+Edit examples/dbt2_profile and follow the notes for the DBT2PGDATA
 and DBDATA directory.  DBT2PGDATA is where the database directory will
 be created and DBDATA is where the database table data will be
 generated.
 
-Set environment variables, see examples/dbt2_profile.
-
 Create a 1 warehouse database by running bin/pgsql/dbt2-pgsql-build-db
 and put the data files in '/tmp/data':
+
 	dbt2-pgsql-build-db -w 1
 
 Flag description:
 	-d <dir> -  Location for data files to load.
-	-g       -  Create the data files to load.
 	-w #     -  Set the warehouse scale factor.
 
 Additional flags:
-	-h       -  Help.
-	-r       -  Drop the database before loading, for rebuilding the
-                database.
-	-t       -  Use tablespaces, read tablespace notes below.
+	-h            -  Help.
+	-H <hostname> -  Database system address in multi-tier system config.
+	-r            -  Drop the database before loading, for rebuilding the
+                     database.
+	-t            -  Use tablespaces, read tablespace notes below.
 
 
-Run a 5 minute (300 second) test by running bin/dbt2-run-workload:
+Run a 5 minute (300 second) test by running dbt2-run-workload:
 	dbt2-run-workload -a pgsql -d 300 -w 1 -o /tmp/result -c 10
 
 Flag description:
-    -a <db>  -  Select database software to test.
+    -a <db>  -  Select database management system to test.
 	-c #     -  Set the number of database connections.
     -d #     -  Duration of steady state portion of test in seconds.
-	-o <dir> -  Directory to put results.
-	-w #     -  Set the warehouse scale factor.
+	-o <dir> -  Directory to save results.
+	-w #     -  Specify the warehouse scale factor.
 
 Additional flags:
 	-h       -  Help.
@@ -192,13 +125,3 @@ tuning:
     each warehouse maintains stock level of 100,000 items;
     require ~10% orders are fulfilled from other warehouses due to not have
       all items in the company's catalog;
-
------
-
-Generate an HTML report:
-
-  dbt2-generate-report --dbms pgsql --dbname dbt2 --i /tmp/results \
-  		--o /tmp/results/report
-
-Then open /tmp/results/report/index.html.  Use the '-h' flag for more
-options.
