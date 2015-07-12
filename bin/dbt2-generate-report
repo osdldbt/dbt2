@@ -8,6 +8,15 @@
 #               2014      2ndQuadrant, Ltd.
 #
 
+usage() {
+	echo "usage: `basename $0` -h"
+	echo "usage: `basename $0` -i <directory> [-o <directory>] [-b devices]"
+	echo "options:"
+	echo "       -b <comma delimited list of block devices (default: all devices)>"
+	echo "       -i <DBT-2 test output directory>"
+	echo "       -o <DBT-2 report directory (default: test output directory)>"
+}
+
 error() {
 	echo "ERROR: $@"
 	exit 1
@@ -17,10 +26,15 @@ warning() {
 	echo "WARNING: $@"
 }
 
-while getopts "b:i:o:" opt; do
+
+while getopts "b:hi:o:" opt; do
 	case $opt in
 	b)
 		BLKDEVICES=${OPTARG}
+		;;
+	h)
+		usage
+		exit 1
 		;;
 	i)
 		INDIR=${OPTARG}
@@ -31,6 +45,12 @@ while getopts "b:i:o:" opt; do
 		;;
 	esac
 done
+
+if [ "x$INDIR" = "x" ]; then
+	error "DBT-2 results directory was not specified"
+	usage
+	exit 1
+fi
 
 if [ "x$OUTDIR" = "x" ]; then
 	OUTDIR=$INDIR
@@ -62,18 +82,21 @@ dbt-plot-transaction-distribution "Stock Level" s ${MIXLOG} ${OUTDIR}/txn 5 \
 mkdir -p ${OUTDIR}/db/sar || exit 1
 
 echo "Generating sar io charts..."
-SARBLOCKDEVFILE="${INDIR}/db/sar-blockdev.csv"
-if [ -f "${SARBLOCKDEVFILE}" ]; then
-	dbt-plot-sar-blockdev ${SARBLOCKDEVFILE} ${OUTDIR}/db/sar ${BLKDEVICES} \
+for SARBLOCKDEVFILE in `find $INDIR -name sar-blockdev.csv`; do
+	DIRNAME=`dirname $SARBLOCKDEVFILE`
+	mkdir -p $DIRNAME/sar
+	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME/sar \
+			$BLKDEVICES > /dev/null 2>&1 \
 			|| warning "Could not create sar blockdev charts"
-fi
+done
 
 echo "Generating processor utilization charts..."
-SARCPUFILE="${INDIR}/db/sar-cpu.csv"
-if [ -f "${SARCPUFILE}" ]; then
-	dbt-plot-sar-cpu ${SARCPUFILE} ${OUTDIR}/db/sar \
-			|| warning "Could not create sar cpu charts"
-fi
+for SARCPUFILE in `find $INDIR -name sar-cpu.csv`; do
+	DIRNAME=`dirname $SARCPUFILE`
+	mkdir -p $DIRNAME/sar
+	dbt-plot-sar-cpu $SARCPUFILE $DIRNAME/sar > /dev/null 2>&1 \
+			|| warning "Could not create sar cpu charts from $SARCPUFILE"
+done
 
 echo "Generating transaction rate charts..."
 dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn \
