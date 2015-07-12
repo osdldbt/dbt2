@@ -817,15 +817,16 @@ fi
 
 # Post processing of Database Statistics
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	#
-	# If a database system is specified, rsync all the logs back to here.
-	#
-	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
-			${DB_OUTPUT_DIR}/
+	# If a database system is specified, rsync all the logs back to the driver
+	# system after creating the sar csv data.
 	post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
+
 	# There will only be a sar output file if the database is on a separate
 	# system.
 	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
+
+	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
+			${DB_OUTPUT_DIR}/
 else
 	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
 fi
