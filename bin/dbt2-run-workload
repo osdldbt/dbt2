@@ -530,7 +530,6 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 	# Get the OS information from the database system.
 	${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}
-	${DB_COMMAND} "uname -a >> ${DB_OUTPUT_DIR}/readme.txt"
 else
 	dbt2-get-os-info -o ${DB_OUTPUT_DIR}
 fi

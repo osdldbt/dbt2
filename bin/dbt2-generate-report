@@ -172,16 +172,16 @@ SRPE=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $9}'`
 OS=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 1`
 OSVER=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 3`
 ARCH=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 12`
-DBVER=`head -n 2 ${INDIR}/db/readme.txt | tail -n 1`
 
-if [ -d "${OUTDIR}/driver" ]; then
-	DRIVER_CHART_LINK="\
-<tr>\
-<td align="right">Driver Charts:</td>\
-<td><a href="driver">View Directories</a></td>\
-</tr>\
-"
-fi
+DBOS=`head -n 1 $INDIR/db/readme.txt | cut -d " " -f 1`
+DBOSVER=`head -n 1 $INDIR/db/readme.txt | cut -d " " -f 3`
+DBARCH=`head -n 1 $INDIR/db/readme.txt | cut -d " " -f 12`
+
+# cd into the driver directory because there will be one in the db subdir also
+OSPROCFILE=`(cd $INDIR/driver && find */ -name proc.txt)`
+
+DRIVERCPUFILE="$INDIR/driver/cpu.html"
+DBCPUFILE="$INDIR/db/cpu.html"
 
 cat > ${OUTDIR}/index.html << __EOF__
 <html>
@@ -213,7 +213,7 @@ cat > ${OUTDIR}/index.html << __EOF__
 </tr>
 
 <tr>
-<td align="right">Test Duration (min):</td>
+<td align="right">Test Duration (sec):</td>
 <td>`grep Duration ${INDIR}/readme.txt | cut -d " " -f 3`</td>
 
 </tr>
@@ -357,29 +357,224 @@ cat > ${OUTDIR}/index.html << __EOF__
 <caption>System Summary</caption>
 
 <tr>
-<td align="right">Operating System:</td>
+<td align="right">Driver System:</td>
 <td>${OS} ${ARCH} ${OSVER}</td>
-<td><a href="proc.txt">Settings</a></td>
+<td><a href="driver/$OSPROCFILE">OS Settings</a> |
+    <a href="driver/cpu.html">CPU Charts</a>
+</td>
 </tr>
 
 <tr>
-<td align="right">Database Management System:</td>
-<td>${DBVER}</td>
-<td><a href="db/plan0.txt">Query Plans</a></td>
+<td align="right">DBMS:</td>
+<td>${DBOS} ${DBARCH} ${DBOSVER}</td>
+<td><a href="db/proc.txt">OS Settings</a> |
+    <a href="db/cpu.html">CPU Charts</a> |
+    <a href="db/plan0.txt">Query Plans</a>
+</td>
 </tr>
 
 <tr>
 <td align="right">Notes:</td>
 <td>`head -n 1 ${INDIR}/readme.txt`</td>
 </tr>
-${DRIVER_CHART_LINK}
+</table>
+
+<table>
 <tr>
-<td align="right">Database Charts:</td>
-<td><a href="db">View Directories</a></td>
+<td align="right">DB Table Stats Charts:</td>
+<td>
+__EOF__
+
+for TABLE in `cat $INDIR/db/table-list.txt`; do
+	cat >> $OUTDIR/index.html << __EOF__
+<a href="db/$TABLE-charts.html">$TABLE</a>
+__EOF__
+done
+
+cat >> $OUTDIR/index.html << __EOF__
+</td>
+</tr>
+
+<tr>
+<td align="right">DB Index Stats Charts:</td>
+<td>
+__EOF__
+
+for INDEX in `cat $INDIR/db/index-list.txt`; do
+	cat >> $OUTDIR/index.html << __EOF__
+<a href="db/$INDEX-charts.html">$INDEX</a>
+__EOF__
+done
+
+cat >> $OUTDIR/index.html << __EOF__
+</td>
+</tr>
+
+<tr>
+<td align="right">DB Table Stats by Metrics:</td>
+<td>
+__EOF__
+
+TABLEMETRICS=`(cd $INDIR/db/table && ls *.png) | sed -e "s/table-stat-.*-//" \
+		| sed -e "s/.png$//" | sort | uniq`
+
+for METRIC in $TABLEMETRICS; do
+	cat >> $OUTDIR/index.html << __EOF__
+<a href="db/t_$METRIC-charts.html">$METRIC</a>
+__EOF__
+done
+
+cat >> $OUTDIR/index.html << __EOF__
+</td>
+</tr>
+
+<tr>
+<td align="right">DB Index Stats by Metrics:</td>
+<td>
+__EOF__
+
+INDEXMETRICS=`(cd $INDIR/db/indexes && ls *.png) \
+		| sed -e "s/index-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+
+for METRIC in $INDEXMETRICS; do
+	cat >> $OUTDIR/index.html << __EOF__
+<a href="db/i_$METRIC-charts.html">$METRIC</a>
+__EOF__
+done
+
+cat >> $OUTDIR/index.html << __EOF__
+</td>
 </tr>
 
 </table>
 
+</body>
+</html>
+__EOF__
+
+# Create additional HTML pages for operating system charts.
+
+cat > $DRIVERCPUFILE << __EOF__
+<html>
+<head>
+<title>Database Test 2 Driver CPU Charts</title>
+</head>
+<body>
+__EOF__
+
+CPUCHARTS=`(cd $INDIR/driver && find */ -name "sar-cpu*.png")`
+for CHART in $CPUCHARTS; do
+	cat >> $DRIVERCPUFILE << __EOF__
+<img src="$CHART" width="90%" />
+__EOF__
+done
+
+cat >> $DRIVERCPUFILE << __EOF__
+</body>
+</html>
+__EOF__
+
+cat > $DBCPUFILE << __EOF__
+<html>
+<head>
+<title>Database Test 2 DBMS CPU Charts</title>
+</head>
+<body>
+__EOF__
+
+CPUCHARTS=`(cd $INDIR/db && find */ -name "sar-cpu*.png")`
+for CHART in $CPUCHARTS; do
+	cat >> $DBCPUFILE << __EOF__
+<img src="$CHART" width="90%" />
+__EOF__
+done
+
+cat >> $DBCPUFILE << __EOF__
+</body>
+</html>
+__EOF__
+
+# Create additional HTML pages for the database charts.
+
+for TABLE in `cat $INDIR/db/table-list.txt`; do
+	TABLECHARTFILE="$OUTDIR/db/$TABLE-charts.html"
+	cat > $TABLECHARTFILE << __EOF__
+<html>
+<head>
+<title>Database Test 2 $TABLE Table Charts</title>
+</head>
+<body>
+__EOF__
+
+	for CHART in `find $INDIR/db -name table-stat-$TABLE-*.png`; do
+		cat >> $TABLECHARTFILE << __EOF__
+<img src="table/`basename $CHART`" width="90%" />
+__EOF__
+	done
+
+	cat >> $TABLECHARTFILE << __EOF__
+</body>
+</html>
+__EOF__
+done
+
+for INDEX in `cat $INDIR/db/index-list.txt`; do
+	INDEXCHARTFILE="$OUTDIR/db/$INDEX-charts.html"
+	cat > $INDEXCHARTFILE << __EOF__
+<html>
+<head>
+<title>Database Test 2 $INDEX Index Charts</title>
+</head>
+<body>
+__EOF__
+
+	for CHART in `find $INDIR/db -name index-stat-$INDEX-*.png`; do
+		cat >> $INDEXCHARTFILE << __EOF__
+<img src="indexes/`basename $CHART`" width="90%" />
+__EOF__
+	done
+
+	cat >> $INDEXCHARTFILE << __EOF__
+</body>
+</html>
+__EOF__
+done
+
+for METRIC in $TABLEMETRICS; do
+	METRICCHARTFILE="$OUTDIR/db/t_$METRIC-charts.html"
+	cat > $METRICCHARTFILE << __EOF__
+<html>
+<head>
+<title>Database Test 2 Table $METRIC Charts</title>
+</head>
+<body>
+__EOF__
+
+	for TABLE in `cat $INDIR/db/table-list.txt`; do
+		cat >> $METRICCHARTFILE << __EOF__
+<img src="table/table-stat-$TABLE-$METRIC.png" width="90%" />
+__EOF__
+	done
+done
+
+for METRIC in $INDEXMETRICS; do
+	METRICCHARTFILE="$OUTDIR/db/i_$METRIC-charts.html"
+	cat > $METRICCHARTFILE << __EOF__
+<html>
+<head>
+<title>Database Test 2 Index $METRIC Charts</title>
+</head>
+<body>
+__EOF__
+
+	for INDEX in `cat $INDIR/db/index-list.txt`; do
+		cat >> $METRICCHARTFILE << __EOF__
+<img src="indexes/index-stat-$INDEX-$METRIC.png" width="90%" />
+__EOF__
+	done
+done
+
+	cat >> $METRICCHARTFILE << __EOF__
 </body>
 </html>
 __EOF__
