@@ -352,6 +352,14 @@ To execute the test in a multi-tier configuration pass the `-H <address>` flag
 to the `dbt2-run-workload` script.  The address can be a hostname or IP
 address.
 
+Multi-process driver execution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Default behavior for the driver is to create 10 threads per warehouse under a
+single process.  The `-b #` flag can be passed to the `dbt2-run-workload`
+script to specify how many warehouses to be created per process.  The script
+will calculate how many driver processes to start.
+
 SQLite
 ~~~~~~
 
