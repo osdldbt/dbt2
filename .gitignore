@@ -1,6 +1,8 @@
 *.o
 *.so
 
+dbt2.log
+
 bin/dbt2-client
 bin/dbt2-datagen
 bin/dbt2-driver
@@ -19,12 +21,10 @@ install_manifest.txt
 # cpack
 _CPack_Packages/
 *.Z
+*.xz
 *.gz
 *.bz2
 
-# psql generated .sql files
-storedproc/pgsql/c/delivery.sql
-storedproc/pgsql/c/new_order.sql
-storedproc/pgsql/c/order_status.sql
-storedproc/pgsql/c/payment.sql
-storedproc/pgsql/c/stock_level.sql
+doc/dbt2-architecture.html
+doc/dbt2-tpc.html
+doc/dbt2-user-guide.html

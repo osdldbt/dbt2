@@ -211,19 +211,38 @@ post_process_sar()
 		${COMMAND} "which sadf > /dev/null" 2>&1
 		if [ $? -eq 0 ]; then
 			SADF="sadf -d -U"
+		    $COMMAND "$SADF 1 1 > /dev/null" 2>&1
+		    if [ $? -ne 0 ]; then
+		        SADF="sadf -D"
+		        $COMMAND "$SADF 1 1 > /dev/null" 2>&1
+		        if [ $? -ne 0 ]; then
+		            echo "WARNING: Was not able to determine proper sadf flags"
+		            SADF="true"
+		        fi
+		    fi
 		else
 			SADF=true
 		fi
 		${COMMAND} "${SADF} -P ALL ${FILE} > `dirname ${FILE}`/sar-cpu.csv"
 		${COMMAND} "${SADF} ${FILE} -- -B > `dirname ${FILE}`/sar-paging.csv"
-		${COMMAND} "${SADF} ${FILE} -- -d -p > `dirname ${FILE}`/sar-blockdev.csv"
+		$COMMAND "$SADF $FILE -- -d -p > `dirname $FILE`/sar-blockdev.csv"
 		${COMMAND} "${SADF} ${FILE} -- -R > `dirname ${FILE}`/sar-mem1.csv"
 		${COMMAND} "${SADF} ${FILE} -- -r > `dirname ${FILE}`/sar-mem2.csv"
 		${COMMAND} "${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv"
+		$COMMAND "$SADF $FILE -- -n DEV > `dirname $FILE`/sar-net.csv"
 	else
 		which sadf > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			SADF="sadf -d -U"
+		    $SADF 1 1 > /dev/null 2>&1
+		    if [ $? -ne 0 ]; then
+		        SADF="sadf -D"
+		        $SADF 1 1 > /dev/null 2>&1
+		        if [ $? -ne 0 ]; then
+		            echo "WARNING: Was not able to determine proper sadf flags"
+		            SADF="true"
+		        fi
+		    fi
 		else
 			SADF=true
 		fi
@@ -233,6 +252,7 @@ post_process_sar()
 		${SADF} ${FILE} -- -R > `dirname ${FILE}`/sar-mem1.csv
 		${SADF} ${FILE} -- -r > `dirname ${FILE}`/sar-mem2.csv
 		${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv
+		$SADF $FILE -- -n DEV > `dirname $FILE`/sar-net.csv
 	fi
 }
 
@@ -252,8 +272,8 @@ readprofile_collect()
 	if [ -n "${COMMAND}" ]; then
 		${COMMAND} mkdir -p ${RP_DIR}
 		${COMMAND} "/usr/sbin/readprofile -n -m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}"
-		${COMMAND} "cat ${PROFILE} | sort -n -r -k1 > ${RP_DIR}/readprofile_ticks.txt"
-		${COMMAND} "cat ${PROFILE} | sort -n -r -k3 > ${RP_DIR}/readprofile_load.txt"
+		$COMMAND "cat $PROFILE | sort -n -r -k1 > $RP_DIR/readprofile_ticks.txt"
+		$COMMAND "cat $PROFILE | sort -n -r -k3 > $RP_DIR/readprofile_load.txt"
 	else
 		mkdir -p ${RP_DIR}
 		/usr/sbin/readprofile -n -m /boot/System.map-`uname -r` > ${PROFILE}

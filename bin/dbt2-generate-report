@@ -26,6 +26,35 @@ warning() {
 	echo "WARNING: $@"
 }
 
+create_html_stat_page()
+{
+	local TITLE=$1
+	local TAG=$2
+	local DIR=$3
+	local FILE=$4
+
+	cat > $FILE << __EOF__
+<html>
+<head>
+<title>Database Test 2 $TITLE $TAG Charts</title>
+</head>
+<body>
+__EOF__
+
+	CPUCHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png")`
+	for CHART in $CPUCHARTS; do
+		cat >> $FILE << __EOF__
+`basename $CHART`
+<img src="$CHART" width="90%" />
+<hr />
+__EOF__
+	done
+
+	cat >> $FILE << __EOF__
+</body>
+</html>
+__EOF__
+}
 
 while getopts "b:hi:o:" opt; do
 	case $opt in
@@ -96,6 +125,22 @@ for SARCPUFILE in `find $INDIR -name sar-cpu.csv`; do
 	mkdir -p $DIRNAME/sar
 	dbt-plot-sar-cpu $SARCPUFILE $DIRNAME/sar > /dev/null 2>&1 \
 			|| warning "Could not create sar cpu charts from $SARCPUFILE"
+done
+
+echo "Generating swap charts..."
+for SARSWAPFILE in `find $INDIR -name sar-swap.csv`; do
+	DIRNAME=`dirname $SARSWAPFILE`
+	mkdir -p $DIRNAME/sar
+	dbt-plot-sar-swap $SARSWAPFILE $DIRNAME/sar > /dev/null 2>&1 \
+			|| warning "Could not create sar swap charts from $SARSWAPFILE"
+done
+
+echo "Generating network charts..."
+for SARNETFILE in `find $INDIR -name sar-net.csv`; do
+	DIRNAME=`dirname $SARNETFILE`
+	mkdir -p $DIRNAME/sar
+	dbt-plot-sar-net $SARNETFILE $DIRNAME/sar > /dev/null 2>&1 \
+			|| warning "Could not create sar net charts from $SARNETFILE"
 done
 
 echo "Generating transaction rate charts..."
@@ -179,9 +224,6 @@ DBARCH=`head -n 1 $INDIR/db/readme.txt | cut -d " " -f 12`
 
 # cd into the driver directory because there will be one in the db subdir also
 OSPROCFILE=`(cd $INDIR/driver && find */ -name proc.txt)`
-
-DRIVERCPUFILE="$INDIR/driver/cpu.html"
-DBCPUFILE="$INDIR/db/cpu.html"
 
 cat > ${OUTDIR}/index.html << __EOF__
 <html>
@@ -360,7 +402,10 @@ cat > ${OUTDIR}/index.html << __EOF__
 <td align="right">Driver System:</td>
 <td>${OS} ${ARCH} ${OSVER}</td>
 <td><a href="driver/$OSPROCFILE">OS Settings</a> |
-    <a href="driver/cpu.html">CPU Charts</a>
+    <a href="driver/cpu.html">CPU Charts</a> |
+    <a href="db/blockdev.html">Blockdev Charts</a> |
+    <a href="db/net.html">Network Charts</a> |
+    <a href="db/swap.html">Swap Charts</a> |
 </td>
 </tr>
 
@@ -369,6 +414,9 @@ cat > ${OUTDIR}/index.html << __EOF__
 <td>${DBOS} ${DBARCH} ${DBOSVER}</td>
 <td><a href="db/proc.txt">OS Settings</a> |
     <a href="db/cpu.html">CPU Charts</a> |
+    <a href="db/blockdev.html">Blockdev Charts</a> |
+    <a href="db/net.html">Network Charts</a> |
+    <a href="db/swap.html">Swap Charts</a> |
     <a href="db/plan0.txt">Query Plans</a>
 </td>
 </tr>
@@ -454,45 +502,13 @@ __EOF__
 
 # Create additional HTML pages for operating system charts.
 
-cat > $DRIVERCPUFILE << __EOF__
-<html>
-<head>
-<title>Database Test 2 Driver CPU Charts</title>
-</head>
-<body>
-__EOF__
-
-CPUCHARTS=`(cd $INDIR/driver && find */ -name "sar-cpu*.png")`
-for CHART in $CPUCHARTS; do
-	cat >> $DRIVERCPUFILE << __EOF__
-<img src="$CHART" width="90%" />
-__EOF__
+for SYSTEM in db driver; do
+	create_html_stat_page $SYSTEM cpu $INDIR/$SYSTEM $INDIR/$SYSTEM/cpu.html
+	create_html_stat_page $SYSTEM blockdev $INDIR/$SYSTEM \
+			$INDIR/$SYSTEM/blockdev.html
+	create_html_stat_page $SYSTEM net $INDIR/$SYSTEM $INDIR/$SYSTEM/net.html
+	create_html_stat_page $SYSTEM swap $INDIR/$SYSTEM $INDIR/$SYSTEM/swap.html
 done
-
-cat >> $DRIVERCPUFILE << __EOF__
-</body>
-</html>
-__EOF__
-
-cat > $DBCPUFILE << __EOF__
-<html>
-<head>
-<title>Database Test 2 DBMS CPU Charts</title>
-</head>
-<body>
-__EOF__
-
-CPUCHARTS=`(cd $INDIR/db && find */ -name "sar-cpu*.png")`
-for CHART in $CPUCHARTS; do
-	cat >> $DBCPUFILE << __EOF__
-<img src="$CHART" width="90%" />
-__EOF__
-done
-
-cat >> $DBCPUFILE << __EOF__
-</body>
-</html>
-__EOF__
 
 # Create additional HTML pages for the database charts.
 
