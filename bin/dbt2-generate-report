@@ -148,24 +148,24 @@ dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn \
 		|| warning "Could not create transaction rate charts"
 
 echo "Generating database statistics charts..."
+TABLEDIR=$OUTDIR/db/tables
+INDEXDIR=$OUTDIR/db/indexes
+mkdir -p $TABLEDIR || exit 1
+mkdir -p $INDEXDIR || exit 1
+
 if [ "${DBMS}" = "pgsql" ]; then
 	export PGDATABASE=$DBNAME
-	TABLEDIR=$OUTDIR/db/table
-	INDEXDIR=$OUTDIR/db/indexes
 
-	mkdir -p $TABLEDIR || exit 1
-	mkdir -p $INDEXDIR || exit 1
-
-	dbt-pgsql-plot-database-stats ${INDIR}/db/pg_stat_databases.csv $DBNAME \
+	dbt-$DBMS-plot-database-stats $INDIR/db/pg_stat_databases.csv $DBNAME \
 			$OUTDIR/db || warning "Could not create database stats charts"
 	for TABLENAME in `cat ${INDIR}/db/table-list.txt`; do
-		dbt-pgsql-plot-table-stats ${INDIR}/db/pg_stat_tables.csv \
+		dbt-$DBMS-plot-table-stats $INDIR/db/pg_stat_tables.csv \
 				$TABLENAME $TABLEDIR \
 				> $TABLEDIR/r.log 2>&1 \
 				|| warning "Could not create table stats charts for $TABLENAME"
 	done
 	for INDEXNAME in `cat ${INDIR}/db/index-list.txt`; do
-		dbt-pgsql-plot-index-stats $INDIR/db/pg_stat_indexes.csv \
+		dbt-$DBMS-plot-index-stats $INDIR/db/pg_stat_indexes.csv \
 				$INDEXNAME $INDEXDIR > $INDEXDIR/r.log 2>&1 \
 				|| warning "Could not create index stats charts for $INDEXNAME"
 	done
@@ -435,7 +435,7 @@ __EOF__
 
 for TABLE in `cat $INDIR/db/table-list.txt`; do
 	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/$TABLE-charts.html">$TABLE</a>
+<a href="db/tables/$TABLE-charts.html">$TABLE</a>
 __EOF__
 done
 
@@ -450,7 +450,7 @@ __EOF__
 
 for INDEX in `cat $INDIR/db/index-list.txt`; do
 	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/$INDEX-charts.html">$INDEX</a>
+<a href="db/indexes/$INDEX-charts.html">$INDEX</a>
 __EOF__
 done
 
@@ -463,12 +463,12 @@ cat >> $OUTDIR/index.html << __EOF__
 <td>
 __EOF__
 
-TABLEMETRICS=`(cd $INDIR/db/table && ls *.png) | sed -e "s/table-stat-.*-//" \
+TABLEMETRICS=`(cd $INDIR/db/tables && ls *.png) | sed -e "s/table-stat-.*-//" \
 		| sed -e "s/.png$//" | sort | uniq`
 
 for METRIC in $TABLEMETRICS; do
 	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/t_$METRIC-charts.html">$METRIC</a>
+<a href="db/tables/t_$METRIC-charts.html">$METRIC</a>
 __EOF__
 done
 
@@ -486,7 +486,7 @@ INDEXMETRICS=`(cd $INDIR/db/indexes && ls *.png) \
 
 for METRIC in $INDEXMETRICS; do
 	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/i_$METRIC-charts.html">$METRIC</a>
+<a href="db/indexes/i_$METRIC-charts.html">$METRIC</a>
 __EOF__
 done
 
@@ -512,85 +512,7 @@ done
 
 # Create additional HTML pages for the database charts.
 
-for TABLE in `cat $INDIR/db/table-list.txt`; do
-	TABLECHARTFILE="$OUTDIR/db/$TABLE-charts.html"
-	cat > $TABLECHARTFILE << __EOF__
-<html>
-<head>
-<title>Database Test 2 $TABLE Table Charts</title>
-</head>
-<body>
-__EOF__
-
-	for CHART in `find $INDIR/db -name table-stat-$TABLE-*.png`; do
-		cat >> $TABLECHARTFILE << __EOF__
-<img src="table/`basename $CHART`" width="90%" />
-__EOF__
-	done
-
-	cat >> $TABLECHARTFILE << __EOF__
-</body>
-</html>
-__EOF__
-done
-
-for INDEX in `cat $INDIR/db/index-list.txt`; do
-	INDEXCHARTFILE="$OUTDIR/db/$INDEX-charts.html"
-	cat > $INDEXCHARTFILE << __EOF__
-<html>
-<head>
-<title>Database Test 2 $INDEX Index Charts</title>
-</head>
-<body>
-__EOF__
-
-	for CHART in `find $INDIR/db -name index-stat-$INDEX-*.png`; do
-		cat >> $INDEXCHARTFILE << __EOF__
-<img src="indexes/`basename $CHART`" width="90%" />
-__EOF__
-	done
-
-	cat >> $INDEXCHARTFILE << __EOF__
-</body>
-</html>
-__EOF__
-done
-
-for METRIC in $TABLEMETRICS; do
-	METRICCHARTFILE="$OUTDIR/db/t_$METRIC-charts.html"
-	cat > $METRICCHARTFILE << __EOF__
-<html>
-<head>
-<title>Database Test 2 Table $METRIC Charts</title>
-</head>
-<body>
-__EOF__
-
-	for TABLE in `cat $INDIR/db/table-list.txt`; do
-		cat >> $METRICCHARTFILE << __EOF__
-<img src="table/table-stat-$TABLE-$METRIC.png" width="90%" />
-__EOF__
-	done
-done
-
-for METRIC in $INDEXMETRICS; do
-	METRICCHARTFILE="$OUTDIR/db/i_$METRIC-charts.html"
-	cat > $METRICCHARTFILE << __EOF__
-<html>
-<head>
-<title>Database Test 2 Index $METRIC Charts</title>
-</head>
-<body>
-__EOF__
-
-	for INDEX in `cat $INDIR/db/index-list.txt`; do
-		cat >> $METRICCHARTFILE << __EOF__
-<img src="indexes/index-stat-$INDEX-$METRIC.png" width="90%" />
-__EOF__
-	done
-done
-
-	cat >> $METRICCHARTFILE << __EOF__
-</body>
-</html>
-__EOF__
+dbt-$DBMS-generate-table-html "Database Test 2" $INDIR/db/table-list.txt \
+		$OUTDIR/db/tables
+dbt-$DBMS-generate-index-html "Database Test 2" $INDIR/db/index-list.txt \
+		$OUTDIR/db/indexes
