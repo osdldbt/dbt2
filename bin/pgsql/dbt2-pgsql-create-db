@@ -28,12 +28,16 @@ while getopts "l:p:" OPT; do
 	esac
 done
 
+if [ ! "x$DBT2XLOGDIR" = "x" ]; then
+	INITDBFLAGS="-X $DBT2XLOGDIR"
+fi
+
 # Create database
 echo "Creating database..."
 if [ -d ${DBT2PGDATA} ]; then
 	echo "PGData directory '${DBT2PGDATA}' already exists, skipping initdb..."
 else
-	initdb -D ${DBT2PGDATA} --locale=C || exit 1
+	initdb -D $DBT2PGDATA --locale=C $INITDBFLAGS || exit 1
 fi
 
 if [ ! "x${PARAMETERS}" = "x" ]; then

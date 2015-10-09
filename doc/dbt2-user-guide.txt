@@ -216,6 +216,11 @@ For example:
  DBT2DBNAME=dbt2; export DBT2DBNAME
  DBT2PGDATA=/tmp/pgdata; export DBT2PGDATA
 
+An optional environment variable can be set to specify a different location for
+the transaction logs (pg_xlog):
+
+ DBT2XLOGDIR=/tmp/pgxlogdbt2; export DBT2XLOGDIR
+
 The environment variables must be defined in `~/.ssh/environment` file on each
 system.  For example:
 
