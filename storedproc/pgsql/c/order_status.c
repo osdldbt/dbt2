@@ -54,7 +54,8 @@ static cached_statement statements[] = {
 	"WHERE o_w_id = $1\n" \
 	"  AND o_d_id = $2\n" \
 	"  AND o_c_id = $3\n" \
-	"ORDER BY o_id DESC",
+	"ORDER BY o_id DESC\n" \
+	"LIMIT 1",
 	3, { INT4OID, INT4OID, INT4OID }
 	},
 
