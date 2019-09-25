@@ -84,7 +84,7 @@ static cached_statement statements[] =
 	"UPDATE customer\n" \
 	"SET c_balance = c_balance - $1,\n" \
 	"    c_ytd_payment = c_ytd_payment + 1,\n" \
-	"    c_data = substring($2 || c_data, 1 , 500)\n" \
+	"    c_data = $2\n" \
 	"WHERE c_id = $3\n" \
 	"  AND c_w_id = $4\n" \
 	"  AND c_d_id = $5",
@@ -302,10 +302,10 @@ Datum payment(PG_FUNCTION_ARGS)
 		args[3] = Int32GetDatum(c_d_id);
 		ret = SPI_execute_plan(PAYMENT_7_GC, args, nulls, false, 0);
 	} else {
-		char my_c_data[1000];
+		char my_c_data[501];
 
-		sprintf(my_c_data, "%d %d %d %d %d %f ", my_c_id, c_d_id,
-				c_w_id, d_id, w_id, h_amount);
+		snprintf(my_c_data, 500, "%d %d %d %d %d %f %s", my_c_id, c_d_id,
+				c_w_id, d_id, w_id, h_amount, c_data);
 
 		args[0] = Float4GetDatum(h_amount);
 		args[1] = CStringGetTextDatum(my_c_data);
