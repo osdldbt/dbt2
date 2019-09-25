@@ -143,14 +143,9 @@ PostgreSQL
 
 In the top level directory, `dbt2/`, run:
 
- ./configure --prefix=<your installation dir> \
-             --with-postgresql \
-             --with-getopt=<getopt installation dir>
+ cmake CMakeCache.txt -DDBMS=pgsql
  make
  make install
-
-Note, `--with-getopt` may not be needed for Linux system, but might be needed
-for Solaris.
 
 After installing PostgreSQL, the DBT-2 stored functions need to be compiled and
 installed:
@@ -167,7 +162,7 @@ SAP DB
 
 In the top level directory, `dbt2/`, run:
 
- ./configure --with-sapdb
+ cmake CMakeCache.txt -DDBMS=sapdb
  make standalone
 
 Environment Configuration

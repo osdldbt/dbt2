@@ -65,10 +65,6 @@ IF (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
     SET (NEED_LIBNSL TRUE)
 ENDIF (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
 
-IF (DESTDIR)
-    SET(INSTALLDEST ${DESTDIR})
-ENDIF (DESTDIR)
-
 IF (DBMS STREQUAL "pgsql")
     #
     # Create PostgreSQL specific configuration.
@@ -269,4 +265,4 @@ SET_TARGET_PROPERTIES(${DBT2_TXN_TEST} PROPERTIES LINK_FLAGS "-lm ${DB_LIBS}")
 INSTALL(PROGRAMS ${DBT2_CLIENT} ${DBT2_DATAGEN} ${DBT2_DRIVER} ${DBT2_TXN_TEST}
         bin/dbt2-generate-report bin/dbt2-get-os-info bin/dbt2-post-process
         bin/dbt2-run-workload bin/dbt2-sysstats bin/dbt2-plot-transaction-rate
-        ${DB_SCRIPTS} DESTINATION "${INSTALLDEST}/bin")
+        ${DB_SCRIPTS} DESTINATION "bin")
