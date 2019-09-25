@@ -23,44 +23,29 @@
  */
 
 #define PAYMENT_1 statements[0].plan
-#define PAYMENT_2 statements[1].plan
-#define PAYMENT_3 statements[2].plan
-#define PAYMENT_4 statements[3].plan
-#define PAYMENT_5 statements[4].plan
-#define PAYMENT_6 statements[5].plan
-#define PAYMENT_7_GC statements[6].plan
-#define PAYMENT_7_BC statements[7].plan
-#define PAYMENT_8 statements[8].plan
+#define PAYMENT_3 statements[1].plan
+#define PAYMENT_5 statements[2].plan
+#define PAYMENT_6 statements[3].plan
+#define PAYMENT_7_GC statements[4].plan
+#define PAYMENT_7_BC statements[5].plan
+#define PAYMENT_8 statements[6].plan
 
 static cached_statement statements[] =
 {
 	{ /* PAYMENT_1 */
-	"SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip\n" \
-	"FROM warehouse\n" \
-	"WHERE w_id = $1",
-	1, { INT4OID }
-	},
-
-	{ /* PAYMENT_2 */
 	"UPDATE warehouse\n" \
 	"SET w_ytd = w_ytd + $1\n" \
-	"WHERE w_id = $2",
+	"WHERE w_id = $2\n" \
+	"RETURNING w_name, w_street_1, w_street_2, w_city, w_state, w_zip",
 	2, { FLOAT4OID, INT4OID }
 	},
 
 	{ /* PAYMENT_3 */
-	"SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip\n" \
-	"FROM district\n" \
-	"WHERE d_id = $1\n" \
-	"  AND d_w_id = $2",
-	2, { INT4OID, INT4OID }
-	},
-
-	{ /* PAYMENT_4 */
 	"UPDATE district\n" \
 	"SET d_ytd = d_ytd + $1\n" \
 	"WHERE d_id = $2\n" \
-	"  AND d_w_id = $3",
+	"  AND d_w_id = $3\n" \
+	"RETURNING d_name, d_street_1, d_street_2, d_city, d_state, d_zip",
 	3, { FLOAT4OID, INT4OID, INT4OID }
 	},
 
@@ -189,9 +174,10 @@ Datum payment(PG_FUNCTION_ARGS)
 
 	plan_queries(statements);
 
-	args[0] = Int32GetDatum(w_id);
-	ret = SPI_execute_plan(PAYMENT_1, args, nulls, true, 0);
-	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+	args[0] = Float4GetDatum(h_amount);
+	args[1] = Int32GetDatum(w_id);
+	ret = SPI_execute_plan(PAYMENT_1, args, nulls, false, 0);
+	if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 		tuple = tuptable->vals[0];
@@ -214,17 +200,10 @@ Datum payment(PG_FUNCTION_ARGS)
 	}
 
 	args[0] = Float4GetDatum(h_amount);
-	args[1] = Int32GetDatum(w_id);
-	ret = SPI_execute_plan(PAYMENT_2, args, nulls, false, 0);
-	if (ret != SPI_OK_UPDATE) {
-		SPI_finish();
-		PG_RETURN_INT32(-1);
-	}
-
-	args[0] = Int32GetDatum(d_id);
-	args[1] = Int32GetDatum(w_id);
-	ret = SPI_execute_plan(PAYMENT_3, args, nulls, true, 0);
-	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+	args[1] = Int32GetDatum(d_id);
+	args[2] = Int32GetDatum(w_id);
+	ret = SPI_execute_plan(PAYMENT_3, args, nulls, false, 0);
+	if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 		tuple = tuptable->vals[0];
@@ -242,15 +221,6 @@ Datum payment(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "d_state = %s", d_state);
 		elog(DEBUG1, "d_zip = %s", d_zip);
 	} else {
-		SPI_finish();
-		PG_RETURN_INT32(-1);
-	}
-
-	args[0] = Float4GetDatum(h_amount);
-	args[1] = Int32GetDatum(d_id);
-	args[2] = Int32GetDatum(w_id);
-	ret = SPI_execute_plan(PAYMENT_4, args, nulls, false, 0);
-	if (ret != SPI_OK_UPDATE) {
 		SPI_finish();
 		PG_RETURN_INT32(-1);
 	}
@@ -331,10 +301,6 @@ Datum payment(PG_FUNCTION_ARGS)
 		args[2] = Int32GetDatum(c_w_id);
 		args[3] = Int32GetDatum(c_d_id);
 		ret = SPI_execute_plan(PAYMENT_7_GC, args, nulls, false, 0);
-		if (ret != SPI_OK_UPDATE) {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
 	} else {
 		char my_c_data[1000];
 
@@ -347,10 +313,10 @@ Datum payment(PG_FUNCTION_ARGS)
 		args[3] = Int32GetDatum(c_w_id);
 		args[4] = Int32GetDatum(c_d_id);
 		ret = SPI_execute_plan(PAYMENT_7_BC, args, nulls, false, 0);
-		if (ret != SPI_OK_UPDATE) {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
+	}
+	if (ret != SPI_OK_UPDATE) {
+		SPI_finish();
+		PG_RETURN_INT32(-1);
 	}
 
 	args[0] = Int32GetDatum(my_c_id);

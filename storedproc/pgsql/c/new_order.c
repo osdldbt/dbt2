@@ -25,14 +25,13 @@
 
 #define NEW_ORDER_1 statements[0].plan
 #define NEW_ORDER_2 statements[1].plan
-#define NEW_ORDER_3 statements[2].plan
-#define NEW_ORDER_4 statements[3].plan
-#define NEW_ORDER_5 statements[4].plan
-#define NEW_ORDER_6 statements[5].plan
-#define NEW_ORDER_7 statements[6].plan
-#define NEW_ORDER_8 statements[7].plan
-#define NEW_ORDER_9 statements[8].plan
-#define NEW_ORDER_10 statements[9].plan
+#define NEW_ORDER_4 statements[2].plan
+#define NEW_ORDER_5 statements[3].plan
+#define NEW_ORDER_6 statements[4].plan
+#define NEW_ORDER_7 statements[5].plan
+#define NEW_ORDER_8 statements[6].plan
+#define NEW_ORDER_9 statements[7].plan
+#define NEW_ORDER_10 statements[8].plan
 
 const char s_dist[10][11] = {
 	"s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04", "s_dist_05",
@@ -50,19 +49,11 @@ static cached_statement statements[] =
 	},
 
 	{ /* NEW_ORDER_2 */
-	"SELECT d_tax, d_next_o_id\n" \
-	"FROM district \n" \
-	"WHERE d_w_id = $1\n" \
-	"  AND d_id = $2\n" \
-	"FOR UPDATE",
-	2, { INT4OID, INT4OID }
-	},
-
-	{ /* NEW_ORDER_3 */
 	"UPDATE district\n" \
 	"SET d_next_o_id = d_next_o_id + 1\n" \
 	"WHERE d_w_id = $1\n" \
-	"  AND d_id = $2",
+	"  AND d_id = $2\n" \
+	"RETURNING d_tax, d_next_o_id",
 	2, { INT4OID, INT4OID }
 	},
 
@@ -221,7 +212,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 	args[0] = Int32GetDatum(w_id);
 	args[1] = Int32GetDatum(d_id);
 	ret = SPI_execute_plan(NEW_ORDER_2, args, nulls, false, 0);
-	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+	if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 		tuple = tuptable->vals[0];
@@ -232,15 +223,6 @@ Datum new_order(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "%d d_next_o_id = %d", (int) getpid(),
 			d_next_o_id);
 	} else {
-		elog(WARNING, "NEW_ORDER_2 failed");
-		SPI_finish();
-		PG_RETURN_INT32(11);
-	}
-
-	args[0] = Int32GetDatum(w_id);
-	args[1] = Int32GetDatum(d_id);
-	ret = SPI_execute_plan(NEW_ORDER_3, args, nulls, false, 0);
-	if (ret != SPI_OK_UPDATE) {
 		elog(WARNING, "NEW_ORDER_3 failed");
 		SPI_finish();
 		PG_RETURN_INT32(12);

@@ -28,10 +28,9 @@ PG_MODULE_MAGIC;
 #define DELIVERY_1 statements[0].plan
 #define DELIVERY_2 statements[1].plan
 #define DELIVERY_3 statements[2].plan
-#define DELIVERY_4 statements[3].plan
-#define DELIVERY_5 statements[4].plan
-#define DELIVERY_6 statements[5].plan
-#define DELIVERY_7 statements[6].plan
+#define DELIVERY_5 statements[3].plan
+#define DELIVERY_6 statements[4].plan
+#define DELIVERY_7 statements[5].plan
 
 static cached_statement statements[] =
 {
@@ -59,22 +58,12 @@ static cached_statement statements[] =
 
 	/* DELIVERY_3 */
 	{
-	"SELECT o_c_id\n" \
-	"FROM orders\n" \
-	"WHERE o_id = $1\n" \
-	"  AND o_w_id = $2\n" \
-	"  AND o_d_id = $3",
-	3,
-	{ INT4OID, INT4OID, INT4OID }
-	},
-
-	/* DELIVERY_4 */
-	{
 	"UPDATE orders\n" \
 	"SET o_carrier_id = $1\n" \
 	"WHERE o_id = $2\n" \
 	"  AND o_w_id = $3\n" \
-	"  AND o_d_id = $4",
+	"  AND o_d_id = $4\n" \
+	"RETURNING o_c_id",
 	4,
 	{ INT4OID, INT4OID, INT4OID, INT4OID }
 	},
@@ -170,11 +159,12 @@ Datum delivery(PG_FUNCTION_ARGS)
 			PG_RETURN_INT32(-1);
 		}
 
-		args[0] = Int32GetDatum(no_o_id);
-		args[1] = Int32GetDatum(w_id);
-		args[2] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_3, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+		args[0] = Int32GetDatum(o_carrier_id);
+		args[1] = Int32GetDatum(no_o_id);
+		args[2] = Int32GetDatum(w_id);
+		args[3] = Int32GetDatum(d_id);
+		ret = SPI_execute_plan(DELIVERY_3, args, nulls, false, 0);
+		if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
@@ -182,16 +172,6 @@ Datum delivery(PG_FUNCTION_ARGS)
 			o_c_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
 			elog(DEBUG1, "o_c_id = %d", o_c_id);
 		} else {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
-
-		args[0] = Int32GetDatum(o_carrier_id);
-		args[1] = Int32GetDatum(no_o_id);
-		args[2] = Int32GetDatum(w_id);
-		args[3] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_4, args, nulls, false, 0);
-		if (ret != SPI_OK_UPDATE) {
 			SPI_finish();
 			PG_RETURN_INT32(-1);
 		}
