@@ -35,7 +35,7 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG2="-l ${PORT}"
 fi
 
-PSQL="psql ${PORTARG} -d ${DBT2DBNAME} -t --no-align"
+PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME} -t --no-align"
 PGVERSION=`${PSQL} -c "show server_version_num;"`
 PIDCOL="procpid"
 QUERYCOL="current_query"

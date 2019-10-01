@@ -64,7 +64,7 @@ load_table() {
 	fi
 
 	local sql="COPY $table FROM '${DBDATA}/$file' WITH NULL AS '';"
-	local cmd="psql ${PORTARG} -e -d ${DBT2DBNAME} -c "
+	local cmd="psql -X ${PORTARG} -e -d ${DBT2DBNAME} -c "
 	if [ "${BACKGROUND}" == "yes" ]; then
 		echo "Loading $table table in the background..."
 		load_table2 "${cmd}" "${sql}" "VACUUM ANALYZE $table;" &

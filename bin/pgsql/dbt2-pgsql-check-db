@@ -23,7 +23,7 @@ one
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
-PSQL="psql ${PORTARG} -d ${DBT2DBNAME}"
+PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME}"
 
 echo "Checking dbt2 database '${DBT2DBNAME}'..."
 echo
