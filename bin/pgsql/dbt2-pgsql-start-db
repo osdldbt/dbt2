@@ -12,6 +12,11 @@ if [ -z ${DBT2PGDATA} ]; then
 	exit 1
 fi
 
+if [ ! -d $DBT2PGDATA ]; then
+	echo "Postgres instance does not exist at $DBT2PGDATA, run dbt2-build-db"
+	exit 1
+fi
+
 LOGFILE="dbt2.log"
 OUTDIR="."
 while getopts "fo:p:" OPT; do

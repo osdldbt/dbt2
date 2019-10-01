@@ -12,6 +12,11 @@ if [ -z ${DBT2PGDATA} ]; then
 	exit 1
 fi
 
+if [ ! -d $DBT2PGDATA ]; then
+	echo "Postgres instance does not exist at $DBT2PGDATA, run dbt2-build-db"
+	exit 1
+fi
+
 # We only need to stop the database if it's running.
 if [ -f "${DBT2PGDATA}/postmaster.pid" ]; then
 	killall ${PG_AUTOVACUUM} > /dev/null 2>&1
