@@ -18,7 +18,7 @@ while getopts "l:" OPT; do
 		PORT=${OPTARG}
 		;;
 	esac
-one
+done
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
