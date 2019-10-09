@@ -1340,31 +1340,24 @@ int main(int argc, char *argv[])
 	init_common();
 
 	if (argc < 2) {
-		printf("Usage: %s -w # [-c #] [-i #] [-o #] [-s #] [-n #] [-d <str>]\n",
-				argv[0]);
-		printf("\n");
-		printf("-w #\n");
-		printf("\twarehouse cardinality\n");
-		printf("-c #\n");
-		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
-		printf("-i #\n");
-		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
-		printf("-o #\n");
-		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
-		printf("-n #\n");
-		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
-		printf("-d <path>\n");
-		printf("\toutput path of data files\n");
-		printf("--drizzle\n");
-		printf("\tformat data for Drizzle\n");
-		printf("--mysql\n");
-		printf("\tformat data for MySQL\n");
-		printf("--pgsql\n");
-		printf("\tformat data for PostgreSQL\n");
-		printf("--sapdb\n");
-		printf("\tformat data for SAP DB\n");
-		printf("--direct\n");
-		printf("\tdon't generate flat files, load directly into database\n");
+		printf("usage: %s [options]\n", argv[0]);
+		printf("  options:\n");
+		printf("    -w <int> - warehouse cardinality\n");
+		printf("    -c <int> - customer cardinality, default %d\n",
+				CUSTOMER_CARDINALITY);
+		printf("    -i <int> - item cardinality, default %d\n",
+				ITEM_CARDINALITY);
+		printf("    -o <int> - order cardinality, default %d\n",
+				ORDER_CARDINALITY);
+		printf("    -n <int> - new-order cardinality, default %d\n",
+				NEW_ORDER_CARDINALITY);
+		printf("    -d <path> - output path of data files\n");
+		printf("    --drizzle - format data for Drizzle\n");
+		printf("    --mysql - format data for MySQL\n");
+		printf("    --pgsql - format data for PostgreSQL\n");
+		printf("    --sapdb - format data for SAP DB\n");
+		printf("    --direct - don't generate flat files, load directly into "
+				"database\n");
 		return 1;
 	}
 
