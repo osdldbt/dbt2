@@ -60,6 +60,8 @@ int mode_string = MODE_PGSQL;
 char delimiter = ',';
 char null_str[16] = "\"NULL\"";
 
+int seed = 0;
+
 #define ERR_MSG( fn ) { (void)fflush(stderr); \
 		(void)fprintf(stderr, __FILE__ ":%d:" #fn ": %s\n", \
 		__LINE__, strerror(errno)); }
@@ -130,7 +132,7 @@ void gen_customers()
 	time_t t1;
 	char filename[1024] = "\0";
 
-	srand(0);
+	srand(seed);
 	printf("Generating customer table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -321,7 +323,7 @@ void gen_districts()
 	char a_string[48];
 	char filename[1024] = "\0";
 
-	srand(0);
+	srand(seed);
 	printf("Generating district table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -452,7 +454,7 @@ void gen_history()
 	time_t t1;
 	char filename[1024] = "\0";
 
-	srand(0);
+	srand(seed);
 	printf("Generating history table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -571,7 +573,7 @@ void gen_items()
 	int j;
 	char filename[1024] = "\0";
 
-	srand(0);
+	srand(seed);
 	printf("Generating item table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -671,7 +673,7 @@ void gen_new_orders()
 	int i, j, k;
 	char filename[1024] = "\0";
 
-	srand(0);
+	srand(seed);
 	printf("Generating new-order table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -774,7 +776,7 @@ void gen_orders()
 
 	int o_ol_cnt;
 
-	srand(0);
+	srand(seed);
 	printf("Generating order and order-line table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -1060,7 +1062,7 @@ void gen_stock()
 	char a_string[128];
 	char filename[1024] = "\0";
 
-	srand(0);
+	srand(seed);
 	printf("Generating stock table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -1219,7 +1221,7 @@ void gen_warehouses()
 	char a_string[48];
 	char filename[1024] = "\0";
 
-	srand(0);
+	srand(seed);
 	printf("Generating warehouse table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -1352,6 +1354,7 @@ int main(int argc, char *argv[])
 		printf("    -n <int> - new-order cardinality, default %d\n",
 				NEW_ORDER_CARDINALITY);
 		printf("    -d <path> - output path of data files\n");
+		printf("    --seed <int> - set random number generation seed\n");
 		printf("    --drizzle - format data for Drizzle\n");
 		printf("    --mysql - format data for MySQL\n");
 		printf("    --pgsql - format data for PostgreSQL\n");
@@ -1366,6 +1369,7 @@ int main(int argc, char *argv[])
 		int option_index = 0;
 		static struct option long_options[] = {
 			{ "direct", no_argument, &mode_load, MODE_DIRECT },
+			{ "seed", required_argument, &seed, 0 },
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
 			{ "mysql", no_argument, &mode_string, MODE_MYSQL },
