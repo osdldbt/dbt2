@@ -61,6 +61,7 @@ char delimiter = ',';
 char null_str[16] = "\"NULL\"";
 
 int seed = 0;
+int table = TABLE_ALL;
 
 #define ERR_MSG( fn ) { (void)fflush(stderr); \
 		(void)fprintf(stderr, __FILE__ ":%d:" #fn ": %s\n", \
@@ -1355,6 +1356,7 @@ int main(int argc, char *argv[])
 				NEW_ORDER_CARDINALITY);
 		printf("    -d <path> - output path of data files\n");
 		printf("    --seed <int> - set random number generation seed\n");
+		printf("    --table <table> - set random number generation seed\n");
 		printf("    --drizzle - format data for Drizzle\n");
 		printf("    --mysql - format data for MySQL\n");
 		printf("    --pgsql - format data for PostgreSQL\n");
@@ -1370,6 +1372,7 @@ int main(int argc, char *argv[])
 		static struct option long_options[] = {
 			{ "direct", no_argument, &mode_load, MODE_DIRECT },
 			{ "seed", required_argument, &seed, 0 },
+			{ "table", required_argument, 0, 0 },
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
 			{ "mysql", no_argument, &mode_string, MODE_MYSQL },
@@ -1385,6 +1388,30 @@ int main(int argc, char *argv[])
 
 		switch (c) {
 		case 0:
+			if (strcmp(long_options[option_index].name, "table") == 0) {
+				if (strcmp(optarg, "warehouse") == 0) {
+					table = TABLE_WAREHOUSE;
+				} else if (strcmp(optarg, "district") == 0) {
+					table = TABLE_DISTRICT;
+				} else if (strcmp(optarg, "customer") == 0) {
+					table = TABLE_CUSTOMER;
+				} else if (strcmp(optarg, "item") == 0) {
+					table = TABLE_ITEM;
+				} else if (strcmp(optarg, "order") == 0) {
+					table = TABLE_ORDER;
+				} else if (strcmp(optarg, "stock") == 0) {
+					table = TABLE_STOCK;
+				} else if (strcmp(optarg, "new_order") == 0) {
+					table = TABLE_NEW_ORDER;
+				} else if (strcmp(optarg, "history") == 0) {
+					table = TABLE_HISTORY;
+				} else if (strcmp(optarg, "order_line") == 0) {
+					table = TABLE_ORDER_LINE;
+				} else {
+					printf("unknown table: %s\n", optarg);
+					return 2;
+				}
+			}
 			break;
 		case 'c':
 			customers = atoi(optarg);
@@ -1460,14 +1487,22 @@ int main(int argc, char *argv[])
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 
-	gen_items();
-	gen_warehouses();
-	gen_stock();
-	gen_districts();
-	gen_customers();
-	gen_history();
-	gen_orders();
-	gen_new_orders();
+	if (table == TABLE_ALL || table == TABLE_ITEM)
+		gen_items();
+	if (table == TABLE_ALL || table == TABLE_WAREHOUSE)
+		gen_warehouses();
+	if (table == TABLE_ALL || table == TABLE_STOCK)
+		gen_stock();
+	if (table == TABLE_ALL || table == TABLE_DISTRICT)
+		gen_districts();
+	if (table == TABLE_ALL || table == TABLE_CUSTOMER)
+		gen_customers();
+	if (table == TABLE_ALL || table == TABLE_HISTORY)
+		gen_history();
+	if (table == TABLE_ALL || table == TABLE_ORDER)
+		gen_orders();
+	if (table == TABLE_ALL || table == TABLE_NEW_ORDER)
+		gen_new_orders();
 
 	return 0;
 }
