@@ -1582,12 +1582,14 @@ int main(int argc, char *argv[])
 	printf("new_orders = %d\n", new_orders);
 	printf("\n");
 
-	if (strlen(output_path) > 0) {
-		printf("Output directory of data files: %s\n",output_path);
-	} else {
-		printf("Output directory of data files: current directory\n");
+	if (mode_load != MODE_DIRECT) {
+		if (strlen(output_path) > 0) {
+			printf("Output directory of data files: %s\n",output_path);
+		} else {
+			printf("Output directory of data files: current directory\n");
+		}
+		printf("\n");
 	}
-	printf("\n");
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 
