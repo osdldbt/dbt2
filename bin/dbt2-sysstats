@@ -23,7 +23,16 @@ fi
 
 which pidstat > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-	PIDSTAT=pidstat
+    PIDSTAT="pidstat -h -l -d -r -s -u -w"
+	$PIDSTAT 1 1 > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		PIDSTAT="pidstat -h -l -d -r -u -w"
+		$PIDSTAT 1 1 > /dev/null 2>&1
+		if [ $? -ne 0 ]; then
+			echo "WARNING: Cannot determine propper pidstat flags"
+			PIDSTAT="true"
+		fi
+	fi
 else
 	PIDSTAT=true
 fi
