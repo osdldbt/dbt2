@@ -214,13 +214,13 @@ STOT=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $7}'`
 SROL=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $8}'`
 SRPE=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $9}'`
 
-OS=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 1`
-OSVER=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 3`
-ARCH=`head -n 1 ${INDIR}/db/readme.txt | cut -d " " -f 12`
+OS=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 1`
+OSVER=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 3`
+ARCH=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 12`
 
-DBOS=`head -n 1 $INDIR/db/readme.txt | cut -d " " -f 1`
-DBOSVER=`head -n 1 $INDIR/db/readme.txt | cut -d " " -f 3`
-DBARCH=`head -n 1 $INDIR/db/readme.txt | cut -d " " -f 12`
+DBOS=`head -n 1 $INDIR/db/readme-dbms.txt | cut -d " " -f 1`
+DBOSVER=`head -n 1 $INDIR/db/readme-dbms.txt | cut -d " " -f 3`
+DBARCH=`head -n 1 $INDIR/db/readme-dbms.txt | cut -d " " -f 12`
 
 # cd into the driver directory because there will be one in the db subdir also
 OSPROCFILE=`(cd $INDIR/driver && find */ -name proc.txt)`
@@ -512,6 +512,7 @@ done
 
 # Create additional HTML pages for the database charts.
 
+dbt-$DATABASE-generate-db-html "Database Test 2" $INDIR/db
 dbt-$DBMS-generate-table-html "Database Test 2" $INDIR/db/table-list.txt \
 		$OUTDIR/db/tables
 dbt-$DBMS-generate-index-html "Database Test 2" $INDIR/db/index-list.txt \
