@@ -1,12 +1,10 @@
 *.o
 *.so
+*.bc
 
 dbt2.log
 
-bin/dbt2-client
-bin/dbt2-datagen
-bin/dbt2-driver
-bin/dbt2-transaction-test
+/_builds
 
 # vim
 *.swp
@@ -14,7 +12,6 @@ bin/dbt2-transaction-test
 # cmake
 CMakeCache.txt
 CMakeFiles
-Makefile
 cmake_install.cmake
 install_manifest.txt
 
