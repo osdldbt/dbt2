@@ -82,7 +82,7 @@ if (DBMS STREQUAL "pgsql")
         execute_process (COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
                 PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
         set (DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
-        set (DB_LIBS "-L${PG_LIBDIR} -lpq")
+        set (DB_LIBS "-L${PG_LIBDIR}")
     else (NOT DEFINED PKG_CONFIG_FOUND)
         message (FATAL_ERROR "pg_config not found in path")
     endif (PG_CONFIG_FOUND)
@@ -150,7 +150,7 @@ elseif (DBMS STREQUAL "drizzle")
     endif (NOT DEFINED DRIZZLE_INCLUDEDIR)
 
     if (NOT DEFINED DRIZZLE_LIBS)
-        set (DB_LIBS "-ldrizzle  -lpthread")
+        set (DB_LIBS "-ldrizzle")
     endif (NOT DEFINED DRIZZLE_LIBS)
 
     set (DBCFLAGS "-DLIBDRIZZLE -I${DRIZZLE_INCLUDEDIR}")
@@ -176,6 +176,7 @@ set (COMMON_SOURCE ../common.c ../logging.c ../_socket.c
 
 add_executable (${CLIENT} ../client.c ../transaction_queue.c ../listener.c
         ../db_threadpool.c ../db.c ${COMMON_SOURCE} ${DB_SOURCE})
+target_link_libraries (${CLIENT} m pthread)
 if (NEED_LIBRT)
     target_link_libraries (${CLIENT} rt)
 endif (NEED_LIBRT)
@@ -185,11 +186,16 @@ endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${CLIENT} nsl)
 endif (NEED_LIBNSL)
+if (DBMS STREQUAL "pgsql")
+    target_link_libraries (${CLIENT} pq)
+endif (DBMS STREQUAL "pgsql")
 
 add_executable (${DATAGEN} ../datagen.c ../common.c)
+target_link_libraries (${DATAGEN} m)
 
 add_executable (${DRIVER} ${COMMON_SOURCE} ../driver_main.c ../driver.c
         ../input_data_generator.c)
+target_link_libraries (${DRIVER} m pthread)
 if (NEED_LIBRT)
     target_link_libraries (${DRIVER} rt)
 endif (NEED_LIBRT)
@@ -202,12 +208,16 @@ endif (NEED_LIBNSL)
 
 add_executable(${TXN_TEST} ../transaction_test.c ../db.c
         ../input_data_generator.c ${COMMON_SOURCE} ${DB_SOURCE})
+target_link_libraries (${TXN_TEST} m)
 if (NEED_LIBSOCKET)
     target_link_libraries (${TXN_TEST} socket)
 endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${TXN_TEST} nsl)
 endif (NEED_LIBNSL)
+if (DBMS STREQUAL "pgsql")
+    target_link_libraries (${TXN_TEST} pq)
+endif (DBMS STREQUAL "pgsql")
 
 #
 # Set compiler flags.
@@ -223,11 +233,8 @@ set_source_files_properties (${DB_SOURCE} COMPILE_FLAGS "${DBCFLAGS}")
 # Set linker flags.
 #
 
-set_target_properties (${CLIENT}
-        PROPERTIES LINK_FLAGS "-lm ${DB_LIBS} -lpthread")
-set_target_properties (${DATAGEN} PROPERTIES LINK_FLAGS "-lm")
-set_target_properties (${DRIVER} PROPERTIES LINK_FLAGS "-lm -lpthread")
-set_target_properties (${TXN_TEST} PROPERTIES LINK_FLAGS "-lm ${DB_LIBS}")
+set_target_properties (${CLIENT} PROPERTIES LINK_FLAGS "${DB_LIBS}")
+set_target_properties (${TXN_TEST} PROPERTIES LINK_FLAGS "${DB_LIBS}")
 
 #
 # Install rules.
