@@ -20,7 +20,5 @@ fi
 # We only need to stop the database if it's running.
 if [ -f "${DBT2PGDATA}/postmaster.pid" ]; then
 	killall ${PG_AUTOVACUUM} > /dev/null 2>&1
-	sleep 1
-	pg_ctl -D ${DBT2PGDATA} stop ${1}
-	sleep 1
+	pg_ctl -D ${DBT2PGDATA} -w stop ${1}
 fi
