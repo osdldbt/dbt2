@@ -92,8 +92,8 @@ Datum stock_level(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "d_next_o_id = %s", buf);
 		d_next_o_id = atoi(buf);
 	} else {
-		SPI_finish();
-		PG_RETURN_INT32(-1);
+		ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+			 errmsg("STOCK_LEVEL_1 failed")));
 	}
 
 	args[0] = Int32GetDatum(w_id);
@@ -111,8 +111,8 @@ Datum stock_level(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "low_stock = %s", buf);
 		low_stock = atoi(buf);
 	} else {
-		SPI_finish();
-		PG_RETURN_INT32(-1);
+		ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+			 errmsg("STOCK_LEVEL_2t failed")));
 	}
 
 	SPI_finish();

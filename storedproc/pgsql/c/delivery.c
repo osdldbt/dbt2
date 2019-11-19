@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <postgres.h>
 #include <fmgr.h>
+#include <funcapi.h>
 #include <catalog/pg_type.h>    /* for INT4OID */
 #include <executor/spi.h>       /* this should include most necessary APIs */
 #include <utils/builtins.h>     /* for numeric_in() */
@@ -113,107 +114,166 @@ PG_FUNCTION_INFO_V1(delivery);
 
 Datum delivery(PG_FUNCTION_ARGS)
 {
-	/* Input variables. */
-	int32 w_id = PG_GETARG_INT32(0);
-	int32 o_carrier_id = PG_GETARG_INT32(1);
+	FuncCallContext *funcctx;
+	int call_cntr;
+	int max_calls;
+	AttInMetadata *attinmeta;
 
-	TupleDesc tupdesc;
-	SPITupleTable *tuptable;
-	HeapTuple tuple;
+	if (SRF_IS_FIRSTCALL())
+	{
+		MemoryContext oldcontext;
 
-	int d_id;
-	int ret;
-	char *ol_amount;
-	int no_o_id;
-	int o_c_id;
+		/* Input variables. */
+		int32 w_id = PG_GETARG_INT32(0);
+		int32 o_carrier_id = PG_GETARG_INT32(1);
 
-	SPI_connect();
+		TupleDesc tupdesc;
+		SPITupleTable *tuptable;
+		HeapTuple tuple;
 
-	plan_queries(statements);
+		int d_id;
+		int ret;
+		char *ol_amount;
+		int no_o_id;
+		int o_c_id;
 
-	for (d_id = 1; d_id <= 10; d_id++) {
-		Datum	args[4];
-		char	nulls[4] = { ' ', ' ', ' ', ' ' };
+		int32 **pp;
+		int32 *offset;
 
-		args[0] = Int32GetDatum(w_id);
-		args[1] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_1, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
+		funcctx = SRF_FIRSTCALL_INIT();
+		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
+		if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE)
+			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+					errmsg("delivery cannot accept type record")));
+		attinmeta = TupleDescGetAttInMetadata(tupdesc);
+		funcctx->attinmeta = attinmeta;
 
-			no_o_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
-			elog(DEBUG1, "no_o_id = %d", no_o_id);
-		} else {
-			/* Nothing to deliver for this district, try next district. */
-			continue;
+		SPI_connect();
+
+		plan_queries(statements);
+
+		/* Hard coded to 10 districts per warehouse. */
+		funcctx->user_fctx = MemoryContextAlloc(funcctx->multi_call_memory_ctx,
+				sizeof(int32 *) * 10 + sizeof(int32) * 2 * 10);
+
+		pp = (int32 **) funcctx->user_fctx;
+		offset = (int32 *) &pp[10];
+		funcctx->max_calls = 0;
+		for (d_id = 1; d_id <= 10; d_id++, offset += 2) {
+			Datum	args[4];
+			char	nulls[4] = { ' ', ' ', ' ', ' ' };
+
+			pp[funcctx->max_calls] = offset;
+
+			args[0] = Int32GetDatum(w_id);
+			args[1] = Int32GetDatum(d_id);
+			ret = SPI_execute_plan(DELIVERY_1, args, nulls, true, 0);
+			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				tuple = tuptable->vals[0];
+
+				no_o_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
+				elog(DEBUG1, "no_o_id = %d", no_o_id);
+			} else {
+				/* Nothing to deliver for this district, try next district. */
+				continue;
+			}
+
+			args[0] = Int32GetDatum(no_o_id);
+			args[1] = Int32GetDatum(w_id);
+			args[2] = Int32GetDatum(d_id);
+			ret = SPI_execute_plan(DELIVERY_2, args, nulls, false, 0);
+			if (ret != SPI_OK_DELETE) {
+				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("DELIVERY_2 failed")));
+			}
+
+			args[0] = Int32GetDatum(o_carrier_id);
+			args[1] = Int32GetDatum(no_o_id);
+			args[2] = Int32GetDatum(w_id);
+			args[3] = Int32GetDatum(d_id);
+			ret = SPI_execute_plan(DELIVERY_3, args, nulls, false, 0);
+			if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				tuple = tuptable->vals[0];
+
+				o_c_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
+				elog(DEBUG1, "o_c_id = %d", o_c_id);
+			} else {
+				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("DELIVERY_3 failed")));
+			}
+
+			args[0] = Int32GetDatum(no_o_id);
+			args[1] = Int32GetDatum(w_id);
+			args[2] = Int32GetDatum(d_id);
+			ret = SPI_execute_plan(DELIVERY_5, args, nulls, false, 0);
+			if (ret != SPI_OK_UPDATE) {
+				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("DELIVERY_5 failed")));
+			}
+
+			args[0] = Int32GetDatum(no_o_id);
+			args[1] = Int32GetDatum(w_id);
+			args[2] = Int32GetDatum(d_id);
+			ret = SPI_execute_plan(DELIVERY_6, args, nulls, true, 0);
+			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				tuple = tuptable->vals[0];
+
+				ol_amount = SPI_getvalue(tuple, tupdesc, 1);
+				elog(DEBUG1, "ol_amount = %s", ol_amount);
+			} else {
+				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("DELIVERY_6 failed")));
+			}
+			args[0] = DirectFunctionCall3(numeric_in,
+					CStringGetDatum(ol_amount), ObjectIdGetDatum(InvalidOid),
+					Int32GetDatum(((24 << 16) | 12) + VARHDRSZ));
+			args[1] = Int32GetDatum(o_c_id);
+			args[2] = Int32GetDatum(w_id);
+			args[3] = Int32GetDatum(d_id);
+			ret = SPI_execute_plan(DELIVERY_7, args, nulls, false, 0);
+			if (ret != SPI_OK_UPDATE) {
+				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("DELIVERY_7 failed")));
+			}
+
+			pp[funcctx->max_calls][0] = d_id;
+			pp[funcctx->max_calls][1] = no_o_id;
+			++funcctx->max_calls;
 		}
 
-		args[0] = Int32GetDatum(no_o_id);
-		args[1] = Int32GetDatum(w_id);
-		args[2] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_2, args, nulls, false, 0);
-		if (ret != SPI_OK_DELETE) {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
-
-		args[0] = Int32GetDatum(o_carrier_id);
-		args[1] = Int32GetDatum(no_o_id);
-		args[2] = Int32GetDatum(w_id);
-		args[3] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_3, args, nulls, false, 0);
-		if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-
-			o_c_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
-			elog(DEBUG1, "o_c_id = %d", o_c_id);
-		} else {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
-
-		args[0] = Int32GetDatum(no_o_id);
-		args[1] = Int32GetDatum(w_id);
-		args[2] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_5, args, nulls, false, 0);
-		if (ret != SPI_OK_UPDATE) {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
-
-		args[0] = Int32GetDatum(no_o_id);
-		args[1] = Int32GetDatum(w_id);
-		args[2] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_6, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-
-			ol_amount = SPI_getvalue(tuple, tupdesc, 1);
-			elog(DEBUG1, "ol_amount = %s", ol_amount);
-		} else {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
-
-		args[0] = DirectFunctionCall3(numeric_in, CStringGetDatum(ol_amount),
-				ObjectIdGetDatum(InvalidOid),
-				Int32GetDatum(((24 << 16) | 12) + VARHDRSZ));
-		args[1] = Int32GetDatum(o_c_id);
-		args[2] = Int32GetDatum(w_id);
-		args[3] = Int32GetDatum(d_id);
-		ret = SPI_execute_plan(DELIVERY_7, args, nulls, false, 0);
-		if (ret != SPI_OK_UPDATE) {
-			SPI_finish();
-			PG_RETURN_INT32(-1);
-		}
+		SPI_finish();
+		MemoryContextSwitchTo(oldcontext);
 	}
 
-	SPI_finish();
-	PG_RETURN_INT32(1);
+	funcctx = SRF_PERCALL_SETUP();
+
+	call_cntr = funcctx->call_cntr;
+	max_calls = funcctx->max_calls;
+	attinmeta = funcctx->attinmeta;
+
+	if (call_cntr < max_calls) {
+		HeapTuple tuple;
+		Datum result;
+		char **values = (char **) palloc(2 * sizeof(char *));
+
+		int32 **pp = (int32 **) funcctx->user_fctx;
+
+		values[0] = (char *) palloc(11 * sizeof(char));
+		values[1] = (char *) palloc(11 * sizeof(char));
+
+		snprintf(values[0], 10, "%d", pp[funcctx->call_cntr][0]);
+		snprintf(values[1], 10, "%d", pp[funcctx->call_cntr][1]);
+
+		tuple = BuildTupleFromCStrings(attinmeta, values);
+		result = HeapTupleGetDatum(tuple);
+		SRF_RETURN_NEXT(funcctx, result);
+	} else {
+		SRF_RETURN_DONE(funcctx);
+	}
 }

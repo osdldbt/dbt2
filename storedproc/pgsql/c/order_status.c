@@ -154,8 +154,8 @@ Datum order_status(PG_FUNCTION_ARGS)
 						tmp_c_id, count, count / 2);
 				my_c_id = atoi(tmp_c_id);
 			} else {
-				SPI_finish();
-				SRF_RETURN_DONE(funcctx);
+				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("ORDER_STATUS_1 failed")));
 			}
 		} else {
 			my_c_id = c_id;
@@ -179,8 +179,8 @@ Datum order_status(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "c_last = %s", my_c_last);
 			elog(DEBUG1, "c_balance = %s", c_balance);
 		} else {
-			SPI_finish();
-			SRF_RETURN_DONE(funcctx);
+			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("ORDER_STATUS_2 failed")));
 		}
 
 		/* Maybe this should be a join with the previous query. */
@@ -202,8 +202,8 @@ Datum order_status(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "o_entry_d = %s", o_entry_d);
 			elog(DEBUG1, "o_ol_cnt = %s", o_ol_cnt);
 		} else {
-			SPI_finish();
-			SRF_RETURN_DONE(funcctx);
+			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("ORDER_STATUS_3 failed")));
 		}
 
 		args[0] = Int32GetDatum(c_w_id);
@@ -242,8 +242,8 @@ Datum order_status(PG_FUNCTION_ARGS)
 						ol_delivery_d[idx]);
 			}
 		} else {
-			SPI_finish();
-			SRF_RETURN_DONE(funcctx);
+			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
+				 errmsg("ORDER_STATUS_4 failed")));
 		}
 
 		/* get tupdesc from the type name */
