@@ -1,5 +1,6 @@
 *.o
 *.so
+*.bc
 
 bin/dbt2-client
 bin/dbt2-datagen
