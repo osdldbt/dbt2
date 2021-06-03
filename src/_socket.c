@@ -42,51 +42,46 @@ int _accept(int *s)
 
 int _connect(char *address, unsigned short port) {
 	int sockfd = -1;
-	struct sockaddr_in sa;
-	struct hostent *he;
-	in_addr_t addr;
+	struct addrinfo hints;
+	struct addrinfo *result = NULL, *rp;
+	int s;
+	char port_str[8];
 
-	bzero(&sa, sizeof(struct sockaddr_in));
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = 0;
+	hints.ai_protocol = 0;
 
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(port);
-	if (sa.sin_port == 0) {
-		printf("Please specify port on which client listen for request\n");
+	snprintf(port_str, sizeof(port_str), "%d", port);
+
+	s = getaddrinfo(address, port_str, &hints, &result);
+	if (s != 0) {
+		close(sockfd);
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
 		return -1;
 	}
 
-	/* Assume that an IP address is used. */
-	addr = inet_addr(address);
-	if (addr == INADDR_NONE) {
-		/* If it is not an IP address, assume it is a hostname. */
-		if ((he = gethostbyname(address)) == NULL) {
-			close(sockfd);
-			printf("specify correct hostname of system where client is running: %s\n",
-					address);
-			return -1;
-		}
-	} else {
-		/* Continue the assumption that an IP address is used. */
-		if ((he = gethostbyaddr((char *) (&addr), sizeof(addr),
-			AF_INET)) == NULL) {
-			close(sockfd);
-			printf("Please specify correct IP of box where client running\n");
-			return -1;
-		}
-		memcpy(&sa.sin_addr, &addr, sizeof(addr));
-	}
-	memcpy(&sa.sin_addr, he->h_addr_list[0], he->h_length);
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		sockfd = socket(rp->ai_family, rp->ai_socktype,
+				rp->ai_protocol);
+		if (sockfd == -1)
+			continue;
 
-	sockfd = socket(PF_INET, SOCK_STREAM, resolveproto("tcp"));
+		if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) != -1)
+			break;
+
+		close(sockfd);
+		sockfd = -1;
+	}
+
 	if (sockfd == -1) {
 		printf("Can't create socket for connection to client\n");
-		return sockfd;
 	}
 
-	if (connect(sockfd, (struct sockaddr *) &sa,
-			sizeof(struct sockaddr_in)) == -1) {
-		perror("connect");
-		printf("Can't connect to client socket\n");
+	freeaddrinfo(result);
+	if (rp == NULL) {
+		fprintf(stderr, "Could not connect\n");
 		return -1;
 	}
 
@@ -139,7 +134,7 @@ int _listen(int port)
 
 	val= 1;
 
-	bzero(&sa, sizeof(struct sockaddr_in));
+	memset(&sa, 0, sizeof(struct sockaddr_in));
 	sa.sin_family = AF_INET;
 	sa.sin_addr.s_addr = INADDR_ANY;
 	sa.sin_port = htons((unsigned short) port);
