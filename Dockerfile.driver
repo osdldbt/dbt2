@@ -1,0 +1,16 @@
+From dbt2-base
+
+RUN dnf -y install epel-release && \
+    dnf -y install dnf-plugins-core && \
+    dnf config-manager --set-enabled powertools && \
+    dnf -y install R
+
+ENV PATH="/usr/pgsql-13/bin:$PATH"
+
+COPY . /usr/local/src/dbt2
+WORKDIR /usr/local/src/dbt2
+# The driver itself is database agnostic, but the build system isn't because
+# it's building everything.
+RUN cmake -DDBMS=pgsql .
+RUN make
+RUN make install

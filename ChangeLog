@@ -1,3 +1,8 @@
+vX.Y
+
+- Add Docker files and scripts to test building and evaluate a 1
+  warehouse PostgreSQL database.
+
 v0.41
 
 - Renamed the 'scripts' directory to 'bin'.

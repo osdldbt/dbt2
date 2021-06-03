@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Prepare a Docker image for building and running the driver, client and
+# database.
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+DOCKER_DIR=`dirname $0`
+docker build -t dbt2-base $DOCKER_DIR

@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# Start the DBT-2 PostgreSQL database.
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+if [ $# -ne 1 ]; then
+	echo "usage: $0 <client address>"
+	exit 1
+fi
+
+DOCKERDIR=`dirname $0`
+${DOCKERDIR}/build-driver || exit 1
+
+HOST=$1
+
+WAREHOUSES=1
+
+# In seconds.
+TEST_LENGTH=120
+
+NO_THINK_TIME="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 "
+
+DOCKER_NAME="dbt2-driver-${WAREHOUSES}w"
+DOCKER_TAG="dbt2-driver"
+
+docker run --rm --name $DOCKER_NAME \
+		$DOCKER_TAG \
+		bash -c "dbt2-driver -d $HOST -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -l $TEST_LENGTH $NO_THINK_TIME && dbt2-post-process mix.log"

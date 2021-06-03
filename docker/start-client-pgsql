@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Start the DBT-2 PostgreSQL client.
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+if [ $# -ne 1 ]; then
+	echo "usage: $0 <database address>"
+	exit 1
+fi
+
+DOCKERDIR=`dirname $0`
+DOCKER_NAME="dbt2-client-1w"
+DOCKER_TAG="dbt2-client"
+
+HOST=$1
+
+DATABASE_CONNECTIONS=10
+PGDATABASE="dbt2"
+
+${DOCKERDIR}/build-client-pgsql || exit 1
+
+docker run -d --rm --name $DOCKER_NAME -p 30000:30000 \
+		-e PGUSER="postgres" \
+		$DOCKER_TAG \
+		dbt2-client -f -c $DATABASE_CONNECTIONS -d $HOST -b $PGDATABASE
+
+which jq > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	IPADDRESS=`docker inspect $DOCKER_NAME | jq -r '.[0].NetworkSettings.IPAddress'`
+	echo "IP Address: $IPADDRESS"
+	echo "${DOCKERDIR}/start-driver $IPADDRESS"
+else
+	echo "Install jq for some tips the next time you run this script, or"
+	echo "read the bottom of the file: $0"
+fi

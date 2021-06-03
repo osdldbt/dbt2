@@ -1,0 +1,31 @@
+#!/bin/sh
+
+# Open a shell on one of the DBT-2 Docker images.
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+usage()
+{
+	echo "usage: `basename $0` [ dbt2-base | dbt2-client | dbt2-database | dbt2-driver ]"
+}
+
+DOCKER_TAG="$1"
+
+if [ $# -ne 1 ]; then
+	usage
+	exit 1
+fi
+
+if [ ! "x$DOCKER_TAG" = "xdbt2-base" ] && \
+		[ ! "x$DOCKER_TAG" = "xdbt2-client" ] && \
+		[ ! "x$DOCKER_TAG" = "xdbt2-database" ] && \
+		[ ! "x$DOCKER_TAG" = "xdbt2-driver" ]; then
+	usage
+	exit 1
+fi
+
+docker run --rm -i -t $DOCKER_TAG /bin/bash

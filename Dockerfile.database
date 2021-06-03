@@ -1,0 +1,31 @@
+From dbt2-base
+
+ENV PATH="/usr/pgsql-13/bin:$PATH"
+
+RUN dnf -y install postgresql13-server
+
+COPY . /usr/local/src/dbt2
+
+# Install DBT-2 for PostgreSQL.
+WORKDIR /usr/local/src/dbt2
+RUN cmake -DDBMS=pgsql .
+RUN make
+RUN make install
+
+# Install DBT-2 PostgreSQL user defined C functions.
+WORKDIR /usr/local/src/dbt2/storedproc/pgsql/c
+RUN make USE_PGXS=1 install
+
+RUN chmod 777 /opt
+
+USER postgres
+
+ENV DBT2DBNAME="dbt2"
+ENV DBT2PGDATA="/opt/pgdata"
+ENV PGHOST="/tmp"
+
+WORKDIR /tmp
+RUN dbt2-pgsql-build-db -- -p "-c unix_socket_directories='/tmp'" -w 1 && \
+    dbt2-pgsql-stop-db
+RUN echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf
+RUN echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf
