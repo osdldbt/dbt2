@@ -7,10 +7,11 @@ INCLUDE(CheckLibraryExists)
 # Defining binaries so to minimized typoes.
 #
 
-SET(DBT2_CLIENT bin/dbt2-client)
-SET(DBT2_DATAGEN bin/dbt2-datagen)
-SET(DBT2_DRIVER bin/dbt2-driver)
-SET(DBT2_TXN_TEST bin/dbt2-transaction-test)
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
+SET(DBT2_CLIENT dbt2-client)
+SET(DBT2_DATAGEN dbt2-datagen)
+SET(DBT2_DRIVER dbt2-driver)
+SET(DBT2_TXN_TEST dbt2-transaction-test)
 
 #
 # Check for large file support by using 'getconf'.
@@ -266,7 +267,8 @@ SET_TARGET_PROPERTIES(${DBT2_TXN_TEST} PROPERTIES LINK_FLAGS "-lm ${DB_LIBS}")
 # Install rules.
 #
 
-INSTALL(PROGRAMS ${DBT2_CLIENT} ${DBT2_DATAGEN} ${DBT2_DRIVER} ${DBT2_TXN_TEST}
-        bin/dbt2-generate-report bin/dbt2-get-os-info bin/dbt2-post-process
-        bin/dbt2-run-workload bin/dbt2-sysstats bin/dbt2-plot-transaction-rate
-        ${DB_SCRIPTS} DESTINATION "${INSTALLDEST}/bin")
+INSTALL(PROGRAMS bin/${DBT2_CLIENT} bin/${DBT2_DATAGEN} bin/${DBT2_DRIVER}
+	bin/${DBT2_TXN_TEST} bin/dbt2-generate-report bin/dbt2-get-os-info
+	bin/dbt2-post-process bin/dbt2-run-workload bin/dbt2-sysstats
+	bin/dbt2-plot-transaction-rate ${DB_SCRIPTS} DESTINATION
+	"${INSTALLDEST}/bin")

@@ -2,6 +2,7 @@ vX.Y
 
 - Add Docker files and scripts to test building and evaluate a 1
   warehouse PostgreSQL database.
+- Update for CMake policy CMP0037.
 
 v0.41
 
