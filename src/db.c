@@ -114,7 +114,7 @@ int db_init(char *_dbname)
 	rc = _db_init(_dbname);
 #endif /* LIBSQLITE */
 
-	return OK;
+	return rc;
 }
 
 int disconnect_from_db(struct db_context_t *dbc) {

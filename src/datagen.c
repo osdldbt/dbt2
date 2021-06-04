@@ -634,7 +634,14 @@ void gen_items()
 		get_a_string(a_string, 26, 50);
 		if (get_percentage() < .10) {
 			j = get_random(strlen(a_string) - 8);
-			strncpy(a_string + j, "ORIGINAL", 8);
+			a_string[j++] = 'O';
+			a_string[j++] = 'R';
+			a_string[j++] = 'I';
+			a_string[j++] = 'G';
+			a_string[j++] = 'I';
+			a_string[j++] = 'N';
+			a_string[j++] = 'A';
+			a_string[j] = 'L';
 		}
 		escape_me(a_string);
 		FPRINTF(output, "%s", a_string);
@@ -1180,7 +1187,14 @@ void gen_stock()
 			get_a_string(a_string, 26, 50);
 			if (get_percentage() < .10) {
 				k = get_random(strlen(a_string) - 8);
-				strncpy(a_string + k, "ORIGINAL", 8);
+				a_string[k++] = 'O';
+				a_string[k++] = 'R';
+				a_string[k++] = 'I';
+				a_string[k++] = 'G';
+				a_string[k++] = 'I';
+				a_string[k++] = 'N';
+				a_string[k++] = 'A';
+				a_string[k] = 'L';
 			}
 			escape_me(a_string);
 			FPRINTF(output, "%s", a_string);

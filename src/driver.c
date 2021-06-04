@@ -133,7 +133,6 @@ int init_driver_logging()
 
 int integrity_terminal_worker()
 {
-	int length;
 	int sockfd;
 
 	struct client_transaction_t client_data;
@@ -160,8 +159,8 @@ int integrity_terminal_worker()
 			transaction_short_name[client_data.transaction]);
 #endif /* DEBUG */
 
-	length = send_transaction_data(sockfd, &client_data);
-	length = receive_transaction_data(sockfd, &client_data);
+	send_transaction_data(sockfd, &client_data);
+	receive_transaction_data(sockfd, &client_data);
 	close(sockfd);
 
 	return client_data.status;
@@ -416,7 +415,6 @@ int start_driver()
 void *terminal_worker(void *data)
 {
 #ifndef STANDALONE
-	int length;
 	int sockfd;
 #endif /* NOT STANDALONE */
 
@@ -430,7 +428,7 @@ void *terminal_worker(void *data)
 	double response_time;
 	extern int errno;
 	int rc;
-	int local_seed;
+	unsigned int local_seed;
 	pid_t pid;
 	pthread_t tid;
 	char code;
@@ -462,11 +460,18 @@ void *terminal_worker(void *data)
     pid = getpid();
 	if (seed == -1) {
 		struct timeval tv;
-		unsigned long junk; /* Purposely used uninitialized */
+		FILE *fp = fopen("/dev/urandom", "r");
 
 		local_seed = pid;
 		gettimeofday(&tv, NULL);
-		local_seed ^=  tid ^ tv.tv_sec ^ tv.tv_usec ^ junk;
+		local_seed ^=  tid ^ tv.tv_sec ^ tv.tv_usec;
+
+		if (fp != NULL) {
+			unsigned int junk;
+			fread(&junk, sizeof(junk), 1, fp);
+			fclose(fp);
+			local_seed ^= junk;
+		}
 	} else {
 		local_seed = seed;
 	}
@@ -609,8 +614,8 @@ void *terminal_worker(void *data)
 					transaction_name[node->client_data.transaction]);
 		}
 #else /* STANDALONE */
-		length = send_transaction_data(sockfd, &client_data);
-		length = receive_transaction_data(sockfd, &client_data);
+		send_transaction_data(sockfd, &client_data);
+		receive_transaction_data(sockfd, &client_data);
 		rc = client_data.status;
 #endif /* STANDALONE */
 		if (gettimeofday(&rt1, NULL) == -1) {
