@@ -1,6 +1,11 @@
 #!/bin/sh
 
-# Start the DBT-2 PostgreSQL database.
+# Start the DBT-2 Driver.
+
+usage()
+{
+	echo "usage: $0 <client address> [WAREHOUSES [DURATION [WAREHOUSE_MIN [WAREHOUSE_MAX]]]]"
+}
 
 which docker > /dev/null 2>&1
 if [ $? -ne 0 ]; then
@@ -8,26 +13,52 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-if [ $# -ne 1 ]; then
-	echo "usage: $0 <client address>"
+if [ $# -lt 1 ]; then
+	usage
 	exit 1
 fi
 
-DOCKERDIR=`dirname $0`
-${DOCKERDIR}/build-driver || exit 1
-
-HOST=$1
-
+DOCKER_NAME="dbt2-driver-${WAREHOUSES}w"
+DOCKER_TAG="dbt2-driver"
 WAREHOUSES=1
-
+WMIN=1
+WMAX=1
 # In seconds.
 TEST_LENGTH=120
 
+HOST=$1
+
+if [ $# -ge 2 ]; then
+	WAREHOUSES=$2
+	WMAX=$WAREHOUSES
+fi
+
+if [ $# -ge 3 ]; then
+	TEST_LENGTH=$3
+fi
+
+if [ $# -ge 4 ]; then
+	WMIN=$4
+fi
+
+if [ $# -ge 5 ]; then
+	WMAX=$5
+fi
+
+DOCKERDIR=`dirname $0`
+
+# Use the return code from `docker inspect` to determine if the docker image
+# needs to be created.
+docker inspect $DOCKER_TAG > /dev/null
+if [ $? -ne 0 ]; then
+	${DOCKERDIR}/build-driver || exit 1
+fi
+
 NO_THINK_TIME="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 "
-
-DOCKER_NAME="dbt2-driver-${WAREHOUSES}w"
-DOCKER_TAG="dbt2-driver"
-
 docker run --rm --name $DOCKER_NAME \
 		$DOCKER_TAG \
-		bash -c "dbt2-driver -d $HOST -wmin 1 -wmax $WAREHOUSES -w $WAREHOUSES -l $TEST_LENGTH $NO_THINK_TIME && dbt2-post-process mix.log"
+		bash -c "dbt2-driver -d $HOST -wmin $WMIN -wmax $WMAX -w $WAREHOUSES -l $TEST_LENGTH $NO_THINK_TIME -sleep 100 && dbt2-post-process mix.log"
+if [ $? -ne 0 ]; then
+	usage
+	exit 1
+fi
