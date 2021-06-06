@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# Build a Docker image with the DBT-2 database created.
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+WAREHOUSES=1
+DBMS="pgsql"
+
+if [ $# -ge 1 ]; then
+	WAREHOUSES=$1
+fi
+
+if [ $# -ge 2 ]; then
+	DBMS=$2
+fi
+
+TOPDIR=`dirname $0`
+
+# Use the return code from `docker inspect` to determine if the docker image
+# needs to be created.
+docker inspect dbt2-base > /dev/null
+if [ $? -ne 0 ]; then
+	${TOPDIR}/prepare-image || exit 1
+fi
+
+TOPDIR="${TOPDIR}/.."
+docker build -t dbt2-database-${DBMS}-${WAREHOUSES}w \
+		--build-arg dbms=$DBMS \
+		--build-arg warehouses=$WAREHOUSES \
+		-f Dockerfile.database $TOPDIR
+if [ $? -ne 0 ]; then
+	echo "usage: $0 [WAREHOUSES [DBMS]]"
+	echo
+	echo "DBMS options: (default: pgsql)"
+	echo "  pgsql"
+	exit 1
+fi

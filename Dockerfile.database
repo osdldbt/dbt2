@@ -6,15 +6,17 @@ RUN dnf -y install postgresql13-server
 
 COPY . /usr/local/src/dbt2
 
+ARG dbms=pgsql
+
 # Install DBT-2 for PostgreSQL.
 WORKDIR /usr/local/src/dbt2
-RUN cmake -DDBMS=pgsql .
+RUN cmake -DDBMS=$dbms .
 RUN make
 RUN make install
 
 # Install DBT-2 PostgreSQL user defined C functions.
 WORKDIR /usr/local/src/dbt2/storedproc/pgsql/c
-RUN make USE_PGXS=1 install
+RUN if [ "x$dbms" = "xpgsql" ]; then make USE_PGXS=1 install; fi
 
 RUN chmod 777 /opt
 
@@ -24,8 +26,11 @@ ENV DBT2DBNAME="dbt2"
 ENV DBT2PGDATA="/opt/pgdata"
 ENV PGHOST="/tmp"
 
+ARG warehouses=1
+
 WORKDIR /tmp
-RUN dbt2-pgsql-build-db -- -p "-c unix_socket_directories='/tmp'" -w 1 && \
-    dbt2-pgsql-stop-db
-RUN echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf
-RUN echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf
+RUN  if [ "x$dbms" = "xpgsql" ]; then dbt2-pgsql-build-db -w $warehouses \
+        -- -p "-c unix_socket_directories='/tmp'" && \
+    dbt2-pgsql-stop-db; fi
+RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf; fi
+RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf; fi
