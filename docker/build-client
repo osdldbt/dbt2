@@ -9,8 +9,22 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
+DBMS="pgsql"
+
+if [ $# -ge 1 ]; then
+	DBMS=$1
+fi
+
 TOPDIR=`dirname $0`
 ${TOPDIR}/prepare-image || exit 1
 
 TOPDIR="${TOPDIR}/.."
-docker build -t dbt2-client -f Dockerfile.client ${TOPDIR}
+docker build -t dbt2-client-${DBMS} -f Dockerfile.client ${TOPDIR}
+if [ $? -ne 0 ]; then
+        echo "usage: $0 [DBMS]"
+        echo
+        echo "DBMS options: (default: pgsql)"
+        echo "  pgsql"
+        exit 1
+fi
+
