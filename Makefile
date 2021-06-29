@@ -6,17 +6,17 @@ default:
 UNAME_S := $(shell uname -s)
 
 clean:
-	-rm -rf _builds
+	-rm -rf builds
 
 debug:
-	cmake -H. -B_builds/debug -DCMAKE_BUILD_TYPE=Debug -DDBMS=$(DBMS)
-	cd _builds/debug && make
+	cmake -H. -Bbuilds/debug -DCMAKE_BUILD_TYPE=Debug -DDBMS=$(DBMS)
+	cd builds/debug && make
 
 package:
-	git checkout-index --prefix=_builds/source/ -a
-	cmake -H_builds/source -B_builds/source -DDBMS="cpack"
-	cd _builds/source && make package_source
+	git checkout-index --prefix=builds/source/ -a
+	cmake -Hbuilds/source -Bbuilds/source -DDBMS="cpack"
+	cd builds/source && make package_source
 
 release:
-	cmake -H. -B_builds/release -DDBMS=$(DBMS)
-	cd _builds/release && make
+	cmake -H. -Bbuilds/release -DDBMS=$(DBMS)
+	cd builds/release && make
