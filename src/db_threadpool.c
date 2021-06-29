@@ -196,7 +196,7 @@ int db_threadpool_init()
         }
 
         worker_count = (int *) malloc(sizeof(int) * db_connections);
-        bzero(worker_count, sizeof(int) * db_connections);
+        memset(worker_count, 0, sizeof(int) * db_connections);
 
         ts.tv_sec = (time_t) db_conn_sleep / 1000;
         ts.tv_nsec = (long) (db_conn_sleep % 1000) * 1000000;

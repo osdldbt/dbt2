@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 	srand(time(NULL));
 
 	/* Generate input data. */
-	bzero(&transaction_data, sizeof(union transaction_data_t));
+	memset(&transaction_data, 0, sizeof(union transaction_data_t));
 	switch (transaction) {
 	case DELIVERY:
 		generate_input_data(DELIVERY,

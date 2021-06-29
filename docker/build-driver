@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Build a Docker image with the DBT-2 driver installed from the code in the
+# local directory.
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+TOPDIR=`dirname $0`
+${TOPDIR}/prepare-image || exit 1
+
+TOPDIR="${TOPDIR}/.."
+docker build -t dbt2-driver -f Dockerfile.driver ${TOPDIR}

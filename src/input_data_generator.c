@@ -59,7 +59,7 @@ int generate_input_data2(int type, void *data, int w_id, int d_id)
 /* Clause 2.7.1 */
 int generate_delivery_data(int w_id, struct delivery_t *data)
 {
-	bzero(data, sizeof(struct delivery_t));
+	memset(data, 0, sizeof(struct delivery_t));
 	data->w_id = w_id;
 	data->o_carrier_id = get_random(O_CARRIER_ID_MAX) + 1;
 
@@ -71,7 +71,7 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 {
 	int i;
 
-	bzero(data, sizeof(struct new_order_t));
+	memset(data, 0, sizeof(struct new_order_t));
 	data->w_id = w_id;
 	data->d_id = get_random(D_ID_MAX) + 1;
 	data->c_id = get_nurand(1023, 1, 3000);
@@ -106,7 +106,7 @@ int generate_new_order_data(int w_id, struct new_order_t *data)
 /* Clause 2.6.1 */
 int generate_order_status_data(int w_id, struct order_status_t *data)
 {
-	bzero(data, sizeof(struct order_status_t));
+	memset(data, 0, sizeof(struct order_status_t));
 	data->c_w_id = w_id;
 	data->c_d_id = get_random(D_ID_MAX) + 1;
 
@@ -124,7 +124,7 @@ int generate_order_status_data(int w_id, struct order_status_t *data)
 /* Clause 2.5.1 */
 int generate_payment_data(int w_id, struct payment_t *data)
 {
-	bzero(data, sizeof(struct payment_t));
+	memset(data, 0, sizeof(struct payment_t));
 	data->w_id = w_id;
 	data->d_id = get_random(D_ID_MAX) + 1;
 
@@ -170,7 +170,7 @@ int generate_payment_data(int w_id, struct payment_t *data)
 /* Clause 2.8.1 */
 int generate_stock_level_data(int w_id, int d_id, struct stock_level_t *data)
 {
-	bzero(data, sizeof(struct stock_level_t));
+	memset(data, 0, sizeof(struct stock_level_t));
 	data->w_id = w_id;
 	data->d_id = d_id;
 	data->threshold = get_random(11) + 10;
@@ -180,7 +180,7 @@ int generate_stock_level_data(int w_id, int d_id, struct stock_level_t *data)
 
 int generate_integrity_data(int w_id, struct integrity_t *data)
 {
-        bzero(data, sizeof(struct integrity_t));
+        memset(data, 0, sizeof(struct integrity_t));
         data->w_id = w_id;
 
         return OK;
