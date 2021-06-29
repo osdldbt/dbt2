@@ -223,11 +223,30 @@ endif (DBMS STREQUAL "pgsql")
 # Set compiler flags.
 #
 
-set (CMAKE_C_FLAGS "-g -Wall -I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
+set (CMAKE_INCLUDE_CURRENT_DIR ON)
+set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
 
-set_source_files_properties (../db_threadpool.c ../db.c ../client.c
-        ../transaction_test.c ../common.c COMPILE_FLAGS "${DBCFLAGS}")
-set_source_files_properties (${DB_SOURCE} COMPILE_FLAGS "${DBCFLAGS}")
+set_source_files_properties (
+        ../_semaphore.c
+        ../_socket.c
+        ../common.c
+        ../datagen.c
+        ../driver.c
+        ../driver_main.c
+        ../client_interface.c
+        ../input_data_generator.c
+        ../listener.c
+        ../logging.c
+        ../transaction_data.c
+        ../transaction_queue.c
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
+set_source_files_properties (
+        ../client.c
+        ../db_threadpool.c
+        ../db.c
+        ../transaction_test.c
+        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
+set_source_files_properties (${DB_SOURCE} COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
 
 #
 # Set linker flags.
