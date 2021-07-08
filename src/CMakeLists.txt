@@ -289,9 +289,9 @@ set_target_properties (${TXN_TEST} PROPERTIES LINK_FLAGS "${DB_LIBS}")
 #
 
 install (PROGRAMS
-         ${CMAKE_BINARY_DIR}/src/bin/${CLIENT}
-         ${CMAKE_BINARY_DIR}/src/bin/${DATAGEN}
-         ${CMAKE_BINARY_DIR}/src/bin/${DRIVER}
-         ${CMAKE_BINARY_DIR}/src/bin/${TXN_TEST}
+         ${CMAKE_BINARY_DIR}/src/${CLIENT}
+         ${CMAKE_BINARY_DIR}/src/${DATAGEN}
+         ${CMAKE_BINARY_DIR}/src/${DRIVER}
+         ${CMAKE_BINARY_DIR}/src/${TXN_TEST}
          DESTINATION "bin"
 )
