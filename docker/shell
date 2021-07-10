@@ -10,22 +10,49 @@ fi
 
 usage()
 {
-	echo "usage: `basename $0` [ dbt2-base | dbt2-client | dbt2-database | dbt2-driver ]"
+	echo "usage: `basename $0` dbt2-base"
+	echo "usage: `basename $0` dbt2-client <dbms>"
+	echo "usage: `basename $0` dbt2-database <dbms> <warehouses>"
+	echo "usage: `basename $0` dbt2-driver"
 }
 
-DOCKER_TAG="$1"
+DBMS=""
+DBT2_TAG=""
+DOCKER_TAG=""
+SF=""
 
-if [ $# -ne 1 ]; then
+if [ $# -lt 1 ] || [ $# -gt 3 ]; then
 	usage
 	exit 1
 fi
 
-if [ ! "x$DOCKER_TAG" = "xdbt2-base" ] && \
-		[ ! "x$DOCKER_TAG" = "xdbt2-client" ] && \
-		[ ! "x$DOCKER_TAG" = "xdbt2-database" ] && \
-		[ ! "x$DOCKER_TAG" = "xdbt2-driver" ]; then
-	usage
-	exit 1
+DBT2_TAG="$1"
+
+if [ $# -eq 1 ]; then
+	if [ ! "x$DBT2_TAG" = "xdbt2-base" ] && \
+			[ ! "x$DBT2_TAG" = "xdbt2-driver" ]; then
+		usage
+		exit 1
+	fi
+	DOCKER_TAG="$DBT2_TAG"
 fi
 
-docker run --rm -i -t $DOCKER_TAG /bin/bash
+DBMS="$2"
+if [ $# -eq 2 ]; then
+	if [ ! "x$DBT2_TAG" = "xdbt2-client" ]; then
+		usage
+		exit 1
+	fi
+	DOCKER_TAG="${DBT2_TAG}-${DBMS}"
+fi
+
+SF="$3"
+if [ $# -eq 3 ]; then
+	if [ ! "x$DBT2_TAG" = "xdbt2-database" ]; then
+		usage
+		exit 1
+	fi
+	DOCKER_TAG="${DBT2_TAG}-${DBMS}-${SF}w"
+fi
+
+docker run --rm -i -t ${DOCKER_TAG} /bin/bash
