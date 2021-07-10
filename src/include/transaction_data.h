@@ -4,7 +4,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002      Open Source Development Lab, Inc.
+ *               2002-2021 Mark Wong
  *
  * 11 june 2002
  * Based on TPC-C Standard Specification Revision 5.0.
@@ -66,7 +67,7 @@ struct payment_t
 
 	/* Input and output data. */
 	int c_id;
-	char c_last[C_LAST_LEN + 1];
+	wchar_t c_last[C_LAST_LEN + 1];
 
 	/* Output data. */
 	char d_name[D_NAME_LEN + 1];
@@ -114,7 +115,7 @@ struct order_status_t
 
 	/* Input and output data. */
 	int c_id;
-	char c_last[C_LAST_LEN + 1];
+	wchar_t c_last[C_LAST_LEN + 1];
 
 	/* Output data. */
 	double c_balance;

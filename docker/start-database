@@ -25,7 +25,7 @@ DOCKER_NAME="dbt2-database-${DBMS}-${WAREHOUSES}w-0"
 
 # Use the return code from `docker inspect` to determine if the docker image
 # needs to be created.
-docker inspect $DOCKER_NAME > /dev/null
+docker inspect $DOCKER_TAG > /dev/null
 if [ $? -ne 0 ]; then
 	${DOCKERDIR}/build-database $WAREHOUSES $DBMS || exit 1
 fi
@@ -55,7 +55,7 @@ if [ $? -eq 0 ]; then
 	echo "IP Address: $IPADDRESS"
 	echo "${DOCKERDIR}/start-client $IPADDRESS $DBMS"
 	if [ "x$DBMS" = "xpgsql" ]; then
-		echo "PGCLIENTENCODING=\"SQL_ASCII\" psql -h $IPADDRESS dbt2 postgres"
+		echo "psql -h $IPADDRESS dbt2 postgres"
 	fi
 else
 	echo "Install jq for some tips the next time you run this script, or"

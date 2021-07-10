@@ -2,12 +2,14 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002 Open Source Development Labs, Inc.
+ *               2002-2021 Mark Wong
  *
  * 13 May 2003
  */
 
 #include <stdio.h>
+#include <wchar.h>
 
 #include "common.h"
 #include "logging.h"
@@ -18,7 +20,8 @@ const static int g_debug = 0;
 int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 {
         PGresult *res;
-        char stmt[512];
+        wchar_t wcstmt[512];
+        char stmt[2048];
 
         int nFields;
         int i, j;
@@ -33,8 +36,9 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
         PQclear(res);
 
         /* Create the query and execute it. */
-        sprintf(stmt, "SELECT * FROM order_status(%d, %d, %d, '%s')",
+        swprintf(wcstmt, 512, L"SELECT * FROM order_status(%d, %d, %d, '%ls')",
                 data->c_id, data->c_w_id, data->c_d_id, data->c_last);
+		wcstombs(stmt, wcstmt, 2048);
         res = PQexec(dbc->conn, stmt);
         if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
                 PQresultStatus(res) != PGRES_TUPLES_OK)) {

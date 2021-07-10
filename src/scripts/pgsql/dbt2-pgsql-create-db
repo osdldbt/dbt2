@@ -37,8 +37,9 @@ echo "Creating database..."
 if [ -d ${DBT2PGDATA} ]; then
 	echo "PGData directory '${DBT2PGDATA}' already exists, skipping initdb..."
 else
-	initdb -D $DBT2PGDATA  -E SQL_ASCII --locale=C --lc-collate=C \
-			--lc-ctype=C $INITDBFLAGS || exit 1
+	initdb -D $DBT2PGDATA  -E UTF8 --locale=en_US.utf8 \
+			--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 $INITDBFLAGS || \
+			exit 1
 fi
 
 if [ ! "x${PARAMETERS}" = "x" ]; then

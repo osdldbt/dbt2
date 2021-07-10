@@ -4,7 +4,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002      Open Source Development Lab, Inc.
+ *               2002-2021 Mark Wong
  *
  * 16 may 2002
  * Based on TPC-C Standard Specification Revision 5.0.
@@ -14,19 +15,31 @@
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
-#include <common.h>
-#include <transaction_data.h>
+#include <locale.h>
+#include <wchar.h>
+
+#include "common.h"
+#include "transaction_data.h"
 
 char output_path[256] = "";
-char a_string_char[A_STRING_CHAR_LEN];
-const char *n_string_char = "0123456789";
-const char *l_string_char =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+/*
+ * Initialize a-string character set to 128 ascii characters.  Clause 4.3.2.2.
+ *
+ * Pick the 128 ASCII characters that don't need to be escaped and are UTF-8
+ * friendly.
+ */
+const wchar_t a_string_char[A_STRING_CHAR_LEN] =
+        L"A!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdef"
+		"ghijklmnopqrstuvwxyz{|}~€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ¡¢£¤¥¦§¨©";
+const wchar_t n_string_char[N_STRING_CHAR_LEN] = L"0123456789";
+const wchar_t l_string_char[L_STRING_CHAR_LEN] =
+		L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-const char *c_last_syl[C_LAST_SYL_MAX] =
+
+const wchar_t *c_last_syl[C_LAST_SYL_MAX] =
 {
-	"BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION",
-	"EING"
+	L"BAR", L"OUGHT", L"ABLE", L"PRI", L"PRES", L"ESE", L"ANTI", L"CALLY",
+	L"ATION", L"EING"
 };
 
 const char transaction_short_name[TRANSACTION_MAX] =
@@ -49,13 +62,13 @@ double difftimeval(struct timeval rt1, struct timeval rt0)
 }
 
 /* Clause 4.3.2.2.  */
-void get_a_string(char *a_string, int x, int y)
+void get_a_string(wchar_t *a_string, int x, int y)
 {
 	int length;
 	int i;
 
 	length = x + get_random(y - x + 1) + 1;
-	a_string[length - 1] = '\0';
+	a_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
@@ -66,11 +79,11 @@ void get_a_string(char *a_string, int x, int y)
 }
 
 /* Clause 4.3.2.3 */
-int get_c_last(char *c_last, int i)
+int get_c_last(wchar_t *c_last, int i)
 {
-	char tmp[4];
+	wchar_t tmp[4];
 
-	c_last[0] = '\0';
+	c_last[0] = L'\0';
 
 	if (i < 0 || i > 999)
 	{
@@ -78,21 +91,21 @@ int get_c_last(char *c_last, int i)
 	}
 
 	/* Ensure the number is padded with leading 0's if it's less than 100. */
-	sprintf(tmp, "%03d", i);
+	swprintf(tmp, 4, L"%03d", i);
 
-	strcat(c_last, c_last_syl[tmp[0] - '0']);
-	strcat(c_last, c_last_syl[tmp[1] - '0']);
-	strcat(c_last, c_last_syl[tmp[2] - '0']);
+	wcscat(c_last, c_last_syl[tmp[0] - L'0']);
+	wcscat(c_last, c_last_syl[tmp[1] - L'0']);
+	wcscat(c_last, c_last_syl[tmp[2] - L'0']);
 	return OK;
 }
 
-void get_l_string(char *a_string, int x, int y)
+void get_l_string(wchar_t *a_string, int x, int y)
 {
 	int length;
 	int i;
 
 	length = x + get_random(y - x + 1) + 1;
-	a_string[length - 1] = '\0';
+	a_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
@@ -103,13 +116,13 @@ void get_l_string(char *a_string, int x, int y)
 }
 
 /* Clause 4.3.2.2.  */
-void get_n_string(char *n_string, int x, int y)
+void get_n_string(wchar_t *n_string, int x, int y)
 {
 	int length;
 	int i;
 
 	length = x + get_random(y - x + 1) + 1;
-	n_string[length - 1] = '\0';
+	n_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
@@ -151,8 +164,9 @@ int get_think_time(int mean_think_time)
 
 int init_common()
 {
-	int i, j;
+	int rc = OK;
 
+	printf("setting locale: %s\n", setlocale(LC_ALL, "en_US.utf8"));
 	srand(1);
 
 	/* Initialize struct to have default table cardinalities. */
@@ -163,32 +177,5 @@ int init_common()
 	table_cardinality.orders = ORDER_CARDINALITY;
 	table_cardinality.new_orders = NEW_ORDER_CARDINALITY;
 
-	/*
-	 * Initialize a-string character set to 128 ascii characters.
-	 * Clause 4.3.2.2.
-	 */
-	j = 0;
-	a_string_char[j++] = (char) 33;
-	for (i = 35; i <= 43; i++)
-	{
-		a_string_char[j++] = (char) i;
-	}
-	for (i = 45; i <= 126; i++)
-	{
-		a_string_char[j++] = (char) i;
-	}
-#if defined(LIBDRIZZLE)
-	/*
-	 * FIXME: This is not to spec but drizzle only accepts valid UTF8
-	 * characters
-	 */
-	for (i = 45; i <= 80; i++)
-#else
-	for (i = 220; i <= 255; i++)
-#endif
-	{
-		a_string_char[j++] = (char) i;
-	}
-	
-	return OK;
+	return rc;
 }

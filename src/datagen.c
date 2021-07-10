@@ -16,6 +16,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <wchar.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -89,28 +90,6 @@ FILE *blackhole;
 		METAPRINTF((a, b)); \
 	}
 
-void escape_me(char *str)
-{
-	/* Shouldn't need a buffer bigger than this. */
-	char buffer[4096] = "";
-	int i = 0;
-	int j = 0;
-	int k = 0;
-
-	/* Don't need to do anything for SAP DB. */
-	if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL ||\
-			 mode_string == MODE_DRIZZLE) {
-		strcpy(buffer, str);
-		i = strlen(buffer);
-		for (k = 0; k <= i; k++) {
-			if (buffer[k] == '\\') {
-				str[j++] = '\\';
-			}
-			str[j++] = buffer[k];
-		}
-	}
-}
-
 void print_timestamp(FILE *ofile, struct tm *date)
 {
 	if (mode_string == MODE_SAPDB) {
@@ -133,7 +112,8 @@ void gen_customers()
 {
 	FILE *output, *o;
 	int i, j, k;
-	char a_string[1024];
+	wchar_t a_string[1024];
+	char sa_string[4096];
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
@@ -206,8 +186,11 @@ void gen_customers()
 
 				/* c_first */
 				get_a_string(a_string, 8, 16);
-				escape_me(a_string);
-				FPRINTF(output, "%s", a_string);
+				/*
+				memset(sa_string, 0, sizeof(sa_string));
+				*/
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_middle */
@@ -220,41 +203,44 @@ void gen_customers()
 				} else {
 					get_c_last(a_string, get_nurand(255, 0, 999));
 				}
-				escape_me(a_string);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_street_1 */
 				get_a_string(a_string, 10, 20);
-				escape_me(a_string);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_street_2 */
 				get_a_string(a_string, 10, 20);
-				escape_me(a_string);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_city */
 				get_a_string(a_string, 10, 20);
-				escape_me(a_string);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_state */
 				get_l_string(a_string, 2, 2);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_zip */
 				get_n_string(a_string, 4, 4);
-				FPRINTF(output, "%s11111", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s11111", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_phone */
 				get_n_string(a_string, 16, 16);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_since */
@@ -302,8 +288,8 @@ void gen_customers()
 
 				/* c_data */
 				get_a_string(a_string, 300, 500);
-				escape_me(a_string);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 4096);
+				FPRINTF(output, "%s", sa_string);
 
 				METAPRINTF((output, "\n"));
 			}
@@ -338,7 +324,8 @@ void gen_districts()
 {
 	FILE *output, *o;
 	int i, j;
-	char a_string[48];
+	wchar_t a_string[48];
+	char sa_string[192];
 	char filename[1024] = "\0";
 
 	srand(seed);
@@ -404,36 +391,38 @@ void gen_districts()
 
 			/* d_name */
 			get_a_string(a_string, 6, 10);
-			escape_me(a_string);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 192);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_street_1 */
 			get_a_string(a_string, 10, 20);
-			escape_me(a_string);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 192);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_street_2 */
 			get_a_string(a_string, 10, 20);
-			escape_me(a_string);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 192);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_city */
 			get_a_string(a_string, 10, 20);
-			escape_me(a_string);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 192);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_state */
 			get_l_string(a_string, 2, 2);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 192);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_zip */
 			get_n_string(a_string, 4, 4);
-			FPRINTF(output, "%s11111", a_string);
+			wcstombs(sa_string, a_string, 192);
+			FPRINTF(output, "%s11111", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_tax */
@@ -479,7 +468,8 @@ void gen_history()
 {
 	FILE *output, *o;
 	int i, j, k;
-	char a_string[64];
+	wchar_t a_string[64];
+	char sa_string[256];
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
@@ -575,8 +565,8 @@ void gen_history()
 
 				/* h_data */
 				get_a_string(a_string, 12, 24);
-				escape_me(a_string);
-				FPRINTF(output, "%s", a_string);
+				wcstombs(sa_string, a_string, 256);
+				FPRINTF(output, "%s", sa_string);
 
 				METAPRINTF((output, "\n"));
 			}
@@ -611,7 +601,8 @@ void gen_items()
 {
 	FILE *output;
 	int i;
-	char a_string[128];
+	wchar_t a_string[128];
+	char sa_string[512];
 	int j;
 	char filename[1024] = "\0";
 
@@ -666,8 +657,8 @@ void gen_items()
 
 		/* i_name */
 		get_a_string(a_string, 14, 24);
-		escape_me(a_string);
-		FPRINTF(output, "%s", a_string);
+		wcstombs(sa_string, a_string, 512);
+		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* i_price */
@@ -677,18 +668,18 @@ void gen_items()
 		/* i_data */
 		get_a_string(a_string, 26, 50);
 		if (get_percentage() < .10) {
-			j = get_random(strlen(a_string) - 8);
-			a_string[j++] = 'O';
-			a_string[j++] = 'R';
-			a_string[j++] = 'I';
-			a_string[j++] = 'G';
-			a_string[j++] = 'I';
-			a_string[j++] = 'N';
-			a_string[j++] = 'A';
-			a_string[j] = 'L';
+			j = get_random(wcslen(a_string) - 8);
+			a_string[j++] = L'O';
+			a_string[j++] = L'R';
+			a_string[j++] = L'I';
+			a_string[j++] = L'G';
+			a_string[j++] = L'I';
+			a_string[j++] = L'N';
+			a_string[j++] = L'A';
+			a_string[j] = L'L';
 		}
-		escape_me(a_string);
-		FPRINTF(output, "%s", a_string);
+		wcstombs(sa_string, a_string, 512);
+		FPRINTF(output, "%s", sa_string);
 
 		METAPRINTF((output, "\n"));
 	}
@@ -820,7 +811,8 @@ void gen_orders()
 {
 	FILE *order, *order_line, *o, *ol;
 	int i, j, k, l;
-	char a_string[64];
+	wchar_t a_string[64];
+	char sa_string[256];
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
@@ -1087,7 +1079,8 @@ void gen_orders()
 
 					/* ol_dist_info */
 					get_l_string(a_string, 24, 24);
-					FPRINTF(order_line, "%s", a_string);
+					wcstombs(sa_string, a_string, 256);
+					FPRINTF(order_line, "%s", sa_string);
 
 					METAPRINTF((order_line, "\n"));
 				}
@@ -1136,7 +1129,8 @@ void gen_stock()
 {
 	FILE *output, *o;
 	int i, j, k;
-	char a_string[128];
+	wchar_t a_string[128];
+	char sa_string[512];
 	char filename[1024] = "\0";
 
 	srand(seed);
@@ -1206,52 +1200,62 @@ void gen_stock()
 
 			/* s_dist_01 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_02 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_03 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_04 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_05 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_06 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_07 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_08 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_09 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_10 */
 			get_l_string(a_string, 24, 24);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_ytd */
@@ -1269,18 +1273,18 @@ void gen_stock()
 			/* s_data */
 			get_a_string(a_string, 26, 50);
 			if (get_percentage() < .10) {
-				k = get_random(strlen(a_string) - 8);
-				a_string[k++] = 'O';
-				a_string[k++] = 'R';
-				a_string[k++] = 'I';
-				a_string[k++] = 'G';
-				a_string[k++] = 'I';
-				a_string[k++] = 'N';
-				a_string[k++] = 'A';
-				a_string[k] = 'L';
+				k = get_random(wcslen(a_string) - 8);
+				a_string[k++] = L'O';
+				a_string[k++] = L'R';
+				a_string[k++] = L'I';
+				a_string[k++] = L'G';
+				a_string[k++] = L'I';
+				a_string[k++] = L'N';
+				a_string[k++] = L'A';
+				a_string[k] = L'L';
 			}
-			escape_me(a_string);
-			FPRINTF(output, "%s", a_string);
+			wcstombs(sa_string, a_string, 512);
+			FPRINTF(output, "%s", sa_string);
 
 			METAPRINTF((output, "\n"));
 		}
@@ -1314,7 +1318,8 @@ void gen_warehouses()
 {
 	FILE *output, *o;
 	int i;
-	char a_string[48];
+	wchar_t a_string[48];
+	char sa_string[192];
 	char filename[1024] = "\0";
 
 	srand(seed);
@@ -1376,36 +1381,38 @@ void gen_warehouses()
 
 		/* w_name */
 		get_a_string(a_string, 6, 10);
-		escape_me(a_string);
-		FPRINTF(output, "%s", a_string);
+		wcstombs(sa_string, a_string, 192);
+		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_street_1 */
 		get_a_string(a_string, 10, 20);
-		escape_me(a_string);
-		FPRINTF(output, "%s", a_string);
+		wcstombs(sa_string, a_string, 192);
+		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_street_2 */
 		get_a_string(a_string, 10, 20);
-		escape_me(a_string);
-		FPRINTF(output, "%s", a_string);
+		wcstombs(sa_string, a_string, 192);
+		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_city */
 		get_a_string(a_string, 10, 20);
-		escape_me(a_string);
-		FPRINTF(output, "%s", a_string);
+		wcstombs(sa_string, a_string, 192);
+		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_state */
 		get_l_string(a_string, 2, 2);
-		FPRINTF(output, "%s", a_string);
+		wcstombs(sa_string, a_string, 192);
+		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_zip */
 		get_n_string(a_string, 4, 4);
-		FPRINTF(output, "%s11111", a_string);
+		wcstombs(sa_string, a_string, 192);
+		FPRINTF(output, "%s11111", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_tax */

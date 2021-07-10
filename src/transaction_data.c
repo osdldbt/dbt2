@@ -24,6 +24,7 @@ int dump(FILE *fp, int type, void *data)
 {
 	int i;
 	union data_pointer_t ptr;
+	char s[1024];
 
 	switch (type) {
 	case DELIVERY:
@@ -77,7 +78,8 @@ int dump(FILE *fp, int type, void *data)
 		fprintf(fp, "c_d_id = %d\n", ptr.os->c_d_id);
 		fprintf(fp, "c_first = %s\n", ptr.os->c_first);
 		fprintf(fp, "c_middle = %s\n", ptr.os->c_middle);
-		fprintf(fp, "c_last = %s\n", ptr.os->c_last);
+		wcstombs(s, ptr.os->c_last, 1024);
+		fprintf(fp, "c_last = %s\n", s);
 		fprintf(fp, "c_balance = %0.2f\n", ptr.os->c_balance);
 		fprintf(fp, "o_id = %d\n", ptr.os->o_id);
 		fprintf(fp, "o_carrier_id = %d\n", ptr.os->o_carrier_id);
@@ -112,7 +114,8 @@ int dump(FILE *fp, int type, void *data)
 		fprintf(fp, "d_state = %s\n", ptr.pa->d_state);
 		fprintf(fp, "d_zip = %s\n", ptr.pa->d_zip);
 		fprintf(fp, "c_id = %d\n", ptr.pa->c_id);
-		fprintf(fp, "c_last = %s\n", ptr.pa->c_last);
+		wcstombs(s, ptr.pa->c_last, 1024);
+		fprintf(fp, "c_last = %s\n", s);
 		fprintf(fp, "c_w_id = %d\n", ptr.pa->c_w_id);
 		fprintf(fp, "c_d_id = %d\n", ptr.pa->c_d_id);
 		fprintf(fp, "c_first = %s\n", ptr.pa->c_first);

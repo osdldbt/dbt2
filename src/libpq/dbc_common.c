@@ -39,7 +39,9 @@ int _connect_to_db(struct db_context_t *dbc)
            strcmp(pgport, "5432") == 0) {
                 sprintf(buf, "application_name=dbt2-client dbname=%s", dbname);
         } else {
-                sprintf(buf, "application_name=dbt2-client host=%s port=%s dbname=%s", pghost, pgport, dbname);
+                sprintf(buf, "application_name=dbt2-client host=%s port=%s "
+						"dbname=%s",
+						pghost, pgport, dbname);
         }
         dbc->conn = PQconnectdb(buf);
         if (PQstatus(dbc->conn) != CONNECTION_OK) {
