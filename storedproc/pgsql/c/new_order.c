@@ -115,10 +115,8 @@ static cached_statement statements[] =
 
 /* Prototypes to prevent potential gcc warnings. */
 Datum new_order(PG_FUNCTION_ARGS);
-Datum make_new_order_info(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(new_order);
-PG_FUNCTION_INFO_V1(make_new_order_info);
 
 typedef struct
 {
@@ -432,41 +430,4 @@ Datum new_order(PG_FUNCTION_ARGS)
 	} else {
 		SRF_RETURN_DONE(funcctx);
 	}
-}
-
-Datum make_new_order_info(PG_FUNCTION_ARGS)
-{
-	/* result Datum */
-	Datum result;
-	char** cstr_values;
-	HeapTuple result_tuple;
-
-	/* tuple manipulating variables */
-	TupleDesc tupdesc;
-	AttInMetadata *attinmeta;
-
-	/* loop variables. */
-	int i;
-
-	/* get tupdesc from the type name */
-	tupdesc = RelationNameGetTupleDesc("new_order_info");
-
-	/*
-	 * generate attribute metadata needed later to produce tuples
-	 * from raw C strings
-	 */
-	attinmeta = TupleDescGetAttInMetadata(tupdesc);
-
-	cstr_values = (char **) palloc(3 * sizeof(char *));
-	for(i = 0; i < 3; i++) {
-		cstr_values[i] = (char*) palloc(16 * sizeof(char)); /* 16 bytes */
-		snprintf(cstr_values[i], 16, "%d", PG_GETARG_INT32(i));
-	}
-
-	/* build a tuple */
-	result_tuple = BuildTupleFromCStrings(attinmeta, cstr_values);
-
-	/* make the tuple into a datum */
-	result = HeapTupleGetDatum(result_tuple);
-	return result;
 }

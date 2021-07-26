@@ -45,7 +45,6 @@ if [ "${TYPE}" = "plpgsql" ]; then
 	echo "loading pl/pgsql stored functions..."
 	SHAREDIR=`pg_config --sharedir`
 	${PSQL} -f ${SHAREDIR}/contrib/delivery.sql || exit 1
-	${PSQL} -f ${SHAREDIR}/contrib/new_order_2.sql || exit 1
 	${PSQL} -f ${SHAREDIR}/contrib/new_order.sql || exit 1
 	${PSQL} -f ${SHAREDIR}/contrib/order_status.sql || exit 1
 	${PSQL} -f ${SHAREDIR}/contrib/payment.sql || exit 1

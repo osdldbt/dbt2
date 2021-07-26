@@ -21,11 +21,6 @@ LANGUAGE C STRICT;
 CREATE TYPE new_order_info
 AS (ol_i_id INTEGER, ol_supply_w_id INTEGER, ol_quantity INTEGER);
 
-CREATE OR REPLACE FUNCTION make_new_order_info (INTEGER, INTEGER, INTEGER)
-RETURNS new_order_info
-AS 'MODULE_PATHNAME'
-LANGUAGE C STRICT;
-
 CREATE OR REPLACE FUNCTION new_order (
     w_id INTEGER,
     d_id INTEGER,
