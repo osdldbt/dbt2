@@ -2,157 +2,126 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2003 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2003      Open Source Development Lab, Inc.
+ *               2003-2021 Mark Wong
  *
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
  */
-CREATE OR REPLACE FUNCTION payment (INTEGER, INTEGER, INTEGER, INTEGER, INTEGER, TEXT, NUMERIC) RETURNS INTEGER AS '
+
+CREATE OR REPLACE FUNCTION payment (
+    w_id INTEGER,
+    d_id INTEGER,
+    c_id INTEGER,
+    c_w_id INTEGER,
+    c_d_id INTEGER,
+    in_c_last TEXT,
+    h_amount REAL
+) RETURNS TABLE (
+    w_street_1 TEXT,
+    w_street_2 TEXT,
+    w_city TEXT,
+    w_state TEXT,
+    w_zip TEXT,
+    d_street_1 TEXT,
+    d_street_2 TEXT,
+    d_city TEXT,
+    d_state TEXT,
+    d_zip TEXT,
+    c_first TEXT,
+    c_middle TEXT,
+    c_last TEXT,
+    c_street_1 TEXT,
+    c_street_2 TEXT,
+    c_city TEXT,
+    c_state TEXT,
+    c_zip TEXT,
+    c_phone TEXT,
+    c_since TIMESTAMP,
+    c_credit TEXT,
+    c_credit_lim NUMERIC,
+    c_discount REAL,
+    c_balance NUMERIC,
+    c_data TEXT,
+    h_date TIMESTAMP
+) AS $$
 DECLARE
-	in_w_id ALIAS FOR $1;
-	in_d_id ALIAS FOR $2;
-	in_c_id ALIAS FOR $3;
-	in_c_w_id ALIAS FOR $4;
-	in_c_d_id ALIAS FOR $5;
-	in_c_last ALIAS FOR $6;
-	in_h_amount ALIAS FOR $7;
+    d_name VARCHAR;
+    w_name VARCHAR;
 
-	/* Look at all these output variables, and no way to return them. */
-	out_w_name VARCHAR;
-	out_w_street_1 VARCHAR; 
-	out_w_street_2 VARCHAR;
-	out_w_city VARCHAR;
-	out_w_state VARCHAR;
-	out_w_zip VARCHAR; 
-
-	out_d_name VARCHAR;
-	out_d_street_1 VARCHAR;
-	out_d_street_2 VARCHAR;
-	out_d_city VARCHAR;
-	out_d_state VARCHAR;
-	out_d_zip VARCHAR;
-
-	out_c_id INTEGER;
-	out_c_first VARCHAR;
-	out_c_middle VARCHAR;
-	out_c_last VARCHAR;
-	out_c_street_1 VARCHAR;
-	out_c_street_2 VARCHAR;
-	out_c_city VARCHAR;
-	out_c_state VARCHAR;
-	out_c_zip VARCHAR;
-	out_c_phone VARCHAR;
-	out_c_since VARCHAR;
-	out_c_credit VARCHAR;
-	out_c_credit_lim VARCHAR;
-	out_c_discount REAL;
-	out_c_balance NUMERIC;
-	out_c_data VARCHAR;
-	out_c_ytd_payment INTEGER;
-
-	/* Goofy temporaty variables. */
-	tmp_c_id VARCHAR;
-	tmp_c_d_id VARCHAR;
-	tmp_c_w_id VARCHAR;
-	tmp_d_id VARCHAR;
-	tmp_w_id VARCHAR;
-	tmp_h_amount VARCHAR;
-
-	/* This one is not goofy. */
-	tmp_h_data VARCHAR;
+    tmp_c_id INTEGER;
+    c_ytd_payment NUMERIC(24, 12);
 BEGIN
-	SELECT w_name, w_street_1, w_street_2, w_city, w_state, w_zip
-	INTO out_w_name, out_w_street_1, out_w_street_2, out_w_city,
-	     out_w_state, out_w_zip
-	FROM warehouse
-	WHERE w_id = in_w_id;
-
 	UPDATE warehouse
-	SET w_ytd = w_ytd + in_h_amount
-	WHERE w_id = in_w_id;
-
-	SELECT d_name, d_street_1, d_street_2, d_city, d_state, d_zip
-	INTO out_d_name, out_d_street_1, out_d_street_2, out_d_city,
-	     out_d_state, out_d_zip
-	FROM district
-	WHERE d_id = in_d_id
-	  AND d_w_id = in_w_id;
+	SET w_ytd = w_ytd + h_amount
+	WHERE warehouse.w_id = payment.w_id
+    RETURNING warehouse.w_name, warehouse.w_street_1, warehouse.w_street_2,
+              warehouse.w_city, warehouse.w_state, warehouse.w_zip
+    INTO w_name, w_street_1, w_street_2, w_city, w_state, w_zip;
 
 	UPDATE district
-	SET d_ytd = d_ytd + in_h_amount
-	WHERE d_id = in_d_id
-	  AND d_w_id = in_w_id;
+	SET d_ytd = d_ytd + h_amount
+	WHERE district.d_id = payment.d_id
+	  AND d_w_id = payment.w_id
+	RETURNING district.d_name, district.d_street_1, district.d_street_2,
+              district.d_city, district.d_state, district.d_zip
+	INTO d_name, d_street_1, d_street_2, d_city, d_state, d_zip;
 
 	/*
-	 * Pick a customer by searching for c_last, should pick the one in the
+	 * Pick a customer by searching for c_last, supposed to pick the one in the
 	 * middle, not the first one.
 	 */
-	IF in_c_id = 0 THEN
+	IF c_id = 0 THEN
 		SELECT c_id
-		INTO out_c_id
+		INTO tmp_c_id
 		FROM customer
 		WHERE c_w_id = in_c_w_id
 		  AND c_d_id = in_c_d_id
 		  AND c_last = in_c_last
 		ORDER BY c_first ASC;
 	ELSE
-		out_c_id = in_c_id;
+		tmp_c_id = c_id;
 	END IF;
 
-	SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,
-	       c_state, c_zip, c_phone, c_since, c_credit,
-               c_credit_lim, c_discount, c_balance, c_data,
-	       cast(c_ytd_payment AS INTEGER)
-	INTO out_c_first, out_c_middle, out_c_last, out_c_street_1,
-	     out_c_street_2, out_c_city, out_c_state, out_c_zip, out_c_phone,
-	     out_c_since, out_c_credit, out_c_credit_lim, out_c_discount,
-	     out_c_balance, out_c_data, out_c_ytd_payment
+	SELECT customer.c_first, customer.c_middle, customer.c_last,
+           customer.c_street_1, customer.c_street_2, customer.c_city,
+           customer.c_state, customer.c_zip, customer.c_phone,
+           customer.c_since, customer.c_credit, customer.c_credit_lim,
+           customer.c_discount, customer.c_balance, customer.c_data,
+           customer.c_ytd_payment
+    INTO c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state,
+         c_zip, c_phone, c_since, c_credit, c_credit_lim, c_discount,
+         c_balance, c_data, c_ytd_payment
 	FROM customer
-	WHERE c_w_id = in_c_w_id
-	  AND c_d_id = in_c_d_id
-	  AND c_id = out_c_id;
+	WHERE customer.c_w_id = payment.c_w_id
+	  AND customer.c_d_id = payment.c_d_id
+	  AND customer.c_id = tmp_c_id;
 
 	/* Check credit rating. */
-	IF out_c_credit = ''BC'' THEN
-		SELECT cast(out_c_id AS VARCHAR)
-		INTO tmp_c_id;
-		SELECT cast(in_c_d_id AS VARCHAR)
-		INTO tmp_c_d_id;
-		SELECT cast(in_c_w_id AS VARCHAR)
-		INTO tmp_c_w_id;
-		SELECT cast(in_d_id AS VARCHAR)
-		INTO tmp_d_id;
-		SELECT cast(in_w_id AS VARCHAR)
-		INTO tmp_w_id;
-		/* Boo hoo, cannot convert REAL to VARCHAR. */
-/*
-		SELECT cast(in_h_amount AS VARCHAR)
-		INTO tmp_h_amount;
-		out_c_data = tmp_c_id || '' '' || tmp_c_d_id || '' '' || tmp_c_w_id || '' '' || tmp_d_id || '' '' || tmp_w_id || '' '' || tmp_h_amount || '' '' || out_c_data;
-*/
-		out_c_data = tmp_c_id || '' '' || tmp_c_d_id || '' '' || tmp_c_w_id || '' '' || tmp_d_id || '' '' || tmp_w_id || '' '' || out_c_data;
-
+	IF c_credit = 'BC' THEN
 		UPDATE customer
-		SET c_balance = out_c_balance - in_h_amount,
-		    c_ytd_payment = out_c_ytd_payment + 1,
-		    c_data = out_c_data
-		WHERE c_id = out_c_id
-		  AND c_w_id = in_c_w_id
-		  AND c_d_id = in_c_d_id;
+		SET c_balance = customer.c_balance - h_amount,
+		    c_ytd_payment = customer.c_ytd_payment + 1,
+            c_data = substring(tmp_c_id || ' ' || c_d_id || ' ' || c_w_id ||
+                               ' ' || d_id || ' ' || w_id || ' ' ||
+                               payment.c_data || customer.c_data, 1, 500)
+		WHERE customer.c_id = payment.c_id
+		  AND customer.c_w_id = payment.c_w_id
+		  AND customer.c_d_id = payment.c_d_id;
 	ELSE
 		UPDATE customer
-		SET c_balance = out_c_balance - in_h_amount,
-		    c_ytd_payment = out_c_ytd_payment + 1
-		WHERE c_id = out_c_id
-		  AND c_w_id = in_c_w_id
-		  AND c_d_id = in_c_d_id;
+		SET c_balance = customer.c_balance - h_amount,
+		    c_ytd_payment = customer.c_ytd_payment + 1
+		WHERE customer.c_id = payment.c_id
+		  AND customer.c_w_id = payment.c_w_id
+		  AND customer.c_d_id = payment.c_d_id;
 	END IF;
 
-	tmp_h_data = out_w_name || ''    '' || out_d_name;
 	INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,
 	                     h_date, h_amount, h_data)
-	VALUES (out_c_id, in_c_d_id, in_c_w_id, in_d_id, in_w_id,
-		current_timestamp, in_h_amount, tmp_h_data);
+	VALUES (c_id, c_d_id, c_w_id, d_id, w_id,
+		    CURRENT_TIMESTAMP, h_amount,
+            substring(w_name || '    ' || d_name, 1, 24));
 
-	RETURN out_c_id;
+    RETURN NEXT;
 END;
-' LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql';

@@ -2,74 +2,85 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2003 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2003      Open Source Development Lab, Inc.
+ *               2003-2021 Mark Wong
  *
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.6.2.
  */
-CREATE OR REPLACE FUNCTION order_status (INTEGER, INTEGER, INTEGER, TEXT) RETURNS SETOF record AS '
+
+CREATE OR REPLACE FUNCTION order_status (
+    c_id INTEGER,
+    c_w_id INTEGER,
+    c_d_id INTEGER,
+    c_last TEXT
+) RETURNS TABLE (
+    ol_i_id INTEGER,
+    ol_supply_w_id INTEGER,
+    ol_quantity REAL,
+    ol_amount REAL,
+    ol_delivery_d TIMESTAMP
+) AS $$
 DECLARE
-	in_c_id ALIAS FOR $1;
-	in_c_w_id ALIAS FOR $2;
-	in_c_d_id ALIAS FOR $3;
-	in_c_last ALIAS FOR $4;
+	tmp_c_first VARCHAR;
+	tmp_c_middle VARCHAR;
+	tmp_c_last VARCHAR;
+	tmp_c_balance NUMERIC;
 
-	out_c_id INTEGER;
-	out_c_first VARCHAR;
-	out_c_middle VARCHAR;
-	out_c_last VARCHAR;
-	out_c_balance NUMERIC;
-
-	out_o_id INTEGER;
-	out_o_carrier_id INTEGER;
-	out_o_entry_d VARCHAR;
-	out_o_ol_cnt INTEGER;
+	tmp_o_id INTEGER;
+	tmp_o_carrier_id INTEGER;
+	tmp_o_entry_d VARCHAR;
+	tmp_o_ol_cnt INTEGER;
 
 	ol RECORD;
+
+    tmp_c_id INTEGER;
 BEGIN
 	/*
 	 * Pick a customer by searching for c_last, should pick the one in the
 	 * middle, not the first one.
 	 */
-	IF in_c_id = 0 THEN
+	IF c_id = 0 THEN
 		SELECT c_id
-		INTO out_c_id 
+		INTO tmp_c_id
 		FROM customer
-		WHERE c_w_id = in_c_w_id
-		  AND c_d_id = in_c_d_id
-		  AND c_last = in_c_last
+		WHERE c_w_id = c_w_id
+		  AND c_d_id = c_d_id
+		  AND c_last = c_last
 		ORDER BY c_first ASC;
 	ELSE
-		out_c_id = in_c_id;
+		tmp_c_id = c_id;
 	END IF;
 
-	SELECT c_first, c_middle, c_last, c_balance
-	INTO out_c_first, out_c_middle, out_c_last, out_c_balance
+	SELECT c_first, c_middle, customer.c_last, c_balance
+	INTO tmp_c_first, tmp_c_middle, tmp_c_last, tmp_c_balance
 	FROM customer
-	WHERE c_w_id = in_c_w_id   
-	  AND c_d_id = in_c_d_id
-	  AND c_id = out_c_id;
+	WHERE customer.c_w_id = order_status.c_w_id
+	  AND customer.c_d_id = order_status.c_d_id
+	  AND customer.c_id = tmp_c_id;
 
 	SELECT o_id, o_carrier_id, o_entry_d, o_ol_cnt
-	INTO out_o_id, out_o_carrier_id, out_o_entry_d, out_o_ol_cnt
+	INTO tmp_o_id, tmp_o_carrier_id, tmp_o_entry_d, tmp_o_ol_cnt
 	FROM orders
-	WHERE o_w_id = in_c_w_id
-  	AND o_d_id = in_c_d_id
-  	AND o_c_id = out_c_id
+	WHERE o_w_id = c_w_id
+  	AND o_d_id = c_d_id
+  	AND o_c_id = tmp_c_id
 	ORDER BY o_id DESC;
 
 	FOR ol IN
-		SELECT out_c_id, out_c_first, out_c_middle, out_c_last,
-		       out_c_balance, out_o_id, out_o_carrier_id,
-		       out_o_entry_d, out_o_ol_cnt, ol_i_id, ol_supply_w_id,
-		       ol_quantity, ol_amount, ol_delivery_d
+		SELECT order_line.ol_i_id, order_line.ol_supply_w_id,
+		       order_line.ol_quantity, order_line.ol_amount,
+               order_line.ol_delivery_d
 		FROM order_line
-		WHERE ol_w_id = in_c_w_id  
-		  AND ol_d_id = in_c_d_id
-		  AND ol_o_id = out_o_id
+		WHERE ol_w_id = c_w_id
+		  AND ol_d_id = c_d_id
+		  AND ol_o_id = tmp_o_id
 	LOOP
-		RETURN NEXT ol;
+        ol_i_id := ol.ol_i_id;
+        ol_supply_w_id := ol.ol_supply_w_id;
+        ol_quantity := ol.ol_quantity;
+        ol_amount := ol.ol_amount;
+        ol_delivery_d := ol.ol_delivery_d;
+		RETURN NEXT;
 	END LOOP;
-
-	RETURN null;
 END;
-' LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql';
