@@ -40,12 +40,12 @@ BEGIN
 	 * middle, not the first one.
 	 */
 	IF c_id = 0 THEN
-		SELECT c_id
+		SELECT customer.c_id
 		INTO tmp_c_id
 		FROM customer
-		WHERE c_w_id = c_w_id
-		  AND c_d_id = c_d_id
-		  AND c_last = c_last
+		WHERE customer.c_w_id = order_status.c_w_id
+		  AND customer.c_d_id = order_status.c_d_id
+		  AND customer.c_last = order_status.c_last
 		ORDER BY c_first ASC;
 	ELSE
 		tmp_c_id = c_id;

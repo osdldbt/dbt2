@@ -71,13 +71,13 @@ BEGIN
 	 * middle, not the first one.
 	 */
 	IF c_id = 0 THEN
-		SELECT c_id
+		SELECT customer.c_id
 		INTO tmp_c_id
 		FROM customer
-		WHERE c_w_id = in_c_w_id
-		  AND c_d_id = in_c_d_id
-		  AND c_last = in_c_last
-		ORDER BY c_first ASC;
+		WHERE customer.c_w_id = payment.c_w_id
+		  AND customer.c_d_id = payment.c_d_id
+		  AND customer.c_last = in_c_last
+		ORDER BY customer.c_first ASC;
 	ELSE
 		tmp_c_id = c_id;
 	END IF;
@@ -101,9 +101,10 @@ BEGIN
 		UPDATE customer
 		SET c_balance = customer.c_balance - h_amount,
 		    c_ytd_payment = customer.c_ytd_payment + 1,
-            c_data = substring(tmp_c_id || ' ' || c_d_id || ' ' || c_w_id ||
-                               ' ' || d_id || ' ' || w_id || ' ' ||
-                               payment.c_data || customer.c_data, 1, 500)
+            c_data = substring(tmp_c_id || ' ' || payment.c_d_id || ' '
+                               || payment.c_w_id || ' ' || d_id || ' ' || w_id
+                               || ' ' || payment.c_data || customer.c_data, 1,
+                               500)
 		WHERE customer.c_id = payment.c_id
 		  AND customer.c_w_id = payment.c_w_id
 		  AND customer.c_d_id = payment.c_d_id;

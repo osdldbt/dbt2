@@ -136,6 +136,10 @@ BEGIN
         INTO new_order.s_quantity, tmp_s_dist, tmp_s_data
         USING ol_i_id, w_id;
 
+        IF s_quantity IS NULL THEN
+            RAISE EXCEPTION 'item not found';
+        END IF;
+
         IF s_quantity > ol_quantity THEN
             decr_quantity :=  ol_quantity;
         ELSE
