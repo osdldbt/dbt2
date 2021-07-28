@@ -5,7 +5,7 @@
  * Copyright (C) 2003      Open Source Development Lab, Inc.
  *               2003-2021 Mark Wong
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.7.4.
  */
 
 CREATE OR REPLACE FUNCTION delivery (
@@ -14,11 +14,11 @@ CREATE OR REPLACE FUNCTION delivery (
 ) RETURNS TABLE (
     d_id INTEGER,
     o_id INTEGER
-) AS '
+) AS $$
 DECLARE
 	i INTEGER;
-	out_c_id INTEGER;
-	out_ol_amount NUMERIC;
+	tmp_c_id INTEGER;
+	tmp_ol_amount NUMERIC;
 BEGIN
 	FOR i IN 1..10 LOOP
         d_id := i;
@@ -28,10 +28,10 @@ BEGIN
 		FROM new_order
 		WHERE no_w_id = in_w_id
 		  AND no_d_id = d_id
-		ORDER BY no_o_id
+		ORDER BY no_o_id ASC
 		LIMIT 1;
 
-		IF o_id > 0 THEN
+		IF FOUND THEN
 			DELETE FROM new_order
 			WHERE no_o_id = delivery.o_id
 			  AND no_w_id = in_w_id
@@ -42,7 +42,7 @@ BEGIN
 			WHERE orders.o_id = delivery.o_id
 			  AND orders.o_w_id = in_w_id
 			  AND orders.o_d_id = d_id
-            RETURNING o_c_id INTO out_c_id;
+            RETURNING o_c_id INTO tmp_c_id;
 
 			UPDATE order_line
 			SET ol_delivery_d = current_timestamp
@@ -51,7 +51,7 @@ BEGIN
 			  AND ol_d_id = d_id;
 
 			SELECT SUM(ol_amount * ol_quantity)
-			INTO out_ol_amount
+			INTO tmp_ol_amount
 			FROM order_line
 			WHERE ol_o_id = delivery.o_id
 			  AND ol_w_id = in_w_id
@@ -59,8 +59,8 @@ BEGIN
 
 			UPDATE customer
 			SET c_delivery_cnt = c_delivery_cnt + 1,
-			    c_balance = c_balance + out_ol_amount
-			WHERE c_id = out_c_id
+			    c_balance = c_balance + tmp_ol_amount
+			WHERE c_id = tmp_c_id
 			  AND c_w_id = in_w_id
 			  AND c_d_id = d_id;
 
@@ -68,4 +68,4 @@ BEGIN
 		END IF;
 	END LOOP;
 END;
-' LANGUAGE 'plpgsql';
+$$ LANGUAGE 'plpgsql';

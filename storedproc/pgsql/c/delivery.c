@@ -40,8 +40,8 @@ static cached_statement statements[] =
 	"SELECT no_o_id\n" \
 	"FROM new_order\n" \
 	"WHERE no_w_id = $1\n" \
-	"  AND no_d_id = $2" \
-	"ORDER BY no_o_id " \
+	"  AND no_d_id = $2\n" \
+	"ORDER BY no_o_id ASC\n" \
 	"LIMIT 1",
 	2,
 	{ INT4OID, INT4OID }

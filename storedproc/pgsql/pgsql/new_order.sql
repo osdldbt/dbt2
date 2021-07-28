@@ -5,7 +5,7 @@
  * Copyright (C) 2003      Open Source Development Lab, Inc.
  *               2003-2021 Mark Wong
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.4.2.
  */
 
 CREATE TYPE new_order_info
@@ -39,7 +39,8 @@ CREATE OR REPLACE FUNCTION new_order (
     ol_quantity INTEGER,
     s_quantity INTEGER,
     i_price REAL,
-    ol_amount REAL
+    ol_amount REAL,
+    brand_generic CHAR
 ) AS $$
 DECLARE
     i INTEGER;
@@ -66,6 +67,9 @@ DECLARE
     tmp_total_amount NUMERIC;
 
     decr_quantity REAL;
+
+    t1 BOOLEAN;
+    t2 BOOLEAN;
 BEGIN
     ol[0] := order_line_1;
     ol[1] := order_line_2;
@@ -128,6 +132,10 @@ BEGIN
         FROM item
         WHERE i_id = ol_i_id;
 
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'item not found';
+        END IF;
+
         ol_amount := i_price * ol_quantity;
         tmp_total_amount := tmp_total_amount + ol_amount;
 
@@ -136,14 +144,19 @@ BEGIN
         INTO new_order.s_quantity, tmp_s_dist, tmp_s_data
         USING ol_i_id, w_id;
 
-        IF s_quantity IS NULL THEN
-            RAISE EXCEPTION 'item not found';
-        END IF;
-
         IF s_quantity > ol_quantity THEN
             decr_quantity :=  ol_quantity;
         ELSE
             decr_quantity :=  ol_quantity - 91;
+        END IF;
+
+        SELECT tmp_i_data ~ 'ORIGINAL', tmp_s_data ~ 'ORIGINAL'
+        INTO t1, t2;
+
+        IF t1 AND t2 THEN
+            brand_generic := 'B';
+        ELSE
+            brand_generic := 'G';
         END IF;
 
         UPDATE stock

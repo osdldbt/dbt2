@@ -47,15 +47,16 @@ int dump(FILE *fp, int type, void *data)
 		fprintf(fp, "c_discount = %0.4f\n", ptr.no->c_discount);
 		fprintf(fp, "o_all_local = %d\n", ptr.no->o_all_local);
 		fprintf(fp, "o_ol_cnt = %d\n", ptr.no->o_ol_cnt);
-		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s\n",
+		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s BG\n",
 			"##", "ol_i_id", "i_name", "i_price",
 			"ol_supply_w_id", "ol_quantity", "s_quantity",
 			"ol_ammount");
-		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s\n",
-			"--", "-------", "------------------------", "---------", "--------------", "-----------", "----------", "----------");
+		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s --\n",
+				"--", "-------", "------------------------", "---------",
+				"--------------", "-----------", "----------", "----------");
 		for (i = 0; i < ptr.no->o_ol_cnt; i++) {
 			fprintf(fp,
-				"%2d %7d %24s %9.2f %14d %11d %10d %10.2f\n",
+				"%2d %7d %24s %9.2f %14d %11d %10d %10.2f %c\n",
 				i + 1,
 				ptr.no->order_line[i].ol_i_id,
 				ptr.no->order_line[i].i_name,
@@ -63,7 +64,8 @@ int dump(FILE *fp, int type, void *data)
 				ptr.no->order_line[i].ol_supply_w_id,
 				ptr.no->order_line[i].ol_quantity,
 				ptr.no->order_line[i].s_quantity,
-				ptr.no->order_line[i].ol_amount);
+				ptr.no->order_line[i].ol_amount,
+				ptr.no->order_line[i].brand_generic);
 		}
 		fprintf(fp, "o_id = %d\n", ptr.no->o_id);
 		fprintf(fp, "total_amount = %0.2f\n", ptr.no->total_amount);

@@ -2,9 +2,10 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2003-2006 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2003-2006 Open Source Development Labs, Inc.
+ *               2003-2021 Mark Wong
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.8.2.
  */
 
 #include <sys/types.h>
@@ -33,18 +34,21 @@ static cached_statement statements[] = {
 	2, { INT4OID, INT4OID }
 	},
 
-	{ /*1 STOCK_LEVEL_2 */
+	{ /* STOCK_LEVEL_2 */
+	"WITH\n" \
+	"ol AS (\n" \
+	"    SELECT DISTINCT ol_i_id\n" \
+	"    FROM order_line\n" \
+	"    WHERE ol_w_id = $2\n" \
+	"      AND ol_d_id = $1\n" \
+	"      AND ol_o_id BETWEEN ($4)\n" \
+	"                      AND ($5)\n" \
+	")\n" \
 	"SELECT count(*)\n" \
-	"FROM order_line, stock, district\n" \
-	"WHERE d_id = $1\n" \
-	"  AND d_w_id = $2\n" \
-	"  AND d_id = ol_d_id\n" \
-	"  AND d_w_id = ol_w_id\n" \
-	"  AND ol_i_id = s_i_id\n" \
-	"  AND ol_w_id = s_w_id\n" \
-	"  AND s_quantity < $3\n" \
-	"  AND ol_o_id BETWEEN ($4)\n" \
-	"		  AND ($5)",
+	"FROM ol, stock\n" \
+	"WHERE s_w_id = $2\n" \
+	"  AND s_i_id = ol_i_id\n" \
+	"  AND s_quantity < $3",
 	5, { INT4OID, INT4OID, INT4OID, INT4OID, INT4OID }
 	},
 
@@ -112,7 +116,7 @@ Datum stock_level(PG_FUNCTION_ARGS)
 		low_stock = atoi(buf);
 	} else {
 		ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-			 errmsg("STOCK_LEVEL_2t failed")));
+			 errmsg("STOCK_LEVEL_2 failed")));
 	}
 
 	SPI_finish();

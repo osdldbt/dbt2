@@ -90,6 +90,7 @@ struct payment_t
 	char c_phone[C_PHONE_LEN + 1];
 	char c_since[C_SINCE_LEN + 1];
 	char c_credit[C_CREDIT_LEN + 1];
+	char h_date[TIMESTAMP_LEN + 1];
 	char w_name[W_NAME_LEN + 1];
 	char w_street_1[W_STREET_1_LEN + 1];
 	char w_street_2[W_STREET_2_LEN + 1];

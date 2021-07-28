@@ -5,7 +5,7 @@
  * Copyright (C) 2003      Open Source Development Lab, Inc.
  *               2003-2021 Mark Wong
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.5.2.
  */
 
 CREATE OR REPLACE FUNCTION payment (
@@ -49,7 +49,6 @@ DECLARE
     w_name VARCHAR;
 
     tmp_c_id INTEGER;
-    c_ytd_payment NUMERIC(24, 12);
 BEGIN
 	UPDATE warehouse
 	SET w_ytd = w_ytd + h_amount
@@ -86,11 +85,10 @@ BEGIN
            customer.c_street_1, customer.c_street_2, customer.c_city,
            customer.c_state, customer.c_zip, customer.c_phone,
            customer.c_since, customer.c_credit, customer.c_credit_lim,
-           customer.c_discount, customer.c_balance, customer.c_data,
-           customer.c_ytd_payment
+           customer.c_discount, customer.c_balance
     INTO c_first, c_middle, c_last, c_street_1, c_street_2, c_city, c_state,
          c_zip, c_phone, c_since, c_credit, c_credit_lim, c_discount,
-         c_balance, c_data, c_ytd_payment
+         c_balance
 	FROM customer
 	WHERE customer.c_w_id = payment.c_w_id
 	  AND customer.c_d_id = payment.c_d_id
@@ -100,18 +98,20 @@ BEGIN
 	IF c_credit = 'BC' THEN
 		UPDATE customer
 		SET c_balance = customer.c_balance - h_amount,
-		    c_ytd_payment = customer.c_ytd_payment + 1,
+		    c_ytd_payment = c_ytd_payment + 1,
             c_data = substring(tmp_c_id || ' ' || payment.c_d_id || ' '
                                || payment.c_w_id || ' ' || d_id || ' ' || w_id
-                               || ' ' || payment.c_data || customer.c_data, 1,
+                               || ' ' || h_amount || ' ' || customer.c_data, 1,
                                500)
 		WHERE customer.c_id = payment.c_id
 		  AND customer.c_w_id = payment.c_w_id
-		  AND customer.c_d_id = payment.c_d_id;
+		  AND customer.c_d_id = payment.c_d_id
+        RETURNING substring(customer.c_data, 1, 200)
+        INTO payment.c_data;
 	ELSE
 		UPDATE customer
 		SET c_balance = customer.c_balance - h_amount,
-		    c_ytd_payment = customer.c_ytd_payment + 1
+		    c_ytd_payment = c_ytd_payment + 1
 		WHERE customer.c_id = payment.c_id
 		  AND customer.c_w_id = payment.c_w_id
 		  AND customer.c_d_id = payment.c_d_id;
@@ -121,7 +121,9 @@ BEGIN
 	                     h_date, h_amount, h_data)
 	VALUES (c_id, c_d_id, c_w_id, d_id, w_id,
 		    CURRENT_TIMESTAMP, h_amount,
-            substring(w_name || '    ' || d_name, 1, 24));
+            substring(w_name || '    ' || d_name, 1, 24))
+    RETURNING history.h_date
+    INTO payment.h_date;
 
     RETURN NEXT;
 END;

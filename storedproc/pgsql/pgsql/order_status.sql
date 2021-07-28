@@ -5,7 +5,7 @@
  * Copyright (C) 2003      Open Source Development Lab, Inc.
  *               2003-2021 Mark Wong
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.6.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.6.2.
  */
 
 CREATE OR REPLACE FUNCTION order_status (
@@ -64,7 +64,8 @@ BEGIN
 	WHERE o_w_id = c_w_id
   	AND o_d_id = c_d_id
   	AND o_c_id = tmp_c_id
-	ORDER BY o_id DESC;
+	ORDER BY o_id DESC
+    LIMIT 1;
 
 	FOR ol IN
 		SELECT order_line.ol_i_id, order_line.ol_supply_w_id,

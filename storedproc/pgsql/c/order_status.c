@@ -198,7 +198,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 			o_entry_d = SPI_getvalue(tuple, tupdesc, 3);
 			o_ol_cnt = SPI_getvalue(tuple, tupdesc, 4);
 			elog(DEBUG1, "o_id = %d", o_id);
-			elog(DEBUG1, "o_carrier_id = %s", o_carrier_id);
+			elog(DEBUG1, "o_carrier_id = %s", o_carrier_id ? o_carrier_id : "");
 			elog(DEBUG1, "o_entry_d = %s", o_entry_d);
 			elog(DEBUG1, "o_ol_cnt = %s", o_ol_cnt);
 		} else {
@@ -237,17 +237,16 @@ Datum order_status(PG_FUNCTION_ARGS)
 				ol_amount[idx] = SPI_getvalue(tuple, tupdesc, 4);
 				ol_delivery_d[idx] = SPI_getvalue(tuple, tupdesc, 5);
 				elog(DEBUG1, "%2d  %7s  %14s  %11s  %9.2f  %13s",
-						j + 1, ol_i_id[idx], ol_supply_w_id[idx],
-						ol_quantity[idx], atof(ol_amount[idx]),
-						ol_delivery_d[idx]);
+						j + 1, ol_i_id[idx] ? ol_i_id[idx] : "",
+						ol_supply_w_id[idx] ? ol_supply_w_id[idx] : "",
+						ol_quantity[idx] ? ol_quantity[idx] : "",
+						atof(ol_amount[idx] ? ol_amount[idx] : 0),
+						ol_delivery_d[idx] ? ol_delivery_d[idx] : "");
 			}
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 				 errmsg("ORDER_STATUS_4 failed")));
 		}
-
-		/* get tupdesc from the type name */
-		tupdesc = RelationNameGetTupleDesc("status_info");
 
 		/*
 		 * generate attribute metadata needed later to produce tuples

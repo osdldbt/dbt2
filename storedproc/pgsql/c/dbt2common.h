@@ -10,6 +10,39 @@
 #ifndef _DBT2COMMON_H_
 #define _DBT2COMMON_H_
 
+#define TIMESTAMP_LEN 28
+
+#define C_CREDIT_LEN 2
+#define C_DATA_BC_LEN 200
+#define C_DATA_LEN 500
+#define C_FIRST_LEN 64
+#define C_LAST_LEN 16
+#define C_MIDDLE_LEN 2
+#define C_STREET_1_LEN 80
+#define C_STREET_2_LEN 80
+#define C_CITY_LEN 80
+#define C_PHONE_LEN 16
+#define C_SINCE_LEN TIMESTAMP_LEN
+#define C_STATE_LEN 4
+#define C_ZIP_LEN 9
+
+#define D_CITY_LEN 80
+#define D_NAME_LEN 40
+#define D_STATE_LEN 8
+#define D_STREET_1_LEN 80
+#define D_STREET_2_LEN 80
+#define D_ZIP_LEN 9
+
+#define H_DATE_LEN TIMESTAMP_LEN
+
+#define I_NAME_LEN 96
+
+#define W_CITY_LEN 80
+#define W_STATE_LEN 8
+#define W_STREET_1_LEN 80
+#define W_STREET_2_LEN 80
+#define W_ZIP_LEN 9
+
 /* PostgreSQL < 8.4 didn't have this handy macro */
 #ifndef CStringGetTextDatum
 #define CStringGetTextDatum(s) DirectFunctionCall1(textin, PointerGetDatum(s))

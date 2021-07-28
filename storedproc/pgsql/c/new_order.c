@@ -2,9 +2,10 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2003-2008 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2003-2008 Open Source Development Labs, Inc.
+ *               2003-2021 Mark Wong
  *
- * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
+ * Based on TPC-C Standard Specification Revision 5.11 Clause 2.4.2.
  */
 
 #include <sys/types.h>
@@ -122,11 +123,12 @@ typedef struct
 {
 	int ol_supply_w_id;
 	int ol_i_id;
-	char i_name[25];
+	char i_name[I_NAME_LEN + 1];
 	int ol_quantity;
 	int s_quantity;
 	float i_price;
 	float ol_amount;
+	char brand_generic;
 } no_order_line;
 
 Datum new_order(PG_FUNCTION_ARGS)
@@ -180,7 +182,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		char *s_data[15];
 
 		Datum args[9];
-		char  nulls[9] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
+		char  nulls[9] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 		no_order_line *pp;
 
@@ -317,7 +319,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 				i_price[i] = SPI_getvalue(tuple, tupdesc, 1);
 				pp[i].i_price = atof(i_price[i]);
 				i_name[i] = SPI_getvalue(tuple, tupdesc, 2);
-				strncpy(pp[i].i_name, i_name[i], 24);
+				strncpy(pp[i].i_name, i_name[i], I_NAME_LEN);
 				i_data[i] = SPI_getvalue(tuple, tupdesc, 3);
 				elog(DEBUG1, "%d i_price[%d] = %s", (int) getpid(), i,
 					i_price[i]);
@@ -328,7 +330,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			} else {
 				/* Item doesn't exist, rollback transaction. */
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("NEW_ORDER_8 failed")));
+					 errmsg("NEW_ORDER_8 failed: item not found")));
 				SPI_finish();
 				PG_RETURN_NULL();
 			}
@@ -388,6 +390,13 @@ Datum new_order(PG_FUNCTION_ARGS)
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 					 errmsg("NEW_ORDER_10 failed")));
 			}
+
+			if (strstr(i_data[i], "ORIGINAL") && strstr(s_data[i], "ORIGINAL"))
+				pp[i].brand_generic = 'B';
+			else
+				pp[i].brand_generic = 'G';
+			elog(DEBUG1, "%d brand_generic[%d] = %c", (int) getpid(), i,
+					pp[i].brand_generic);
 		}
 		funcctx->max_calls = o_ol_cnt;
 
@@ -404,25 +413,27 @@ Datum new_order(PG_FUNCTION_ARGS)
 	if (call_cntr < max_calls) {
 		HeapTuple tuple;
 		Datum result;
-		char **values = (char **) palloc(7 * sizeof(char *));
+		char **values = (char **) palloc(8 * sizeof(char *));
 
 		no_order_line *pp = (no_order_line *) funcctx->user_fctx;
 
 		values[0] = (char *) palloc(11 * sizeof(char));
 		values[1] = (char *) palloc(11 * sizeof(char));
-		values[2] = (char *) palloc(25 * sizeof(char));
+		values[2] = (char *) palloc((I_NAME_LEN + 1) * sizeof(char));
 		values[3] = (char *) palloc(11 * sizeof(char));
 		values[4] = (char *) palloc(11 * sizeof(char));
 		values[5] = (char *) palloc(11 * sizeof(char));
 		values[6] = (char *) palloc(11 * sizeof(char));
+		values[7] = (char *) palloc(sizeof(char));
 
 		snprintf(values[0], 10, "%d", pp[funcctx->call_cntr].ol_supply_w_id);
 		snprintf(values[1], 10, "%d", pp[funcctx->call_cntr].ol_i_id);
-		strncpy(values[2], pp[funcctx->call_cntr].i_name, 24);
+		strncpy(values[2], pp[funcctx->call_cntr].i_name, I_NAME_LEN);
 		snprintf(values[3], 10, "%d", pp[funcctx->call_cntr].ol_quantity);
 		snprintf(values[4], 10, "%d", pp[funcctx->call_cntr].s_quantity);
 		snprintf(values[5], 10, "%f", pp[funcctx->call_cntr].i_price);
 		snprintf(values[6], 10, "%f", pp[funcctx->call_cntr].ol_amount);
+		snprintf(values[7], 1, "%c", pp[funcctx->call_cntr].brand_generic);
 
 		tuple = BuildTupleFromCStrings(attinmeta, values);
 		result = HeapTupleGetDatum(tuple);
