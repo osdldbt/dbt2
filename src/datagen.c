@@ -186,9 +186,6 @@ void gen_customers()
 
 				/* c_first */
 				get_a_string(a_string, 8, 16);
-				/*
-				memset(sa_string, 0, sizeof(sa_string));
-				*/
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
@@ -226,7 +223,7 @@ void gen_customers()
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_state */
-				get_l_string(a_string, 2, 2);
+				get_a_string(a_string, 2, 2);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
@@ -414,7 +411,7 @@ void gen_districts()
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_state */
-			get_l_string(a_string, 2, 2);
+			get_a_string(a_string, 2, 2);
 			wcstombs(sa_string, a_string, 192);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
@@ -1404,7 +1401,7 @@ void gen_warehouses()
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_state */
-		get_l_string(a_string, 2, 2);
+		get_a_string(a_string, 2, 2);
 		wcstombs(sa_string, a_string, 192);
 		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
