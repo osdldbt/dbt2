@@ -9,6 +9,7 @@ set (PROJECT_VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR})
 include (CheckLibraryExists)
 
 add_subdirectory (src)
+add_subdirectory (storedproc)
 
 # CPack rules for creating distribution files.
 

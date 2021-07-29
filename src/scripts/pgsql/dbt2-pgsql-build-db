@@ -22,6 +22,8 @@ usage()
 	echo "        PostgreSQL database parameters."
 	echo "    -r"
 	echo "        Drop existing database before building a new database"
+	echo "    -s <c | plpgsql>"
+	echo "        User defined functions to install, default: c"
 	echo "    -t"
 	echo "        Use tablespaces."
 	echo "    -w <scale factor>"
@@ -30,8 +32,9 @@ usage()
 
 WAREHOUSES=1
 GENERATE_DATAFILE=0
+UDF_TYPE="c"
 REBUILD_DB=0
-while getopts "bhl:p:rtw:" OPT; do
+while getopts "bhl:p:rs:tw:" OPT; do
 	case ${OPT} in
 	b)
 		BACKGROUND_FLAG="-b"
@@ -48,6 +51,9 @@ while getopts "bhl:p:rtw:" OPT; do
 		;;
 	r)
 		REBUILD_DB=1
+		;;
+	s)
+		UDF_TYPE=$OPTARG
 		;;
 	t)
 		TABLESPACES_FLAG="-t"
@@ -81,12 +87,7 @@ dbt2-datagen --direct -w ${WAREHOUSES} --pgsql || exit 1
 
 dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 
-# load C or pl/pgsql implementation of the stored procedures
-if true; then
-	dbt2-pgsql-load-stored-procs ${PORTARG} -t c || exit 1
-else
-	dbt2-pgsql-load-stored-procs ${PORTARG} -t plpgsql || exit 1
-fi
+dbt2-pgsql-load-stored-procs $PORTARG -t $UDF_TYPE || exit 1
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
