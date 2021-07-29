@@ -69,6 +69,7 @@ if [ $REBUILD_DB -eq 1 ] && [ -d $DBT2PGDATA ]; then
 	dbt2-pgsql-drop-db ${PORTARG}
 fi
 
+dbt2-pgsql-init-db ${PORTARG} || exit 1
 dbt2-pgsql-create-db ${PORTARG} || exit 1
 dbt2-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 

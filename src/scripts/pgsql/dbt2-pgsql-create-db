@@ -1,60 +1,31 @@
 #!/bin/sh
-
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2008 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2008 Open Source Development Labs, Inc.
+#               2002-2021 Mark Wong
 #
-
-if [ -z ${DBT2PGDATA} ]; then
-    echo "DBT2PGDATA not defined."
-    exit 1
-fi
 
 if [ -z ${DBT2DBNAME} ]; then
     echo "DBT2DBNAME not defined."
     exit 1
 fi
 
-while getopts "l:p:" OPT; do
+while getopts "l:" OPT; do
 	case ${OPT} in
 	l)
 		PORT=${OPTARG}
 		;;
-	p)
-		PARAMETERS=${OPTARG}
-		;;
 	esac
 done
-
-if [ ! "x$DBT2XLOGDIR" = "x" ]; then
-	INITDBFLAGS="-X $DBT2XLOGDIR"
-fi
-
-# Create database
-echo "Creating database..."
-if [ -d ${DBT2PGDATA} ]; then
-	echo "PGData directory '${DBT2PGDATA}' already exists, skipping initdb..."
-else
-	initdb -D $DBT2PGDATA  -E UTF8 --locale=en_US.utf8 \
-			--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 $INITDBFLAGS || \
-			exit 1
-fi
-
-if [ ! "x${PARAMETERS}" = "x" ]; then
-    PARAMOPT="-p ${PARAMETERS}"
-fi
-
-dbt2-pgsql-start-db ${PARAMOPT} || exit 1
-
-# Give the database a few seconds to get started.
-sleep 4
 
 if [ ! "x${PORT}" = "x" ]; then
     PORTOPT="-p ${PORT}"
 fi
 
+# Create database
+echo "Creating database..."
 createdb ${PORTOPT} ${DBT2DBNAME} || exit 1
 
 exit 0
