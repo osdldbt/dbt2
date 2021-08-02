@@ -30,6 +30,14 @@ usage()
 	echo "        Number of warehouses to build. Default 1."
 }
 
+gen_table()
+{
+	local TABLE=$1
+	local WAREHOUSES=$2
+	local SEED=$3
+	dbt2-datagen --direct -w $WAREHOUSES --pgsql --table $TABLE --seed $SEED || exit 1
+}
+
 WAREHOUSES=1
 GENERATE_DATAFILE=0
 PRIVILEGED=1
@@ -87,11 +95,22 @@ fi
 dbt2-pgsql-create-db ${PORTARG} || exit 1
 dbt2-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 
+which shuf > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	SEED=`shuf -i 1-65535 -n 1`
+else
+	echo "WARNING: install shuf to generate a random seed, using 1"
+	SEED=1
+fi
+
 # FIXME: Make datagen take argument instead of setting environment variables
 # for psql.
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
-dbt2-datagen --direct -w ${WAREHOUSES} --pgsql || exit 1
+for TABLE in warehouse district customer item orders stock new_order history; do
+	gen_table $TABLE $WAREHOUSES $SEED &
+done
+wait
 
 dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 
@@ -101,7 +120,7 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-psql ${PORTARG} -e -d ${DBT2DBNAME} -c "SELECT setseed(0);" || exit 1
+psql ${PORTARG} -e -d ${DBT2DBNAME} -c "SELECT setseed(${SEED});" || exit 1
 
 # VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
 # tables. The VACUUM FULL is probably unnecessary; we want to scan the
