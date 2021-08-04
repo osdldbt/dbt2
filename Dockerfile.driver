@@ -11,6 +11,7 @@ COPY . /usr/local/src/dbt2
 WORKDIR /usr/local/src/dbt2
 # The driver itself is database agnostic, but the build system isn't because
 # it's building everything.
-RUN cmake -DDBMS=pgsql .
-RUN make
-RUN make install
+ARG dbms=pgsql
+ENV DBMS="$dbms"
+RUN make release
+RUN (cd builds/release && make install)
