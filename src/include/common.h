@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2002-2021 Mark Wong
  *
  * 16 may 2002
  */
@@ -16,9 +17,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <time.h>
 #include <sys/time.h>
+
+#include "pcg_variants.h"
 
 #if defined(ODBC) || defined(LIBMYSQL) || defined(LIBDRIZZLE)
 #define DB_USER "dbt"
@@ -126,14 +130,14 @@ struct table_cardinality_t {
 /* Prototypes */
 double difftimeval(struct timeval rt1, struct timeval rt0);
 int edump(int type, void *data);
-void get_a_string(wchar_t *, int, int);
+void get_a_string(pcg64f_random_t *, wchar_t *, int, int);
 int get_c_last(wchar_t *, int);
-void get_l_string(wchar_t *, int, int);
-void get_n_string(wchar_t *, int, int);
-int get_nurand(int a, int x, int y);
-double get_percentage();
-int get_random(int max);
-int get_think_time(int mean_think_time);
+void get_l_string(pcg64f_random_t *, wchar_t *, int, int);
+void get_n_string(pcg64f_random_t *, wchar_t *, int, int);
+int get_nurand(pcg64f_random_t *, int a, int x, int y);
+double get_percentage(pcg64f_random_t *);
+int64_t get_random(pcg64f_random_t *, int64_t);
+int get_think_time(pcg64f_random_t *, int);
 int init_common();
 int create_pid_file();
 

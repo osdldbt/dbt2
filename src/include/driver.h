@@ -4,7 +4,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002 -----Open Source Development Lab, Inc.
+ *               2002-2021 Mark Wong
  *
  * 7 august 2002
  */
@@ -100,7 +101,7 @@ extern int duration;
 extern int w_id_min, w_id_max;
 extern int terminals_per_warehouse;
 extern int mode_altered;
-extern unsigned int seed;
+extern unsigned long long seed;
 extern int client_conn_sleep;
 extern int spread;
 

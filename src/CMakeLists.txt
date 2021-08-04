@@ -183,6 +183,28 @@ set (COMMON_SOURCE
      transaction_data.c
 )
 
+set (PCG_SOURCE
+    pcg/extras/entropy.c
+    pcg/pcg-advance-8.c
+    pcg/pcg-advance-16.c
+    pcg/pcg-advance-32.c
+    pcg/pcg-advance-64.c
+    pcg/pcg-advance-128.c
+    pcg/pcg-global-32.c
+    pcg/pcg-global-64.c
+    pcg/pcg-output-8.c
+    pcg/pcg-output-16.c
+    pcg/pcg-output-32.c
+    pcg/pcg-output-64.c
+    pcg/pcg-output-128.c
+    pcg/pcg-rngs-8.c
+    pcg/pcg-rngs-16.c
+    pcg/pcg-rngs-32.c
+    pcg/pcg-rngs-64.c
+    pcg/pcg-rngs-128.c
+    pcg/pcg-rngs-128.c
+)
+
 #
 # Files to build.
 #
@@ -190,6 +212,7 @@ set (COMMON_SOURCE
 add_executable (${CLIENT}
                 ${COMMON_SOURCE}
                 ${DB_SOURCE}
+                ${PCG_SOURCE}
                 client.c
                 db.c
                 db_threadpool.c
@@ -210,11 +233,12 @@ if (DBMS STREQUAL "pgsql")
     target_link_libraries (${CLIENT} pq)
 endif (DBMS STREQUAL "pgsql")
 
-add_executable (${DATAGEN} datagen.c common.c)
+add_executable (${DATAGEN} ${PCG_SOURCE} datagen.c common.c)
 target_link_libraries (${DATAGEN} m)
 
 add_executable (${DRIVER}
                 ${COMMON_SOURCE}
+                ${PCG_SOURCE}
                 driver.c
                 driver_main.c
                 input_data_generator.c
@@ -233,6 +257,7 @@ endif (NEED_LIBNSL)
 add_executable(${TXN_TEST}
                ${COMMON_SOURCE}
                ${DB_SOURCE}
+               ${PCG_SOURCE}
                db.c
                input_data_generator.c
                transaction_test.c
@@ -256,26 +281,37 @@ set (CMAKE_INCLUDE_CURRENT_DIR ON)
 set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
 
 set_source_files_properties (
-        _semaphore.c
-        _socket.c
-        common.c
+        ${PCG_SOURCE}
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+)
+set_source_files_properties (
         datagen.c
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+)
+set_source_files_properties (
+        client_interface.c
+        common.c
         driver.c
         driver_main.c
-        client_interface.c
         input_data_generator.c
         listener.c
         logging.c
         transaction_data.c
         transaction_queue.c
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+)
+set_source_files_properties (
+        _semaphore.c
+        _socket.c
         COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
 set_source_files_properties (
+        ${DB_SOURCE}
         client.c
-        db_threadpool.c
         db.c
+        db_threadpool.c
         transaction_test.c
-        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
-set_source_files_properties (${DB_SOURCE} COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
+        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+)
 
 #
 # Set linker flags.

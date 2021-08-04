@@ -3,7 +3,7 @@
  * Please see the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002 Open Source Development Labs, Inc.
- *               2002-2010 Mark Wong
+ *               2002-2021 Mark Wong
  *
  * Based on TPC-C Standard Specification Revision 5.0.
  */
@@ -21,6 +21,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+
+#include "entropy.h"
 
 #define CUSTOMER_DATA "customer.data"
 #define DISTRICT_DATA "district.data"
@@ -61,7 +63,7 @@ int mode_string = MODE_PGSQL;
 char delimiter = ',';
 char null_str[16] = "\"NULL\"";
 
-int seed = 0;
+unsigned long long seed = 0;
 int table = TABLE_ALL;
 
 int w_id = -1;
@@ -117,8 +119,9 @@ void gen_customers()
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
+	pcg64f_random_t rng;
 
-	srand(seed);
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating customer table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -185,7 +188,7 @@ void gen_customers()
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_first */
-				get_a_string(a_string, 8, 16);
+				get_a_string(&rng, a_string, 8, 16);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
@@ -198,44 +201,44 @@ void gen_customers()
 				if (k < 1000) {
 					get_c_last(a_string, k);
 				} else {
-					get_c_last(a_string, get_nurand(255, 0, 999));
+					get_c_last(a_string, get_nurand(&rng, 255, 0, 999));
 				}
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_street_1 */
-				get_a_string(a_string, 10, 20);
+				get_a_string(&rng, a_string, 10, 20);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_street_2 */
-				get_a_string(a_string, 10, 20);
+				get_a_string(&rng, a_string, 10, 20);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_city */
-				get_a_string(a_string, 10, 20);
+				get_a_string(&rng, a_string, 10, 20);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_state */
-				get_a_string(a_string, 2, 2);
+				get_a_string(&rng, a_string, 2, 2);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_zip */
-				get_n_string(a_string, 4, 4);
+				get_n_string(&rng, a_string, 4, 4);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s11111", sa_string);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_phone */
-				get_n_string(a_string, 16, 16);
+				get_n_string(&rng, a_string, 16, 16);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 				METAPRINTF((output, "%c", delimiter));
@@ -252,7 +255,7 @@ void gen_customers()
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_credit */
-				if (get_percentage() < .10) {
+				if (get_percentage(&rng) < .10) {
 					FPRINTF2(output, "BC");
 				} else {
 					FPRINTF2(output, "GC");
@@ -264,7 +267,7 @@ void gen_customers()
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_discount */
-				FPRINTF(output, "0.%04d", get_random(5000));
+				FPRINTF(output, "0.%04d", (int) get_random(&rng, 5000));
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_balance */
@@ -284,7 +287,7 @@ void gen_customers()
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_data */
-				get_a_string(a_string, 300, 500);
+				get_a_string(&rng, a_string, 300, 500);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
 
@@ -324,8 +327,9 @@ void gen_districts()
 	wchar_t a_string[48];
 	char sa_string[192];
 	char filename[1024] = "\0";
+	pcg64f_random_t rng;
 
-	srand(seed);
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating district table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -387,43 +391,43 @@ void gen_districts()
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_name */
-			get_a_string(a_string, 6, 10);
+			get_a_string(&rng, a_string, 6, 10);
 			wcstombs(sa_string, a_string, 192);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_street_1 */
-			get_a_string(a_string, 10, 20);
+			get_a_string(&rng, a_string, 10, 20);
 			wcstombs(sa_string, a_string, 192);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_street_2 */
-			get_a_string(a_string, 10, 20);
+			get_a_string(&rng, a_string, 10, 20);
 			wcstombs(sa_string, a_string, 192);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_city */
-			get_a_string(a_string, 10, 20);
+			get_a_string(&rng, a_string, 10, 20);
 			wcstombs(sa_string, a_string, 192);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_state */
-			get_a_string(a_string, 2, 2);
+			get_a_string(&rng, a_string, 2, 2);
 			wcstombs(sa_string, a_string, 192);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_zip */
-			get_n_string(a_string, 4, 4);
+			get_n_string(&rng, a_string, 4, 4);
 			wcstombs(sa_string, a_string, 192);
 			FPRINTF(output, "%s11111", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_tax */
-			FPRINTF(output, "0.%04d", get_random(2000));
+			FPRINTF(output, "0.%04d", (int) get_random(&rng, 2000));
 			METAPRINTF((output, "%c", delimiter));
 
 			/* d_ytd */
@@ -470,8 +474,9 @@ void gen_history()
 	struct tm *tm1;
 	time_t t1;
 	char filename[1024] = "\0";
+	pcg64f_random_t rng;
 
-	srand(seed);
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating history table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -561,7 +566,7 @@ void gen_history()
 				METAPRINTF((output, "%c", delimiter));
 
 				/* h_data */
-				get_a_string(a_string, 12, 24);
+				get_a_string(&rng, a_string, 12, 24);
 				wcstombs(sa_string, a_string, 256);
 				FPRINTF(output, "%s", sa_string);
 
@@ -602,8 +607,9 @@ void gen_items()
 	char sa_string[512];
 	int j;
 	char filename[1024] = "\0";
+	pcg64f_random_t rng;
 
-	srand(seed);
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating item table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -649,23 +655,23 @@ void gen_items()
 		METAPRINTF((output, "%c", delimiter));
 
 		/* i_im_id */
-		FPRINTF(output, "%d", get_random(9999) + 1);
+		FPRINTF(output, "%d", (int) get_random(&rng, 9999) + 1);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* i_name */
-		get_a_string(a_string, 14, 24);
+		get_a_string(&rng, a_string, 14, 24);
 		wcstombs(sa_string, a_string, 512);
 		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* i_price */
-		FPRINTF(output, "%0.2f", ((double) get_random(9900) + 100.0) / 100.0);
+		FPRINTF(output, "%0.2f", ((double) get_random(&rng, 9900) + 100.0) / 100.0);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* i_data */
-		get_a_string(a_string, 26, 50);
-		if (get_percentage() < .10) {
-			j = get_random(wcslen(a_string) - 8);
+		get_a_string(&rng, a_string, 26, 50);
+		if (get_percentage(&rng) < .10) {
+			j = (int) get_random(&rng, wcslen(a_string) - 8);
 			a_string[j++] = L'O';
 			a_string[j++] = L'R';
 			a_string[j++] = L'I';
@@ -709,8 +715,9 @@ void gen_new_orders()
 	FILE *output, *o;
 	int i, j, k;
 	char filename[1024] = "\0";
+	pcg64f_random_t rng;
 
-	srand(seed);
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating new-order table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -826,7 +833,9 @@ void gen_orders()
 
 	int o_ol_cnt;
 
-	srand(seed);
+	pcg64f_random_t rng;
+
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating order and order-line table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -922,7 +931,7 @@ void gen_orders()
 				current = prev = head;
 
 				/* Find a random place in the list to insert a number. */
-				iter = get_random(k - 1);
+				iter = (int) get_random(&rng, k - 1);
 				while (iter > 0) {
 					prev = current;
 					current = current->next;
@@ -983,11 +992,11 @@ void gen_orders()
 					 * FIXME: Not to spec but Drizzle doesn't handle null
 					 * value for when reading from a file for now
 					 */
-					FPRINTF(order, "%d", get_random(9) + 1);
+					FPRINTF(order, "%d", (int) get_random(&rng, 9) + 1);
 				}
 				else {
 					if (k < 2101) {
-						FPRINTF(order, "%d", get_random(9) + 1);
+						FPRINTF(order, "%d", (int) get_random(&rng, 9) + 1);
 					} else {
 						METAPRINTF((order, "%s", null_str));
 					}
@@ -995,7 +1004,7 @@ void gen_orders()
 				METAPRINTF((order, "%c", delimiter));
 
 				/* o_ol_cnt */
-				o_ol_cnt = get_random(10) + 5;
+				o_ol_cnt = (int) get_random(&rng, 10) + 5;
 				FPRINTF(order, "%d", o_ol_cnt);
 				METAPRINTF((order, "%c", delimiter));
 
@@ -1027,7 +1036,7 @@ void gen_orders()
 
 					/* ol_i_id */
 					FPRINTF(order_line, "%d",
-							get_random(ITEM_CARDINALITY - 1) + 1);
+							(int) get_random(&rng, ITEM_CARDINALITY - 1) + 1);
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_supply_w_id */
@@ -1070,12 +1079,12 @@ void gen_orders()
 						FPRINTF2(order_line, "0.00");
 					} else {
 						FPRINTF(order_line, "%f",
-								(double) (get_random(999998) + 1) / 100.0);
+								(double) (get_random(&rng, 999998) + 1) / 100.0);
 					}
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_dist_info */
-					get_l_string(a_string, 24, 24);
+					get_l_string(&rng, a_string, 24, 24);
 					wcstombs(sa_string, a_string, 256);
 					FPRINTF(order_line, "%s", sa_string);
 
@@ -1129,8 +1138,9 @@ void gen_stock()
 	wchar_t a_string[128];
 	char sa_string[512];
 	char filename[1024] = "\0";
+	pcg64f_random_t rng;
 
-	srand(seed);
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating stock table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -1192,65 +1202,65 @@ void gen_stock()
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_quantity */
-			FPRINTF(output, "%d", get_random(90) + 10);
+			FPRINTF(output, "%d", (int) get_random(&rng, 90) + 10);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_01 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_02 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_03 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_04 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_05 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_06 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_07 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_08 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_09 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_dist_10 */
-			get_l_string(a_string, 24, 24);
+			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
 			FPRINTF(output, "%s", sa_string);
 			METAPRINTF((output, "%c", delimiter));
@@ -1268,9 +1278,9 @@ void gen_stock()
 			METAPRINTF((output, "%c", delimiter));
 
 			/* s_data */
-			get_a_string(a_string, 26, 50);
-			if (get_percentage() < .10) {
-				k = get_random(wcslen(a_string) - 8);
+			get_a_string(&rng, a_string, 26, 50);
+			if (get_percentage(&rng) < .10) {
+				k = (int) get_random(&rng, wcslen(a_string) - 8);
 				a_string[k++] = L'O';
 				a_string[k++] = L'R';
 				a_string[k++] = L'I';
@@ -1318,8 +1328,9 @@ void gen_warehouses()
 	wchar_t a_string[48];
 	char sa_string[192];
 	char filename[1024] = "\0";
+	pcg64f_random_t rng;
 
-	srand(seed);
+	pcg64f_srandom_r(&rng, seed);
 	printf("Generating warehouse table data...\n");
 
 	if (mode_load == MODE_FLAT) {
@@ -1377,43 +1388,43 @@ void gen_warehouses()
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_name */
-		get_a_string(a_string, 6, 10);
+		get_a_string(&rng, a_string, 6, 10);
 		wcstombs(sa_string, a_string, 192);
 		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_street_1 */
-		get_a_string(a_string, 10, 20);
+		get_a_string(&rng, a_string, 10, 20);
 		wcstombs(sa_string, a_string, 192);
 		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_street_2 */
-		get_a_string(a_string, 10, 20);
+		get_a_string(&rng, a_string, 10, 20);
 		wcstombs(sa_string, a_string, 192);
 		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_city */
-		get_a_string(a_string, 10, 20);
+		get_a_string(&rng, a_string, 10, 20);
 		wcstombs(sa_string, a_string, 192);
 		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_state */
-		get_a_string(a_string, 2, 2);
+		get_a_string(&rng, a_string, 2, 2);
 		wcstombs(sa_string, a_string, 192);
 		FPRINTF(output, "%s", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_zip */
-		get_n_string(a_string, 4, 4);
+		get_n_string(&rng, a_string, 4, 4);
 		wcstombs(sa_string, a_string, 192);
 		FPRINTF(output, "%s11111", sa_string);
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_tax */
-		FPRINTF(output, "0.%04d", get_random(2000));
+		FPRINTF(output, "0.%04d", (int) get_random(&rng, 2000));
 		METAPRINTF((output, "%c", delimiter));
 
 		/* w_ytd */
@@ -1485,7 +1496,7 @@ int main(int argc, char *argv[])
 		int option_index = 0;
 		static struct option long_options[] = {
 			{ "direct", no_argument, &mode_load, MODE_DIRECT },
-			{ "seed", required_argument, &seed, 0 },
+			{ "seed", required_argument, 0, 0 },
 			{ "table", required_argument, 0, 0 },
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
@@ -1525,6 +1536,8 @@ int main(int argc, char *argv[])
 					printf("unknown table: %s\n", optarg);
 					return 2;
 				}
+			} else if (strcmp(long_options[option_index].name, "seed") == 0) {
+				seed = strtoull(optarg, NULL, 10);
 			}
 			break;
 		case 'c':
@@ -1590,6 +1603,11 @@ int main(int argc, char *argv[])
 		delimiter = '\t';
 		strcpy(null_str, "");
 	}
+
+	if (seed == 0) {
+		entropy_getbytes((void *) &seed, sizeof(seed));
+	}
+	printf("seed = %llu\n", seed);
 
 	printf("warehouses = %d\n", warehouses);
 	printf("districts = %d\n", DISTRICT_CARDINALITY);

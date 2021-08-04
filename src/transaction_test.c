@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2002-2021 Mark Wong
  *
  * 24 June 2002
  */
@@ -22,6 +23,8 @@
 #include "logging.h"
 #include "transaction_data.h"
 
+#include "entropy.h"
+
 #ifdef LIBPQ
 char postmaster_port[32];
 #endif /* LIBPQ */
@@ -38,6 +41,9 @@ int main(int argc, char *argv[])
 	int port = 0;
 	int sockfd;
 	struct client_transaction_t client_txn;
+
+	unsigned long long seed = 1;
+	pcg64f_random_t rng;
 
 	init_common();
 	init_logging();
@@ -134,6 +140,9 @@ int main(int argc, char *argv[])
 		return 5;
 	}
 
+	entropy_getbytes((void *) &seed, sizeof(seed));
+	printf("seed = %llu\n", seed);
+
 	/* Double check database table cardinality. */
 	printf("\n");
 	printf("database table cardinalities:\n");
@@ -146,35 +155,35 @@ int main(int argc, char *argv[])
 	printf("new-orders = %d\n", table_cardinality.new_orders);
 	printf("\n");
 
-	srand(time(NULL));
+	pcg64f_srandom_r(&rng, seed);
 
 	/* Generate input data. */
 	memset(&transaction_data, 0, sizeof(union transaction_data_t));
 	switch (transaction) {
 	case DELIVERY:
-		generate_input_data(DELIVERY,
-			(void *) &transaction_data.delivery,
-			get_random(table_cardinality.warehouses) + 1);
+		generate_input_data(&rng, DELIVERY,
+				(void *) &transaction_data.delivery,
+				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case NEW_ORDER:
-		generate_input_data(NEW_ORDER,
-			(void *) &transaction_data.new_order,
-			get_random(table_cardinality.warehouses) + 1);
+		generate_input_data(&rng, NEW_ORDER,
+				(void *) &transaction_data.new_order,
+				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case ORDER_STATUS:
-		generate_input_data(ORDER_STATUS,
-			(void *) &transaction_data.order_status,
-			get_random(table_cardinality.warehouses) + 1);
+		generate_input_data(&rng, ORDER_STATUS,
+				(void *) &transaction_data.order_status,
+				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case PAYMENT:
-		generate_input_data(PAYMENT, (void *) &transaction_data.payment,
-			get_random(table_cardinality.warehouses) + 1);
+		generate_input_data(&rng, PAYMENT, (void *) &transaction_data.payment,
+				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case STOCK_LEVEL:
-		generate_input_data2(STOCK_LEVEL,
-			(void *) &transaction_data.stock_level,
-			get_random(table_cardinality.warehouses) + 1,
-			get_random(table_cardinality.districts) + 1);
+		generate_input_data2(&rng, STOCK_LEVEL,
+				(void *) &transaction_data.stock_level,
+				(int) get_random(&rng, table_cardinality.warehouses) + 1,
+				(int) get_random(&rng, table_cardinality.districts) + 1);
 		break;
 	}
 

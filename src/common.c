@@ -61,18 +61,24 @@ double difftimeval(struct timeval rt1, struct timeval rt0)
 		(double) (rt1.tv_usec - rt0.tv_usec) / 1000000.00;
 }
 
+/* generates a random number on [0,1)-real-interval */
+double genrand64_real2(pcg64f_random_t *rng)
+{
+    return (pcg64f_random_r(rng) >> 11) * (1.0 / 9007199254740992.0);
+}
+
 /* Clause 4.3.2.2.  */
-void get_a_string(wchar_t *a_string, int x, int y)
+void get_a_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 {
 	int length;
 	int i;
 
-	length = x + get_random(y - x + 1) + 1;
+	length = x + (int) get_random(rng, (int) (y - x + 1)) + 1;
 	a_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
-		a_string[i] = a_string_char[get_random(A_STRING_CHAR_LEN - 1)];
+		a_string[i] = a_string_char[get_random(rng, A_STRING_CHAR_LEN)];
 	}
 
 	return;
@@ -99,54 +105,54 @@ int get_c_last(wchar_t *c_last, int i)
 	return OK;
 }
 
-void get_l_string(wchar_t *a_string, int x, int y)
+void get_l_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 {
 	int length;
 	int i;
 
-	length = x + get_random(y - x + 1) + 1;
+	length = x + (int) get_random(rng, (int) (y - x + 1)) + 1;
 	a_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
-		a_string[i] = l_string_char[get_random(L_STRING_CHAR_LEN - 1)];
+		a_string[i] = l_string_char[(int) get_random(rng, L_STRING_CHAR_LEN)];
 	}
 
 	return;
 }
 
 /* Clause 4.3.2.2.  */
-void get_n_string(wchar_t *n_string, int x, int y)
+void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y)
 {
 	int length;
 	int i;
 
-	length = x + get_random(y - x + 1) + 1;
+	length = x + (int) get_random(rng, (int) (y - x + 1)) + 1;
 	n_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
-		n_string[i] = n_string_char[get_random(N_STRING_CHAR_LEN)];
+		n_string[i] = n_string_char[(int) get_random(rng, N_STRING_CHAR_LEN)];
 	}
 
 	return;
 }
 
 /* Clause 2.1.6 */
-int get_nurand(int a, int x, int y)
+int get_nurand(pcg64f_random_t *rng, int a, int x, int y)
 {
-	return ((get_random(a + 1) | (x + get_random(y + 1))) % (y - x + 1)) + x;
+	return ((get_random(rng, a + 1) | (x + get_random(rng, y + 1))) % (y - x + 1)) + x;
 }
 
-/* Return a number from 0 to max. */
-double get_percentage()
+double get_percentage(pcg64f_random_t *rng)
 {
-	return (double) rand() / (double) RAND_MAX;
+	return (pcg64f_random_r(rng) >> 11) * (1.0/9007199254740991.0);
 }
 
-int get_random(int max)
+/* Return a number from [0 to max). */
+int64_t get_random(pcg64f_random_t *rng, int64_t max)
 {
-	return rand() % max;
+	return (int64_t) ((double) (max) * genrand64_real2(rng));
 }
 
 /*
@@ -157,9 +163,9 @@ int get_random(int max)
  * r: random number, where 0 < r <= 1
  * mean_think_time = mean think time, in milliseconds
  */
-int get_think_time(int mean_think_time)
+int get_think_time(pcg64f_random_t *rng, int mean_think_time)
 {
-	return (-1.0 * log(get_percentage() + 0.000001) * mean_think_time);
+	return (-1.0 * log(get_percentage(rng) + 0.000001) * mean_think_time);
 }
 
 int init_common()
@@ -167,7 +173,6 @@ int init_common()
 	int rc = OK;
 
 	printf("setting locale: %s\n", setlocale(LC_ALL, "en_US.utf8"));
-	srand(1);
 
 	/* Initialize struct to have default table cardinalities. */
 	table_cardinality.warehouses = 1;

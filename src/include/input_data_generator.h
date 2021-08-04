@@ -12,7 +12,7 @@
 #ifndef _INPUT_DATA_GENERATOR_H_
 #define _INPUT_DATA_GENERATOR_H_
 
-int generate_input_data(int type, void *data, int w_id);
-int generate_input_data2(int type, void *data, int w_id, int d_id);
+int generate_input_data(pcg64f_random_t *, int, void *, int);
+int generate_input_data2(pcg64f_random_t *, int, void *, int, int);
 
 #endif /* _INPUT_DATA_GENERATOR_H_ */

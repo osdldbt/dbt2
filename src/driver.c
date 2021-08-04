@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2002-2021 Mark Wong
  *
  * 7 August 2002
  */
@@ -32,6 +33,8 @@
 #include "db_threadpool.h"
 #endif /* STANDALONE */
 
+#include "entropy.h"
+
 #define MIX_LOG_NAME "mix.log"
 
 void *terminal_worker(void *data);
@@ -48,7 +51,6 @@ int stop_time = 0;
 int w_id_min = 0, w_id_max = 0;
 int terminals_per_warehouse = 0;
 int mode_altered = 0;
-unsigned int seed = -1;
 int client_conn_sleep = 1000; /* milliseconds */
 int spread = 1;
 int threads_start_time= 0;
@@ -138,6 +140,12 @@ int integrity_terminal_worker()
 	struct client_transaction_t client_data;
 	extern int errno;
 
+	unsigned long long local_seed = 0;
+	pcg64f_random_t rng;
+
+	entropy_getbytes((void *) &local_seed, sizeof(local_seed));
+	pcg64f_srandom_r(&rng, local_seed);
+
 	/* Connect to the client program. */
 	sockfd = connect_to_client(hostname, client_port);
 	if (sockfd < 1) {
@@ -147,7 +155,7 @@ int integrity_terminal_worker()
 	}
 
 	client_data.transaction = INTEGRITY;
-	generate_input_data(client_data.transaction,
+	generate_input_data(&rng, client_data.transaction,
 			&client_data.transaction_data, table_cardinality.warehouses);
 
 #ifdef DEBUG
@@ -428,10 +436,11 @@ void *terminal_worker(void *data)
 	double response_time;
 	extern int errno;
 	int rc;
-	unsigned int local_seed;
+	unsigned long long local_seed = 0;
 	pid_t pid;
 	pthread_t tid;
 	char code;
+	pcg64f_random_t rng;
 
 #ifdef STANDALONE
 	struct db_context_t dbc;
@@ -458,27 +467,11 @@ void *terminal_worker(void *data)
 	/* Each thread needs to seed in Linux. */
     tid = pthread_self();
     pid = getpid();
-	if (seed == -1) {
-		struct timeval tv;
-		FILE *fp = fopen("/dev/urandom", "r");
-
-		local_seed = pid;
-		gettimeofday(&tv, NULL);
-		local_seed ^=  tid ^ tv.tv_sec ^ tv.tv_usec;
-
-		if (fp != NULL) {
-			unsigned int junk;
-			fread(&junk, sizeof(junk), 1, fp);
-			fclose(fp);
-			local_seed ^= junk;
-		}
-	} else {
-		local_seed = seed;
-	}
-	printf("seed for %d:%x : %u\n",
+	entropy_getbytes((void *) &local_seed, sizeof(local_seed));
+	printf("seed for %d:%x : %llu\n",
 			(unsigned int) pid, (unsigned int) tid, local_seed);
 	fflush(stdout);
-	srand(local_seed);
+	pcg64f_srandom_r(&rng, local_seed);
 
 #ifdef STANDALONE
 #ifdef ODBC
@@ -520,15 +513,15 @@ void *terminal_worker(void *data)
 			 * Determine w_id and d_id for the client per
 			 * transaction.
 			 */
-			tc->w_id = w_id_min + get_random(w_id_max - w_id_min + 1);
-			tc->d_id = get_random(table_cardinality.districts) + 1;
+			tc->w_id = w_id_min + (int) get_random(&rng, w_id_max - w_id_min + 1);
+			tc->d_id = (int) get_random(&rng, table_cardinality.districts) + 1;
 		}
 
 		/*
 		 * Determine which transaction to execute, minimum keying time,
 		 * and mean think time.
 		 */
-		threshold = get_percentage();
+		threshold = get_percentage(&rng);
 		if (threshold < transaction_mix.new_order_threshold) {
 			client_data.transaction = NEW_ORDER;
 			keying_time = key_time.new_order;
@@ -564,10 +557,10 @@ void *terminal_worker(void *data)
 
 		/* Generate the input data for the transaction. */
 		if (client_data.transaction != STOCK_LEVEL) {
-			generate_input_data(client_data.transaction,
+			generate_input_data(&rng, client_data.transaction,
 					&client_data.transaction_data, tc->w_id);
 		} else {
-			generate_input_data2(client_data.transaction,
+			generate_input_data2(&rng, client_data.transaction,
 					&client_data.transaction_data, tc->w_id, tc->d_id);
 		}
 
@@ -644,7 +637,8 @@ void *terminal_worker(void *data)
 		++terminal_state[THINKING][client_data.transaction];
 		pthread_mutex_unlock(&mutex_terminal_state[THINKING][client_data.transaction]);
 		if (time(NULL) < stop_time) {
-			thinking_time.tv_nsec = (long) get_think_time(mean_think_time);
+			thinking_time.tv_nsec =
+					(long) get_think_time(&rng, mean_think_time);
 			thinking_time.tv_sec = (time_t) (thinking_time.tv_nsec / 1000);
 			thinking_time.tv_nsec = (thinking_time.tv_nsec % 1000) * 1000000;
 			while (nanosleep(&thinking_time, &rem) == -1) {
