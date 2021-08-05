@@ -7,6 +7,7 @@ add_subdirectory (scripts)
 set (CLIENT ${PROJECT_NAME}-client)
 set (DATAGEN ${PROJECT_NAME}-datagen)
 set (DRIVER ${PROJECT_NAME}-driver)
+set (RAND ${PROJECT_NAME}-rand)
 set (TXN_TEST ${PROJECT_NAME}-transaction-test)
 
 #
@@ -209,6 +210,8 @@ set (PCG_SOURCE
 # Files to build.
 #
 
+add_executable (${RAND} ${PCG_SOURCE} rand.c)
+
 add_executable (${CLIENT}
                 ${COMMON_SOURCE}
                 ${DB_SOURCE}
@@ -282,7 +285,8 @@ set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
 
 set_source_files_properties (
         ${PCG_SOURCE}
-        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        rand.c
+        COMPILE_FLAGS "-DHAVE_DEV_RANDOM -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         datagen.c
@@ -328,6 +332,7 @@ install (PROGRAMS
          ${CMAKE_BINARY_DIR}/src/${CLIENT}
          ${CMAKE_BINARY_DIR}/src/${DATAGEN}
          ${CMAKE_BINARY_DIR}/src/${DRIVER}
+         ${CMAKE_BINARY_DIR}/src/${RAND}
          ${CMAKE_BINARY_DIR}/src/${TXN_TEST}
          DESTINATION "bin"
 )
