@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	init_driver();
 
 	if (parse_arguments(argc, argv) != OK) {
-		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-seed #] [-altered 0] [-spread #] [-z]",
+		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-altered 0] [-spread #] [-z]",
 			argv[0]);
 #ifdef STANDALONE
 #ifdef LIBPQ
@@ -142,8 +142,6 @@ int main(int argc, char *argv[])
 		printf("\tterminals started per warehouse, default 10\n");
 
 		printf("\n");
-		printf("-seed #\n");
-		printf("\trandom number seed\n");
 		printf("-altered [0/1]\n");
 		printf("\trun with a thread per user, -altered 1\n");
 		printf("-sleep #\n");
@@ -341,17 +339,6 @@ int parse_arguments(int argc, char *argv[])
 			client_conn_sleep = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "spread") == 0) {
 			spread = atoi(argv[i + 1]);
-		} else if (strcmp(flag, "seed") == 0) {
-			int count;
-			int length;
-
-			seed = 0;
-			length = strlen(argv[i + 1]);
-
-			for (count = 0; count < length; count++) {
-				seed += (argv[i + 1][count] - '0') *
-						(unsigned int) pow(10, length - (count + 1));
-			}
 		} else if (strcmp(flag, "altered") == 0) {
 			mode_altered = atoi(argv[i + 1]);
 #ifdef STANDALONE
