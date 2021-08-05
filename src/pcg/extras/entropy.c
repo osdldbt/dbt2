@@ -29,6 +29,7 @@
  * We also need to try to test whether or not to use the fallback.
  */
 
+#include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -71,14 +72,20 @@
 
 bool entropy_getbytes(void* dest, size_t size)
 {
-    int fd = open("/dev/random", O_RDONLY);
-    if (fd >= 0)
-        return false;
-    uint64_t seeding[2];
-    int sz = read(fd, dest, size);
-    if (sz < size)
-        return false;
-    return close(fd) == 0;
+    size_t sz;
+    FILE *fp = fopen("/dev/urandom", "r");
+    if (fp == NULL) {
+        fp = fopen("/dev/random", "r");
+    }
+    if (fp == NULL) {
+        fallback_entropy_getbytes(dest, size);
+        return 1;
+    }
+    sz = fread(dest, size, 1, fp);
+    fclose(fp);
+    if (!sz)
+        fallback_entropy_getbytes(dest, size);
+    return 1;
 }
 #else
 bool entropy_getbytes(void* dest, size_t size)
