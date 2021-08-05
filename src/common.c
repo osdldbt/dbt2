@@ -72,13 +72,16 @@ void get_a_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 {
 	int length;
 	int i;
+	pcg64f_random_t local_rng;
 
-	length = x + (int) get_random(rng, (int) (y - x + 1)) + 1;
+	pcg64f_srandom_r(&local_rng, pcg64f_random_r(rng));
+
+	length = x + (int) get_random(&local_rng, (int) (y - x + 1)) + 1;
 	a_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
-		a_string[i] = a_string_char[get_random(rng, A_STRING_CHAR_LEN)];
+		a_string[i] = a_string_char[get_random(&local_rng, A_STRING_CHAR_LEN)];
 	}
 
 	return;
@@ -109,13 +112,17 @@ void get_l_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 {
 	int length;
 	int i;
+	pcg64f_random_t local_rng;
 
-	length = x + (int) get_random(rng, (int) (y - x + 1)) + 1;
+	pcg64f_srandom_r(&local_rng, pcg64f_random_r(rng));
+
+	length = x + (int) get_random(&local_rng, (int) (y - x + 1)) + 1;
 	a_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
-		a_string[i] = l_string_char[(int) get_random(rng, L_STRING_CHAR_LEN)];
+		a_string[i] =
+				l_string_char[(int) get_random(&local_rng, L_STRING_CHAR_LEN)];
 	}
 
 	return;
@@ -126,13 +133,17 @@ void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y)
 {
 	int length;
 	int i;
+	pcg64f_random_t local_rng;
 
-	length = x + (int) get_random(rng, (int) (y - x + 1)) + 1;
+	pcg64f_srandom_r(&local_rng, pcg64f_random_r(rng));
+
+	length = x + (int) get_random(&local_rng, (int) (y - x + 1)) + 1;
 	n_string[length - 1] = L'\0';
 
 	for (i = 0; i < length - 1; i++)
 	{
-		n_string[i] = n_string_char[(int) get_random(rng, N_STRING_CHAR_LEN)];
+		n_string[i] =
+				n_string_char[(int) get_random(&local_rng, N_STRING_CHAR_LEN)];
 	}
 
 	return;
@@ -141,7 +152,8 @@ void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y)
 /* Clause 2.1.6 */
 int get_nurand(pcg64f_random_t *rng, int a, int x, int y)
 {
-	return ((get_random(rng, a + 1) | (x + get_random(rng, y + 1))) % (y - x + 1)) + x;
+	return ((get_random(rng, a + 1) |
+			(x + get_random(rng, y + 1))) % (y - x + 1)) + x;
 }
 
 double get_percentage(pcg64f_random_t *rng)
