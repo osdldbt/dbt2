@@ -35,7 +35,31 @@ gen_table()
 	local TABLE=$1
 	local WAREHOUSES=$2
 	local SEED=$3
-	dbt2-datagen --direct -w $WAREHOUSES --pgsql --table $TABLE --seed $SEED || exit 1
+
+	# Detect the number of processors to determining how much to parallelize the
+	# data loading.  Otherwise arbitrarily use 2 processes.  The item table is
+	# always parallelizable.
+	local CPUS=2
+	if [ -f "/proc/stat" ]; then
+		CPUS=`grep cpu /proc/stat | wc -l`
+		CPUS=$(( $CPUS - 1 ))
+		if [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -eq 1 ]; then
+			# Don't parallelize the load if there is only 1 warehouse.
+			CPUS=1
+		elif [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -lt $CPUS ]; then
+			# Don't parallelize more than the number of warehouses if there are
+			# less warehouses to build than the number of processors available.
+			CPUS=$WAREHOUSES
+		else
+			echo "detected $CPUS processors for parallel loading"
+		fi
+	fi
+
+	for i in `seq 1 $CPUS`; do
+		dbt2-datagen --direct -w $WAREHOUSES --pgsql --table $TABLE \
+				--seed $SEED -P $CPUS -p $i &
+	done
+	wait
 }
 
 WAREHOUSES=1
@@ -101,7 +125,8 @@ SEED=`dbt2-rand 1 18446744073709551615 0`
 # for psql.
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
-for TABLE in warehouse district customer item orders stock new_order history; do
+for TABLE in item warehouse stock district customer history orders new_order;
+do
 	gen_table $TABLE $WAREHOUSES $SEED &
 done
 wait
