@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <wchar.h>
+#include <math.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -67,9 +68,9 @@ unsigned long long seed = 0;
 int table = TABLE_ALL;
 
 int w_id = -1;
-int partition_size = 1;
 
-FILE *blackhole;
+int part = 1; /* Which partition to generator. */
+int partitions = 1; /* How many partitions of data. */
 
 #define ERR_MSG( fn ) { (void)fflush(stderr); \
 		(void)fprintf(stderr, __FILE__ ":%d:" #fn ": %s\n", \
@@ -112,7 +113,7 @@ void print_timestamp(FILE *ofile, struct tm *date)
 /* Clause 4.3.3.1 */
 void gen_customers()
 {
-	FILE *output, *o;
+	FILE *output;
 	int i, j, k;
 	wchar_t a_string[1024];
 	char sa_string[4096];
@@ -121,8 +122,15 @@ void gen_customers()
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
 
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > warehouses ? warehouses : end;
+
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating customer table data...\n");
+	printf("Generating customer table data for warehouse %d to %d...\n",
+			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -130,6 +138,12 @@ void gen_customers()
 			strcat(filename, "/");
 		}
 		strcat(filename, CUSTOMER_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
 			printf("cannot open %s\n", CUSTOMER_DATA);
@@ -161,18 +175,12 @@ void gen_customers()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	o = output;
-	for (i = 0; i < warehouses; i++) {
-		if (w_id != -1) {
-			if (i >= (w_id + partition_size))
-				break;
+	if (part > 1)
+		pcg64f_advance_r(&rng,
+				(part - 1) * (DISTRICT_CARDINALITY *
+						(customers * 10 + 2 * (customers - 1000))));
 
-			if (i < w_id) {
-				output = blackhole;
-			} else {
-				output = o;
-			}
-		}
+	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = 0; k < customers; k++) {
 				/* c_id */
@@ -290,12 +298,10 @@ void gen_customers()
 				get_a_string(&rng, a_string, 300, 500);
 				wcstombs(sa_string, a_string, 4096);
 				FPRINTF(output, "%s", sa_string);
-
 				METAPRINTF((output, "\n"));
 			}
 		}
 	}
-	output = o;
 
 	if (mode_load == MODE_FLAT) {
 		fclose(output);
@@ -315,22 +321,30 @@ void gen_customers()
 		}
 	}
 
-	printf("Finished customer table data...\n");
+	printf("Finished customer table data for warehouse %d to %d...\n",
+			start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
 void gen_districts()
 {
-	FILE *output, *o;
+	FILE *output;
 	int i, j;
 	wchar_t a_string[48];
 	char sa_string[192];
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
 
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > warehouses ? warehouses : end;
+
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating district table data...\n");
+	printf("Generating district table data for warehouse %d to %d...\n",
+			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -338,6 +352,12 @@ void gen_districts()
 			strcat(filename, "/");
 		}
 		strcat(filename, DISTRICT_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
 			printf("cannot open %s\n", DISTRICT_DATA);
@@ -369,18 +389,10 @@ void gen_districts()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	o = output;
-	for (i = 0; i < warehouses; i++) {
-		if (w_id != -1) {
-			if (i >= (w_id + partition_size))
-				break;
+	if (part > 1)
+		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * 7);
 
-			if (i < w_id) {
-				output = blackhole;
-			} else {
-				output = o;
-			}
-		}
+	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			/* d_id */
 			FPRINTF(output, "%d", j + 1);
@@ -440,7 +452,6 @@ void gen_districts()
 			METAPRINTF((output, "\n"));
 		}
 	}
-	output = o;
 
 	if (mode_load == MODE_FLAT) {
 		fclose(output);
@@ -460,14 +471,15 @@ void gen_districts()
 		}
 	}
 
-	printf("Finished district table data...\n");
+	printf("Finished district table data for warehouse %d to %d...\n",
+			start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
 void gen_history()
 {
-	FILE *output, *o;
+	FILE *output;
 	int i, j, k;
 	wchar_t a_string[64];
 	char sa_string[256];
@@ -476,8 +488,15 @@ void gen_history()
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
 
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > warehouses ? warehouses : end;
+
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating history table data...\n");
+	printf("Generating history table data from warehouse %d to %d...\n",
+			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -485,6 +504,12 @@ void gen_history()
 			strcat(filename, "/");
 		}
 		strcat(filename, HISTORY_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
 			printf("cannot open %s\n", HISTORY_DATA);
@@ -516,18 +541,10 @@ void gen_history()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	o = output;
-	for (i = 0; i < warehouses; i++) {
-		if (w_id != -1) {
-			if (i >= (w_id + partition_size))
-				break;
+	if (part > 1)
+		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * customers);
 
-			if (i < w_id) {
-				output = blackhole;
-			} else {
-				output = o;
-			}
-		}
+	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = 0; k < customers; k++) {
 				/* h_c_id */
@@ -574,7 +591,6 @@ void gen_history()
 			}
 		}
 	}
-	output = o;
 
 	if (mode_load == MODE_FLAT) {
 		fclose(output);
@@ -594,7 +610,8 @@ void gen_history()
 		}
 	}
 
-	printf("Finished history table data...\n");
+	printf("Finished history table data for warehouse %d to %d...\n",
+			start + 1, end);
 	return;
 }
 
@@ -608,9 +625,16 @@ void gen_items()
 	int j;
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
+	pcg64f_random_t temp_rng;
+
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > items ? items : end;
 
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating item table data...\n");
+	printf("Generating item table data from %d to %d...\n", start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -618,6 +642,12 @@ void gen_items()
 			strcat(filename, "/");
 		}
 		strcat(filename, ITEM_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
 			printf("cannot open %s\n", ITEM_DATA);
@@ -649,7 +679,11 @@ void gen_items()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	for (i = 0; i < items; i++) {
+	if (part > 1)
+		pcg64f_advance_r(&rng,
+				round((double) (part - 1) * partition_size * 5.0));
+
+	for (i = start; i < end; i++) {
 		/* i_id */
 		FPRINTF(output, "%d", i + 1);
 		METAPRINTF((output, "%c", delimiter));
@@ -670,8 +704,9 @@ void gen_items()
 
 		/* i_data */
 		get_a_string(&rng, a_string, 26, 50);
-		if (get_percentage(&rng) < .10) {
-			j = (int) get_random(&rng, wcslen(a_string) - 8);
+		pcg64f_srandom_r(&temp_rng, pcg64f_random_r(&rng));
+		if (get_percentage(&temp_rng) < .10) {
+			j = (int) get_random(&temp_rng, wcslen(a_string) - 8);
 			a_string[j++] = L'O';
 			a_string[j++] = L'R';
 			a_string[j++] = L'I';
@@ -705,20 +740,27 @@ void gen_items()
 		}
 	}
 
-	printf("Finished item table data...\n");
+	printf("Finished item table data from %d to %d...\n", start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
 void gen_new_orders()
 {
-	FILE *output, *o;
+	FILE *output;
 	int i, j, k;
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
 
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > warehouses ? warehouses : end;
+
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating new-order table data...\n");
+	printf("Generating new-order table data for warehouse %d to %d...\n",
+			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -726,6 +768,12 @@ void gen_new_orders()
 			strcat(filename, "/");
 		}
 		strcat(filename, NEW_ORDER_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
 			printf("cannot open %s\n", NEW_ORDER_DATA);
@@ -757,18 +805,7 @@ void gen_new_orders()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	o = output;
-	for (i = 0; i < warehouses; i++) {
-		if (w_id != -1) {
-			if (i >= (w_id + partition_size))
-				break;
-
-			if (i < w_id) {
-				output = blackhole;
-			} else {
-				output = o;
-			}
-		}
+	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = orders - new_orders; k < orders; k++) {
 				/* no_o_id */
@@ -786,7 +823,6 @@ void gen_new_orders()
 			}
 		}
 	}
-	output = o;
 
 	if (mode_load == MODE_FLAT) {
 		fclose(output);
@@ -806,14 +842,15 @@ void gen_new_orders()
 		}
 	}
 
-	printf("Finished new-order table data...\n");
+	printf("Finished new-order table data for warehouse %d to %d...\n",
+			start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
 void gen_orders()
 {
-	FILE *order, *order_line, *o, *ol;
+	FILE *order, *order_line;
 	int i, j, k, l;
 	wchar_t a_string[64];
 	char sa_string[256];
@@ -834,9 +871,17 @@ void gen_orders()
 	int o_ol_cnt;
 
 	pcg64f_random_t rng;
+	pcg64f_random_t ol_rng;
+
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > warehouses ? warehouses : end;
 
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating order and order-line table data...\n");
+	printf("Generating order and order-line table data for warehouse %d to %d"
+			"...\n", start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -844,6 +889,12 @@ void gen_orders()
 			strcat(filename, "/");
 		}
 		strcat(filename, ORDER_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		order = fopen(filename, "w");
 		if (order == NULL) {
 			printf("cannot open %s\n", ORDER_DATA);
@@ -856,6 +907,12 @@ void gen_orders()
 			strcat(filename, "/");
 		}
 		strcat(filename, ORDER_LINE_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		order_line = fopen(filename, "w");
 		if (order_line == NULL) {
 			printf("cannot open %s\n", ORDER_LINE_DATA);
@@ -905,21 +962,13 @@ void gen_orders()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	o = order;
-	ol = order_line;
-	for (i = 0; i < warehouses; i++) {
-		if (w_id != -1) {
-			if (i >= (w_id + partition_size))
-				break;
+	if (part > 1)
+		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * ((customers - 1) + 2101 + orders));
+		/*
+		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * ((customers - 1) + orders + 2100));
+		*/
 
-			if (i < w_id) {
-				order = blackhole;
-				order_line = blackhole;
-			} else {
-				order = o;
-				order_line = ol;
-			}
-		}
+	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			/*
 			 * Create a random list of numbers from 1 to customers for o_c_id.
@@ -1004,7 +1053,8 @@ void gen_orders()
 				METAPRINTF((order, "%c", delimiter));
 
 				/* o_ol_cnt */
-				o_ol_cnt = (int) get_random(&rng, 10) + 5;
+				pcg64f_srandom_r(&ol_rng, pcg64f_random_r(&rng));
+				o_ol_cnt = (int) get_random(&ol_rng, 10) + 5;
 				FPRINTF(order, "%d", o_ol_cnt);
 				METAPRINTF((order, "%c", delimiter));
 
@@ -1035,8 +1085,8 @@ void gen_orders()
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_i_id */
-					FPRINTF(order_line, "%d",
-							(int) get_random(&rng, ITEM_CARDINALITY - 1) + 1);
+					FPRINTF(order_line, "%d", (int) get_random(&ol_rng,
+							ITEM_CARDINALITY - 1) + 1);
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_supply_w_id */
@@ -1078,13 +1128,13 @@ void gen_orders()
 					if (k < 2101) {
 						FPRINTF2(order_line, "0.00");
 					} else {
-						FPRINTF(order_line, "%f",
-								(double) (get_random(&rng, 999998) + 1) / 100.0);
+						FPRINTF(order_line, "%f", (double) (get_random(&ol_rng,
+								999998) + 1) / 100.0);
 					}
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_dist_info */
-					get_l_string(&rng, a_string, 24, 24);
+					get_l_string(&ol_rng, a_string, 24, 24);
 					wcstombs(sa_string, a_string, 256);
 					FPRINTF(order_line, "%s", sa_string);
 
@@ -1098,8 +1148,6 @@ void gen_orders()
 			}
 		}
 	}
-	order = o;
-	order_line = ol;
 
 	if (mode_load == MODE_FLAT) {
 		fclose(order);
@@ -1126,22 +1174,31 @@ void gen_orders()
 			break;
 		}
 	}
-	printf("Finished order and order-line table data...\n");
+	printf("Finished order and order-line table data for warehouse %d to %d"
+			"...\n", start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
 void gen_stock()
 {
-	FILE *output, *o;
+	FILE *output;
 	int i, j, k;
 	wchar_t a_string[128];
 	char sa_string[512];
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
+	pcg64f_random_t temp_rng;
+
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > warehouses ? warehouses : end;
 
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating stock table data...\n");
+	printf("Generating stock table data for warehouse %d to %d...\n",
+			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -1149,6 +1206,12 @@ void gen_stock()
 			strcat(filename, "/");
 		}
 		strcat(filename, STOCK_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
 			printf("cannot open %s\n", STOCK_DATA);
@@ -1180,18 +1243,10 @@ void gen_stock()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	o = output;
-	for (i = 0; i < warehouses; i++) {
-		if (w_id != -1) {
-			if (i >= (w_id + partition_size))
-				break;
+	if (part > 1)
+		pcg64f_advance_r(&rng, (part - 1) * items * 13);
 
-			if (i < w_id) {
-				output = blackhole;
-			} else {
-				output = o;
-			}
-		}
+	for (i = start; i < end; i++) {
 		for (j = 0; j < items; j++) {
 			/* s_i_id */
 			FPRINTF(output, "%d", j + 1);
@@ -1279,8 +1334,9 @@ void gen_stock()
 
 			/* s_data */
 			get_a_string(&rng, a_string, 26, 50);
-			if (get_percentage(&rng) < .10) {
-				k = (int) get_random(&rng, wcslen(a_string) - 8);
+			pcg64f_srandom_r(&temp_rng, pcg64f_random_r(&rng));
+			if (get_percentage(&temp_rng) < .10) {
+				k = (int) get_random(&temp_rng, wcslen(a_string) - 8);
 				a_string[k++] = L'O';
 				a_string[k++] = L'R';
 				a_string[k++] = L'I';
@@ -1296,7 +1352,6 @@ void gen_stock()
 			METAPRINTF((output, "\n"));
 		}
 	}
-	output = o;
 
 	if (mode_load == MODE_FLAT) {
 		fclose(output);
@@ -1316,22 +1371,29 @@ void gen_stock()
 		}
 	}
 
-	printf("Finished stock table data...\n");
+	printf("Finished stock table data for warehouse %d to %d...\n", start + 1,
+			end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
 void gen_warehouses()
 {
-	FILE *output, *o;
+	FILE *output;
 	int i;
 	wchar_t a_string[48];
 	char sa_string[192];
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
 
+	double partition_size = (double) warehouses / (double) partitions;
+	int start = (int) round(partition_size * (double) (part - 1));
+	int end = (int) round(partition_size * (double) part);
+
+	end = end > warehouses ? warehouses : end;
+
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating warehouse table data...\n");
+	printf("Generating warehouse table data %d to %d...\n", start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (strlen(output_path) > 0) {
@@ -1339,6 +1401,12 @@ void gen_warehouses()
 			strcat(filename, "/");
 		}
 		strcat(filename, WAREHOUSE_DATA);
+		if (partitions > 1) {
+			char temp[4];
+			strcat(filename, ".");
+			snprintf(temp, 3, "%d", part);
+			strcat(filename, temp);
+		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
 			printf("cannot open %s\n", WAREHOUSE_DATA);
@@ -1370,19 +1438,10 @@ void gen_warehouses()
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	o = output;
-	for (i = 0; i < warehouses; i++) {
-		if (w_id != -1) {
-			if (i >= (w_id + partition_size))
-				break;
+	if (part > 1)
+		pcg64f_advance_r(&rng, (part - 1) * 7);
 
-			if (i < w_id) {
-				output = blackhole;
-			} else {
-				output = o;
-			}
-		}
-
+	for (i = start; i < end; i++) {
 		/* w_id */
 		FPRINTF(output, "%d", i + 1);
 		METAPRINTF((output, "%c", delimiter));
@@ -1432,7 +1491,6 @@ void gen_warehouses()
 
 		METAPRINTF((output, "\n"));
 	}
-	output = o;
 
 	if (mode_load == MODE_FLAT) {
 		fclose(output);
@@ -1452,7 +1510,7 @@ void gen_warehouses()
 		}
 	}
 
-	printf("Finished warehouse table data...\n");
+	printf("Finished warehouse table data %d to %d...\n", start + 1, end);
 	return;
 }
 
@@ -1487,7 +1545,9 @@ int main(int argc, char *argv[])
 		printf("    --direct - don't generate flat files, load directly into "
 				"database\n");
 		printf("    -W <int> - warehouse id start\n");
-		printf("    -P <int> - partition size \n");
+		printf("    -P | --partitions <int> - how many partitions of data, "
+				"default 1\n");
+		printf("    -p | --part <int> - wich partition of data to generate\n");
 		return 1;
 	}
 
@@ -1498,6 +1558,8 @@ int main(int argc, char *argv[])
 			{ "direct", no_argument, &mode_load, MODE_DIRECT },
 			{ "seed", required_argument, 0, 0 },
 			{ "table", required_argument, 0, 0 },
+			{ "part", required_argument, 0, 0 },
+			{ "partitions", required_argument, 0, 0 },
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
 			{ "mysql", no_argument, &mode_string, MODE_MYSQL },
@@ -1505,7 +1567,7 @@ int main(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:i:n:o:P:w:W:",
+		c = getopt_long(argc, argv, "c:d:i:n:o:P:p:w:W:",
 				long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -1556,7 +1618,18 @@ int main(int argc, char *argv[])
 			orders = atoi(optarg);
 			break;
 		case 'P':
-			partition_size = atoi(optarg);
+			partitions = atoi(optarg);
+			if (partitions < 1) {
+				printf("number of partitions must be at least 1\n");
+				return 2;
+			}
+			break;
+		case 'p':
+			part = atoi(optarg);
+			if (part < 1) {
+				printf("the part to generate must start at 1\n");
+				return 2;
+			}
 			break;
 		case 'W':
 			w_id = atoi(optarg);
@@ -1569,6 +1642,14 @@ int main(int argc, char *argv[])
 		default:
 			printf("?? getopt returned character code 0%o ??\n", c);
 			return 2;
+		}
+	}
+
+	if (partitions > 1) {
+		if (part > partitions) {
+			printf("the part to generate must be less that the number of "
+					"partitions: %d\n", partitions);
+			return 3;
 		}
 	}
 
@@ -1629,8 +1710,6 @@ int main(int argc, char *argv[])
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 
-	blackhole = fopen("/dev/null", "w");
-
 	if (table == TABLE_ALL || table == TABLE_ITEM)
 		gen_items();
 	if (table == TABLE_ALL || table == TABLE_WAREHOUSE)
@@ -1647,8 +1726,6 @@ int main(int argc, char *argv[])
 		gen_orders();
 	if (table == TABLE_ALL || table == TABLE_NEW_ORDER)
 		gen_new_orders();
-
-	fclose(blackhole);
 
 	return 0;
 }
