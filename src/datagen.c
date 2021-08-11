@@ -627,7 +627,7 @@ void gen_items()
 	pcg64f_random_t rng;
 	pcg64f_random_t temp_rng;
 
-	double partition_size = (double) warehouses / (double) partitions;
+	double partition_size = (double) items / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
 	int end = (int) round(partition_size * (double) part);
 
