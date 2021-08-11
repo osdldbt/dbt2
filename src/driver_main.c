@@ -196,51 +196,36 @@ int main(int argc, char *argv[])
 	printf("new-orders = %d\n", table_cardinality.new_orders);
 	printf("\n");
 
-	/* Double check the transaction mix. */
-	printf("transaction mix:\n");
-	printf("new-order mix %0.2f\n", transaction_mix.new_order_actual);
-	printf("payment mix %0.2f\n", transaction_mix.payment_actual);
-	printf("order-status mix %0.2f\n", transaction_mix.order_status_actual);
-	printf("delivery mix %0.2f\n", transaction_mix.delivery_actual);
-	printf("stock-level mix %0.2f\n", transaction_mix.stock_level_actual);
-	printf("\n");
+	/*
+	 * Double check the transaction mix, threshold, keying time, and thinking
+	 * time.
+	 */
 
-	/* Double check the transaction threshold. */
-	printf("transaction thresholds:\n");
-	printf("new-order threshold %0.2f\n",
-			transaction_mix.new_order_threshold);
-	printf("payment threshold %0.2f\n", transaction_mix.payment_threshold);
-	printf("order-status threshold %0.2f\n",
-			transaction_mix.order_status_threshold);
-	printf("delivery threshold %0.2f\n",
-			transaction_mix.delivery_threshold);
-	printf("stock-level threshold %0.2f\n",
-			transaction_mix.stock_level_threshold);
-	printf("\n");
-
-	/* Double check the keying time. */
-	printf("delivery keying time %d s\n", key_time.delivery);
-	printf("new_order keying time %d s\n", key_time.new_order);
-	printf("order-status keying time %d s\n", key_time.order_status);
-	printf("payment keying time %d s\n", key_time.payment);
-	printf("stock-level keying time %d s\n", key_time.stock_level);
-	printf("\n");
-
-	/* Double check the thinking time. */
-
-	printf("delivery thinking time %d ms\n", think_time.delivery);
-	printf("new_order thinking time %d ms\n", think_time.new_order);
-	printf("order-status thinking time %d ms\n", think_time.order_status);
-	printf("payment thinking time %d ms\n", think_time.payment);
-	printf("stock-level thinking time %d ms\n", think_time.stock_level);
+	printf("%12s %4s %9s %6s %8s\n",
+			"transaction", "mix", "threshold", "keying", "thinking");
+	printf("%-12s %4.2f %9.2f %6d %8d\n", "new order",
+			transaction_mix.new_order_actual,
+			transaction_mix.new_order_threshold, key_time.new_order,
+			think_time.new_order);
+	printf("%-12s %4.2f %9.2f %6d %8d\n", "payment",
+			transaction_mix.payment_actual, transaction_mix.payment_threshold,
+			key_time.payment, think_time.payment);
+	printf("%-12s %4.2f %9.2f %6d %8d\n", "order status",
+			transaction_mix.order_status_actual,
+			transaction_mix.order_status_threshold, key_time.order_status,
+			think_time.order_status);
+	printf("%-12s %4.2f %9.2f %6d %8d\n", "delivery",
+			transaction_mix.delivery_actual,
+			transaction_mix.delivery_threshold, key_time.delivery,
+			think_time.delivery);
+	printf("%-12s %4.2f %9.2f %6d %8d\n", "stock level",
+			transaction_mix.stock_level_actual,
+			transaction_mix.stock_level_threshold, key_time.stock_level,
+			think_time.stock_level);
 	printf("\n");
 
 	printf("w_id range %d to %d\n", w_id_min, w_id_max);
-	printf("\n");
-
 	printf("%d terminals per warehouse\n", terminals_per_warehouse);
-	printf("\n");
-
 	printf("%d second steady state duration\n", duration);
 	printf("\n");
 
