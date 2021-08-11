@@ -26,6 +26,8 @@ usage()
 	echo "        User defined functions to install, default: c"
 	echo "    -t"
 	echo "        Use tablespaces."
+	echo "    -u"
+	echo "        Run as an unprivileged PostgreSQL user."
 	echo "    -w <scale factor>"
 	echo "        Number of warehouses to build. Default 1."
 }
