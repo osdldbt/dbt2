@@ -378,16 +378,6 @@ int start_driver()
 			}
 			pthread_attr_destroy(&attr);
 		}
-
-		if (mode_altered == 1) {
-			/*
-			 * This effectively allows one client to touch
-			 * the entire warehouse range.  The setting of
-			 * w_id and d_id is moot in this case.
-			 */
-			printf("altered mode detected\n");
-			break;
-		}
 	}
 	printf("terminals started...\n");
 
@@ -404,16 +394,6 @@ int start_driver()
 				LOG_ERROR_MESSAGE("error join terminal thread");
 				return ERROR;
 			}
-		}
-
-		if (mode_altered == 1) {
-			/*
-			 * This effectively allows one client to touch
-			 * the entire warehouse range.  The setting of
-			 * w_id and d_id is moot in this case.
-			 */
-			printf("altered mode detected\n");
-			break;
 		}
 	}
 	printf("driver is exiting normally\n");
@@ -510,8 +490,10 @@ void *terminal_worker(void *data)
 	do {
 		if (mode_altered == 1) {
 			/*
-			 * Determine w_id and d_id for the client per
-			 * transaction.
+			 * Determine w_id and d_id for the client per transaction.
+			 * TODO: Find an efficient way to make sure more than one thread
+			 * isn't execute with the same warehouse and district as asnother
+			 * thread.
 			 */
 			tc->w_id = w_id_min + (int) get_random(&rng, w_id_max - w_id_min + 1);
 			tc->d_id = (int) get_random(&rng, table_cardinality.districts) + 1;

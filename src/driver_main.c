@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 
 		printf("\n");
 		printf("-altered [0/1]\n");
-		printf("\trun with a thread per user, -altered 1\n");
+		printf("\trandom warehouse and district per transaction, default: 0\n");
 		printf("-sleep #\n");
 		printf("\tnumber of milliseconds to sleep between terminal creation\n");
 		printf("-spread #\n");
@@ -326,6 +326,8 @@ int parse_arguments(int argc, char *argv[])
 			spread = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "altered") == 0) {
 			mode_altered = atoi(argv[i + 1]);
+			if (mode_altered)
+				printf("altered mode detected\n");
 #ifdef STANDALONE
 		} else if (strcmp(flag, "dbc") == 0) {
 			db_connections = atoi(argv[i + 1]);
