@@ -1,12 +1,10 @@
 #!/bin/sh
-
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002-2006 Open Source Development Labs, Inc.
-#               2002-2010 Mark Wong
-#
+#               2002-2021 Mark Wong
 
 trap 'echo "Test was interrupted by Control-C."; \
 	killall dbt2-client dbt2-driver sar sadc pidstat; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc pidstat' INT
@@ -27,9 +25,6 @@ make_directories()
 		COMMAND="ssh ${HOST}"
 	fi
 	${COMMAND} mkdir -p ${OUTPUT_DIR}
-	${COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}/`hostname`
-	${COMMAND} mkdir -p ${DRIVER_OUTPUT_DIR}/`hostname`
-	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
 }
 
 oprofile_annotate()
@@ -208,14 +203,16 @@ post_process_sar()
 	HOST=${2}
 	if [ ! "x${HOST}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		COMMAND="ssh ${HOST}"
-		${COMMAND} "which sadf > /dev/null" 2>&1
+		${COMMAND} "which sadf > /dev/null 2>&1"
 		if [ $? -eq 0 ]; then
 			SADF="sadf -d -U"
-		    $COMMAND "$SADF 1 1 > /dev/null" 2>&1
-		    if [ $? -ne 0 ]; then
+		    $COMMAND "$SADF 1 1 > /dev/null 2>&1"
+			RC=$?
+			if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
 		        SADF="sadf -D"
-		        $COMMAND "$SADF 1 1 > /dev/null" 2>&1
-		        if [ $? -ne 0 ]; then
+		        $COMMAND "$SADF 1 1 > /dev/null 2>&1"
+				RC=$?
+				if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
 		            echo "WARNING: Was not able to determine proper sadf flags"
 		            SADF="true"
 		        fi
@@ -226,8 +223,13 @@ post_process_sar()
 		${COMMAND} "${SADF} -P ALL ${FILE} > `dirname ${FILE}`/sar-cpu.csv"
 		${COMMAND} "${SADF} ${FILE} -- -B > `dirname ${FILE}`/sar-paging.csv"
 		$COMMAND "$SADF $FILE -- -d -p > `dirname $FILE`/sar-blockdev.csv"
-		${COMMAND} "${SADF} ${FILE} -- -R > `dirname ${FILE}`/sar-mem1.csv"
-		${COMMAND} "${SADF} ${FILE} -- -r > `dirname ${FILE}`/sar-mem2.csv"
+		$COMMAND "$SADF 1 1 -- -R > /dev/null 2>&1"
+		if [ $? -eq 0 ]; then
+			$COMMAND "$SADF $FILE -- -R > `dirname $FILE`/sar-mem1.csv"
+			$COMMAND "$SADF $FILE -- -r > `dirname $FILE`/sar-mem2.csv"
+		else
+			$COMMAND "$SADF $FILE -- -r > `dirname $FILE`/sar-mem.csv"
+		fi
 		${COMMAND} "${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv"
 		$COMMAND "$SADF $FILE -- -n DEV > `dirname $FILE`/sar-net.csv"
 	else
@@ -235,10 +237,12 @@ post_process_sar()
 		if [ $? -eq 0 ]; then
 			SADF="sadf -d -U"
 		    $SADF 1 1 > /dev/null 2>&1
-		    if [ $? -ne 0 ]; then
+			RC=$?
+			if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
 		        SADF="sadf -D"
+				RC=$?
 		        $SADF 1 1 > /dev/null 2>&1
-		        if [ $? -ne 0 ]; then
+				if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
 		            echo "WARNING: Was not able to determine proper sadf flags"
 		            SADF="true"
 		        fi
@@ -249,8 +253,13 @@ post_process_sar()
 		${SADF} -P ALL ${FILE} > `dirname ${FILE}`/sar-cpu.csv
 		${SADF} ${FILE} -- -B > `dirname ${FILE}`/sar-paging.csv
 		${SADF} ${FILE} -- -d -p > `dirname ${FILE}`/sar-blockdev.csv
-		${SADF} ${FILE} -- -R > `dirname ${FILE}`/sar-mem1.csv
-		${SADF} ${FILE} -- -r > `dirname ${FILE}`/sar-mem2.csv
+		$SADF 1 1 -- -R > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			$SADF $FILE -- -R > `dirname $FILE`/sar-mem1.csv
+			$SADF $FILE -- -r > `dirname $FILE`/sar-mem2.csv
+		else
+			$SADF $FILE -- -r > `dirname $FILE`/sar-mem.csv
+		fi
 		${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv
 		$SADF $FILE -- -n DEV > `dirname $FILE`/sar-net.csv
 	fi
@@ -307,29 +316,27 @@ usage()
 	echo "       -c <number of database connections> -d <seconds>"
 	echo "       -w <number of warehouses> -o <path> [options]"
 	echo "options:"
+	echo "       -C <client hostname (default localhost)>"
+	echo "       -D <database name>"
 	echo "       -H <database host name. (default localhost)>"
-	if [ "${DBMS}" = "drizzle" ]; then
-		echo "       -i <drizzle working or installation directory>"
-	fi
 	echo "       -l <database port number>"
 	echo "       -q <enable oprofile data collection>"
 	echo "       -r <enable perf data collection>"
 	echo "       -s <delay of starting of new threads in milliseconds>"
 	echo "       -n <no thinking or keying time (default no)>"
-	if [ "${DBMS}" = "pgsql" ]; then
-		echo "       -p <GUC overrides>"
-	fi
-	echo "       -D <database name>"
-	if [ "${DBMS}" = "mysql" ]; then
-		echo "       -u <database user>"
-		echo "       -x <database password>"
-	fi
+	echo "       -u run as an unprivileged user"
 	echo "       -z <comments for the test>"
 	echo
+	echo "drizzle options:"
+	echo "       -i <drizzle working or installation directory>"
+	echo "mysql options:"
+	echo "       -U <database user>"
+	echo "       -x <database password>"
+	echo "psql options:"
+	echo "       -p <GUC overrides>"
 	echo "Example: dbt2-run-workload -c 20 -d 100 -w 1"
 	echo "Test will be run for 120 seconds with 20 database connections and"
 	echo "scale factor (num of warehouses) 1."
-	echo
 }
 
 validate_parameter()
@@ -342,10 +349,11 @@ validate_parameter()
 
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
-CLIENT_HOSTNAME="localhost"
+CLIENT_HOSTNAME=""
 WORKING_DIR=""
 
 DB_USER=${DBUSER}
+PRIVILEGED=1
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 USE_PERF=0
@@ -353,7 +361,7 @@ THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 DBNAME=${DBT2DBNAME}
 
-while getopts "a:b:c:D:d:H:hi:l:no:p:qrS:s:t:u:w:x:z:" opt; do
+while getopts "a:b:C:c:D:d:H:hi:l:no:p:qrS:s:t:U:uw:x:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
@@ -362,6 +370,9 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qrS:s:t:u:w:x:z:" opt; do
 	b)
 		# Number of warehouses per driver.
 		W_CHUNK=${OPTARG}
+		;;
+	C)
+		CLIENT_HOSTNAME=$OPTARG
 		;;
 	c)
 		# Check for numeric value
@@ -421,6 +432,9 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qrS:s:t:u:w:x:z:" opt; do
 		validate_parameter $opt $OPTARG $THREADS_PER_WAREHOUSE
 		;;
 	u)
+		PRIVILEGED=0
+		;;
+	U)
 		DB_USER=${OPTARG}
 		;;
 	w)
@@ -436,6 +450,10 @@ while getopts "a:b:c:D:d:H:hi:l:no:p:qrS:s:t:u:w:x:z:" opt; do
 	esac
 done
 
+# If no client hostnames have been specified, set it to localhost.
+if [ "x${CLIENT_HOSTNAME}" = "x" ]; then
+	CLIENT_HOSTNAME="localhost"
+fi
 
 # If no chunking of warehouses per process is defined, assumed we want to run
 # everything from one process.
@@ -516,18 +534,18 @@ REPORT_FILE="${OUTPUT_DIR}/report.txt"
 # Create the directories we will need.
 #
 make_directories
+mkdir -p ${DRIVER_OUTPUT_DIR}/`hostname`
+if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+	HOSTNAME=`ssh $CLIENT_HOSTNAME hostname`
+	make_directories $CLIENT_HOSTNAME
+	${COMMAND} -- mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}
+fi
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
-	# Create direcotires on the database server if specified.
+	# Create direcotires on the database server if remote.
 	#
 	make_directories ${DB_HOSTNAME}
-	#
-	# We want to sync everything with the system executing this script so
-	# use rsync to delete any files that may be on the database system but
-	# only in the database output directory.
-	#
-	rsync -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
-			${DB_HOSTNAME}:${DB_OUTPUT_DIR}/
+	ssh $DB_HOSTNAME -- mkdir -p ${DB_OUTPUT_DIR}
 fi
 
 # Create a readme file in the output directory and date it.
@@ -554,23 +572,25 @@ else
 	dbt2-get-os-info -o ${DB_OUTPUT_DIR}
 fi
 
-if [ "x${DB_COMMAND}" = "x" ]; then
-	dbt2-${DBMS}-stop-db ${MISC_ARG}
-else
-	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
-fi
-if [ $? -ne 0 ]; then
-	echo "cleaning up results..."
-	rm -rf ${OUTPUT_DIR}
-	exit 1
-fi
+if [ $PRIVILEGED -eq 1 ]; then
+	if [ "x${DB_COMMAND}" = "x" ]; then
+		dbt2-${DBMS}-stop-db ${MISC_ARG}
+	else
+		${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
+	fi
+	if [ $? -ne 0 ]; then
+		echo "cleaning up results..."
+		rm -rf ${OUTPUT_DIR}
+		exit 1
+	fi
 
-if [ "x${DB_COMMAND}" = "x" ]; then
-	eval dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
-			-o ${DB_OUTPUT_DIR} || exit 1
-else
-	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
-			-o ${DB_OUTPUT_DIR}" || exit 1
+	if [ "x${DB_COMMAND}" = "x" ]; then
+		eval dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
+				-o ${DB_OUTPUT_DIR} || exit 1
+	else
+		${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
+				-o ${DB_OUTPUT_DIR}" || exit 1
+	fi
 fi
 
 #
@@ -657,10 +677,15 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 		END=${WAREHOUSES}
 	fi
 
-	CDIR="${CLIENT_OUTPUT_DIR}/`hostname`.${SEG}"
-	mkdir -p ${CDIR}
-	dbt2-client ${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR} > \
-			${CLIENT_OUTPUT_DIR}/`hostname`/client-${SEG}.txt 2>&1 || exit 1 &
+	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
+	fi
+
+	HOSTNAME=`$CLIENT_COMMAND hostname`
+	CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
+	$CLIENT_COMMAND mkdir -p ${CDIR}
+
+	$CLIENT_COMMAND "dbt2-client ${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR} > ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/client-${SEG}.txt 2>&1" &
 	PORT=`expr ${PORT} + 1`
 done
 
@@ -686,6 +711,11 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 			--sample ${SAMPLE_LENGTH} \
 			--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > ${DRIVER_OUTPUT_DIR}/`hostname`/stats.txt 2>&1 &
 
+	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		HOSTNAME=`$CLIENT_COMMAND hostname`
+		$CLIENT_COMMAND "dbt2-sysstats --iter $ITERATIONS --sample $SAMPLE_LENGTH --outdir ${CLIENT_OUTPUT_DIR}/${HOSTNAME} > ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/stats.txt 2>&1" &
+	fi
+
 	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.txt 2>&1" &
 else
 	dbt2-sysstats \
@@ -695,9 +725,7 @@ else
 fi
 
 echo "collecting database statistics..."
-${DB_COMMAND} dbt2-${DBMS}-db-stat \
-		-o ${DB_OUTPUT_DIR} -i ${ITERATIONS} -s ${SAMPLE_LENGTH} \
-		${DB_PORT_ARG} > ${DB_OUTPUT_DIR}/dbstats.txt 2>&1 &
+${DB_COMMAND} "dbt2-${DBMS}-db-stat -D $DBNAME -o $DB_OUTPUT_DIR -i $ITERATIONS -s $SAMPLE_LENGTH $DB_PORT_ARG > ${DB_OUTPUT_DIR}/dbstats.txt 2>&1" &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -798,16 +826,22 @@ echo "Stage 3. Processing of results..."
 
 # Client doesn't go away by itself like the driver does, so kill it.
 echo "Killing client..."
-killall dbt2-client dbt2-driver 2> /dev/null
-
-if [ "x${DB_COMMAND}" = "x" ]; then
-	dbt2-${DBMS}-stop-db ${MISC_ARG}
-else
-	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
+if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+	CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
 fi
-if [ ${DBMS} = "pgsql" ]; then
-	if [ ${USE_PGPOOL} -eq 1 ]; then
-		pgpool -f ${DIR}/pgsql/pgpool.conf stop
+killall -q dbt2-driver > /dev/null 2>&1
+$CLIENT_COMMAND "killall -q dbt2-client" > /dev/null 2>&1
+
+if [ $PRIVILEGED -eq 1 ]; then
+	if [ "x${DB_COMMAND}" = "x" ]; then
+		dbt2-${DBMS}-stop-db ${MISC_ARG}
+	else
+		${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
+	fi
+	if [ ${DBMS} = "pgsql" ]; then
+		if [ ${USE_PGPOOL} -eq 1 ]; then
+			pgpool -f ${DIR}/pgsql/pgpool.conf stop
+		fi
 	fi
 fi
 
@@ -839,6 +873,13 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	# If a database system is specified, rsync all the logs back to the driver
 	# system after creating the sar csv data.
 	post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
+
+	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		HOSTNAME=`ssh $CLIENT_HOSTNAME hostname`
+		post_process_sar ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sar_raw.out $CLIENT_HOSTNAME
+		rsync -a -e "ssh" --delete ${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/ \
+				${CLIENT_OUTPUT_DIR}/
+	fi
 
 	# There will only be a sar output file if the database is on a separate
 	# system.

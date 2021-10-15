@@ -4,7 +4,7 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2006      Open Source Development Labs, Inc.
-#               2006-2014 Mark Wong
+#               2006-2021 Mark Wong
 #               2014      2ndQuadrant, Ltd.
 #
 
@@ -403,9 +403,20 @@ cat > ${OUTDIR}/index.html << __EOF__
 <td>${OS} ${ARCH} ${OSVER}</td>
 <td><a href="driver/$OSPROCFILE">OS Settings</a> |
     <a href="driver/cpu.html">CPU Charts</a> |
-    <a href="db/blockdev.html">Blockdev Charts</a> |
-    <a href="db/net.html">Network Charts</a> |
-    <a href="db/swap.html">Swap Charts</a> |
+    <a href="driver/blockdev.html">Blockdev Charts</a> |
+    <a href="driver/net.html">Network Charts</a> |
+    <a href="driver/swap.html">Swap Charts</a> |
+</td>
+</tr>
+
+<tr>
+<td align="right">Client System:</td>
+<td>${OS} ${ARCH} ${OSVER}</td>
+<td><a href="client/$OSPROCFILE">OS Settings</a> |
+    <a href="client/cpu.html">CPU Charts</a> |
+    <a href="client/blockdev.html">Blockdev Charts</a> |
+    <a href="client/net.html">Network Charts</a> |
+    <a href="client/swap.html">Swap Charts</a> |
 </td>
 </tr>
 
@@ -502,7 +513,7 @@ __EOF__
 
 # Create additional HTML pages for operating system charts.
 
-for SYSTEM in db driver; do
+for SYSTEM in db client driver; do
 	create_html_stat_page $SYSTEM cpu $INDIR/$SYSTEM $INDIR/$SYSTEM/cpu.html
 	create_html_stat_page $SYSTEM blockdev $INDIR/$SYSTEM \
 			$INDIR/$SYSTEM/blockdev.html
@@ -512,7 +523,7 @@ done
 
 # Create additional HTML pages for the database charts.
 
-dbt-$DATABASE-generate-db-html "Database Test 2" $INDIR/db
+dbt-$DBMS-generate-db-html "Database Test 2" $INDIR/db
 dbt-$DBMS-generate-table-html "Database Test 2" $INDIR/db/table-list.txt \
 		$OUTDIR/db/tables
 dbt-$DBMS-generate-index-html "Database Test 2" $INDIR/db/index-list.txt \

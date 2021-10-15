@@ -4,17 +4,15 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002-2006 Open Source Development Labs, Inc.
-#               2002-2014 Mark Wong
+#               2002-2021 Mark Wong
 #               2014      2ndQuadrant, Ltd.
 #
 
-if [ -z ${DBT2DBNAME} ]; then
-	echo "DBT2DBNAME not defined."
-	exit 1
-fi
-
-while getopts "l:i:o:s:" opt; do
+while getopts "D:l:i:o:s:" opt; do
 	case $opt in
+	D)
+		DBT2DBNAME=$OPTARG
+		;;
 	i)
 		ITERATIONS=$OPTARG
 		;;
@@ -29,6 +27,11 @@ while getopts "l:i:o:s:" opt; do
 		;;
 	esac
 done
+
+if [ -z ${DBT2DBNAME} ]; then
+	echo "DBT2DBNAME not defined, use -D."
+	exit 1
+fi
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
