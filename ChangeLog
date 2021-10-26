@@ -1,10 +1,16 @@
-vX.Y
+v0.42
 
-- Add Docker files and scripts to test building and evaluate a 1
-  warehouse PostgreSQL database.
+- Add Docker files and scripts to test building and evaluate a PostgreSQL
+  database.
 - Update for CMake policy CMP0037.
 - Replace obsolete bzero with memset
-- Relace obsolete gethostbyname and gethostbyaddr with getaddrinfo
+- Replace obsolete gethostbyname and gethostbyaddr with getaddrinfo
+- Use PCG Fast pseudo random number generator
+- Update data generator to use UTF-8
+- Refactor datagen parallelism
+- Update PostgreSQL pl/pgsql stored functions
+- Support basic 3-tier execution with run-workload script
+- Refactored altered mode driver execution with finer grained controls
 
 v0.41
 
