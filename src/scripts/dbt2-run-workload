@@ -322,9 +322,11 @@ usage()
 	echo "  -o PATH    path to store test results"
 	echo
 	echo "Common options:"
+	echo "  -A            enable altered execution mode"
 	echo "  -C ADDRESS    address of client system, default localhost"
 	echo "  -D NAME       name of the database"
 	echo "  -H ADDRESS    address of database system, default localhost"
+	echo "  -L #          limit the number of terminals emulated"
 	echo "  -l PORT       database listening port number"
 	echo "  -n            disable thinking and keying time"
 	echo "  -q            enable oprofile data collection"
@@ -366,15 +368,18 @@ WORKING_DIR=""
 
 DB_USER=${DBUSER}
 PRIVILEGED=1
-SLEEPY=1000 # milliseconds
+THREAD_STARTUP_DELAY=1000 # milliseconds
 USE_OPROFILE=0
 USE_PERF=0
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 DBNAME=${DBT2DBNAME}
 
-while getopts "a:b:C:c:D:d:H:hi:l:no:p:qrS:s:t:U:uw:x:z:" opt; do
+while getopts "Aa:b:C:c:D:d:H:hi:L:l:no:p:qrS:s:t:U:uw:x:z:" opt; do
 	case $opt in
+	A)
+		ALTERED_ARG="-altered 1"
+		;;
 	a)
 		DBMS=${OPTARG}
 		export DATABASE=${DBMS}
@@ -411,6 +416,10 @@ while getopts "a:b:C:c:D:d:H:hi:l:no:p:qrS:s:t:U:uw:x:z:" opt; do
 		WORKING_DIR=${OPTARG}
 		MISC_ARG="${MISC_ARG} -w ${WORKING_DIR}"
 		;;
+	L)
+		TERMINALS_LIMIT="$OPTARG"
+		TERMINALS_LIMIT_ARG="-L $TERMINALS_LIMIT"
+		;;
 	l)
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DB_PORT
@@ -436,8 +445,8 @@ while getopts "a:b:C:c:D:d:H:hi:l:no:p:qrS:s:t:U:uw:x:z:" opt; do
 		SOCK_FILE_ARG="-t ${OPTARG}"
 		;;
 	s)
-		SLEEPY=`echo ${OPTARG} | egrep "^[0-9]+$"`
-		validate_parameter ${opt} ${OPTARG} ${SLEEPY}
+		THREAD_STARTUP_DELAY=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $THREAD_STARTUP_DELAY
 		;;
 	t)
 		THREADS_PER_WAREHOUSE=`echo ${OPTARG} | egrep "^[0-9]+$"`
@@ -525,15 +534,6 @@ if [ ! "x${DB_PORT}" = "x" ]; then
 	if [ "x${DBMS}" = "xdrizzle" ]; then
 		MISC_ARG="${MISC_ARG} ${DB_PORT_ARG}"
 	fi
-fi
-
-ULIMIT_N=`ulimit -n`
-ESTIMATED_ULIMIT=`expr 2 \* ${WAREHOUSES}`
-ESTIMATED_ULIMIT=`expr ${ESTIMATED_ULIMIT} \* ${THREADS_PER_WAREHOUSE}`
-ESTIMATED_ULIMIT=`expr ${ESTIMATED_ULIMIT} + ${DBCON}`
-if [ ${ULIMIT_N} -lt ${ESTIMATED_ULIMIT} ]; then
-	usage "you're open files ulimit is too small, must be at least ${ESTIMATED_ULIMIT}"
-	exit 1
 fi
 
 CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
@@ -639,20 +639,30 @@ if [ -n "${DB_PORT}" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
 fi
 
-THREADS=`expr ${WAREHOUSES} \* ${THREADS_PER_WAREHOUSE}`
+OPTION1=`expr $WAREHOUSES \* $THREADS_PER_WAREHOUSE`
+THREADS=$OPTION1
+if [ ! "x$TERMINALS_LIMIT" = "x" ]; then
+	OPTION2=$TERMINALS_LIMIT
+	if [ $OPTION1 -lt $OPTION2 ]; then
+		THREADS=$OPTION1
+	else
+		THREADS=$OPTION2
+	fi
+fi
 echo "DATABASE CONNECTIONS: ${DBCON}"
 echo "TERMINAL THREADS: ${THREADS}"
 echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
-echo "WAREHOUSES PER THREAD/CLIENT PAIR: ${W_CHUNK}"
+echo "TERMINAL CAP: $TERMINALS_LIMIT"
+echo "WAREHOUSES PER DRIVER/CLIENT PAIR: $W_CHUNK"
 echo "SCALE FACTOR (WAREHOUSES): ${WAREHOUSES}"
 echo "DURATION OF TEST (in sec): ${DURATION}"
-echo "1 client stared every ${SLEEPY} millisecond(s)"
 echo ""
 
 #
 # Start the client.
 #
 echo "Stage 1. Starting up client..."
+echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
 if [ ${DBMS} = "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then
 		echo "Starting pgpool..."
@@ -671,7 +681,7 @@ elif [ ${DBMS} = "sqlite" ]; then
 elif [ ${DBMS} = "drizzle" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME} -d ${DBNAME} -u root"
 fi
-CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c ${DBCON} -s ${SLEEPY}"
+CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -f -c $DBCON -s $THREAD_STARTUP_DELAY"
 END=0
 START=1
 #
@@ -702,20 +712,31 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 done
 
 # Sleep long enough for all the client database connections to be established.
-SLEEPYTIME=${W_CHUNK}
-SLEEPYTIME=`expr ${SLEEPYTIME} \* ${SLEEPY}`
-SLEEPYTIME=`expr ${SLEEPYTIME} / 1000`
-SLEEPYTIME=`expr ${SLEEPYTIME} + 1`
-do_sleep ${SLEEPYTIME}
+CLIENT_RAMPUP_TIME=$DBCON
+CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
+CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME / 1000`
+CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME + 1`
+do_sleep $CLIENT_RAMPUP_TIME
 
 # Start collecting data before we start the test.
-SLEEP_RAMPUP=`expr ${W_CHUNK} + 1`
-SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* 10`
-SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* ${SLEEPY}`
-SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} / 1000`
-SLEEPYTIME=`expr ${SLEEP_RAMPUP} + ${DURATION}`
+
+# Calculate how many terminals are being emulated.
+OPTION1=`expr $W_CHUNK + 1`
+OPTION1=`expr $OPTION1 \* $THREADS_PER_WAREHOUSE`
+DRIVER_RAMPUP_TIME=$OPTION1
+if [ ! "x$TERMINALS_LIMIT" = "x" ]; then
+	OPTION2=$TERMINALS_LIMIT
+	if [ $OPTION1 -lt $OPTION2 ]; then
+		DRIVER_RAMPUP_TIME=$OPTION1
+	else
+		DRIVER_RAMPUP_TIME=$OPTION2
+	fi
+fi
+DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
+DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME / 1000`
+TOTAL_RUN_TIME=`expr $DRIVER_RAMPUP_TIME + $DURATION`
 SAMPLE_LENGTH=60
-ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
+ITERATIONS=`expr $TOTAL_RUN_TIME / $SAMPLE_LENGTH`
 ITERATIONS=`expr ${ITERATIONS} + 1`
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	dbt2-sysstats \
@@ -750,7 +771,7 @@ fi
 # Start the driver.
 echo ''
 echo "Stage 2. Starting up driver..."
-echo "${SLEEPY} threads started per millisecond"
+echo "thread starting every $THREAD_STARTUP_DELAY milliseconds"
 
 END=0
 START=1
@@ -771,14 +792,20 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 
 	DDIR="${DRIVER_OUTPUT_DIR}/`hostname`.${SEG}"
 	mkdir -p ${DDIR}
-	DRIVER_COMMAND_ARGS="-d ${CLIENT_HOSTNAME} -p ${PORT} -l ${DURATION} -wmin ${START} -wmax ${END} -w ${WAREHOUSES} -sleep ${SLEEPY} -outdir ${DDIR} -tpw ${THREADS_PER_WAREHOUSE} ${NO_THINK}"
+	DRIVER_COMMAND_ARGS="-d $CLIENT_HOSTNAME -p $PORT -l $DURATION -wmin $START"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -wmax $END -w $WAREHOUSES"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -sleep $THREAD_STARTUP_DELAY"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -outdir $DDIR"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -tpw $THREADS_PER_WAREHOUSE"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $NO_THINK $TERMINALS_LIMIT_ARG"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG"
 	PORT=`expr ${PORT} + 1`
 	dbt2-driver ${DRIVER_COMMAND_ARGS} > \
 			${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 || exit 1&
 done
 
 echo -n "estimated rampup time: "
-do_sleep $SLEEP_RAMPUP
+do_sleep $DRIVER_RAMPUP_TIME
 echo "estimated rampup time has elapsed"
 
 # Clear the readprofile data after the driver ramps up.

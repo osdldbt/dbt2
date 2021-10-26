@@ -80,6 +80,8 @@ int main(int argc, char *argv[])
 		printf("\tclient port, default %d\n", CLIENT_PORT);
 #endif /* STANDALONE */
 		printf("\n");
+		printf("-L #\n");
+		printf("\tlimit the total number of terminals emulated\n");
 		printf("-l #\n");
 		printf("\tthe duration of the run in seconds\n");
 		printf("\n");
@@ -270,6 +272,9 @@ int parse_arguments(int argc, char *argv[])
 #endif /* LIBDRIZZLE */
 		} else if (strcmp(flag, "p") == 0) {
 			set_client_port(atoi(argv[i + 1]));
+		} else if (strcmp(flag, "L") == 0) {
+			terminals_limit = atoi(argv[i + 1]);
+			printf("emulated terminals limited to %d\n", terminals_limit);
 		} else if (strcmp(flag, "l") == 0) {
 			set_duration(atoi(argv[i + 1]));
 		} else if (strcmp(flag, "w") == 0) {

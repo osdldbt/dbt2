@@ -49,6 +49,7 @@ int client_port = CLIENT_PORT;
 int duration = 0;
 int stop_time = 0;
 int w_id_min = 0, w_id_max = 0;
+int terminals_limit = 0;
 int terminals_per_warehouse = 0;
 int mode_altered = 0;
 int client_conn_sleep = 1000; /* milliseconds */
@@ -321,6 +322,8 @@ int start_driver()
 	for (i = w_id_min; i < w_id_max + 1; i += spread) {
 		g_tid[i] = (pthread_t*)
 				malloc(sizeof(pthread_t) * terminals_per_warehouse);
+		if (terminals_limit && i >= terminals_limit)
+			break;
 	}
 
 	for (j = 0; j < terminals_per_warehouse; j++) {
@@ -377,7 +380,17 @@ int start_driver()
 				}
 			}
 			pthread_attr_destroy(&attr);
+
+			/*
+			 * Need to break out of the inner loop then break out of the other
+			 * loop.
+			 */
+			if (terminals_limit && count >= terminals_limit)
+				break;
 		}
+		/* Breaking out of the outer loop. */
+		if (terminals_limit && count >= terminals_limit)
+			break;
 	}
 	printf("terminals started...\n");
 
@@ -388,13 +401,24 @@ int start_driver()
 	pthread_mutex_unlock(&mutex_mix_log);
 
 	/* wait until all threads quit */
+	count = 0;
 	for (i = w_id_min; i < w_id_max + 1; i += spread) {
 		for (j = 0; j < terminals_per_warehouse; j++) {
+			++count;
+			/*
+			 * Need to break out of the inner loop then break out of the other
+			 * loop.
+			 */
+			if (terminals_limit && count >= terminals_limit)
+				break;
 			if (pthread_join(g_tid[i][j], NULL) != 0) {
 				LOG_ERROR_MESSAGE("error join terminal thread");
 				return ERROR;
 			}
 		}
+		/* Breaking out of the outer loop. */
+		if (terminals_limit && count >= terminals_limit)
+			break;
 	}
 	printf("driver is exiting normally\n");
 	return OK;

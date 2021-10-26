@@ -99,6 +99,7 @@ extern char hostname[32];
 extern int port;
 extern int duration;
 extern int w_id_min, w_id_max;
+extern int terminals_limit;
 extern int terminals_per_warehouse;
 extern int mode_altered;
 extern unsigned long long seed;
