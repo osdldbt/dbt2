@@ -143,8 +143,8 @@ PostgreSQL
 
 In the top level directory, `dbt2/`, run:
 
- cmake CMakeCache.txt -DDBMS=pgsql
- make
+ make release DBMS=pgsql
+ cd builds/release
  make install
 
 After installing PostgreSQL, the DBT-2 stored functions need to be compiled and
@@ -162,8 +162,9 @@ SAP DB
 
 In the top level directory, `dbt2/`, run:
 
- cmake CMakeCache.txt -DDBMS=sapdb
- make standalone
+ make release DBMS=sapdb
+ cd builds/release
+ make install
 
 Environment Configuration
 -------------------------

@@ -1,19 +1,22 @@
 Building DBT-2:
 
-	# Configure (-DDESTDIR: DESTDIR to be used by make install)
-	cmake -DDBMS=<drizzle|mysql|pgsql|sapdb> -DDESTDIR=/usr/local
-	# Build
-	make
+	make release DBMS=<DBMS>
+
+    DBMS options are:
+      drizzle  Drizzle
+      mysql    MySQL
+      pgsql    PostgreSQL
+      sqlite   SQLite
 
 -----
 
 Installing DBT-2:
 
-	make install DESTDIR=/usr/local
+	cd builds/release
+	make install
 
-DESTDIR could be omitted here if already specified in cmake as -DDESTDIR.
-This will put all binaries in '/usr/local/bin'.
-
+    The install prefix can be change by running cmake manually:
+    cmake -H. -Bbuilds/release -DDBMS=pgsql -DCMAKE_INSTALL_PREFIX=/path
 -----
 
 Uninstalling DBT-2:
