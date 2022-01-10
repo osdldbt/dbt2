@@ -1,3 +1,7 @@
+vX.Y
+
+- Adopt Artistic License 2.0
+
 v0.42
 
 - Add Docker files and scripts to test building and evaluate a PostgreSQL
