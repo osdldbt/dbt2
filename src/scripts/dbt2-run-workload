@@ -7,9 +7,9 @@
 #               2002-2021 Mark Wong
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall dbt2-client dbt2-driver sar sadc pidstat; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc pidstat' INT
+	killall dbt2-client dbt2-driver sar sadc pidstat; dbt2-${DBMS}-stop-db; killall dbt2-${DBMS}-db-stat sar sadc pidstat' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall dbt2-client dbt2-driver sar sadc pidstat; ${DB_COMMAND} dbt2-${DBMS}-stop-db; ${DB_COMMAND} killall dbt2-${DBMS}-db-stat sar sadc pidstat' TERM
+	killall dbt2-client dbt2-driver sar sadc pidstat; dbt2-${DBMS}-stop-db; killall dbt2-${DBMS}-db-stat sar sadc pidstat' TERM
 
 do_sleep()
 {
@@ -559,6 +559,7 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	make_directories ${DB_HOSTNAME}
 	ssh $DB_HOSTNAME -- mkdir -p ${DB_OUTPUT_DIR}
 fi
+mkdir -p ${DB_OUTPUT_DIR}
 
 # Create a readme file in the output directory and date it.
 date >> ${OUTPUT_DIR}/readme.txt
@@ -578,31 +579,21 @@ echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	dbt2-get-os-info -o ${DRIVER_OUTPUT_DIR}/`hostname`/
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
-	# Get the OS information from the database system.
 	${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}
 else
-	dbt2-get-os-info -o ${DB_OUTPUT_DIR}
+	DB_COMMAND="eval"
 fi
+# Get the OS information from the database system.
+${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}
 
 if [ $PRIVILEGED -eq 1 ]; then
-	if [ "x${DB_COMMAND}" = "x" ]; then
-		dbt2-${DBMS}-stop-db ${MISC_ARG}
-	else
-		${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
-	fi
+	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
 	if [ $? -ne 0 ]; then
 		echo "cleaning up results..."
 		rm -rf ${OUTPUT_DIR}
 		exit 1
 	fi
-
-	if [ "x${DB_COMMAND}" = "x" ]; then
-		eval dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
-				-o ${DB_OUTPUT_DIR} || exit 1
-	else
-		${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
-				-o ${DB_OUTPUT_DIR}" || exit 1
-	fi
+	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} -o ${DB_OUTPUT_DIR}" || exit 1
 fi
 
 #
@@ -684,6 +675,13 @@ fi
 CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -f -c $DBCON -s $THREAD_STARTUP_DELAY"
 END=0
 START=1
+
+if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+	CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
+else
+	CLIENT_COMMAND="eval"
+fi
+
 #
 # Count of the number of clients run.
 #
@@ -699,15 +697,17 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 		END=${WAREHOUSES}
 	fi
 
-	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
-	fi
-
 	HOSTNAME=`$CLIENT_COMMAND hostname`
+	CPDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+	mkdir -p ${CPDIR}
+
 	CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
 	$CLIENT_COMMAND mkdir -p ${CDIR}
 
-	$CLIENT_COMMAND "dbt2-client ${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR} > ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/client-${SEG}.txt 2>&1" &
+	CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
+	$CLIENT_COMMAND "dbt2-client ${CARGS}" > \
+			${CPDIR}/client-${SEG}.txt 2>&1 &
+
 	PORT=`expr ${PORT} + 1`
 done
 
@@ -749,7 +749,8 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		$CLIENT_COMMAND "dbt2-sysstats --iter $ITERATIONS --sample $SAMPLE_LENGTH --outdir ${CLIENT_OUTPUT_DIR}/${HOSTNAME} > ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/stats.txt 2>&1" &
 	fi
 
-	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.txt 2>&1" &
+	${DB_COMMAND} "dbt2-sysstats --iter ${ITERATIONS} --sample ${SAMPLE_LENGTH} --outdir ${DB_OUTPUT_DIR}" \
+			> ${DB_OUTPUT_DIR}/stats.txt 2>&1 &
 else
 	dbt2-sysstats \
 			--iter ${ITERATIONS} \
@@ -758,7 +759,8 @@ else
 fi
 
 echo "collecting database statistics..."
-${DB_COMMAND} "dbt2-${DBMS}-db-stat -D $DBNAME -o $DB_OUTPUT_DIR -i $ITERATIONS -s $SAMPLE_LENGTH $DB_PORT_ARG > ${DB_OUTPUT_DIR}/dbstats.txt 2>&1" &
+${DB_COMMAND} "dbt2-${DBMS}-db-stat -D $DBNAME -o $DB_OUTPUT_DIR -i $ITERATIONS -s $SAMPLE_LENGTH $DB_PORT_ARG" > \
+		${DB_OUTPUT_DIR}/dbstats.txt 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -867,16 +869,14 @@ echo "Stage 3. Processing of results..."
 echo "Killing client..."
 if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 	CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
+else
+	CLIENT_COMMAND="eval"
 fi
 killall -q dbt2-driver > /dev/null 2>&1
 $CLIENT_COMMAND "killall -q dbt2-client" > /dev/null 2>&1
 
 if [ $PRIVILEGED -eq 1 ]; then
-	if [ "x${DB_COMMAND}" = "x" ]; then
-		dbt2-${DBMS}-stop-db ${MISC_ARG}
-	else
-		${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
-	fi
+	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
 	if [ ${DBMS} = "pgsql" ]; then
 		if [ ${USE_PGPOOL} -eq 1 ]; then
 			pgpool -f ${DIR}/pgsql/pgpool.conf stop
