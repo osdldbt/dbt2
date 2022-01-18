@@ -77,6 +77,8 @@ colnames(mix)[1] <- 'ctime'
 colnames(mix)[2] <- 'txn'
 colnames(mix)[3] <- 'status'
 colnames(mix)[4] <- 'response'
+colnames(mix)[6] <- 'wid'
+colnames(mix)[7] <- 'did'
 
 start <- mix[1,]\$ctime
 total_txn <- dim(mix)[1]
@@ -84,4 +86,14 @@ end <- mix[total_txn:total_txn,]\$ctime
 duration = end - start
 
 cat(sprintf("%0.1f seconds(s) ramping up\n", duration))
+
+wid_min <- min(mix\$wid)
+wid_max <- max(mix\$wid)
+wid_mean <- mean(mix\$wid)
+wid_median <- median(mix\$wid)
+wid_sd <- sd(mix\$wid)
+wid_var <- var(mix\$wid)
+cat(sprintf("warehouse range: min %d max %d\n", wid_min, wid_max))
+cat(sprintf("warehouse stats: median %0.1f mean %0.1f sd %0.1f var %0.1f\n",
+            wid_median, wid_mean, wid_sd, wid_var))
 __EOF__

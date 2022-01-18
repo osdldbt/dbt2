@@ -3,6 +3,7 @@ vX.Y.Z
 - Adopt Artistic License 2.0
 - Fix run-workload script to work on single tier configuration, bugs
   introduced v0.42 
+- Driver now logs w_id and d_id per transaction
 
 v0.42
 

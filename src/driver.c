@@ -319,6 +319,7 @@ int start_driver()
 
 	/* allocate g_tid */
 	g_tid = (pthread_t**) malloc(sizeof(pthread_t*) * (w_id_max+1)/spread);
+	memset(g_tid, 0, sizeof(pthread_t *) * (w_id_max + 1) / spread);
 	for (i = w_id_min; i < w_id_max + 1; i += spread) {
 		g_tid[i] = (pthread_t*)
 				malloc(sizeof(pthread_t) * terminals_per_warehouse);
@@ -629,9 +630,9 @@ void *terminal_worker(void *data)
 		} else if (rc == ERROR) {
 			code = 'E';
 		}
-		fprintf(log_mix, "%d,%c,%c,%f,%lld\n", (int) time(NULL),
+		fprintf(log_mix, "%d,%c,%c,%f,%lld,%d,%d\n", (int) time(NULL),
 				transaction_short_name[client_data.transaction], code,
-				response_time, (long long) pthread_self());
+				response_time, (long long) pthread_self(), tc->w_id, tc->d_id);
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
@@ -669,7 +670,7 @@ void *terminal_worker(void *data)
 #endif /* STANDALONE */
 	/* Note when each thread has exited. */
 	pthread_mutex_lock(&mutex_mix_log);
-	fprintf(log_mix, "%d,TERMINATED,,,%d\n", (int) time(NULL),
+	fprintf(log_mix, "%d,TERMINATED,,,%d,,\n", (int) time(NULL),
 			(int) pthread_self());
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);
