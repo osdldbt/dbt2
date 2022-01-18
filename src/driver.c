@@ -403,8 +403,8 @@ int start_driver()
 
 	/* wait until all threads quit */
 	count = 0;
-	for (i = w_id_min; i < w_id_max + 1; i += spread) {
-		for (j = 0; j < terminals_per_warehouse; j++) {
+	for (j = 0; j < terminals_per_warehouse; j++) {
+		for (i = w_id_min; i < w_id_max + 1; i += spread) {
 			++count;
 			/*
 			 * Need to break out of the inner loop then break out of the other

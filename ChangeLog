@@ -4,6 +4,7 @@ vX.Y.Z
 - Fix run-workload script to work on single tier configuration, bugs
   introduced v0.42 
 - Driver now logs w_id and d_id per transaction
+- Fix segmentation fault when limiting the total number of driver threads
 
 v0.42
 
