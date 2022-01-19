@@ -308,9 +308,13 @@ int start_driver()
 #endif /* STANDALONE */
 
 	/* Caulculate when the test should stop. */
-	threads_start_time = (int) ((double) client_conn_sleep / 1000.0 *
-			(double) terminals_per_warehouse *
-			(double) (w_id_max - w_id_min));
+	if (terminals_limit)
+		threads_start_time =
+				(int) ((double) client_conn_sleep / 1000.0 * terminals_limit);
+	else
+		threads_start_time = (int) ((double) client_conn_sleep / 1000.0 *
+				(double) terminals_per_warehouse *
+				(double) (w_id_max - w_id_min));
 
 	stop_time = time(NULL) + duration + threads_start_time;
 	printf("driver is starting to ramp up at time %d\n", (int) time(NULL));
