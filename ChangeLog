@@ -5,6 +5,7 @@ vX.Y.Z
   introduced v0.42 
 - Driver now logs w_id and d_id per transaction
 - Fix segmentation fault when limiting the total number of driver threads
+- Increase buffer size for the database hostname in the client to 64 bytes
 
 v0.42
 

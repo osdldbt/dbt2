@@ -31,7 +31,7 @@ int parse_arguments(int argc, char *argv[]);
 int parse_command(char *command);
 
 /* Global Variables */
-char sname[32] = "";
+char sname[64] = "";
 char dname[32] = "";
 int port = CLIENT_PORT;
 int sockfd;
@@ -212,7 +212,7 @@ int parse_arguments(int argc, char *argv[])
 			db_connections = atoi(optarg);
 			break;
 		case 'd':
-			strcpy(sname, optarg);
+			strncpy(sname, optarg, sizeof(sname));
 			break;
                 case 'b':
                         strcpy(dname, optarg);

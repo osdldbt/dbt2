@@ -25,7 +25,7 @@ int _db_init(char *_dbname, char *_pghost, char *_pgport);
 int rollback_transaction(struct db_context_t *dbc);
 
 extern char dbname[32];
-extern char pghost[32];
+extern char pghost[64];
 extern char pgport[32];
 
 #endif /* _LIBPQ_COMMON_H_ */

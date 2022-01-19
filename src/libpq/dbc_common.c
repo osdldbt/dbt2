@@ -15,7 +15,7 @@
 #include "libpq_common.h"
 
 char dbname[32] = "dbt2";
-char pghost[32] = "localhost";
+char pghost[64] = "localhost";
 char pgport[32] = "5432";
 
 int commit_transaction(struct db_context_t *dbc)
@@ -68,7 +68,7 @@ int _db_init(char *_dbname, char *_pghost, char *_pgport)
                 strcpy(dbname, _dbname);
         }
         if (_pghost != NULL) {
-                strcpy(pghost, _pghost);
+                strncpy(pghost, _pghost, sizeof(pghost));
         }
         if (_pgport != NULL) {
                 strcpy(pgport, _pgport);
