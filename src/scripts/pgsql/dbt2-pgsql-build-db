@@ -14,8 +14,6 @@ usage()
 	echo "    dbt2-pgsql-build-db [options]"
 	echo "    dbt2-pgsql-build-db -h"
 	echo "Options:"
-	echo "    -b"
-	echo "        Load tables and create indexes in parallel."
 	echo "    -l <port>"
 	echo "        PostgreSQL port"
 	echo "    -p <database_parameters>"
