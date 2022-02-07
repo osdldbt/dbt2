@@ -1,4 +1,4 @@
-vX.Y.Z
+v0.43.0
 
 - Adopt Artistic License 2.0
 - Fix run-workload script to work on single tier configuration, bugs
