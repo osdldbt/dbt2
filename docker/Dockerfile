@@ -4,11 +4,13 @@ FROM rockylinux:8
 RUN dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
 RUN dnf -qy module disable postgresql
 
+ARG PGVERSION
+
 RUN dnf -y update
 RUN dnf -y install cmake \
                    gcc \
                    glibc-langpack-en \
                    make \
-                   postgresql13-devel \
-                   postgresql13-libs \
+                   postgresql${PGVERSION}-devel \
+                   postgresql${PGVERSION}-libs \
                    redhat-rpm-config

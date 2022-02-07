@@ -1,6 +1,8 @@
 From dbt2-base
 
-ENV PATH="/usr/pgsql-13/bin:$PATH"
+ARG PGVERSION
+
+ENV PATH="/usr/pgsql-${PGVERSION}/bin:$PATH"
 
 COPY . /usr/local/src/dbt2
 WORKDIR /usr/local/src/dbt2

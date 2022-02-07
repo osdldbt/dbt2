@@ -10,16 +10,25 @@ if [ $? -ne 0 ]; then
 fi
 
 DBMS="pgsql"
+PGVERSION=13
 
 if [ $# -ge 1 ]; then
 	DBMS=$1
 fi
 
+which jq > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	PGORG="https://www.postgresql.org/versions.json"
+	PGVERSION=`curl -s $PGORG | jq -r 'sort | .[].major' | tail -n 1`
+fi
+echo "Using PostgreSQL Major Version $PGVERSION"
+
 TOPDIR=`dirname $0`
 ${TOPDIR}/prepare-image || exit 1
 
 TOPDIR="${TOPDIR}/.."
-docker build -t dbt2-client-${DBMS} -f Dockerfile.client ${TOPDIR}
+docker build --build-arg PGVERSION=$PGVERSION -t dbt2-client-${DBMS} \
+		-f Dockerfile.client ${TOPDIR}
 if [ $? -ne 0 ]; then
         echo "usage: $0 [DBMS]"
         echo
