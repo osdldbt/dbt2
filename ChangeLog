@@ -8,6 +8,7 @@ vX.Y.Z
 - Increase buffer size for the database hostname in the client to 64 bytes
 - Add -y flag to run-workload script to specify database is a service
 - Fix driver's rampup calculation when limiting total emulated terminals
+- Update Dockerfile to use Rocky Linux instead of CentOS
 
 v0.42
 
