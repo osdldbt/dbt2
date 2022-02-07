@@ -293,7 +293,7 @@ int start_driver()
 	struct timespec ts, rem;
 
 	/* Just used to count the number of threads created. */
-	int count = 0;
+	int count;
 
 	ts.tv_sec = (time_t) (client_conn_sleep / 1000);
 	ts.tv_nsec = (long) (client_conn_sleep % 1000) * 1000000;
@@ -324,13 +324,17 @@ int start_driver()
 	/* allocate g_tid */
 	g_tid = (pthread_t**) malloc(sizeof(pthread_t*) * (w_id_max+1)/spread);
 	memset(g_tid, 0, sizeof(pthread_t *) * (w_id_max + 1) / spread);
+	count = 1;
 	for (i = w_id_min; i < w_id_max + 1; i += spread) {
 		g_tid[i] = (pthread_t*)
 				malloc(sizeof(pthread_t) * terminals_per_warehouse);
-		if (terminals_limit && i >= terminals_limit)
+		if (terminals_limit && count > terminals_limit) {
 			break;
+		}
+		++count;
 	}
 
+	count = 1;
 	for (j = 0; j < terminals_per_warehouse; j++) {
 		for (i = w_id_min; i < w_id_max + 1; i += spread) {
 			int ret;
@@ -365,7 +369,6 @@ int start_driver()
 				return ERROR;
 			}
 
-			++count;
 			if ((count % 100) == 0) {
 				printf("%d / %d threads started...\n", count,
 						terminals_per_warehouse *
@@ -390,12 +393,15 @@ int start_driver()
 			 * Need to break out of the inner loop then break out of the other
 			 * loop.
 			 */
-			if (terminals_limit && count >= terminals_limit)
+			if (terminals_limit && count > terminals_limit) {
 				break;
+			}
+			++count;
 		}
 		/* Breaking out of the outer loop. */
-		if (terminals_limit && count >= terminals_limit)
+		if (terminals_limit && count > terminals_limit) {
 			break;
+		}
 	}
 	printf("terminals started...\n");
 
@@ -406,24 +412,26 @@ int start_driver()
 	pthread_mutex_unlock(&mutex_mix_log);
 
 	/* wait until all threads quit */
-	count = 0;
+	count = 1;
 	for (j = 0; j < terminals_per_warehouse; j++) {
 		for (i = w_id_min; i < w_id_max + 1; i += spread) {
-			++count;
 			/*
 			 * Need to break out of the inner loop then break out of the other
 			 * loop.
 			 */
-			if (terminals_limit && count >= terminals_limit)
+			if (terminals_limit && count > terminals_limit) {
 				break;
+			}
 			if (pthread_join(g_tid[i][j], NULL) != 0) {
 				LOG_ERROR_MESSAGE("error join terminal thread");
 				return ERROR;
 			}
+			++count;
 		}
 		/* Breaking out of the outer loop. */
-		if (terminals_limit && count >= terminals_limit)
+		if (terminals_limit && count > terminals_limit) {
 			break;
+		}
 	}
 	printf("driver is exiting normally\n");
 	return OK;

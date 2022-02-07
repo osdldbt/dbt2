@@ -9,6 +9,7 @@ vX.Y.Z
 - Add -y flag to run-workload script to specify database is a service
 - Fix driver's rampup calculation when limiting total emulated terminals
 - Update Dockerfile to use Rocky Linux instead of CentOS
+- Fix driver execution when limited to a single terminal
 
 v0.42
 
