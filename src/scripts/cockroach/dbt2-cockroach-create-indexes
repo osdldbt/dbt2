@@ -1,0 +1,88 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002-2008 Open Source Development Labs, Inc.
+#               2002-2022 Mark Wong
+#
+
+USE_TABLESPACES=0
+while getopts "l:" OPT; do
+	case ${OPT} in
+	l)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+fi
+
+if [ -z ${DBT2DBNAME} ]; then
+	echo "DBT2DBNAME not defined."
+	exit 1
+fi
+
+PSQL="psql -X ${PORTARG} -e -d ${DBT2DBNAME}"
+
+${PSQL} -c "
+ALTER TABLE warehouse
+ADD CONSTRAINT pk_warehouse
+PRIMARY KEY (w_id);
+" || exit 1
+
+${PSQL} -c "
+ALTER TABLE district
+ADD CONSTRAINT pk_district
+PRIMARY KEY (d_w_id, d_id);
+" || exit 1
+
+${PSQL} -c "
+ALTER TABLE customer
+ADD CONSTRAINT pk_customer
+PRIMARY KEY (c_w_id, c_d_id, c_id);
+" || exit 1
+
+${PSQL} -c "
+ALTER TABLE new_order
+ADD CONSTRAINT pk_new_order
+PRIMARY KEY (no_w_id, no_d_id, no_o_id);
+" || exit 1
+
+${PSQL} -c "
+ALTER TABLE orders
+ADD CONSTRAINT pk_orders
+PRIMARY KEY (o_w_id, o_d_id, o_id);
+" || exit 1
+
+${PSQL} -c "
+ALTER TABLE order_line
+ADD CONSTRAINT pk_order_line
+PRIMARY KEY (ol_w_id, ol_d_id, ol_o_id, ol_number);
+" || exit 1
+
+${PSQL} -c "
+ALTER TABLE item
+ADD CONSTRAINT pk_item
+PRIMARY KEY (i_id);
+" || exit 1
+
+${PSQL} -c "
+ALTER TABLE stock
+ADD CONSTRAINT pk_stock
+PRIMARY KEY (s_w_id, s_i_id, s_quantity);
+" || exit 1
+
+${PSQL} -c "
+CREATE INDEX i_orders
+ON orders (o_w_id, o_d_id, o_c_id);
+" || exit 1
+
+${PSQL} -c "
+CREATE INDEX i_customer
+ON customer (c_w_id, c_d_id, c_last, c_first, c_id);
+" || exit 1
+
+exit 0

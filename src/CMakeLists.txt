@@ -63,7 +63,7 @@ if (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
     set (NEED_LIBNSL TRUE)
 endif (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
 
-if (DBMS STREQUAL "pgsql")
+if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
     #
     # Create PostgreSQL specific configuration.
     #
@@ -168,8 +168,8 @@ elseif (DBMS STREQUAL "drizzle")
 elseif (DBMS STREQUAL "cpack")
     message (STATUS "prepared for packaging")
 else (NOT DEFINED DBMS)
-    message (FATAL_ERROR "Need to specify -DDBMS=drizzle|mysql|pgsql|sqlite")
-endif (DBMS STREQUAL "pgsql")
+    message (FATAL_ERROR "Need to specify -DDBMS=cockroach|drizzle|mysql|pgsql|sqlite")
+endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
 
 #
 # Defining common groups of source files.
@@ -232,9 +232,9 @@ endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${CLIENT} nsl)
 endif (NEED_LIBNSL)
-if (DBMS STREQUAL "pgsql")
+if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
     target_link_libraries (${CLIENT} pq)
-endif (DBMS STREQUAL "pgsql")
+endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
 
 add_executable (${DATAGEN} ${PCG_SOURCE} datagen.c common.c)
 target_link_libraries (${DATAGEN} m)
@@ -272,9 +272,9 @@ endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${TXN_TEST} nsl)
 endif (NEED_LIBNSL)
-if (DBMS STREQUAL "pgsql")
+if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
     target_link_libraries (${TXN_TEST} pq)
-endif (DBMS STREQUAL "pgsql")
+endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
 
 #
 # Set compiler flags.

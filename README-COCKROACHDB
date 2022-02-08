@@ -1,0 +1,19 @@
+A really quick howto.
+
+The CockroachDB scripts makes use of PostgreSQL's psql client program and libpq
+C client library interface, thus any environment variables that libpq would
+use.  See dbt2_profile for examples of what environment variables that may be
+used.
+
+Create a 1 warehouse database by running dbt2-cockroach-build-db
+
+	dbt2-cockroach-build-db -w 1 -l 26257
+
+Flag description:
+	-d <dir> -  Location for data files to load.
+	-w #     -  Set the warehouse scale factor.
+
+Additional flags:
+	-h            -  Help.
+	-r            -  Drop the database before loading, for rebuilding the
+                     database.

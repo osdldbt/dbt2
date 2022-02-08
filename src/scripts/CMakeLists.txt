@@ -6,6 +6,9 @@ elseif (DBMS STREQUAL "mysql")
 	add_subdirectory (mysql)
 elseif (DBMS STREQUAL "drizzle")
 	add_subdirectory (drizzle)
+elseif (DBMS STREQUAL "cockroach")
+	add_subdirectory (cockroach)
+	add_subdirectory (pgsql)
 endif (DBMS STREQUAL "pgsql")
 
 install (

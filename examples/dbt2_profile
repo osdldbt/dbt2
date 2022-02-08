@@ -1,12 +1,25 @@
 #
+# Variables that may be used by all scripts.
+#
+
+# Database instance name.
+DBT2DBNAME=dbt2; export DBT2DBNAME
+PGUSER=root; export PGUSER
+PGPORT=26257; export PGPORT
+
+#
+# CockroachDB specific variables.
+#
+
+PGUSER=root; export PGUSER
+PGPORT=26257; export PGPORT
+
+#
 # PostgreSQL specific variables.
 #
 
 # Database listener port.
 DBT2PORT=5432; export DBT2PORT
-
-# Database instance name.
-DBT2DBNAME=dbt2; export DBT2DBNAME
 
 # Database instance path.
 DBT2PGDATA=${HOME}/local/dbt2/pgdata; export DBT2PGDATA
