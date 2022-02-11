@@ -348,10 +348,11 @@ usage()
 	echo "  -p OPTIONS    GUC command line options to pass to postgres"
 	echo
 	echo "DBMS options are:"
-	echo "  drizzle  Drizzle"
-	echo "  mysql    MySQL"
-	echo "  pgsql    PostgreSQL"
-	echo "  sqlite   SQLite"
+	echo "  cockroach  CockroachDB"
+	echo "  drizzle    Drizzle"
+	echo "  mysql      MySQL"
+	echo "  pgsql      PostgreSQL"
+	echo "  sqlite     SQLite"
 }
 
 validate_parameter()
@@ -490,7 +491,8 @@ fi
 # Check parameters.
 
 if [ "x${DBMS}" = "x" ]; then
-	echo "specify which dbms system to test using -a <drizzle|mysql|pgsql|sqlite>"
+	echo -n "specify which dbms system to test using -a "
+	echo "<cockroach|drizzle|mysql|pgsql|sqlite>"
 	exit 1
 fi
 
@@ -616,7 +618,8 @@ fi
 echo "DBT-2 test for ${DBMS} started..."
 echo ""
 echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
-if [ "${DBMS}" = "pgsql" ] || [ "${DBMS}" = "mysql" ] || [ "${DBMS}" = "drizzle" ]; then
+if [ "${DBMS}" = "cockroach" ] || [ "${DBMS}" = "pgsql" ] || \
+		[ "${DBMS}" = "mysql" ] || [ "${DBMS}" = "drizzle" ]; then
 	echo "DATABASE NAME: ${DBNAME}"
 fi
 
@@ -668,7 +671,9 @@ echo ""
 #
 echo "Stage 1. Starting up client..."
 echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
-if [ ${DBMS} = "pgsql" ]; then
+if [ ${DBMS} = "cockroach" ]; then
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME} -b ${DBNAME}"
+elif [ ${DBMS} = "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then
 		echo "Starting pgpool..."
 		pgpool -f ${DIR}/pgsql/pgpool.conf

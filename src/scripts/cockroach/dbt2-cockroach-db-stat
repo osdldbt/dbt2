@@ -1,0 +1,67 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2022 Mark Wong
+#
+
+while getopts "D:l:i:o:s:" opt; do
+	case $opt in
+	D)
+		DBT2DBNAME=$OPTARG
+		;;
+	i)
+		ITERATIONS=$OPTARG
+		;;
+	l)
+		PORT=${OPTARG}
+		;;
+	o)
+		OUTPUT_DIR=$OPTARG
+		;;
+	s)
+		SAMPLE_LENGTH=$OPTARG
+		;;
+	esac
+done
+
+if [ -z ${DBT2DBNAME} ]; then
+	echo "DBT2DBNAME not defined, use -D."
+	exit 1
+fi
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+	PORTARG2="-l ${PORT}"
+fi
+
+PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME} -t --no-align"
+PGVERSION=`${PSQL} -c "show server_version_num;"`
+
+# Get the OS version that the database system is running on, in case it's
+# different.
+uname -a > ${OUTPUT_DIR}/readme-dbms.txt
+
+# Get database version.
+echo $PGVERSION >> $OUTPUT_DIR/readme-dbms.txt
+
+# Get database parameters.
+${PSQL} -c "show all"  > $OUTPUT_DIR/param.txt
+
+# Get list of tables in the public schema, where dbt2 is expected to be.
+# This file is used for the report generation.
+${PSQL} -c "SELECT tablename "`
+		   `"FROM pg_tables "`
+		   `"WHERE schemaname = 'public'"`
+		   `"ORDER BY tablename;" > ${OUTPUT_DIR}/table-list.txt
+
+# Get list of indexes in the public schema, where dbt2 is expected to be.
+# This file is used for the report generation.
+${PSQL} -c "SELECT indexname "`
+		   `"FROM pg_indexes "`
+		   `"WHERE schemaname = 'public'"`
+		   `"ORDER BY indexname;" > ${OUTPUT_DIR}/index-list.txt
+
+# Get the plans before the test.
+dbt2-pgsql-plans ${PORTARG2} -o ${OUTPUT_DIR}/plan0.txt
