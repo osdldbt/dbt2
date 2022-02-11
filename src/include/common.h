@@ -3,7 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002      Open Source Development Labs, Inc.
- *               2002-2021 Mark Wong
+ *               2002-2022 Mark Wong
  *
  * 16 may 2002
  */
@@ -29,9 +29,10 @@
 #define DB_PASS ""
 #endif /* ODBC || LIBMYSQL || LIBDRIZZLE */
 
-#if defined(LIBPQ) || defined(LIBMYSQL) || defined(LIBDRIZZLE)
+#if defined(COCKROACH) || defined(LIBPQ) || defined(LIBMYSQL) || \
+		defined(LIBDRIZZLE)
 #define DB_NAME "dbt2"
-#endif /* LIBPQ || LIBMYSQL || LIBDRIZZLE */
+#endif /* COCKROACH || LIBPQ || LIBMYSQL || LIBDRIZZLE */
 
 #define DELIVERY 0
 #define NEW_ORDER 1
@@ -73,6 +74,7 @@ enum table {
 #define STOCK_CARDINALITY 100000
 #define NEW_ORDER_CARDINALITY 900
 
+#define D_ID_LEN 10
 #define D_CITY_LEN 80
 #define D_NAME_LEN 40
 #define D_STATE_LEN 8
@@ -80,6 +82,7 @@ enum table {
 #define D_STREET_2_LEN 80
 #define D_ZIP_LEN 9
 
+#define C_ID_LEN 10
 #define C_CREDIT_LEN 2
 #define C_DATA_LEN 2000
 #define C_FIRST_LEN 64
@@ -93,12 +96,27 @@ enum table {
 #define C_STATE_LEN 8
 #define C_ZIP_LEN 9
 
+#define I_ID_LEN 10
+#define I_DATA_LEN 50
 #define I_NAME_LEN 96
+#define I_PRICE_LEN 63
 
+#define H_AMOUNT_LEN 63
+
+#define O_ID_LEN 10
 #define O_ENTRY_D_LEN TIMESTAMP_LEN
+#define O_CARRIER_ID_LEN 10
+#define O_ALL_LOCAL_LEN 2
+#define O_OL_CNT_LEN 3
 
+#define OL_O_ID_LEN 10
 #define OL_DELIVERY_D_LEN TIMESTAMP_LEN
+#define OL_QUANTITY_LEN 10
+#define OL_AMOUNT_LEN 63
 
+#define S_DIST_LEN 15
+
+#define W_ID_LEN 10
 #define W_CITY_LEN 80
 #define W_NAME_LEN 40
 #define W_STATE_LEN 8
@@ -111,6 +129,8 @@ enum table {
 #define D_ID_MAX 10
 #define O_OL_CNT_MAX 15
 #define O_CARRIER_ID_MAX 10
+
+#define THRESHOLD_LEN 10
 
 #define CLIENT_PORT 30000
 

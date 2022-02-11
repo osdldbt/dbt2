@@ -76,20 +76,39 @@ if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
 
     if (PG_CONFIG_FOUND)
         message (STATUS "Found pg_config for PostgreSQL: ${PG_CONFIG}")
-        set (DB_SOURCE
-                libpq/dbc_common.c
-                libpq/dbc_delivery.c
-                libpq/dbc_integrity.c
-                libpq/dbc_new_order.c
-                libpq/dbc_order_status.c
-                libpq/dbc_payment.c
-                libpq/dbc_stock_level.c
-        )
+        if (DBMS STREQUAL "pgsql")
+            set (DB_SOURCE
+                    libpq/dbc_common.c
+                    libpq/dbc_delivery.c
+                    libpq/dbc_integrity.c
+                    libpq/dbc_new_order.c
+                    libpq/dbc_order_status.c
+                    libpq/dbc_payment.c
+                    libpq/dbc_stock_level.c
+            )
+        elseif (DBMS STREQUAL "cockroach")
+            set (DB_SOURCE
+                    cockroach/dbc_common.c
+                    cockroach/dbc_delivery.c
+                    cockroach/dbc_integrity.c
+                    cockroach/dbc_new_order.c
+                    cockroach/dbc_order_status.c
+                    cockroach/dbc_payment.c
+                    cockroach/dbc_stock_level.c
+            )
+        endif (DBMS STREQUAL "pgsql")
         execute_process (COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
                 PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
         execute_process (COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
                 PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-        set (DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
+        if (DBMS STREQUAL "pgsql")
+            set (DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
+        elseif (DBMS STREQUAL "cockroach")
+            execute_process (COMMAND ${PG_CONFIG} --includedir-server
+                    OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
+                    OUTPUT_STRIP_TRAILING_WHITESPACE)
+            set (DBCFLAGS "-DCOCKROACH -I${PG_INCLUDEDIR} -I${PG_INCLUDEDIR_SERVER}")
+        endif (DBMS STREQUAL "pgsql")
         set (DB_LIBS "-L${PG_LIBDIR}")
     else (NOT DEFINED PKG_CONFIG_FOUND)
         message (FATAL_ERROR "pg_config not found in path")

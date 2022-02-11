@@ -2,6 +2,7 @@ vX.Y.Z
 
 - Made some changes to Docker scripts to help customize PostgreSQL version used
 - Add scripts to build a database on CockroachDB
+- Add transaction logic to the client for CockroachDB
 
 v0.43.0
 

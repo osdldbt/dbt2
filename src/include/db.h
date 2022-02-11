@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2002-2022 Mark Wong
  *
  * 16 June 2002
  */
@@ -20,9 +21,9 @@
 #include "odbc_common.h"
 #endif /* ODBC */
 
-#ifdef LIBPQ
+#if defined(LIBPQ) || defined(COCKROACH)
 #include "libpq_common.h"
-#endif /* LIBPQ */
+#endif /* defined(LIBPQ) || defined(COCKROACH) */
 
 #ifdef LIBMYSQL
 #include "mysql_common.h"
@@ -40,9 +41,9 @@ int connect_to_db(struct db_context_t *dbc);
 #ifdef ODBC
 int db_init(char *sname, char *uname, char *auth);
 #endif /* ODBC */
-#ifdef LIBPQ
+#if defined(LIBPQ) || defined(COCKROACH)
 int db_init(char *_dbname, char *_pghost, char *_pgport);
-#endif /* LIBPQ */
+#endif /* defined(LIBPQ) || defined(COCKROACH) */
 
 #ifdef LIBMYSQL
 int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
