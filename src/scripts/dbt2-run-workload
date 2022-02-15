@@ -673,6 +673,12 @@ echo "Stage 1. Starting up client..."
 echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
 if [ ${DBMS} = "cockroach" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME} -b ${DBNAME}"
+elif [ ${DBMS} = "drizzle" ]; then
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME} -d ${DBNAME} -u root"
+elif [ ${DBMS} = "mysql" ]; then
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
 elif [ ${DBMS} = "pgsql" ]; then
 	if [ ${USE_PGPOOL} -eq 1 ]; then
 		echo "Starting pgpool..."
@@ -682,14 +688,8 @@ elif [ ${DBMS} = "pgsql" ]; then
 		TMP_DB_HOSTNAME=${DB_HOSTNAME}
 	fi
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME} -b ${DBNAME}"
-elif [ ${DBMS} = "mysql" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
 elif [ ${DBMS} = "sqlite" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
-elif [ ${DBMS} = "drizzle" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME} -d ${DBNAME} -u root"
 fi
 CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -f -c $DBCON -s $THREAD_STARTUP_DELAY"
 END=0

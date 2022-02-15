@@ -63,7 +63,8 @@ if (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
     set (NEED_LIBNSL TRUE)
 endif (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
 
-if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
+if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
+        DBMS STREQUAL "yugabyte")
     #
     # Create PostgreSQL specific configuration.
     #
@@ -76,7 +77,7 @@ if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
 
     if (PG_CONFIG_FOUND)
         message (STATUS "Found pg_config for PostgreSQL: ${PG_CONFIG}")
-        if (DBMS STREQUAL "pgsql")
+        if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
             set (DB_SOURCE
                     libpq/dbc_common.c
                     libpq/dbc_delivery.c
@@ -96,19 +97,19 @@ if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
                     cockroach/dbc_payment.c
                     cockroach/dbc_stock_level.c
             )
-        endif (DBMS STREQUAL "pgsql")
+        endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
         execute_process (COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
                 PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
         execute_process (COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
                 PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if (DBMS STREQUAL "pgsql")
+        if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
             set (DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
         elseif (DBMS STREQUAL "cockroach")
             execute_process (COMMAND ${PG_CONFIG} --includedir-server
                     OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
                     OUTPUT_STRIP_TRAILING_WHITESPACE)
             set (DBCFLAGS "-DCOCKROACH -I${PG_INCLUDEDIR} -I${PG_INCLUDEDIR_SERVER}")
-        endif (DBMS STREQUAL "pgsql")
+        endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
         set (DB_LIBS "-L${PG_LIBDIR}")
     else (NOT DEFINED PKG_CONFIG_FOUND)
         message (FATAL_ERROR "pg_config not found in path")
@@ -187,8 +188,9 @@ elseif (DBMS STREQUAL "drizzle")
 elseif (DBMS STREQUAL "cpack")
     message (STATUS "prepared for packaging")
 else (NOT DEFINED DBMS)
-    message (FATAL_ERROR "Need to specify -DDBMS=cockroach|drizzle|mysql|pgsql|sqlite")
-endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
+    message (FATAL_ERROR "Need to specify -DDBMS=cockroach|drizzle|mysql|pgsql|sqlite|yugabyte")
+endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
+        DBMS STREQUAL "yugabyte")
 
 #
 # Defining common groups of source files.
@@ -251,9 +253,11 @@ endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${CLIENT} nsl)
 endif (NEED_LIBNSL)
-if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
+if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
+        DBMS STREQUAL "yugabyte")
     target_link_libraries (${CLIENT} pq)
-endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
+endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
+        DBMS STREQUAL "yugabyte")
 
 add_executable (${DATAGEN} ${PCG_SOURCE} datagen.c common.c)
 target_link_libraries (${DATAGEN} m)
@@ -291,9 +295,11 @@ endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${TXN_TEST} nsl)
 endif (NEED_LIBNSL)
-if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
+if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
+        DBMS STREQUAL "yugabyte")
     target_link_libraries (${TXN_TEST} pq)
-endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach")
+endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
+        DBMS STREQUAL "yugabyte")
 
 #
 # Set compiler flags.

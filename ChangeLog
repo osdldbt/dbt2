@@ -4,6 +4,7 @@ vX.Y.Z
 - Add scripts to build a database on CockroachDB
 - Add transaction logic to the client for CockroachDB
 - Update workload scripts for CockroachDB
+- Add scripts to build a database on YugabyteDB
 
 v0.43.0
 

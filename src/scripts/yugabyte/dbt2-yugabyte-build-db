@@ -1,0 +1,81 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2005-2006 Open Source Development Labs, Inc.
+#               2005-2022 Mark Wong
+#
+
+usage()
+{
+	echo "Usage:"
+	echo "    dbt2-yugabyte-build-db [options]"
+	echo "    dbt2-yugabyte-build-db -h"
+	echo "Options:"
+	echo "    -l <port>"
+	echo "        YugabyteDB port"
+	echo "    -r"
+	echo "        Drop existing database before building a new database"
+	echo "    -s <plpgsql>"
+	echo "        User defined functions to install, default: plpgsql"
+	echo "    -u"
+	echo "        Run as an unprivileged PostgreSQL user."
+	echo "    -w <scale factor>"
+	echo "        Number of warehouses to build. Default 1."
+}
+
+WAREHOUSES=1
+REBUILD_DB=0
+UDF_TYPE="plpgsql"
+while getopts "hl:rs:w:" OPT; do
+	case ${OPT} in
+	h)
+		usage
+		exit 0
+		;;
+	l)
+		PORT=${OPTARG}
+		;;
+	r)
+		REBUILD_DB=1
+		;;
+	s)
+		UDF_TYPE=$OPTARG
+		;;
+	w)
+		WAREHOUSES=${OPTARG}
+		;;
+	esac
+done
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-l ${PORT}"
+fi
+
+if [ $REBUILD_DB -eq 1 ] && [ -d $DBT2PGDATA ]; then
+	dbt2-pgsql-drop-db ${PORTARG}
+fi
+
+dbt2-pgsql-create-db ${PORTARG} || exit 1
+dbt2-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
+
+SEED=`dbt2-rand 1 18446744073709551615 0`
+
+# FIXME: Make datagen take argument instead of setting environment variables
+# for psql.
+export PGPORT="${PORT}"
+export PGDATABASE="${DBT2DBNAME}"
+
+dbt2-pgsql-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
+dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
+dbt2-pgsql-load-stored-procs $PORTARG -t $UDF_TYPE || exit 1
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+fi
+
+SEED=`dbt2-rand -1 1 15`
+psql ${PORTARG} -e -d ${DBT2DBNAME} -c "SELECT setseed(${SEED});" || exit 1
+
+exit 0
