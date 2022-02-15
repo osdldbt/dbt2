@@ -2,26 +2,35 @@
 *.so
 *.bc
 
-dbt2.log
-
 /builds
 
 # vim
 *.swp
 tags
 
+.vscode
+
 # cmake
 CMakeCache.txt
 CMakeFiles
 cmake_install.cmake
 install_manifest.txt
+Makefile
+!/Makefile
 
 # cpack
 _CPack_Packages/
+CPackSourceConfig.cmake
 *.Z
 *.xz
 *.gz
 *.bz2
+
+dbt2_client.pid
+dbt2.log
+error.log
+mix.log
+
 
 doc/dbt2-architecture.html
 doc/dbt2-tpc.html
