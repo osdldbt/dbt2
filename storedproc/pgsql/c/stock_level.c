@@ -80,6 +80,10 @@ Datum stock_level(PG_FUNCTION_ARGS)
 	Datum args[5];
 	char nulls[5] = { ' ', ' ', ' ', ' ', ' ' };
 
+	elog(DEBUG1, "IN w_id = %d", w_id);
+	elog(DEBUG1, "IN d_id = %d", d_id);
+	elog(DEBUG1, "IN threshold = %d", threshold);
+
 	SPI_connect();
 
 	plan_queries(statements);

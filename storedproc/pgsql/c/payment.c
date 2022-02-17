@@ -204,15 +204,15 @@ Datum payment(PG_FUNCTION_ARGS)
 
 		payment_row *pp;
 
-		elog(DEBUG1, "w_id = %d", w_id);
-		elog(DEBUG1, "d_id = %d", d_id);
-		elog(DEBUG1, "c_id = %d", c_id);
-		elog(DEBUG1, "c_w_id = %d", c_w_id);
-		elog(DEBUG1, "c_d_id = %d", c_d_id);
-		elog(DEBUG1, "c_last = %s",
+		elog(DEBUG1, "IN w_id = %d", w_id);
+		elog(DEBUG1, "IN d_id = %d", d_id);
+		elog(DEBUG1, "IN c_id = %d", c_id);
+		elog(DEBUG1, "IN c_w_id = %d", c_w_id);
+		elog(DEBUG1, "IN c_d_id = %d", c_d_id);
+		elog(DEBUG1, "IN c_last = %s",
 				DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(c_last))));
-		elog(DEBUG1, "h_amount = %f", h_amount);
+		elog(DEBUG1, "IN h_amount = %f", h_amount);
 
 		funcctx = SRF_FIRSTCALL_INIT();
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);

@@ -198,18 +198,16 @@ Datum new_order(PG_FUNCTION_ARGS)
 					&isnull));
 		}
 
-		elog(DEBUG1, "%d w_id = %d", (int) getpid(), w_id);
-		elog(DEBUG1, "%d d_id = %d", (int) getpid(), d_id);
-		elog(DEBUG1, "%d c_id = %d", (int) getpid(), c_id);
-		elog(DEBUG1, "%d o_all_local = %d", (int) getpid(), o_all_local);
-		elog(DEBUG1, "%d o_ol_cnt = %d", (int) getpid(), o_ol_cnt);
+		elog(DEBUG1, "IN w_id = %d", w_id);
+		elog(DEBUG1, "IN d_id = %d", d_id);
+		elog(DEBUG1, "IN c_id = %d", c_id);
+		elog(DEBUG1, "IN o_all_local = %d", o_all_local);
+		elog(DEBUG1, "IN o_ol_cnt = %d", o_ol_cnt);
 
-		elog(DEBUG1, "%d ##  ol_i_id  ol_supply_w_id  ol_quantity",
-			(int) getpid());
-		elog(DEBUG1, "%d --  -------  --------------  -----------",
-			(int) getpid());
+		elog(DEBUG1, "IN ##  ol_i_id  ol_supply_w_id  ol_quantity");
+		elog(DEBUG1, "IN --  -------  --------------  -----------");
 		for (i = 0; i < o_ol_cnt; i++) {
-			elog(DEBUG1, "%d %2d  %7d  %14d  %11d", (int) getpid(),
+			elog(DEBUG1, "IN %2d  %7d  %14d  %11d",
 					i + 1, ol_i_id[i], ol_supply_w_id[i], ol_quantity[i]);
 		}
 
@@ -236,7 +234,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 
 			w_tax = SPI_getvalue(tuple, tupdesc, 1);
-			elog(DEBUG1, "%d w_tax = %s", (int) getpid(), w_tax);
+			elog(DEBUG1, "w_tax = %s", w_tax);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
                  errmsg("NEW_ORDER_1 failed")));
@@ -252,9 +250,8 @@ Datum new_order(PG_FUNCTION_ARGS)
 
 			d_tax = SPI_getvalue(tuple, tupdesc, 1);
 			d_next_o_id = atoi(SPI_getvalue(tuple, tupdesc, 2));
-			elog(DEBUG1, "%d d_tax = %s", (int) getpid(), d_tax);
-			elog(DEBUG1, "%d d_next_o_id = %d", (int) getpid(),
-				d_next_o_id);
+			elog(DEBUG1, "d_tax = %s", d_tax);
+			elog(DEBUG1, "d_next_o_id = %d", d_next_o_id);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
                  errmsg("NEW_ORDER_3 failed")));
@@ -272,9 +269,9 @@ Datum new_order(PG_FUNCTION_ARGS)
 			c_discount = SPI_getvalue(tuple, tupdesc, 1);
 			c_last = SPI_getvalue(tuple, tupdesc, 2);
 			c_credit = SPI_getvalue(tuple, tupdesc, 3);
-			elog(DEBUG1, "%d c_discount = %s", (int) getpid(), c_discount);
-			elog(DEBUG1, "%d c_last = %s", (int) getpid(), c_last);
-			elog(DEBUG1, "%d c_credit = %s", (int) getpid(), c_credit);
+			elog(DEBUG1, "c_discount = %s", c_discount);
+			elog(DEBUG1, "c_last = %s", c_last);
+			elog(DEBUG1, "c_credit = %s", c_credit);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
                  errmsg("NEW_ORDER_4 failed")));
@@ -321,12 +318,9 @@ Datum new_order(PG_FUNCTION_ARGS)
 				i_name[i] = SPI_getvalue(tuple, tupdesc, 2);
 				strncpy(pp[i].i_name, i_name[i], I_NAME_LEN);
 				i_data[i] = SPI_getvalue(tuple, tupdesc, 3);
-				elog(DEBUG1, "%d i_price[%d] = %s", (int) getpid(), i,
-					i_price[i]);
-				elog(DEBUG1, "%d i_name[%d] = %s", (int) getpid(), i,
-					i_name[i]);
-				elog(DEBUG1, "%d i_data[%d] = %s", (int) getpid(), i,
-					i_data[i]);
+				elog(DEBUG1, "i_price[%d] = %s", i, i_price[i]);
+				elog(DEBUG1, "i_name[%d] = %s", i, i_name[i]);
+				elog(DEBUG1, "i_data[%d] = %s", i, i_data[i]);
 			} else {
 				/* Item doesn't exist, rollback transaction. */
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
@@ -350,12 +344,9 @@ Datum new_order(PG_FUNCTION_ARGS)
 				pp[i].s_quantity = atoi(s_quantity[i]);
 				my_s_dist[i] = SPI_getvalue(tuple, tupdesc, 2);
 				s_data[i] = SPI_getvalue(tuple, tupdesc, 3);
-				elog(DEBUG1, "%d s_quantity[%d] = %s", (int) getpid(),
-					i, s_quantity[i]);
-				elog(DEBUG1, "%d my_s_dist[%d] = %s", (int) getpid(),
-					i, my_s_dist[i]);
-				elog(DEBUG1, "%d s_data[%d] = %s", (int) getpid(), i,
-					s_data[i]);
+				elog(DEBUG1, "s_quantity[%d] = %s", i, s_quantity[i]);
+				elog(DEBUG1, "my_s_dist[%d] = %s", i, my_s_dist[i]);
+				elog(DEBUG1, "s_data[%d] = %s", i, s_data[i]);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 					 errmsg("NEW_ORDER_8 failed")));
@@ -395,8 +386,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 				pp[i].brand_generic = 'B';
 			else
 				pp[i].brand_generic = 'G';
-			elog(DEBUG1, "%d brand_generic[%d] = %c", (int) getpid(), i,
-					pp[i].brand_generic);
+			elog(DEBUG1, "brand_generic[%d] = %c", i, pp[i].brand_generic);
 		}
 		funcctx->max_calls = o_ol_cnt;
 
@@ -424,7 +414,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		values[4] = (char *) palloc(11 * sizeof(char));
 		values[5] = (char *) palloc(11 * sizeof(char));
 		values[6] = (char *) palloc(11 * sizeof(char));
-		values[7] = (char *) palloc(sizeof(char));
+		values[7] = (char *) palloc(2 * sizeof(char));
 
 		snprintf(values[0], 10, "%d", pp[funcctx->call_cntr].ol_supply_w_id);
 		snprintf(values[1], 10, "%d", pp[funcctx->call_cntr].ol_i_id);
@@ -433,7 +423,8 @@ Datum new_order(PG_FUNCTION_ARGS)
 		snprintf(values[4], 10, "%d", pp[funcctx->call_cntr].s_quantity);
 		snprintf(values[5], 10, "%f", pp[funcctx->call_cntr].i_price);
 		snprintf(values[6], 10, "%f", pp[funcctx->call_cntr].ol_amount);
-		snprintf(values[7], 1, "%c", pp[funcctx->call_cntr].brand_generic);
+		values[7][0] = pp[funcctx->call_cntr].brand_generic;
+		values[7][1] = '\0';
 
 		tuple = BuildTupleFromCStrings(attinmeta, values);
 		result = HeapTupleGetDatum(tuple);

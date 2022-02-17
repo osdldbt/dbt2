@@ -140,6 +140,9 @@ Datum delivery(PG_FUNCTION_ARGS)
 		int32 **pp;
 		int32 *offset;
 
+		elog(DEBUG1, "IN w_id = %d", w_id);
+		elog(DEBUG1, "IN o_carrier_id = %d", o_carrier_id);
+
 		funcctx = SRF_FIRSTCALL_INIT();
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE)

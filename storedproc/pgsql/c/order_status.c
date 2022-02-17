@@ -121,6 +121,13 @@ Datum order_status(PG_FUNCTION_ARGS)
 		Datum args[4];
 		char nulls[4] = { ' ', ' ', ' ', ' ' };
 
+		elog(DEBUG1, "IN c_id = %d", c_id);
+		elog(DEBUG1, "IN c_w_id = %d", c_w_id);
+		elog(DEBUG1, "IN c_d_id = %d", c_d_id);
+		elog(DEBUG1, "IN c_last = %s",
+				DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(c_last))));
+
 		/* SRF setup */
 		funcctx = SRF_FIRSTCALL_INIT();
 
