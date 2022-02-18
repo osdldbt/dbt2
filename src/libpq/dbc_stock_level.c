@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ * Copyright (C) 2002-2022 Mark Wong
  *
  * 13 May 2003
  */
@@ -13,10 +14,35 @@
 #include "logging.h"
 #include "libpq_stock_level.h"
 
+#define UDF_STOCK_LEVEL "SELECT * FROM stock_level($1, $2, $3)"
+
 int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 {
 	PGresult *res;
-	char stmt[128];
+	const char *paramValues[3];
+	const int paramLengths[3] = {
+			sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t)
+	};
+	const int paramFormats[3] = {1, 1, 1};
+
+	uint32_t d_w_id;
+	uint32_t d_id;
+	uint32_t threshold;
+
+#ifdef DEBUG
+	int i;
+
+	LOG_ERROR_MESSAGE("SL d_w_id %d d_id %d threshold %d",
+			data->w_id, data->d_id, data->threshold);
+#endif /* DEBUG */
+
+	d_w_id = htonl((uint32_t) data->w_id);
+	d_id = htonl((uint32_t) data->d_id);
+	threshold = htonl((uint32_t) data->threshold);
+
+	paramValues[0] = (char *) &d_w_id;
+	paramValues[1] = (char *) &d_id;
+	paramValues[2] = (char *) &threshold;
 
 	/* Start a transaction block. */
 	res = PQexec(dbc->conn, "BEGIN");
@@ -27,16 +53,19 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 	}
 	PQclear(res);
 
-	/* Create the query and execute it. */
-	sprintf(stmt, "SELECT stock_level(%d, %d, %d)",
-		data->w_id, data->d_id, data->threshold);
-	res = PQexec(dbc->conn, stmt);
-	if (!res || (PQresultStatus(res) != PGRES_COMMAND_OK &&
-		PQresultStatus(res) != PGRES_TUPLES_OK)) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+	res = PQexecParams(dbc->conn, UDF_STOCK_LEVEL, 3, NULL, paramValues,
+			paramLengths, paramFormats, 1);
+	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
+		LOG_ERROR_MESSAGE("SL %s", PQerrorMessage(dbc->conn));
 		PQclear(res);
 		return ERROR;
 	}
+#ifdef DEBUG
+	for (i = 0; i < PQntuples(res); i++) {
+		LOG_ERROR_MESSAGE("SL[%d] %s %d", i, PQfname(res, 0),
+				ntohl(*((uint32_t *) PQgetvalue(res, i, 0))));
+	}
+#endif /* DEBUG */
 	PQclear(res);
 
 	return OK;

@@ -5,7 +5,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002      Open Source Development Lab, Inc.
- *               2002-2021 Mark Wong
+ *               2002-2022 Mark Wong
  *
  * 16 may 2002
  * Based on TPC-C Standard Specification Revision 5.0.
@@ -195,4 +195,13 @@ int init_common()
 	table_cardinality.new_orders = NEW_ORDER_CARDINALITY;
 
 	return rc;
+}
+
+unsigned long int ntohll(long int x)
+{
+	if (ntohl(1) == 1)
+		return x;
+	else
+		return (long int) (ntohl((int) ((x << 32) >> 32))) << 32 |
+				(long int) ntohl(((int) (x >> 32)));
 }

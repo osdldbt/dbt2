@@ -22,6 +22,8 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include <arpa/inet.h>
+
 #include "pcg_variants.h"
 
 #if defined(ODBC) || defined(LIBMYSQL) || defined(LIBDRIZZLE)
@@ -33,6 +35,11 @@
 		defined(LIBDRIZZLE)
 #define DB_NAME "dbt2"
 #endif /* COCKROACH || LIBPQ || LIBMYSQL || LIBDRIZZLE */
+
+/* Julian-date equivalents of Day 0 in Unix and Postgres reckoning */
+#define POSTGRES_EPOCH_JDATE 2451545 /* == date2j(2000, 1, 1) */
+#define UNIX_EPOCH_JDATE 2440588 /* == date2j(1970, 1, 1) */
+#define SECS_PER_DAY 86400
 
 #define DELIVERY 0
 #define NEW_ORDER 1
@@ -160,6 +167,7 @@ int64_t get_random(pcg64f_random_t *, int64_t);
 int get_think_time(pcg64f_random_t *, int);
 int init_common();
 int create_pid_file();
+unsigned long int ntohll(long int);
 
 extern char output_path[256];
 extern const wchar_t *c_last_syl[C_LAST_SYL_MAX];

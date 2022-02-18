@@ -5,6 +5,7 @@ vX.Y.Z
 - Add transaction logic to the client for CockroachDB
 - Update workload scripts for CockroachDB
 - Add scripts to build a database on YugabyteDB
+- Update libpq client code to transmit and receive data in binary mode.
 
 v0.43.0
 
