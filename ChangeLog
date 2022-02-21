@@ -1,4 +1,4 @@
-vX.Y.Z
+v0.44.0
 
 - Made some changes to Docker scripts to help customize PostgreSQL version used
 - Add scripts to build a database on CockroachDB
