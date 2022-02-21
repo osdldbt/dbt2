@@ -48,7 +48,8 @@
 		"  AND ol_d_id = $2\n" \
 		"  AND ol_o_id = $3"
 
-int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
+int execute_order_status_cockroach(struct db_context_t *dbc,
+		struct order_status_t *data)
 {
 	PGresult *res;
 	const char *paramValues[4];
@@ -67,9 +68,9 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN +1));
 	snprintf(c_w_id, W_ID_LEN, "%d", data->c_w_id);
 
-	res = PQexec(dbc->conn, "BEGIN;");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -80,10 +81,10 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 
 	if (data->c_id == 0) {
 		paramValues[2] = c_last;
-		res = PQexecParams(dbc->conn, ORDER_STATUS_1, 3, NULL, paramValues,
-				NULL, NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_1, 3, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -108,10 +109,10 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	}
 
 	paramValues[2] = c_id;
-	res = PQexecParams(dbc->conn, ORDER_STATUS_2, 3, NULL, paramValues, NULL,
-			NULL, 0);
+	res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_2, 3, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -138,10 +139,10 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 #endif /* DEBUG */
 	PQclear(res);
 
-	res = PQexecParams(dbc->conn, ORDER_STATUS_3, 3, NULL, paramValues, NULL,
-			NULL, 0);
+	res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_3, 3, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -169,10 +170,10 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 #endif /* DEBUG */
 	PQclear(res);
 
-	res = PQexecParams(dbc->conn, ORDER_STATUS_4, 3, NULL, paramValues, NULL,
-			NULL, 0);
+	res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_4, 3, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

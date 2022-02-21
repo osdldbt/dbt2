@@ -59,7 +59,8 @@
 	"  AND c_w_id = $3\n" \
 	"  AND c_d_id = $4"
 
-int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
+int execute_delivery_cockroach(struct db_context_t *dbc,
+		struct delivery_t *data)
 {
 	PGresult *res;
 	const char *paramValues[4];
@@ -79,9 +80,9 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 	snprintf(o_carrier_id, O_CARRIER_ID_LEN, "%d", data->o_carrier_id);
 	snprintf(w_id, W_ID_LEN, "%d", data->w_id);
 
-	res = PQexec(dbc->conn, "BEGIN;");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -92,10 +93,10 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 
 		paramValues[0] = w_id;
 		paramValues[1] = d_id;
-		res = PQexecParams(dbc->conn, DELIVERY_1, 2, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, DELIVERY_1, 2, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -111,10 +112,10 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 		paramValues[0] = o_id;
 		paramValues[1] = w_id;
 		paramValues[2] = d_id;
-		res = PQexecParams(dbc->conn, DELIVERY_2, 3, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, DELIVERY_2, 3, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -124,10 +125,10 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 		paramValues[1] = o_id;
 		paramValues[2] = w_id;
 		paramValues[3] = d_id;
-		res = PQexecParams(dbc->conn, DELIVERY_3, 4, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, DELIVERY_3, 4, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -142,19 +143,19 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 		paramValues[0] = o_id;
 		paramValues[1] = w_id;
 		paramValues[2] = d_id;
-		res = PQexecParams(dbc->conn, DELIVERY_4, 3, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, DELIVERY_4, 3, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
 		PQclear(res);
 
-		res = PQexecParams(dbc->conn, DELIVERY_5, 3, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, DELIVERY_5, 3, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -171,10 +172,10 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 		paramValues[1] = w_id;
 		paramValues[2] = w_id;
 		paramValues[3] = d_id;
-		res = PQexecParams(dbc->conn, DELIVERY_6, 4, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, DELIVERY_6, 4, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}

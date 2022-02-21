@@ -1,18 +1,16 @@
-if (DBMS STREQUAL "pgsql")
+if (PG_CONFIG_FOUND)
+	add_subdirectory (cockroach)
 	add_subdirectory (pgsql)
-elseif (DBMS STREQUAL "sqlite")
+	add_subdirectory (yugabyte)
+endif (PG_CONFIG_FOUND)
+
+if (DBMS STREQUAL "sqlite")
 	add_subdirectory (sqlite)
 elseif (DBMS STREQUAL "mysql")
 	add_subdirectory (mysql)
 elseif (DBMS STREQUAL "drizzle")
 	add_subdirectory (drizzle)
-elseif (DBMS STREQUAL "cockroach")
-	add_subdirectory (cockroach)
-	add_subdirectory (pgsql)
-elseif (DBMS STREQUAL "yugabyte")
-	add_subdirectory (yugabyte)
-	add_subdirectory (pgsql)
-endif (DBMS STREQUAL "pgsql")
+endif (DBMS STREQUAL "sqlite")
 
 install (
 	PROGRAMS

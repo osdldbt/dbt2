@@ -18,7 +18,7 @@
 
 #define UDF_PAYMENT "SELECT * FROM payment($1, $2, $3, $4, $5, $6, $7)"
 
-int execute_payment(struct db_context_t *dbc, struct payment_t *data)
+int execute_payment_libpq(struct db_context_t *dbc, struct payment_t *data)
 {
 	PGresult *res;
 	const char *paramValues[7];
@@ -72,18 +72,18 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 	paramLengths[5] = strlen(c_last);
 
 	/* Start a transaction block. */
-	res = PQexec(dbc->conn, "BEGIN");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	PQclear(res);
 
-	res = PQexecParams(dbc->conn, UDF_PAYMENT, 7, NULL, paramValues,
-			paramLengths, paramFormats, 1);
+	res = PQexecParams(dbc->library.libpq.conn, UDF_PAYMENT, 7, NULL,
+			paramValues, paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("P %s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("P %s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

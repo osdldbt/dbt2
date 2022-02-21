@@ -3,7 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002      Open Source Development Labs, Inc.
- *               2002-2021 Mark Wong
+ *               2002-2022 Mark Wong
  *
  * 7 August 2002
  */
@@ -466,9 +466,9 @@ void *terminal_worker(void *data)
 			malloc(sizeof(struct transaction_queue_node_t));
 	extern char sname[32];
 	extern int exiting;
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 	extern char postmaster_port[32];
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 
 #ifdef LIBMYSQL
 	extern char dbt2_mysql_port[32];
@@ -494,9 +494,9 @@ void *terminal_worker(void *data)
 #ifdef ODBC
 	db_init(sname, DB_USER, DB_PASS);
 #endif /* ODBC */
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 	db_init(DB_NAME, sname, postmaster_port);
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 #ifdef LIBMYSQL
 	printf("CONNECTED TO DB |%s| |%s| |%s|\n", DB_NAME, sname, dbt2_mysql_port);
 	db_init(sname, "", dbt2_mysql_port);

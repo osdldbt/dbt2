@@ -627,6 +627,8 @@ fi
 # Build up the client command line arguments.
 #
 
+CLIENT_COMMAND_ARGS="-a $DBMS"
+
 if [ -n "${DB_USER}" ]; then
 	echo "DATABASE USER: ${DB_USER}"
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -u ${DB_USER}"

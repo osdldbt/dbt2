@@ -38,7 +38,8 @@
 		"  AND s_i_id = ol_i_id\n" \
 		"  AND s_quantity < $3"
 
-int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
+int execute_stock_level_cockroach(struct db_context_t *dbc,
+		struct stock_level_t *data)
 {
 	PGresult *res;
 	const char *paramValues[5];
@@ -57,9 +58,9 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 	snprintf(d_id, D_ID_LEN, "%d", data->d_id);
 	snprintf(threshold, THRESHOLD_LEN, "%d", data->threshold);
 
-	res = PQexec(dbc->conn, "BEGIN;");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -67,10 +68,10 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 
 	paramValues[0] = d_w_id;
 	paramValues[1] = d_id;
-	res = PQexecParams(dbc->conn, STOCK_LEVEL_1, 2, NULL, paramValues, NULL,
-			NULL, 0);
+	res = PQexecParams(dbc->library.libpq.conn, STOCK_LEVEL_1, 2, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -94,10 +95,10 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 	paramValues[2] = threshold;
 	paramValues[3] = ol_o_id1;
 	paramValues[4] = ol_o_id2;
-	res = PQexecParams(dbc->conn, STOCK_LEVEL_2, 5, NULL, paramValues, NULL,
-			NULL, 0);
+	res = PQexecParams(dbc->library.libpq.conn, STOCK_LEVEL_2, 5, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

@@ -24,14 +24,14 @@
 #include "odbc_integrity.h"
 #endif /* ODBC */
 
-#if defined(LIBPQ) || defined(COCKROACH)
+#ifdef HAVE_LIBPQ
 #include "libpq_delivery.h"
 #include "libpq_order_status.h"
 #include "libpq_payment.h"
 #include "libpq_stock_level.h"
 #include "libpq_new_order.h"
 #include "libpq_integrity.h"
-#endif /* defined(LIBPQ) || defined(COCKROACH) */
+#endif /* HAVE_LIBPQ */
 
 
 #ifdef LIBMYSQL
@@ -65,7 +65,7 @@
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
 
-	rc = _connect_to_db(dbc);
+	rc = (*dbc->connect)(dbc);
 	if (rc != OK) {
 		return ERROR;
 	}
@@ -73,59 +73,10 @@ int connect_to_db(struct db_context_t *dbc) {
 	return OK;
 }
 
-#ifdef ODBC
-int db_init(char *sname, char *uname, char *auth)
-#endif /* ODBC */
-#if defined(LIBPQ) || defined(COCKROACH)
-int db_init(char *_dbname, char *_pghost, char *_pgport)
-#endif /* defined(LIBPQ) || defined(COCKROACH) */
-#ifdef LIBMYSQL
-int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
-             char * _mysql_pass, char * _mysql_port, char * _mysql_socket)
-#endif /* LIBMYSQL */
-#ifdef LIBDRIZZLE
-int db_init(char * _drizzle_dbname, char *_drizzle_host, char * _drizzle_user,
-             char * _drizzle_pass, char * _drizzle_port, char * _drizzle_socket)
-#endif /* LIBDRIZZLE */
-#ifdef LIBSQLITE
-int db_init(char *_dbname)
-#endif /* LIBSQLITE */
-
-{
-	int rc;
-
-#ifdef ODBC
-	rc = _db_init(sname, uname, auth);
-#endif /* ODBC */
-
-#if defined(LIBPQ) || defined(COCKROACH)
-	rc = _db_init(_dbname, _pghost, _pgport);
-#endif /* defined(LIBPQ) || defined(COCKROACH) */
-
-#ifdef LIBMYSQL
-        rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,
-                      _mysql_port, _mysql_socket);
-#endif /* LIBMYSQL */
-
-#ifdef LIBDRIZZLE
-        rc = _db_init(_drizzle_dbname, _drizzle_host, _drizzle_user, _drizzle_pass, _drizzle_port, _drizzle_socket);
-#endif /* LIBDRIZZLE */
-
-#ifdef LIBSQLITE
-	rc = _db_init(_dbname);
-#endif /* LIBSQLITE */
-
-	return rc;
-}
-
 int disconnect_from_db(struct db_context_t *dbc) {
 	int rc;
 
-#ifdef ODBC
-	/* ODBC _disconnect_from_db() is halting for some reason. */
-	return OK;
-#endif /* ODBC */
-	rc = _disconnect_from_db(dbc);
+	rc = (*dbc->disconnect)(dbc);
 	if (rc != OK) {
 		return ERROR;
 	}
@@ -142,10 +93,10 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 
 	switch (transaction) {
 	case INTEGRITY:
-		rc = execute_integrity(dbc, &td->integrity);
+		rc = (*dbc->execute_integrity)(dbc, &td->integrity);
 		break;
 	case DELIVERY:
-		rc = execute_delivery(dbc, &td->delivery);
+		rc = (*dbc->execute_delivery)(dbc, &td->delivery);
 		break;
 	case NEW_ORDER:
 		td->new_order.o_all_local = 1;
@@ -156,7 +107,7 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 				break;
 			}
 		}
-		rc = execute_new_order(dbc, &td->new_order);
+		rc = (*dbc->execute_new_order)(dbc, &td->new_order);
 		if (rc != ERROR && td->new_order.rollback == 0) {
 			/*
 			 * Calculate the adjusted total_amount here to work
@@ -173,13 +124,13 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 		}
 		break;
 	case ORDER_STATUS:
-		rc = execute_order_status(dbc, &td->order_status);
+		rc = (*dbc->execute_order_status)(dbc, &td->order_status);
 		break;
 	case PAYMENT:
-		rc = execute_payment(dbc, &td->payment);
+		rc = (*dbc->execute_payment)(dbc, &td->payment);
 		break;
 	case STOCK_LEVEL:
-		rc = execute_stock_level(dbc, &td->stock_level);
+		rc = (*dbc->execute_stock_level)(dbc, &td->stock_level);
 		break;
 	default:
 		LOG_ERROR_MESSAGE("unknown transaction type %d", transaction);
@@ -188,9 +139,9 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 
 	/* Commit or rollback the transaction. */
 	if (rc == OK) {
-		status = commit_transaction(dbc);
+		status = (*dbc->commit_transaction)(dbc);
 	} else {
-		status = rollback_transaction(dbc);
+		status = (*dbc->rollback_transaction)(dbc);
 	}
 
 	return status;

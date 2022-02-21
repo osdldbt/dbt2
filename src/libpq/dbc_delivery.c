@@ -16,7 +16,7 @@
 
 #define UDF_DELIVERY "SELECT * FROM delivery($1, $2)"
 
-int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
+int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data)
 {
 	PGresult *res;
 	const char *paramValues[2];
@@ -40,18 +40,18 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 	paramValues[1] = (char *) &o_carrier_id;
 
 	/* Start a transaction block. */
-	res = PQexec(dbc->conn, "BEGIN");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	PQclear(res);
 
-	res = PQexecParams(dbc->conn, UDF_DELIVERY, 2, NULL, paramValues,
+	res = PQexecParams(dbc->library.libpq.conn, UDF_DELIVERY, 2, NULL, paramValues,
 			paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("D %s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("D %s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

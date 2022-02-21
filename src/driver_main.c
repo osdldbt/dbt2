@@ -2,8 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Jenny Zhang &
- *                    Open Source Development Lab, Inc.
+ * Copyright (C) 2002 Jenny Zhang & Open Source Development Lab, Inc.
+ *               2002-2022 Mark Wong
  *
  * 5 august 2002
  */
@@ -27,9 +27,9 @@ char sname[32] = "";
 int exiting = 0;
 #endif /* STANDALONE */
 
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 char postmaster_port[32];
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 
 #ifdef LIBMYSQL
 char dbt2_mysql_port[32];
@@ -53,18 +53,18 @@ int main(int argc, char *argv[])
 		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-altered 0] [-spread #] [-z]",
 			argv[0]);
 #ifdef STANDALONE
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 		printf(" -z #");
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 #endif /* STANDALONE */
 		printf("\n\n");
 #ifdef STANDALONE
 		printf("-dbname <connect_string>\n");
 		printf("\tdatabase connect string\n");
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 		printf("-z #\n");
 		printf("\tpostmaster listener port\n");
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 #ifdef LIBMYSQL
 		printf("-z #\n");
 		printf("\tmysql server listener port\n");
@@ -258,10 +258,10 @@ int parse_arguments(int argc, char *argv[])
 		flag = argv[i] + 1;
 		if (strcmp(flag, "d") == 0) {
 			set_client_hostname(argv[i + 1]);
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 		} else if (strcmp(flag, "z") == 0) {
 			strcpy(postmaster_port, argv[i + 1]);
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 #ifdef LIBMYSQL
 		} else if (strcmp(flag, "z") == 0) {
 			strcpy(dbt2_mysql_port, argv[i + 1]);

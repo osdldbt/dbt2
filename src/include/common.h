@@ -31,10 +31,12 @@
 #define DB_PASS ""
 #endif /* ODBC || LIBMYSQL || LIBDRIZZLE */
 
-#if defined(COCKROACH) || defined(LIBPQ) || defined(LIBMYSQL) || \
-		defined(LIBDRIZZLE)
 #define DB_NAME "dbt2"
-#endif /* COCKROACH || LIBPQ || LIBMYSQL || LIBDRIZZLE */
+
+/* Julian-date equivalents of Day 0 in Unix and Postgres reckoning */
+#define POSTGRES_EPOCH_JDATE 2451545 /* == date2j(2000, 1, 1) */
+#define UNIX_EPOCH_JDATE 2440588 /* == date2j(1970, 1, 1) */
+#define SECS_PER_DAY 86400
 
 /* Julian-date equivalents of Day 0 in Unix and Postgres reckoning */
 #define POSTGRES_EPOCH_JDATE 2451545 /* == date2j(2000, 1, 1) */

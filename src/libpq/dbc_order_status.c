@@ -19,7 +19,7 @@
 
 #define UDF_ORDER_STATUS "SELECT * FROM order_status($1, $2, $3, $4)"
 
-int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
+int execute_order_status_libpq(struct db_context_t *dbc, struct order_status_t *data)
 {
 	PGresult *res;
 	const char *paramValues[4];
@@ -55,18 +55,18 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	paramLengths[3] = strlen(c_last);
 
 	/* Start a transaction block. */
-	res = PQexec(dbc->conn, "BEGIN");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	PQclear(res);
 
-	res = PQexecParams(dbc->conn, UDF_ORDER_STATUS, 4, NULL, paramValues,
-			paramLengths, paramFormats, 1);
+	res = PQexecParams(dbc->library.libpq.conn, UDF_ORDER_STATUS, 4, NULL,
+			paramValues, paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("OS %s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("OS %s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

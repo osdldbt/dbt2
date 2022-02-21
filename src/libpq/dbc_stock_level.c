@@ -16,7 +16,7 @@
 
 #define UDF_STOCK_LEVEL "SELECT * FROM stock_level($1, $2, $3)"
 
-int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
+int execute_stock_level_libpq(struct db_context_t *dbc, struct stock_level_t *data)
 {
 	PGresult *res;
 	const char *paramValues[3];
@@ -45,18 +45,18 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 	paramValues[2] = (char *) &threshold;
 
 	/* Start a transaction block. */
-	res = PQexec(dbc->conn, "BEGIN");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	PQclear(res);
 
-	res = PQexecParams(dbc->conn, UDF_STOCK_LEVEL, 3, NULL, paramValues,
-			paramLengths, paramFormats, 1);
+	res = PQexecParams(dbc->library.libpq.conn, UDF_STOCK_LEVEL, 3, NULL,
+			paramValues, paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("SL %s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("SL %s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

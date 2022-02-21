@@ -71,7 +71,7 @@
 		"        $7 || '    ' || $8)\n" \
 		"RETURNING h_date"
 
-int execute_payment(struct db_context_t *dbc, struct payment_t *data)
+int execute_payment_cockroach(struct db_context_t *dbc, struct payment_t *data)
 {
 	PGresult *res;
 	const char *paramValues[8];
@@ -99,9 +99,9 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 	snprintf(w_id, W_ID_LEN, "%d", data->w_id);
 	snprintf(h_amount, H_AMOUNT_LEN, "%f", data->h_amount);
 
-	res = PQexec(dbc->conn, "BEGIN;");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -109,10 +109,10 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 
 	paramValues[0] = h_amount;
 	paramValues[1] = w_id;
-	res = PQexecParams(dbc->conn, PAYMENT_1, 2, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, PAYMENT_1, 2, NULL, paramValues,
+			NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -146,10 +146,10 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 	paramValues[0] = h_amount;
 	paramValues[1] = d_id;
 	paramValues[2] = w_id;
-	res = PQexecParams(dbc->conn, PAYMENT_2, 3, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, PAYMENT_2, 3, NULL, paramValues,
+			NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -185,10 +185,10 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 		paramValues[0] = c_w_id;
 		paramValues[1] = c_d_id;
 		paramValues[2] = c_last;
-		res = PQexecParams(dbc->conn, PAYMENT_3, 3, NULL, paramValues, NULL, NULL,
-				0);
+		res = PQexecParams(dbc->library.libpq.conn, PAYMENT_3, 3, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -215,10 +215,10 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 	paramValues[0] = c_w_id;
 	paramValues[1] = c_d_id;
 	paramValues[2] = c_id;
-	res = PQexecParams(dbc->conn, PAYMENT_4, 3, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, PAYMENT_4, 3, NULL, paramValues,
+			NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -276,8 +276,8 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 		paramValues[1] = c_id;
 		paramValues[2] = c_w_id;
 		paramValues[3] = c_d_id;
-		res = PQexecParams(dbc->conn, PAYMENT_5_GC, 4, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, PAYMENT_5_GC, 4, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 			LOG_ERROR_MESSAGE("P5GC Error: %s\n"
 					"P5GC %s\n"
@@ -285,7 +285,7 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 					"P5GC c_id = %s\n"
 					"P5GC c_w_id = %s\n"
 					"P5GC c_d_id = %s",
-					PQerrorMessage(dbc->conn),
+					PQerrorMessage(dbc->library.libpq.conn),
 					PAYMENT_5_GC, h_amount, c_id, c_w_id, c_d_id);
 			PQclear(res);
 			return ERROR;
@@ -301,10 +301,10 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 		paramValues[2] = c_id;
 		paramValues[3] = c_w_id;
 		paramValues[4] = c_d_id;
-		res = PQexecParams(dbc->conn, PAYMENT_5_BC, 5, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, PAYMENT_5_BC, 5, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -336,10 +336,10 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 	paramValues[5] = h_amount;
 	paramValues[6] = w_name;
 	paramValues[7] = d_name;
-	res = PQexecParams(dbc->conn, PAYMENT_6, 8, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, PAYMENT_6, 8, NULL, paramValues,
+			NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

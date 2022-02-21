@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002      Open Source Development Lab, Inc.
+ *               2002-2022 Mark Wong
  *
  * 25 june 2002
  */
@@ -25,6 +26,7 @@
 #include "listener.h"
 #include "_socket.h"
 #include "transaction_queue.h"
+#include "db.h"
 
 /* Function Prototypes */
 int parse_arguments(int argc, char *argv[]);
@@ -43,9 +45,9 @@ char dbt2_user[128] = DB_USER;
 char dbt2_pass[128] = DB_PASS;
 #endif
 
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 char postmaster_port[32] = "5432";
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 
 #ifdef LIBMYSQL
 char dbt2_mysql_host[128];
@@ -71,6 +73,8 @@ int main(int argc, char *argv[])
 	if (parse_arguments(argc, argv) != OK) {
 		printf("usage: %s -d <db_name> -c # [-p #]\n", argv[0]);
 		printf("\n");
+		printf("-a <dbms>\n");
+		printf("\tcockroach|drizzle|mysql|pgsql|yugabyte\n");
 		printf("-f\n");
 		printf("\tset force sleep\n");
 		printf("-c #\n");
@@ -82,14 +86,14 @@ int main(int argc, char *argv[])
 		printf("-d <db_name>\n");
 		printf("\tdatabase connect string\n");
 #endif /* ODBC */
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 		printf("-d <hostname>\n");
 		printf("\tdatabase hostname\n");
 		printf("-l #\n");
 		printf("\tpostmaster port\n");
                 printf("-b <dbname>\n");
                 printf("\tdatabase name\n");
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 #ifdef LIBMYSQL
 		printf("-h <hostname of mysql server>\n");
 		printf("\tname of host where mysql server is running\n");
@@ -199,7 +203,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:b:l:o:p:s:t:h:u:a:f",
+		c = getopt_long(argc, argv, "a:c:d:b:l:o:p:s:t:h:u:a:f",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -207,6 +211,16 @@ int parse_arguments(int argc, char *argv[])
 
 		switch (c) {
 		case 0:
+			break;
+		case 'a':
+			if (strcmp(optarg, "cockroach") == 0)
+				dbms = DBMSCOCKROACH;
+			else if (strcmp(optarg, "pgsql") == 0)
+				dbms = DBMSLIBPQ;
+			else {
+				printf("unrecognized dbms option: %s\n", optarg);
+				exit(1);
+			}
 			break;
 		case 'c':
 			db_connections = atoi(optarg);
@@ -221,7 +235,7 @@ int parse_arguments(int argc, char *argv[])
 			force_sleep=1;
 			break;
 		case 'l':
-#if defined(LIBPQ)
+#if defined(HAVE_LIBPQ)
 			strcpy(postmaster_port, optarg);
 #endif
 #if defined(LIBMYSQL)

@@ -34,7 +34,7 @@
 		"($45, $46, $47), " \
 		"($48, $49, $50))"
 
-int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
+int execute_new_order_libpq(struct db_context_t *dbc, struct new_order_t *data)
 {
 	int i;
 	PGresult *res;
@@ -63,9 +63,9 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	uint32_t ol_quantity[15];
 
 	/* Start a transaction block. */
-	res = PQexec(dbc->conn, "BEGIN");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -118,11 +118,11 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		paramLengths[(i * 3) + 7] = 0;
 	}
 
-	res = PQexecParams(dbc->conn, UDF_NEW_ORDER, 50, NULL, paramValues,
-			paramLengths, paramFormats, 1);
+	res = PQexecParams(dbc->library.libpq.conn, UDF_NEW_ORDER, 50, NULL,
+			paramValues, paramLengths, paramFormats, 1);
 	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
 		data->rollback = 0;
-		LOG_ERROR_MESSAGE("NO %s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("NO %s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}

@@ -72,7 +72,8 @@ const char s_dist[10][11] = {
 	"s_dist_06", "s_dist_07", "s_dist_08", "s_dist_09", "s_dist_10"
 };
 
-int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
+int execute_new_order_cockroach(struct db_context_t *dbc,
+		struct new_order_t *data)
 {
 	PGresult *res;
 	const char *paramValues[9];
@@ -105,19 +106,19 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	snprintf(o_all_local, O_ALL_LOCAL_LEN, "%d", data->o_all_local);
 	snprintf(w_id, W_ID_LEN, "%d", data->w_id);
 
-	res = PQexec(dbc->conn, "BEGIN;");
+	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	PQclear(res);
 
 	paramValues[0] = w_id;
-	res = PQexecParams(dbc->conn, NEW_ORDER_1, 1, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_1, 1, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -136,10 +137,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	PQclear(res);
 
 	paramValues[1] = d_id;
-	res = PQexecParams(dbc->conn, NEW_ORDER_2, 2, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_2, 2, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -163,10 +164,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	PQclear(res);
 
 	paramValues[2] = c_id;
-	res = PQexecParams(dbc->conn, NEW_ORDER_3, 3, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_3, 3, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -194,10 +195,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	paramValues[0] = d_next_o_id;
 	paramValues[1] = w_id;
 	paramValues[2] = d_id;
-	res = PQexecParams(dbc->conn, NEW_ORDER_4, 3, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_4, 3, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -208,10 +209,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	paramValues[3] = c_id;
 	paramValues[4] = o_ol_cnt;
 	paramValues[5] = o_all_local;
-	res = PQexecParams(dbc->conn, NEW_ORDER_5, 6, NULL, paramValues, NULL, NULL,
-			0);
+	res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_5, 6, NULL,
+			paramValues, NULL, NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
@@ -220,10 +221,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		snprintf(ol_i_id, I_ID_LEN, "%d", data->order_line[i].ol_i_id);
 
 		paramValues[0] = ol_i_id;
-		res = PQexecParams(dbc->conn, NEW_ORDER_6, 1, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_6, 1, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -252,10 +253,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		paramValues[0] = s_dist[data->d_id - 1];
 		paramValues[1] = ol_i_id;
 		paramValues[2] = w_id;
-		res = PQexecParams(dbc->conn, NEW_ORDER_7, 3, paramTypes, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_7, 3, paramTypes,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
@@ -292,10 +293,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		paramValues[0] = qty;
 		paramValues[1] = ol_i_id;
 		paramValues[2] = w_id;
-		res = PQexecParams(dbc->conn, NEW_ORDER_8, 3, NULL, paramValues, NULL,
-				NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_8, 3, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			LOG_ERROR_MESSAGE("NO8 %s\n"
 					"NO8 [%d] decr_quantity = %s"
 					"NO8 [%d] ol_i_id = %s"
@@ -329,10 +330,10 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		paramValues[6] = qty;
 		paramValues[7] = ol_amount;
 		paramValues[8] = my_s_dist;
-		res = PQexecParams(dbc->conn, NEW_ORDER_9, 9, NULL, paramValues,
-				NULL, NULL, 0);
+		res = PQexecParams(dbc->library.libpq.conn, NEW_ORDER_9, 9, NULL,
+				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
-			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->conn));
+			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}

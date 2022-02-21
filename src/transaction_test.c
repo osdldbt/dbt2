@@ -3,7 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002      Open Source Development Labs, Inc.
- *               2002-2021 Mark Wong
+ *               2002-2022 Mark Wong
  *
  * 24 June 2002
  */
@@ -25,15 +25,13 @@
 
 #include "entropy.h"
 
-#ifdef LIBPQ
-char postmaster_port[32];
-#endif /* LIBPQ */
 char connect_str[32] = "";
 int mode_altered = 0;
 
 int main(int argc, char *argv[])
 {
 	int i;
+	int dbms;
 	int transaction = -1;
 	struct db_context_t dbc;
 	union transaction_data_t transaction_data;
@@ -49,21 +47,11 @@ int main(int argc, char *argv[])
 	init_logging();
 
 	if (argc < 3) {
-		printf("usage: %s -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-n #] [-p #]",
+		printf("usage: %s -a <dbms> -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-n #] [-p #]",
 			argv[0]);
-#ifdef LIBPQ
-		printf(" -l #");
-#endif /* LIBPQ */
 		printf("\n\n");
-		printf("-d <connect string>\n");
-#ifdef ODBC
-		printf("\tdatabase connect string\n");
-#endif /* ODBC */
-#ifdef LIBPQ
-		printf("\tdatabase hostname\n");
-		printf("-l #\n");
-		printf("\tport of the postmaster\n");
-#endif /* LIBPQ */
+		printf("-a <dbms>\n");
+		printf("\tcockroach|drizzle|mysql|pgsql|yugabyte\n");
 		printf("-t (d|n|o|p|s)\n");
 		printf("\td = Delivery, n = New-Order, o = Order-Status,\n");
 		printf("\tp = Payment, s = Stock-Level\n");
@@ -82,6 +70,16 @@ int main(int argc, char *argv[])
 		printf("-p #\n");
 		printf("\tport of client program, if -d is used, -d takes the address\n");
 		printf("\tof the client program host system\n");
+#ifdef ODBC
+		printf("\nODBC:\n");
+		printf("-d <connect string>\n");
+		printf("\tdatabase connect string\n");
+#endif /* ODBC */
+#ifdef HAVE_LIBPQ
+		printf("\nPostgreSQL (pgsql: Use env vars to set PGDATABASE etc.):\n");
+		printf("-d <connect string>\n");
+		printf("\tdatabase hostname\n");
+#endif /* HAVE_LIBPQ */
 		return 1;
 	}
 
@@ -90,7 +88,16 @@ int main(int argc, char *argv[])
 			printf("invalid flag: %s\n", argv[i]);
 			return 2;
 		}
-		if (argv[i][1] == 'd') {
+		if (argv[i][1] == 'a') {
+			if (strcmp(argv[i + 1], "cockroach") == 0)
+				dbms = DBMSCOCKROACH;
+			else if (strcmp(argv[i + 1], "pgsql") == 0)
+				dbms = DBMSLIBPQ;
+			else {
+				printf("unrecognized dbms option: %s", argv[i + 1]);
+				exit(1);
+			}
+		} else if (argv[i][1] == 'd') {
 			strcpy(connect_str, argv[i + 1]);
 		} else if (argv[i][1] == 't') {
 			if (argv[i + 1][0] == 'd') {
@@ -120,10 +127,6 @@ int main(int argc, char *argv[])
 			table_cardinality.new_orders = atoi(argv[i + 1]);
 		} else if (argv[i][1] == 'p') {
 			port = atoi(argv[i + 1]);
-#ifdef LIBPQ
-		} else if (argv[i][1] == 'l') {
-			strcpy(postmaster_port, argv[i + 1]);
-#endif /* LIBPQ */
 		} else {
 			printf("invalid flag: %s\n", argv[i]);
 			return 2;
@@ -192,13 +195,46 @@ int main(int argc, char *argv[])
 		 * Process transaction by connecting directly to the database.
 		 */
 		printf("connecting directly to the database...\n");
-#ifdef ODBC
-		db_init(connect_str, DB_USER, DB_PASS);
-#endif /* ODBC */
-#ifdef LIBPQ
-		db_init(DB_NAME, connect_str, postmaster_port);
-#endif /* LIBPQ */
-		if (connect_to_db(&dbc) != OK) {
+		switch(dbms) {
+#ifdef HAVE_LIBDRIZZLE
+		case DBMSLIBDRIZZLE:
+				rc = _db_init(_drizzle_dbname, _drizzle_host, _drizzle_user, _drizzle_pass, _drizzle_port, _drizzle_socket);
+				break;
+#endif /* HAVE_LIBDRIZZLE */
+
+#ifdef HAVE_LIBMYSQL
+		case DBMSLIBMYSQL:
+				rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,
+						_mysql_port, _mysql_socket);
+				break;
+#endif /* HAVE_LIBMYSQL */
+
+#ifdef HAVE_LIBPQ
+		case DBMSCOCKROACH:
+				db_init_cockroach(&dbc, "", connect_str, "");
+				break;
+		case DBMSLIBPQ:
+				db_init_libpq(&dbc, "", connect_str, "");
+				break;
+#endif /* HAVE_LIBPQ */
+
+#ifdef HAVE_LIBSQLITE
+		case DBMSLIBSQLITE:
+				rc = _db_init(_dbname);
+				break;
+#endif /* HAVE_LIBSQLITE */
+
+#ifdef HAVE_ODBC
+		case DBMSODBC:
+				rc = _db_init(sname, uname, auth);
+				break;
+#endif /* HAVE_ODBC */
+
+		default:
+				LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);
+				return ERROR;
+		}
+		if ((*dbc.connect)(&dbc) != OK) {
 			printf("cannot establish a database connection\n");
 			return 6;
 		}

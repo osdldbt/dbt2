@@ -1,5 +1,3 @@
-add_subdirectory (scripts)
-
 #
 # Defining binaries so to minimized typos.
 #
@@ -63,58 +61,49 @@ if (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
     set (NEED_LIBNSL TRUE)
 endif (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
 
-if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
-        DBMS STREQUAL "yugabyte")
-    #
-    # Create PostgreSQL specific configuration.
-    #
+# Determine what DBMS connectivity libraries to build against.
 
-    find_program (PG_CONFIG pg_config)
+# libpq covers CockroachDB, PostgreSQL and YugabyteDB
 
-    if (PG_CONFIG)
-       set (PG_CONFIG_FOUND TRUE)
-    endif (PG_CONFIG)
+find_program (PG_CONFIG pg_config)
+if (PG_CONFIG)
+    set (PG_CONFIG_FOUND TRUE)
 
-    if (PG_CONFIG_FOUND)
-        message (STATUS "Found pg_config for PostgreSQL: ${PG_CONFIG}")
-        if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
-            set (DB_SOURCE
-                    libpq/dbc_common.c
-                    libpq/dbc_delivery.c
-                    libpq/dbc_integrity.c
-                    libpq/dbc_new_order.c
-                    libpq/dbc_order_status.c
-                    libpq/dbc_payment.c
-                    libpq/dbc_stock_level.c
-            )
-        elseif (DBMS STREQUAL "cockroach")
-            set (DB_SOURCE
-                    cockroach/dbc_common.c
-                    cockroach/dbc_delivery.c
-                    cockroach/dbc_integrity.c
-                    cockroach/dbc_new_order.c
-                    cockroach/dbc_order_status.c
-                    cockroach/dbc_payment.c
-                    cockroach/dbc_stock_level.c
-            )
-        endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
-        execute_process (COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
-                PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-        execute_process (COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
-                PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
-            set (DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
-        elseif (DBMS STREQUAL "cockroach")
-            execute_process (COMMAND ${PG_CONFIG} --includedir-server
-                    OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
-                    OUTPUT_STRIP_TRAILING_WHITESPACE)
-            set (DBCFLAGS "-DCOCKROACH -I${PG_INCLUDEDIR} -I${PG_INCLUDEDIR_SERVER}")
-        endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "yugabyte")
-        set (DB_LIBS "-L${PG_LIBDIR}")
-    else (NOT DEFINED PKG_CONFIG_FOUND)
-        message (FATAL_ERROR "pg_config not found in path")
-    endif (PG_CONFIG_FOUND)
-elseif (DBMS STREQUAL "sqlite")
+    execute_process (COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
+            PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+    check_library_exists (pq PQexecParams "${PG_LIBDIR}" HAVE_LIBPQ)
+    set (DBMSFLAGS "${DBMSFLAG} -DHAVE_LIBPQ")
+
+    message (STATUS "Found pg_config (CockroachDB, PostgreSQL and YubabyteDB): "
+            "${PG_CONFIG}")
+    set (DB_SOURCE
+            ${DB_SOURCE}
+            libpq/dbc_common.c
+            libpq/dbc_delivery.c
+            libpq/dbc_integrity.c
+            libpq/dbc_new_order.c
+            libpq/dbc_order_status.c
+            libpq/dbc_payment.c
+            libpq/dbc_stock_level.c
+            cockroach/dbc_common.c
+            cockroach/dbc_delivery.c
+            cockroach/dbc_integrity.c
+            cockroach/dbc_new_order.c
+            cockroach/dbc_order_status.c
+            cockroach/dbc_payment.c
+            cockroach/dbc_stock_level.c
+    )
+    execute_process (COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
+            PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process (COMMAND ${PG_CONFIG} --includedir-server
+            OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
+            OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set (DBCFLAGS "${DBCFLAGS} -I${PG_INCLUDEDIR} -I${PG_INCLUDEDIR_SERVER}")
+    set (DB_LIBS "${DB_LIBS} -L${PG_LIBDIR}")
+endif (PG_CONFIG)
+
+if (DBMS STREQUAL "sqlite")
     find_program (PKG_CONFIG pkg-config)
 
     if (PKG_CONFIG)
@@ -187,10 +176,7 @@ elseif (DBMS STREQUAL "drizzle")
     message (STATUS "Drizzle configuration library flags:  ${DB_LIBS}")
 elseif (DBMS STREQUAL "cpack")
     message (STATUS "prepared for packaging")
-else (NOT DEFINED DBMS)
-    message (FATAL_ERROR "Need to specify -DDBMS=cockroach|drizzle|mysql|pgsql|sqlite|yugabyte")
-endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
-        DBMS STREQUAL "yugabyte")
+endif (DBMS STREQUAL "sqlite")
 
 #
 # Defining common groups of source files.
@@ -253,11 +239,6 @@ endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${CLIENT} nsl)
 endif (NEED_LIBNSL)
-if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
-        DBMS STREQUAL "yugabyte")
-    target_link_libraries (${CLIENT} pq)
-endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
-        DBMS STREQUAL "yugabyte")
 
 add_executable (${DATAGEN} ${PCG_SOURCE} datagen.c common.c)
 target_link_libraries (${DATAGEN} m)
@@ -295,11 +276,11 @@ endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${TXN_TEST} nsl)
 endif (NEED_LIBNSL)
-if (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
-        DBMS STREQUAL "yugabyte")
+
+if (PG_CONFIG)
+    target_link_libraries (${CLIENT} pq)
     target_link_libraries (${TXN_TEST} pq)
-endif (DBMS STREQUAL "pgsql" OR DBMS STREQUAL "cockroach" OR
-        DBMS STREQUAL "yugabyte")
+endif (PG_CONFIG)
 
 #
 # Set compiler flags.
@@ -327,7 +308,7 @@ set_source_files_properties (
         logging.c
         transaction_data.c
         transaction_queue.c
-        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBMSFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         _semaphore.c
@@ -339,7 +320,7 @@ set_source_files_properties (
         db.c
         db_threadpool.c
         transaction_test.c
-        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBMSFLAGS} ${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 
 #
@@ -361,3 +342,5 @@ install (PROGRAMS
          ${CMAKE_BINARY_DIR}/src/${TXN_TEST}
          DESTINATION "bin"
 )
+
+add_subdirectory (scripts)

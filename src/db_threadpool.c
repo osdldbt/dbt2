@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2002-2022 Mark Wong
  *
  * 31 June 2002
  */
@@ -37,6 +38,7 @@ int db_connections = 0;
 int db_conn_sleep = 1000; /* milliseconds */
 int *worker_count;
 time_t *last_txn;
+int dbms;
 
 /* These should probably be handled differently. */
 extern char sname[32];
@@ -53,9 +55,9 @@ extern char dbt2_user[128];
 extern char dbt2_pass[128];
 #endif
 
-#ifdef LIBPQ
+#ifdef HAVE_LIBPQ
 extern char postmaster_port[32];
-#endif /* LIBPQ */
+#endif /* HAVE_LIBPQ */
 
 #ifdef LIBMYSQL
 extern char dbt2_mysql_port[32];
@@ -72,6 +74,7 @@ extern char dbt2_drizzle_socket[256];
 void *db_worker(void *data)
 {
         int id = *((int *) data); /* Whoa... */
+
 #ifndef STANDALONE
         int length;
 #endif /* NOT STANDALONE */
@@ -87,9 +90,6 @@ void *db_worker(void *data)
         printf("connect to ODBC server with parameters: DSN: |%s| user: |%s| pass: |%s|\n", sname, dbt2_user, dbt2_pass);
         db_init(sname, dbt2_user, dbt2_pass);
 #endif /* ODBC */
-#ifdef LIBPQ
-        db_init(dname, sname, postmaster_port);
-#endif /* LIBPQ */
 
 #ifdef LIBMYSQL
        printf("connect to mysql server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
@@ -104,6 +104,49 @@ void *db_worker(void *data)
 #ifdef LIBSQLITE
 		db_init(sname);
 #endif /* LIBSQLITE */
+
+        memset(&dbc, 0, sizeof(struct db_context_t));
+
+        switch(dbms) {
+#ifdef HAVE_LIBDRIZZLE
+        case DBMSLIBDRIZZLE:
+                rc = _db_init(_drizzle_dbname, _drizzle_host, _drizzle_user, _drizzle_pass, _drizzle_port, _drizzle_socket);
+                break;
+#endif /* HAVE_LIBDRIZZLE */
+
+#ifdef HAVE_LIBMYSQL
+        case DBMSLIBMYSQL:
+                rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,
+                        _mysql_port, _mysql_socket);
+                break;
+#endif /* HAVE_LIBMYSQL */
+
+#ifdef HAVE_LIBPQ
+        case DBMSCOCKROACH:
+                db_init_cockroach(&dbc, dname, sname, postmaster_port);
+                break;
+        case DBMSLIBPQ:
+                db_init_libpq(&dbc, dname, sname, postmaster_port);
+                break;
+#endif /* HAVE_LIBPQ */
+
+#ifdef HAVE_LIBSQLITE
+        case DBMSLIBSQLITE:
+                rc = _db_init(_dbname);
+                break;
+#endif /* HAVE_LIBSQLITE */
+
+#ifdef HAVE_ODBC
+        case DBMSLIBPQ:
+                rc = _db_init(sname, uname, auth);
+                break;
+#endif /* HAVE_ODBC */
+
+        default:
+                printf("unrecognized dbms code: %d\n", dbms);
+                LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);
+                exit(1);
+        }
 
         if (!exiting && connect_to_db(&dbc) != OK) {
                 LOG_ERROR_MESSAGE("connect_to_db() error, terminating program");
