@@ -35,10 +35,6 @@ char postmaster_port[32];
 char dbt2_mysql_port[32];
 #endif /* LIBMYSQL */
 
-#ifdef LIBDRIZZLE
-char dbt2_drizzle_port[32];
-#endif /* LIBDRIZZLE */
-
 int perform_integrity_check = 0;
 
 int parse_arguments(int argc, char *argv[]);
@@ -69,10 +65,6 @@ int main(int argc, char *argv[])
 		printf("-z #\n");
 		printf("\tmysql server listener port\n");
 #endif /* LIBMYSQL */
-#ifdef LIBDRIZZLE
-		printf("-z #\n");
-		printf("\tdrizzle server listener port\n");
-#endif /* LIBDRIZZLE */
 #else /* STANDALONE */
 		printf("-d <address>\n");
 		printf("\tnetwork address where client program is running\n");
@@ -266,10 +258,6 @@ int parse_arguments(int argc, char *argv[])
 		} else if (strcmp(flag, "z") == 0) {
 			strcpy(dbt2_mysql_port, argv[i + 1]);
 #endif /* LIBMYSQL */
-#ifdef LIBDRIZZLE
-		} else if (strcmp(flag, "z") == 0) {
-			strcpy(dbt2_drizzle_port, argv[i + 1]);
-#endif /* LIBDRIZZLE */
 		} else if (strcmp(flag, "p") == 0) {
 			set_client_port(atoi(argv[i + 1]));
 		} else if (strcmp(flag, "L") == 0) {

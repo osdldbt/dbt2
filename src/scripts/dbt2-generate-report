@@ -171,8 +171,6 @@ if [ "${DBMS}" = "pgsql" ]; then
 	done
 elif [ "${DBMS}" = "mysql" ]; then
 	warning "Charting for MySQL database statistics not implementd"
-elif [ "${DMBS}" = "drizzle" ]; then
-	warning "Charting for Drizzle database statistics not implementd"
 elif [ "${DBMS}" = "sqlite" ]; then
 	warning "Charting for SQLite database statistics not implementd"
 else

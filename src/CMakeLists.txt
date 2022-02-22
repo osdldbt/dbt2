@@ -148,32 +148,6 @@ elseif (DBMS STREQUAL "mysql")
                 DB_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
         set (DBCFLAGS "-DLIBMYSQL ${MYSQL_INCLUDEDIR}")
     endif (MYSQL_CONFIG_FOUND)
-elseif (DBMS STREQUAL "drizzle")
-    #
-    # Create Drizzle specific configuration.
-    #
-
-    set (DB_SOURCE src/drizzle/dbc_common.c
-                       src/nonsp/dbc_new_order.c
-                       src/nonsp/dbc_payment.c
-                       src/nonsp/dbc_order_status.c
-                       src/nonsp/dbc_delivery.c
-                       src/nonsp/dbc_stock_level.c
-                       src/nonsp/dbc_nonsp.c
-                       src/nonsp/dbc_integrity.c)
-
-    if (NOT DEFINED DRIZZLE_INCLUDEDIR)
-        set (DRIZZLE_INCLUDEDIR /usr/local/include )
-    endif (NOT DEFINED DRIZZLE_INCLUDEDIR)
-
-    if (NOT DEFINED DRIZZLE_LIBS)
-        set (DB_LIBS "-ldrizzle")
-    endif (NOT DEFINED DRIZZLE_LIBS)
-
-    set (DBCFLAGS "-DLIBDRIZZLE -I${DRIZZLE_INCLUDEDIR}")
-
-    message (STATUS "Drizzle configuration build flags :  ${DBCFLAGS}")
-    message (STATUS "Drizzle configuration library flags:  ${DB_LIBS}")
 elseif (DBMS STREQUAL "cpack")
     message (STATUS "prepared for packaging")
 endif (DBMS STREQUAL "sqlite")

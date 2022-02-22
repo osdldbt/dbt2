@@ -2,6 +2,7 @@ vX.Y.Z
 
 - Refactor client code for libpq to automatically build support if libraries
   exist
+- Remove support for Drizzle; discontinued since 2016
 
 v0.45.1
 

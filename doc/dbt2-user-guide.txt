@@ -37,7 +37,6 @@ The database management systems that are currently supported are:
 
 Databases management systems that have worked in the past but are not current:
 
-* Drizzle
 * MySQL
 * SAP DB
 
@@ -326,7 +325,7 @@ example:
                    [-z comment] [-n]
 
 |====================================================================
-|-a   |Specify the RDBMS to test. [drizzle,mysql,pgsql,sapdb,sqlite]
+|-a   |Specify the RDBMS to test. [mysql,pgsql,sapdb,sqlite]
 |-c   |Specify the number of database connections to open.
 |-d   |Duration to execute test in seconds.
 |-n   |Execute all transactions without think or keying time.

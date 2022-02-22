@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 			argv[0]);
 		printf("\n\n");
 		printf("-a <dbms>\n");
-		printf("\tcockroach|drizzle|mysql|pgsql|yugabyte\n");
+		printf("\tcockroach|mysql|pgsql|yugabyte\n");
 		printf("-t (d|n|o|p|s)\n");
 		printf("\td = Delivery, n = New-Order, o = Order-Status,\n");
 		printf("\tp = Payment, s = Stock-Level\n");
@@ -196,12 +196,6 @@ int main(int argc, char *argv[])
 		 */
 		printf("connecting directly to the database...\n");
 		switch(dbms) {
-#ifdef HAVE_LIBDRIZZLE
-		case DBMSLIBDRIZZLE:
-				rc = _db_init(_drizzle_dbname, _drizzle_host, _drizzle_user, _drizzle_pass, _drizzle_port, _drizzle_socket);
-				break;
-#endif /* HAVE_LIBDRIZZLE */
-
 #ifdef HAVE_LIBMYSQL
 		case DBMSLIBMYSQL:
 				rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,

@@ -8,8 +8,6 @@ if (DBMS STREQUAL "sqlite")
 	add_subdirectory (sqlite)
 elseif (DBMS STREQUAL "mysql")
 	add_subdirectory (mysql)
-elseif (DBMS STREQUAL "drizzle")
-	add_subdirectory (drizzle)
 endif (DBMS STREQUAL "sqlite")
 
 install (

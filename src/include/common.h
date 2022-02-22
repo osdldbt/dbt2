@@ -26,10 +26,10 @@
 
 #include "pcg_variants.h"
 
-#if defined(ODBC) || defined(LIBMYSQL) || defined(LIBDRIZZLE)
+#if defined(ODBC) || defined(LIBMYSQL)
 #define DB_USER "dbt"
 #define DB_PASS ""
-#endif /* ODBC || LIBMYSQL || LIBDRIZZLE */
+#endif /* ODBC || LIBMYSQL */
 
 #define DB_NAME "dbt2"
 

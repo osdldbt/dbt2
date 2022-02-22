@@ -40,7 +40,7 @@ int sockfd;
 int exiting = 0;
 int force_sleep = 0;
 
-#if defined(LIBMYSQL) || defined(ODBC) || defined(LIBDRIZZLE)
+#if defined(LIBMYSQL) || defined(ODBC)
 char dbt2_user[128] = DB_USER;
 char dbt2_pass[128] = DB_PASS;
 #endif
@@ -55,12 +55,6 @@ char dbt2_mysql_port[32];
 char dbt2_mysql_socket[256];
 #endif /* LIBMYSQL */
 
-#ifdef LIBDRIZZLE
-char dbt2_drizzle_host[128];
-char dbt2_drizzle_port[32];
-char dbt2_drizzle_socket[256];
-#endif /* LIBDRIZZLE */
-
 int startup();
 
 int main(int argc, char *argv[])
@@ -74,7 +68,7 @@ int main(int argc, char *argv[])
 		printf("usage: %s -d <db_name> -c # [-p #]\n", argv[0]);
 		printf("\n");
 		printf("-a <dbms>\n");
-		printf("\tcockroach|drizzle|mysql|pgsql|yugabyte\n");
+		printf("\tcockroach|mysql|pgsql|yugabyte\n");
 		printf("-f\n");
 		printf("\tset force sleep\n");
 		printf("-c #\n");
@@ -104,19 +98,9 @@ int main(int argc, char *argv[])
 		printf("-t <socket>\n");
 		printf("\tsocket for connection to mysql server\n");
 #endif /* LIBMYSQL */
-#ifdef LIBDRIZZLE
-		printf("-h <hostname of drizzle server>\n");
-		printf("\tname of host where drizzle server is running\n");
-		printf("-d <db_name>\n");
-		printf("\tdatabase name\n");
-		printf("-l #\n");
-		printf("\tport number to use for connection to drizzle server\n");
-		printf("-t <socket>\n");
-		printf("\tsocket for connection to drizzle server\n");
-#endif /* LIBDRIZZLE */
 		printf("-s #\n");
 		printf("\tseconds to sleep between openning db connections, default 1 s\n");
-#if defined(LIBMYSQL) || defined(ODBC) || defined (LIBDRIZZLE)
+#if defined(LIBMYSQL) || defined(ODBC)
 		printf("-u <db user>\n");
 		printf("-a <db password>\n");
 #endif
@@ -137,7 +121,7 @@ int main(int argc, char *argv[])
 		return 3;
 	}
 
-#if defined(LIBMYSQL) || defined(ODBC) || defined(LIBDRIZZLE)
+#if defined(LIBMYSQL) || defined(ODBC)
 	printf("User %s Pass %s\n", dbt2_user, dbt2_pass);
 #endif
 
@@ -241,19 +225,11 @@ int parse_arguments(int argc, char *argv[])
 #if defined(LIBMYSQL)
 			strcpy(dbt2_mysql_port, optarg);
 #endif
-#if defined(LIBDRIZZLE)
-			strcpy(dbt2_drizzle_port, optarg);
-#endif
-
 			break;
 		case 'h':
 #if defined(LIBMYSQL)
 			strcpy(dbt2_mysql_host, optarg);
 #endif
-#if defined(LIBDRIZZLE)
-			strcpy(dbt2_drizzle_host, optarg);
-#endif
-
 			break;
 		case 'o':
 			strcpy(output_path, optarg);
@@ -269,7 +245,7 @@ int parse_arguments(int argc, char *argv[])
 			strcpy(dbt2_mysql_socket, optarg);
 #endif
 			break;
-#if defined(LIBMYSQL) || defined(ODBC) || defined(LIBDRIZZLE)
+#if defined(LIBMYSQL) || defined(ODBC)
 		case 'u':
 			strncpy(dbt2_user, optarg, 127);
 			break;

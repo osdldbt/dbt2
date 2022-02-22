@@ -40,10 +40,6 @@ struct db_context_libpq {
 #include "mysql_common.h"
 #endif /* LIBMYSQL */
 
-#ifdef LIBDRIZZLE
-#include "drizzle_common.h"
-#endif /* LIBDRIZZLE */
-
 #ifdef LIBSQLITE
 #include "sqlite_common.h"
 #endif /* LIBSQLITE */
@@ -82,11 +78,6 @@ int db_init(char *_dbname, char *_pghost, char *_pgport);
 int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
             char * _mysql_pass, char * _mysql_port, char * _mysql_socket);
 #endif /* LIBMYSQL */
-
-#ifdef LIBDRIZZLE
-int db_init(char * _drizzle_dbname, char *_drizzle_host, char * _drizzle_user,
-            char * _drizzle_pass, char * _drizzle_port, char * _drizzle_socket);
-#endif /* LIBDRIZZLE */
 
 int disconnect_from_db(struct db_context_t *);
 int process_transaction(int, struct db_context_t *, union transaction_data_t *);

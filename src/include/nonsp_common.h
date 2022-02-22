@@ -23,10 +23,6 @@
 #include "mysql_common.h"
 #endif
 
-#ifdef LIBDRIZZLE
-#include "drizzle_common.h"
-#endif
-
 #ifdef LIBSQLITE
 #include "sqlite_common.h"
 #endif

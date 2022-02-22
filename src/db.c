@@ -53,15 +53,6 @@
 #include "nonsp_integrity.h"
 #endif /* LIBSQLITE */
 
-#ifdef LIBDRIZZLE
-#include "drizzle_delivery.h"
-#include "drizzle_order_status.h"
-#include "drizzle_payment.h"
-#include "drizzle_stock_level.h"
-#include "drizzle_new_order.h"
-#include "drizzle_integrity.h"
-#endif /* LIBDRIZZLE */
-
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
 

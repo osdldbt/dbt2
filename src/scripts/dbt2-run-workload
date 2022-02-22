@@ -337,9 +337,6 @@ usage()
 	echo "  -y            database server is a service"
 	echo "  -z COMMENT    comments to save for the test"
 	echo
-	echo "Drizzle options:"
-	echo "  -i PATH    drizzle working or installation directory"
-	echo
 	echo "MySQL options:"
 	echo "  -U USER        database user"
 	echo "  -x PASSWORD    database password"
@@ -349,7 +346,6 @@ usage()
 	echo
 	echo "DBMS options are:"
 	echo "  cockroach  CockroachDB"
-	echo "  drizzle    Drizzle"
 	echo "  mysql      MySQL"
 	echo "  pgsql      PostgreSQL"
 	echo "  sqlite     SQLite"
@@ -412,12 +408,6 @@ while getopts "Aa:b:C:c:D:d:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
 	h)
 		usage
 		exit 1
-		;;
-	i)
-		# installation or working directory where drizzled and drizzle can be
-		# found
-		WORKING_DIR=${OPTARG}
-		MISC_ARG="${MISC_ARG} -w ${WORKING_DIR}"
 		;;
 	L)
 		TERMINALS_LIMIT="$OPTARG"
@@ -492,7 +482,7 @@ fi
 
 if [ "x${DBMS}" = "x" ]; then
 	echo -n "specify which dbms system to test using -a "
-	echo "<cockroach|drizzle|mysql|pgsql|sqlite>"
+	echo "<cockroach|mysql|pgsql|sqlite>"
 	exit 1
 fi
 
@@ -536,11 +526,6 @@ fi
 
 if [ ! "x${DB_PORT}" = "x" ]; then
 	DB_PORT_ARG="-l ${DB_PORT}"
-
-	# Drizzle specific handling of passing around non-standard port.
-	if [ "x${DBMS}" = "xdrizzle" ]; then
-		MISC_ARG="${MISC_ARG} ${DB_PORT_ARG}"
-	fi
 fi
 
 CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
@@ -619,7 +604,7 @@ echo "DBT-2 test for ${DBMS} started..."
 echo ""
 echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
 if [ "${DBMS}" = "cockroach" ] || [ "${DBMS}" = "pgsql" ] || \
-		[ "${DBMS}" = "mysql" ] || [ "${DBMS}" = "drizzle" ]; then
+		[ "${DBMS}" = "mysql" ]; then
 	echo "DATABASE NAME: ${DBNAME}"
 fi
 
@@ -675,8 +660,6 @@ echo "Stage 1. Starting up client..."
 echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
 if [ ${DBMS} = "cockroach" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME} -b ${DBNAME}"
-elif [ ${DBMS} = "drizzle" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME} -d ${DBNAME} -u root"
 elif [ ${DBMS} = "mysql" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"

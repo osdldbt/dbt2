@@ -3,7 +3,6 @@ Building DBT-2:
 	make release DBMS=<DBMS>
 
     DBMS options are:
-      drizzle  Drizzle
       mysql    MySQL
       pgsql    PostgreSQL
       sqlite   SQLite

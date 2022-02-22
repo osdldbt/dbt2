@@ -38,7 +38,6 @@
 #define MODE_SAPDB 0
 #define MODE_PGSQL 1
 #define MODE_MYSQL 2
-#define MODE_DRIZZLE 3
 
 #define MODE_FLAT 0
 #define MODE_DIRECT 1
@@ -81,15 +80,13 @@ int partitions = 1; /* How many partitions of data. */
 #define FPRINTF(a, b, c) \
 	if (mode_string == MODE_SAPDB) { \
 		METAPRINTF((a, "\""b"\"", c)); \
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || \
-			mode_string == MODE_DRIZZLE) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
 		METAPRINTF((a, b, c)); \
 	}
 #define FPRINTF2(a, b) \
 	if (mode_string == MODE_SAPDB) { \
 		METAPRINTF((a, "\""b"\"")); \
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || \
-			mode_string == MODE_DRIZZLE) { \
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) { \
 		METAPRINTF((a, b)); \
 	}
 
@@ -99,8 +96,7 @@ void print_timestamp(FILE *ofile, struct tm *date)
 		METAPRINTF((ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
 				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 				date->tm_hour, date->tm_min, date->tm_sec));
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL || \
-			mode_string == MODE_DRIZZLE) {
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		METAPRINTF((ofile, "%04d-%02d-%02d %02d:%02d:%02d",
 				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 				date->tm_hour, date->tm_min, date->tm_sec));
@@ -1036,19 +1032,10 @@ void gen_orders()
 				METAPRINTF((order, "%c", delimiter));
 
 				/* o_carrier_id */
-				if (mode_string == MODE_DRIZZLE) {
-					/*
-					 * FIXME: Not to spec but Drizzle doesn't handle null
-					 * value for when reading from a file for now
-					 */
+				if (k < 2101) {
 					FPRINTF(order, "%d", (int) get_random(&rng, 9) + 1);
-				}
-				else {
-					if (k < 2101) {
-						FPRINTF(order, "%d", (int) get_random(&rng, 9) + 1);
-					} else {
-						METAPRINTF((order, "%s", null_str));
-					}
+				} else {
+					METAPRINTF((order, "%s", null_str));
 				}
 				METAPRINTF((order, "%c", delimiter));
 
@@ -1094,29 +1081,18 @@ void gen_orders()
 					METAPRINTF((order_line, "%c", delimiter));
 
 					/* ol_delivery_d */
-					if (mode_string == MODE_DRIZZLE) {
-						/*
-						 * FIXME: Not to spec but Drizzle doesn't handle null
-						 * value for when reading from a file for now
-						 */
+					if (k < 2101) {
+					/*
+					 * Milliseconds are not
+					 * calculated.  This should
+					 * also be the time when the
+					 * data is loaded, I think.
+					 */
 						time(&t1);
 						tm1 = localtime(&t1);
 						print_timestamp(order_line, tm1);
-					}
-					else  {
-						if (k < 2101) {
-						/*
-						 * Milliseconds are not
-						 * calculated.  This should
-						 * also be the time when the
-						 * data is loaded, I think.
-						 */
-							time(&t1);
-							tm1 = localtime(&t1);
-							print_timestamp(order_line, tm1);
-						} else {
-							METAPRINTF((order_line, "%s", null_str));
-						}
+					} else {
+						METAPRINTF((order_line, "%s", null_str));
 					}
 					METAPRINTF((order_line, "%c", delimiter));
 
@@ -1538,7 +1514,6 @@ int main(int argc, char *argv[])
 		printf("    -d <path> - output path of data files\n");
 		printf("    --seed <int> - set random number generation seed\n");
 		printf("    --table <table> - set random number generation seed\n");
-		printf("    --drizzle - format data for Drizzle\n");
 		printf("    --mysql - format data for MySQL\n");
 		printf("    --pgsql - format data for PostgreSQL\n");
 		printf("    --sapdb - format data for SAP DB\n");
@@ -1563,7 +1538,6 @@ int main(int argc, char *argv[])
 			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
 			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
 			{ "mysql", no_argument, &mode_string, MODE_MYSQL },
-			{ "drizzle", no_argument, &mode_string, MODE_DRIZZLE },
 			{ 0, 0, 0, 0 }
 		};
 
@@ -1669,7 +1643,6 @@ int main(int argc, char *argv[])
 		switch (mode_string) {
 		case MODE_SAPDB:
 		case MODE_MYSQL:
-		case MODE_DRIZZLE:
 			printf("the rdbms select does not support direct loading\n");
 			return 4;
 		}
@@ -1679,8 +1652,7 @@ int main(int argc, char *argv[])
 	if (mode_string == MODE_SAPDB) {
 		delimiter = ',';
 		strcpy(null_str, "\"NULL\"");
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL ||
-			mode_string == MODE_DRIZZLE) {
+	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		delimiter = '\t';
 		strcpy(null_str, "");
 	}
