@@ -4,7 +4,7 @@
 # Please see # the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002-2008 Open Source Development Labs, Inc.
-# Copyright (C) 2002-2021 Mark Wong
+#               2002-2022 Mark Wong
 #
 
 if [ -z ${DBT2DBNAME} ]; then
@@ -20,21 +20,31 @@ usage()
 	echo "Options:"
 	echo "    -l <PORT>"
 	echo "        PostgreSQL port"
+	echo "    -p <PARTITION LIST>"
+	echo "        Specific parts to load e.g. \"1 2\", default: all"
 	echo "    -s <SEED>"
 	echo "        User defined functions to install, default: c"
+	echo "    -t <TOTAL PARTITIONS>"
+	echo "        Total number of data partitions, default: detected processors"
 	echo "    -w <WAREHOUSES>"
 	echo "        Number of warehouses to build. Default 1."
 }
 
 SEED=""
 WAREHOUSES=1
-while getopts "l:s:w:" OPT; do
+while getopts "l:p:s:t:w:" OPT; do
 	case ${OPT} in
 	l)
 		PORT=${OPTARG}
 		;;
+	p)
+		PART_CURRENT=$OPTARG
+		;;
 	s)
 		SEED=$OPTARG
+		;;
+	t)
+		TOTAL_PARTS=$OPTARG
 		;;
 	w)
 		WAREHOUSES=$OPTARG
@@ -75,8 +85,20 @@ load_table() {
 		fi
 	fi
 
-	for i in `seq 1 $CPUS`; do
-		run_datagen $CPUS $i $TABLE $WAREHOUSES $SEED &
+	if [ "x${TOTAL_PARTS}" = "x" ]; then
+		T=$CPUS
+	else
+		T=$TOTAL_PARTS
+	fi
+
+	if [ "x${PART_CURRENT}" = "x" ]; then
+		P=`seq 1 $CPUS`
+	else
+		P=$PART_CURRENT
+	fi
+
+	for i in $P; do
+		run_datagen $T $i $TABLE $WAREHOUSES $SEED &
 	done
 	wait
 }
