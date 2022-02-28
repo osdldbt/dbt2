@@ -2,22 +2,24 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
 
+#include <string.h>
 #include <nonsp_order_status.h>
 
-int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
+int execute_order_status_nonsp(struct db_context_t *dbc, struct order_status_t *data)
 {
         int rc;
 
         int nvals=9;
         char * vals[9];
 
-        rc= order_status(dbc, data, vals, nvals);
+        rc= order_status_nonsp(dbc, data, vals, nvals);
          
         if (rc == -1 )
         {
@@ -33,14 +35,14 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 }
 
 
-int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** vals, int  nvals)
+int order_status_nonsp(struct db_context_t *dbc, struct order_status_t *data, char ** vals, int  nvals)
 {
 	/* Input variables. */
 	int c_id = data->c_id;
 	int c_w_id = data->c_w_id;
 	int c_d_id = data->c_d_id;
 
-        char c_last[C_LAST_LEN+1];
+	char c_last[4 * (C_LAST_LEN + 1)];
 	char query[512];
 
         struct sql_result_t result;
@@ -71,7 +73,7 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
         dbt2_init_values(ol_amount, 15);
         dbt2_init_values(ol_delivery_d, 15);
 
-        snprintf(c_last, C_LAST_LEN+1, "%s", data->c_last);
+        wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN + 1));
 
 	if (c_id == 0) 
         {
@@ -81,17 +83,17 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
           LOG_ERROR_MESSAGE("ORDER_STATUS_1 %s\n", query);
 #endif
 
-          if (dbt2_sql_execute(dbc, query, &result, "ORDER_STATUS_1") && result.result_set)
+          if ((*dbc->sql_execute)(dbc, query, &result, "ORDER_STATUS_1") && result.library.sqlite.query_running)
           {
 		  // 2.6.2.2 says the (n/2 rounded up)-th row
 #ifdef HAVE_SQL_RESULT_NUM_ROWS
         	unsigned long skip_rows;
             skip_rows=(result.num_rows+1)/2;
 			do {
-              dbt2_sql_fetchrow(dbc, &result);
+              (*dbc->sql_fetchrow)(dbc, &result);
               skip_rows--;
 			} while (skip_rows > 0);
-            vals[TMP_C_ID]= dbt2_sql_getvalue(dbc, &result, 0); //TMP_C_ID
+            vals[TMP_C_ID]= (*dbc->sql_getvalue)(dbc, &result, 0); //TMP_C_ID
 
             if (!vals[TMP_C_ID])
             {
@@ -106,7 +108,7 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
 			int * c_ids_array = c_ids_static_array;
 			int c_ids_alloc_count = 0;
 			int c_ids_result_count = 0;
-			while (dbt2_sql_fetchrow(dbc, &result))
+			while ((*dbc->sql_fetchrow)(dbc, &result))
 			{
 			  if (c_ids_result_count >= 16 
 			      && c_ids_result_count >= c_ids_alloc_count)
@@ -131,7 +133,7 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
 				  }
 				}
 			  }
-			  vals[TMP_C_ID]= dbt2_sql_getvalue(dbc, &result, 0);
+			  vals[TMP_C_ID]= (*dbc->sql_getvalue)(dbc, &result, 0);
 
               if (vals[TMP_C_ID])
               {
@@ -156,7 +158,7 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
               return -1;
 			}
 #endif /* HAVE_SQL_RESULT_NUM_ROWS */
-            dbt2_sql_close_cursor(dbc, &result);
+            (*dbc->sql_close_cursor)(dbc, &result);
 
           }
           else //error
@@ -175,17 +177,17 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("ORDER_STATUS_2 %s\n", query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "ORDER_STATUS_2") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "ORDER_STATUS_2") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
           
-          vals[C_FIRST]= dbt2_sql_getvalue(dbc, &result, 0); //C_FIRST C_MIDDLE MY_C_BALANCE C_BALANCE
-          vals[C_MIDDLE]= dbt2_sql_getvalue(dbc, &result, 1);
-          vals[MY_C_BALANCE]= dbt2_sql_getvalue(dbc, &result, 2);
-          vals[C_BALANCE]= dbt2_sql_getvalue(dbc, &result, 3);
+          vals[C_FIRST]= (*dbc->sql_getvalue)(dbc, &result, 0); //C_FIRST C_MIDDLE MY_C_BALANCE C_BALANCE
+          vals[C_MIDDLE]= (*dbc->sql_getvalue)(dbc, &result, 1);
+          vals[MY_C_BALANCE]= (*dbc->sql_getvalue)(dbc, &result, 2);
+          vals[C_BALANCE]= (*dbc->sql_getvalue)(dbc, &result, 3);
 
           //FIXME: To add checks that vars above are not null
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {
@@ -197,16 +199,16 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("ORDER_STATUS_3 %s\n", query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "ORDER_STATUS_3") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "ORDER_STATUS_3") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
 
-          vals[O_ID]= dbt2_sql_getvalue(dbc, &result, 0); //O_ID O_CARRIER_ID O_ENTRY_D O_OL_CNT
-          vals[O_CARRIER_ID]= dbt2_sql_getvalue(dbc, &result, 1);
-          vals[O_ENTRY_D]= dbt2_sql_getvalue(dbc, &result, 2);
-          vals[O_OL_CNT]= dbt2_sql_getvalue(dbc, &result, 3);
+          vals[O_ID]= (*dbc->sql_getvalue)(dbc, &result, 0); //O_ID O_CARRIER_ID O_ENTRY_D O_OL_CNT
+          vals[O_CARRIER_ID]= (*dbc->sql_getvalue)(dbc, &result, 1);
+          vals[O_ENTRY_D]= (*dbc->sql_getvalue)(dbc, &result, 2);
+          vals[O_OL_CNT]= (*dbc->sql_getvalue)(dbc, &result, 3);
 
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {
@@ -219,19 +221,19 @@ int order_status(struct db_context_t *dbc, struct order_status_t *data, char ** 
         LOG_ERROR_MESSAGE("ORDER_STATUS_4 %s\n", query);
 #endif
 
-        if (dbt2_sql_execute(dbc, query, &result, "ORDER_STATUS_4") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "ORDER_STATUS_4") && result.library.sqlite.query_running)
         {
           i= 0;
-          while (dbt2_sql_fetchrow(dbc, &result))
+          while ((*dbc->sql_fetchrow)(dbc, &result))
           { 
-            ol_i_id[i]= dbt2_sql_getvalue(dbc, &result, 0);
-            ol_supply_w_id[i]= dbt2_sql_getvalue(dbc, &result, 1);
-            ol_quantity[i]= dbt2_sql_getvalue(dbc, &result, 2);
-            ol_amount[i]= dbt2_sql_getvalue(dbc, &result, 3);
-            ol_delivery_d[i]= dbt2_sql_getvalue(dbc, &result, 4);
+            ol_i_id[i]= (*dbc->sql_getvalue)(dbc, &result, 0);
+            ol_supply_w_id[i]= (*dbc->sql_getvalue)(dbc, &result, 1);
+            ol_quantity[i]= (*dbc->sql_getvalue)(dbc, &result, 2);
+            ol_amount[i]= (*dbc->sql_getvalue)(dbc, &result, 3);
+            ol_delivery_d[i]= (*dbc->sql_getvalue)(dbc, &result, 4);
             i++;
           }
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {

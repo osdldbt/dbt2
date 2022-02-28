@@ -103,25 +103,29 @@ if (PG_CONFIG)
     set (DB_LIBS "${DB_LIBS} -L${PG_LIBDIR}")
 endif (PG_CONFIG)
 
-if (DBMS STREQUAL "sqlite")
-    find_program (PKG_CONFIG pkg-config)
+find_package(PkgConfig)
+if (PKGCONFIG_FOUND)
+    #
+    # Check for sqlite3
+    #
 
-    if (PKG_CONFIG)
-       set (PKG_CONFIG_FOUND TRUE)
-    endif (PKG_CONFIG)
+pkg_check_modules(SQLITE3 sqlite3)
+if (SQLITE3_FOUND)
+    set (DB_SOURCE
+        ${DB_SOURCE}
+        sqlite/dbc_common.c
+        nonsp/dbc_new_order.c
+        nonsp/dbc_payment.c
+        nonsp/dbc_order_status.c
+        nonsp/dbc_delivery.c
+        nonsp/dbc_stock_level.c
+        nonsp/dbc_integrity.c
+        nonsp/dbc_nonsp.c
+    )
+    set (DBCFLAGS "${DBCFLAGS} -DHAVE_SQLITE3 ${SQLITE3_CFLAGS}")
+endif (SQLITE3_FOUND)
 
-    if (PKG_CONFIG_FOUND)
-        set (DB_SOURCE src/sqlite/dbc_common.c src/nonsp/dbc_new_order.c
-                src/nonsp/dbc_payment.c src/nonsp/dbc_order_status.c
-                src/nonsp/dbc_delivery.c src/nonsp/dbc_stock_level.c
-                src/nonsp/dbc_integrity.c src/nonsp/dbc_nonsp.c)
-        execute_process (COMMAND ${PKG_CONFIG} --cflags sqlite3 OUTPUT_VARIABLE
-                SQLITE_CFLAGS OUTPUT_STRIP_TRAILING_WHITESPACE)
-        execute_process (COMMAND ${PKG_CONFIG} --libs sqlite3 OUTPUT_VARIABLE
-                DB_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-        set (DBCFLAGS "-DLIBSQLITE ${SQLITE_CFLAGS}")
-    endif (PKG_CONFIG_FOUND)
-elseif (DBMS STREQUAL "mysql")
+if (DBMS STREQUAL "mysql")
     #
     # Create MySQL specific configuration.
     #
@@ -150,7 +154,7 @@ elseif (DBMS STREQUAL "mysql")
     endif (MYSQL_CONFIG_FOUND)
 elseif (DBMS STREQUAL "cpack")
     message (STATUS "prepared for packaging")
-endif (DBMS STREQUAL "sqlite")
+endif (DBMS STREQUAL "mysql")
 
 #
 # Defining common groups of source files.
@@ -255,6 +259,10 @@ if (PG_CONFIG)
     target_link_libraries (${CLIENT} pq)
     target_link_libraries (${TXN_TEST} pq)
 endif (PG_CONFIG)
+if (SQLITE3_FOUND)
+    target_link_libraries (${CLIENT} ${SQLITE3_LIBRARIES})
+    target_link_libraries (${TXN_TEST} ${SQLITE3_LIBRARIES})
+endif (SQLITE3_FOUND)
 
 #
 # Set compiler flags.

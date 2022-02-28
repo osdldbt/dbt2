@@ -2,21 +2,22 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
 
 #include "nonsp_stock_level.h"
 
-int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
+int execute_stock_level_nonsp(struct db_context_t *dbc, struct stock_level_t *data)
 {
         int rc;
         char *  vals[2];
         int nvals=2;
 
-        rc=stock_level(dbc, data, vals, nvals);
+        rc=stock_level_nonsp(dbc, data, vals, nvals);
 
         if (rc == -1 )
         {
@@ -32,7 +33,7 @@ int execute_stock_level(struct db_context_t *dbc, struct stock_level_t *data)
 }
 
 
-int stock_level(struct db_context_t *dbc, struct stock_level_t *data, char ** vals, int nvals)
+int stock_level_nonsp(struct db_context_t *dbc, struct stock_level_t *data, char ** vals, int nvals)
 {
 	/* Input variables. */
 	int w_id = data->w_id;
@@ -55,11 +56,11 @@ int stock_level(struct db_context_t *dbc, struct stock_level_t *data, char ** va
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("STOCK_LEVEL_1 query: %s\n",query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "STOCK_LEVEL_1") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "STOCK_LEVEL_1") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
-          vals[D_NEXT_O_ID] = dbt2_sql_getvalue(dbc, &result, 0); //D_NEXT_O_ID
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
+          vals[D_NEXT_O_ID] = (*dbc->sql_getvalue)(dbc, &result, 0); //D_NEXT_O_ID
+          (*dbc->sql_close_cursor)(dbc, &result);
 
           if (!vals[D_NEXT_O_ID])
           {
@@ -79,12 +80,12 @@ int stock_level(struct db_context_t *dbc, struct stock_level_t *data, char ** va
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("STOCK_LEVEL_2 query: %s\n",query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "STOCK_LEVEL_2") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "STOCK_LEVEL_2") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
 
-          vals[LOW_STOCK]= dbt2_sql_getvalue(dbc, &result, 0); //LOW_STOCK
-          dbt2_sql_close_cursor(dbc, &result);
+          vals[LOW_STOCK]= (*dbc->sql_getvalue)(dbc, &result, 0); //LOW_STOCK
+          (*dbc->sql_close_cursor)(dbc, &result);
 
           if (!vals[LOW_STOCK])
           {
@@ -100,6 +101,6 @@ int stock_level(struct db_context_t *dbc, struct stock_level_t *data, char ** va
 
         dbt2_free_values(vals, nvals);
 
-        return 1;
+        return low_stock;
 }
 

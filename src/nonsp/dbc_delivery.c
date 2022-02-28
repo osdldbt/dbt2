@@ -2,15 +2,18 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002 Open Source Development Labs, Inc.
+ *               2004 Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
 
 #include <nonsp_delivery.h>
 
-int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
+int delivery_nonsp(struct db_context_t *, struct delivery_t *, char **, int);
+
+int execute_delivery_nonsp(struct db_context_t *dbc, struct delivery_t *data)
 {
         int rc;
         int nvals=3;
@@ -18,7 +21,7 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 
         dbt2_init_values(vals, nvals);
 
-        rc=delivery(dbc, data, vals, nvals);
+        rc=delivery_nonsp(dbc, data, vals, nvals);
 
         if (rc == -1 )
         {
@@ -32,7 +35,7 @@ int execute_delivery(struct db_context_t *dbc, struct delivery_t *data)
 	return OK;
 }
 
-int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, int nvals)
+int delivery_nonsp(struct db_context_t *dbc, struct delivery_t *data, char ** vals, int nvals)
 {
 	/* Input variables. */
 	int w_id = data->w_id;
@@ -54,11 +57,11 @@ int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, in
 #ifdef DEBUG_QUERY
           LOG_ERROR_MESSAGE("DELIVERY_1: %s\n",query);
 #endif
-          if (dbt2_sql_execute(dbc, query, &result, "DELIVERY_1") && result.result_set)
+          if ((*dbc->sql_execute)(dbc, query, &result, "DELIVERY_1") && result.library.sqlite.query_running)
           { 
-            dbt2_sql_fetchrow(dbc, &result);
-            vals[NO_O_ID]= (char *)dbt2_sql_getvalue(dbc, &result, 0);  //NO_O_ID
-            dbt2_sql_close_cursor(dbc, &result);
+            (*dbc->sql_fetchrow)(dbc, &result);
+            vals[NO_O_ID]= (char *)(*dbc->sql_getvalue)(dbc, &result, 0);  //NO_O_ID
+            (*dbc->sql_close_cursor)(dbc, &result);
 
             if (!vals[NO_O_ID])
             {
@@ -79,7 +82,7 @@ int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, in
 #ifdef DEBUG_QUERY
             LOG_ERROR_MESSAGE("DELIVERY_2: %s\n",query);
 #endif
-            if (!dbt2_sql_execute(dbc, query, &result, "DELIVERY_2"))
+            if (!(*dbc->sql_execute)(dbc, query, &result, "DELIVERY_2"))
             {
               return -1;
             }
@@ -88,11 +91,11 @@ int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, in
 #ifdef DEBUG_QUERY
             LOG_ERROR_MESSAGE("DELIVERY_3: %s\n",query);
 #endif
-            if (dbt2_sql_execute(dbc, query, &result, "DELIVERY_3") && result.result_set)
+            if ((*dbc->sql_execute)(dbc, query, &result, "DELIVERY_3") && result.library.sqlite.query_running)
             { 
-              dbt2_sql_fetchrow(dbc, &result);
-              vals[O_C_ID]= (char *)dbt2_sql_getvalue(dbc, &result, 0);  //O_C_ID 
-              dbt2_sql_close_cursor(dbc, &result);
+              (*dbc->sql_fetchrow)(dbc, &result);
+              vals[O_C_ID]= (char *)(*dbc->sql_getvalue)(dbc, &result, 0);  //O_C_ID
+              (*dbc->sql_close_cursor)(dbc, &result);
               
               if (!vals[O_C_ID])
               {
@@ -111,7 +114,7 @@ int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, in
             LOG_ERROR_MESSAGE("DELIVERY_4: query %s\n", query);
 #endif
 
-            if (!dbt2_sql_execute(dbc, query, &result, "DELIVERY_4"))
+            if (!(*dbc->sql_execute)(dbc, query, &result, "DELIVERY_4"))
             {
               return -1;
             }
@@ -122,7 +125,7 @@ int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, in
             LOG_ERROR_MESSAGE("DELIVERY_5: query %s\n", query);
 #endif
 
-            if (!dbt2_sql_execute(dbc, query, &result, "DELIVERY_5"))
+            if (!(*dbc->sql_execute)(dbc, query, &result, "DELIVERY_5"))
             {
               return -1;
             }
@@ -132,11 +135,11 @@ int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, in
 #ifdef DEBUG_QUERY
             LOG_ERROR_MESSAGE("DELIVERY_6: query %s\n", query);
 #endif
-            if (dbt2_sql_execute(dbc, query, &result, "DELIVERY_6") && result.result_set)
+            if ((*dbc->sql_execute)(dbc, query, &result, "DELIVERY_6") && result.library.sqlite.query_running)
             { 
-              dbt2_sql_fetchrow(dbc, &result);
-              vals[OL_AMOUNT]= (char *)dbt2_sql_getvalue(dbc, &result, 0);  //OL_AMOUNT
-              dbt2_sql_close_cursor(dbc, &result);
+              (*dbc->sql_fetchrow)(dbc, &result);
+              vals[OL_AMOUNT]= (char *)(*dbc->sql_getvalue)(dbc, &result, 0);  //OL_AMOUNT
+              (*dbc->sql_close_cursor)(dbc, &result);
 
               if (!vals[OL_AMOUNT])
               {
@@ -153,7 +156,7 @@ int delivery(struct db_context_t *dbc, struct delivery_t *data, char ** vals, in
 #ifdef DEBUG_QUERY
             LOG_ERROR_MESSAGE("DELIVERY_7: query %s LEN %d\n", query, strlen(query));
 #endif
-            if (!dbt2_sql_execute(dbc, query, &result, "DELIVERY_7"))
+            if (!(*dbc->sql_execute)(dbc, query, &result, "DELIVERY_7"))
             {
               LOG_ERROR_MESSAGE("DELIVERY_7: OL_AMOUNT: |%s| O_C_ID: |%s| query %s", vals[OL_AMOUNT], 
                                 vals[O_C_ID], query);

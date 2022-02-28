@@ -2,20 +2,23 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
 #include "nonsp_integrity.h"
 
-int execute_integrity(struct db_context_t *dbc, struct integrity_t *data)
+int integrity_nonsp(struct db_context_t *, struct integrity_t *, char **, int);
+
+int execute_integrity_nonsp(struct db_context_t *dbc, struct integrity_t *data)
 {
         int rc;
         char *  vals[1];
         int nvals=1;
 
-        rc=integrity(dbc, data, vals, nvals);
+        rc=integrity_nonsp(dbc, data, vals, nvals);
 
         if (rc == -1 )
         {
@@ -29,7 +32,7 @@ int execute_integrity(struct db_context_t *dbc, struct integrity_t *data)
         return OK;
 }
 
-int integrity(struct db_context_t *dbc, struct integrity_t *data, char ** vals, int nvals)
+int integrity_nonsp(struct db_context_t *dbc, struct integrity_t *data, char ** vals, int nvals)
 {
 	/* Input variables. */
 	int w_id = data->w_id;
@@ -45,11 +48,11 @@ int integrity(struct db_context_t *dbc, struct integrity_t *data, char ** vals, 
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("INTEGRITY_1 query: %s\n",query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "INTEGRITY_1") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "INTEGRITY_1") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
-          vals[W_ID] = dbt2_sql_getvalue(dbc, &result, 0); //W_ID
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
+          vals[W_ID] = (*dbc->sql_getvalue)(dbc, &result, 0); //W_ID
+          (*dbc->sql_close_cursor)(dbc, &result);
 
           if (!vals[W_ID])
           {

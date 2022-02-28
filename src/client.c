@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 		printf("-u <db user>\n");
 		printf("-a <db password>\n");
 #endif
-#ifdef LIBSQLITE
+#ifdef HAVE_SQLITE3
 		printf("-d <db_file>\n");
 		printf("\tpath to database file\n");
 #endif
@@ -201,6 +201,8 @@ int parse_arguments(int argc, char *argv[])
 				dbms = DBMSCOCKROACH;
 			else if (strcmp(optarg, "pgsql") == 0)
 				dbms = DBMSLIBPQ;
+			else if (strcmp(optarg, "sqlite") == 0)
+				dbms = DBMSSQLITE;
 			else {
 				printf("unrecognized dbms option: %s\n", optarg);
 				exit(1);

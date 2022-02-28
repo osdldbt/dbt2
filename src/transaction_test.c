@@ -212,11 +212,11 @@ int main(int argc, char *argv[])
 				break;
 #endif /* HAVE_LIBPQ */
 
-#ifdef HAVE_LIBSQLITE
-		case DBMSLIBSQLITE:
-				rc = _db_init(_dbname);
+#ifdef HAVE_SQLITE3
+		case DBMSSQLITE:
+				db_init_sqlite(&dbc, connect_str);
 				break;
-#endif /* HAVE_LIBSQLITE */
+#endif /* HAVE_SQLITE3 */
 
 #ifdef HAVE_ODBC
 		case DBMSODBC:

@@ -12,8 +12,7 @@
 
 #include "common.h"
 #include "logging.h"
-#include "transaction_data.h"
-
+#include "db.h"
 
 #ifdef ODBC
 #include "odbc_common.h"
@@ -21,10 +20,6 @@
 
 #ifdef LIBMYSQL
 #include "mysql_common.h"
-#endif
-
-#ifdef LIBSQLITE
-#include "sqlite_common.h"
 #endif
 
 void dbt2_escape_str(char *orig_str, char *esc_str);
@@ -84,7 +79,7 @@ int dbt2_free_values(char ** values, int max_values);
 	"FROM warehouse\n" \
 	"WHERE w_id = %d"
 
-#ifndef LIBSQLITE
+#ifndef HAVE_SQLITE3
 #define NEW_ORDER_2 \
 	"SELECT d_tax, d_next_o_id\n" \
 	"FROM district \n" \
@@ -138,7 +133,7 @@ int dbt2_free_values(char ** values, int max_values);
 	"WHERE s_i_id = %d\n" \
 	"  AND s_w_id = %d"
 
-#ifdef LIBSQLITE
+#ifdef HAVE_SQLITE3
 #define NEW_ORDER_10 \
 	"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number,\n" \
 	"                        ol_i_id, ol_supply_w_id, ol_delivery_d,\n" \

@@ -4,11 +4,13 @@ if (PG_CONFIG_FOUND)
 	add_subdirectory (yugabyte)
 endif (PG_CONFIG_FOUND)
 
-if (DBMS STREQUAL "sqlite")
+if (SQLITE3_FOUND)
 	add_subdirectory (sqlite)
-elseif (DBMS STREQUAL "mysql")
+endif (SQLITE3_FOUND)
+
+if (DBMS STREQUAL "mysql")
 	add_subdirectory (mysql)
-endif (DBMS STREQUAL "sqlite")
+endif (DBMS STREQUAL "mysql")
 
 install (
 	PROGRAMS

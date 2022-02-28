@@ -1,7 +1,7 @@
 To build the kit:
 
-    cmake CMakeLists.txt -DDBMS=sqlite
-    make
+    make release
+    cd builds/release
     make install
 
 To create a database:

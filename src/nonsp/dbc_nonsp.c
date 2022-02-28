@@ -2,8 +2,9 @@
  * This file is released under the terms of the Artistic License.
  * Please see the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
@@ -20,7 +21,7 @@ void dbt2_escape_str(char *orig_str, char *esc_str)
 		for (i = 0, j = 0; i < len; i++) {
 			if (orig_str[i] == '\'') {
 	      		esc_str[j++] = '\'';
-#ifndef LIBSQLITE
+#ifndef HAVE_SQLITE3
 	    	} else if (orig_str[i] == '\\') {
 	      		esc_str[j++] = '\\';
 	    	} else if (orig_str[i] == ')') {

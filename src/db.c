@@ -44,14 +44,19 @@
 #endif /* LIBMYSQL */
 
 
-#ifdef LIBSQLITE
+#ifdef HAVE_SQLITE3
 #include "nonsp_delivery.h"
 #include "nonsp_order_status.h"
 #include "nonsp_payment.h"
 #include "nonsp_stock_level.h"
 #include "nonsp_new_order.h"
 #include "nonsp_integrity.h"
-#endif /* LIBSQLITE */
+#endif /* HAVE_SQLITE3 */
+
+const char s_dist[10][11] = {
+	"s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04", "s_dist_05",
+	"s_dist_06", "s_dist_07", "s_dist_08", "s_dist_09", "s_dist_10"
+};
 
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;

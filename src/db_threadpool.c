@@ -90,10 +90,6 @@ void *db_worker(void *data)
        db_init(sname, dbt2_mysql_host , dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
 #endif /* LIBMYSQL */
 
-#ifdef LIBSQLITE
-		db_init(sname);
-#endif /* LIBSQLITE */
-
         memset(&dbc, 0, sizeof(struct db_context_t));
 
         switch(dbms) {
@@ -114,11 +110,11 @@ void *db_worker(void *data)
                 break;
 #endif /* HAVE_LIBPQ */
 
-#ifdef HAVE_LIBSQLITE
-        case DBMSLIBSQLITE:
-                rc = _db_init(_dbname);
+#ifdef HAVE_SQLITE3
+        case DBMSSQLITE:
+                db_init_sqlite(&dbc, sname);
                 break;
-#endif /* HAVE_LIBSQLITE */
+#endif /* HAVE_SQLITE3 */
 
 #ifdef HAVE_ODBC
         case DBMSLIBPQ:

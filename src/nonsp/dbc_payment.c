@@ -2,22 +2,23 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
 
 #include <nonsp_payment.h>
 
-int execute_payment(struct db_context_t *dbc, struct payment_t *data)
+int execute_payment_nonsp(struct db_context_t *dbc, struct payment_t *data)
 {
         int rc;
 
         char * vals[29];
         int nvals=29;
 
-        rc=payment(dbc, data, vals, nvals);
+        rc=payment_nonsp(dbc, data, vals, nvals);
 
         if (rc == -1 )
         {
@@ -32,7 +33,7 @@ int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 	return OK;
 }
 
-int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int  nvals)
+int  payment_nonsp(struct db_context_t *dbc, struct payment_t *data, char ** vals, int  nvals)
 {
 	/* Input variables. */
 	int w_id = data->w_id;
@@ -40,7 +41,7 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
 	int c_id = data->c_id;
 	int c_w_id = data->c_w_id;
 	int c_d_id = data->c_d_id;
-	char c_last[C_LAST_LEN+1];
+	char c_last[4 * (C_LAST_LEN + 1)];
 	float h_amount = data->h_amount;
 
         struct sql_result_t result;
@@ -83,7 +84,7 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
 
         dbt2_init_values(vals, nvals);
 
-        snprintf(c_last, C_LAST_LEN+1, "%s", data->c_last);
+        wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN + 1));
 
 #ifdef DEBUG_INPUT_DATA
         LOG_ERROR_MESSAGE("PAYMENT_INPUT: w_id: %d\n         d_id: %d\n         c_id: %d\n         c_w_id: %d\n         c_d_id: %d\n",w_id,d_id,c_id,c_w_id,c_d_id);
@@ -93,20 +94,20 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("PAYMENT_1 query: %s\n",query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "PAYMENT_1") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "PAYMENT_1") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
 
-          vals[W_NAME]= dbt2_sql_getvalue(dbc, &result, 0);
-          vals[W_STREET_1]= dbt2_sql_getvalue(dbc, &result, 1);
-          vals[W_STREET_2]= dbt2_sql_getvalue(dbc, &result, 2);
-          vals[W_CITY]= dbt2_sql_getvalue(dbc, &result, 3);
-          vals[W_STATE]= dbt2_sql_getvalue(dbc, &result, 4);
-          vals[W_ZIP]= dbt2_sql_getvalue(dbc, &result, 5);
+          vals[W_NAME]= (*dbc->sql_getvalue)(dbc, &result, 0);
+          vals[W_STREET_1]= (*dbc->sql_getvalue)(dbc, &result, 1);
+          vals[W_STREET_2]= (*dbc->sql_getvalue)(dbc, &result, 2);
+          vals[W_CITY]= (*dbc->sql_getvalue)(dbc, &result, 3);
+          vals[W_STATE]= (*dbc->sql_getvalue)(dbc, &result, 4);
+          vals[W_ZIP]= (*dbc->sql_getvalue)(dbc, &result, 5);
                                                            //W_NAME W_STREET_1 W_STREET_2
                                                            //W_CITY W_STATE W_ZIP
 
-          dbt2_sql_close_cursor(dbc, &result);          
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {
@@ -119,7 +120,7 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
         LOG_ERROR_MESSAGE("PAYMENT_2 query: %s\n",query);
 #endif
 
-        if (!dbt2_sql_execute(dbc, query, &result, "PAYMENT_2"))
+        if (!(*dbc->sql_execute)(dbc, query, &result, "PAYMENT_2"))
         {
           return -1;
         }
@@ -130,20 +131,20 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
         LOG_ERROR_MESSAGE("PAYMENT_3 query: %s\n",query);
 #endif
 
-        if (dbt2_sql_execute(dbc, query, &result, "PAYMENT_3") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "PAYMENT_3") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
 
-          vals[D_NAME]= dbt2_sql_getvalue(dbc, &result, 0);
-          vals[D_STREET_1]= dbt2_sql_getvalue(dbc, &result, 1);
-          vals[D_STREET_2]= dbt2_sql_getvalue(dbc, &result, 2);
-          vals[D_CITY]= dbt2_sql_getvalue(dbc, &result, 3);
-          vals[D_STATE]= dbt2_sql_getvalue(dbc, &result, 4);
-          vals[D_ZIP]= dbt2_sql_getvalue(dbc, &result, 5);
+          vals[D_NAME]= (*dbc->sql_getvalue)(dbc, &result, 0);
+          vals[D_STREET_1]= (*dbc->sql_getvalue)(dbc, &result, 1);
+          vals[D_STREET_2]= (*dbc->sql_getvalue)(dbc, &result, 2);
+          vals[D_CITY]= (*dbc->sql_getvalue)(dbc, &result, 3);
+          vals[D_STATE]= (*dbc->sql_getvalue)(dbc, &result, 4);
+          vals[D_ZIP]= (*dbc->sql_getvalue)(dbc, &result, 5);
                                                            //D_NAME D_STREET_1 D_STREET_2
                                                            //D_CITY D_STATE D_ZIP
           
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {
@@ -156,7 +157,7 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
         LOG_ERROR_MESSAGE("PAYMENT_4 query: %s\n", query);
 #endif
 
-        if (!dbt2_sql_execute(dbc, query, &result, "PAYMENT_4"))
+        if (!(*dbc->sql_execute)(dbc, query, &result, "PAYMENT_4"))
         {
           LOG_ERROR_MESSAGE("PAYMENT_4 query: %s", query);
           return -1;
@@ -170,11 +171,11 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
           LOG_ERROR_MESSAGE("PAYMENT_5 query: %s\n", query);
 #endif
 
-          if (dbt2_sql_execute(dbc, query, &result, "PAYMENT_5") && result.result_set)
+          if ((*dbc->sql_execute)(dbc, query, &result, "PAYMENT_5") && result.library.sqlite.query_running)
           {
-            dbt2_sql_fetchrow(dbc, &result);
-            vals[TMP_C_ID]= dbt2_sql_getvalue(dbc, &result, 0);
-            dbt2_sql_close_cursor(dbc, &result);
+            (*dbc->sql_fetchrow)(dbc, &result);
+            vals[TMP_C_ID]= (*dbc->sql_getvalue)(dbc, &result, 0);
+            (*dbc->sql_close_cursor)(dbc, &result);
 
             if (!vals[TMP_C_ID])
             { 
@@ -199,33 +200,33 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("PAYMENT_6 query: %s\n",query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "PAYMENT_6") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "PAYMENT_6") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
                                                             //C_FIRST C_MIDDLE MY_C_LAST
                                                             //C_STREET_1 C_STREET_2 C_CITY
                                                             //C_STATE C_ZIP C_PHONE C_SINCE
                                                             //C_CREDIT C_CREDIT_LIM C_DISCOUNT
                                                             //C_BALANCE C_DATA C_YTD_PAYMENT
                                                             //C_BALANCE and C_YTD_PAYMENT can be NULL
-          vals[C_FIRST]= dbt2_sql_getvalue(dbc, &result, 0);
-          vals[C_MIDDLE]= dbt2_sql_getvalue(dbc, &result, 1);
-          vals[MY_C_LAST]= dbt2_sql_getvalue(dbc, &result, 2);
-          vals[C_STREET_1]= dbt2_sql_getvalue(dbc, &result, 3);
-          vals[C_STREET_2]= dbt2_sql_getvalue(dbc, &result, 4);
-          vals[C_CITY]= dbt2_sql_getvalue(dbc, &result, 5);
-          vals[C_STATE]= dbt2_sql_getvalue(dbc, &result, 6);
-          vals[C_ZIP]= dbt2_sql_getvalue(dbc, &result, 7);
-          vals[C_PHONE]= dbt2_sql_getvalue(dbc, &result, 8);
-          vals[C_SINCE]= dbt2_sql_getvalue(dbc, &result, 9);
-          vals[C_CREDIT]= dbt2_sql_getvalue(dbc, &result, 10);
-          vals[C_CREDIT_LIM]= dbt2_sql_getvalue(dbc, &result, 11);
-          vals[C_DISCOUNT]= dbt2_sql_getvalue(dbc, &result, 12);
-          vals[C_BALANCE]= dbt2_sql_getvalue(dbc, &result, 13);
-          vals[C_DATA]= dbt2_sql_getvalue(dbc, &result, 14);
-          vals[C_YTD_PAYMENT]= dbt2_sql_getvalue(dbc, &result, 15);
+          vals[C_FIRST]= (*dbc->sql_getvalue)(dbc, &result, 0);
+          vals[C_MIDDLE]= (*dbc->sql_getvalue)(dbc, &result, 1);
+          vals[MY_C_LAST]= (*dbc->sql_getvalue)(dbc, &result, 2);
+          vals[C_STREET_1]= (*dbc->sql_getvalue)(dbc, &result, 3);
+          vals[C_STREET_2]= (*dbc->sql_getvalue)(dbc, &result, 4);
+          vals[C_CITY]= (*dbc->sql_getvalue)(dbc, &result, 5);
+          vals[C_STATE]= (*dbc->sql_getvalue)(dbc, &result, 6);
+          vals[C_ZIP]= (*dbc->sql_getvalue)(dbc, &result, 7);
+          vals[C_PHONE]= (*dbc->sql_getvalue)(dbc, &result, 8);
+          vals[C_SINCE]= (*dbc->sql_getvalue)(dbc, &result, 9);
+          vals[C_CREDIT]= (*dbc->sql_getvalue)(dbc, &result, 10);
+          vals[C_CREDIT_LIM]= (*dbc->sql_getvalue)(dbc, &result, 11);
+          vals[C_DISCOUNT]= (*dbc->sql_getvalue)(dbc, &result, 12);
+          vals[C_BALANCE]= (*dbc->sql_getvalue)(dbc, &result, 13);
+          vals[C_DATA]= (*dbc->sql_getvalue)(dbc, &result, 14);
+          vals[C_YTD_PAYMENT]= (*dbc->sql_getvalue)(dbc, &result, 15);
           
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_close_cursor)(dbc, &result);
 
           if (!vals[C_CREDIT])
           {
@@ -246,7 +247,7 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
 #ifdef DEBUG_QUERY
           LOG_ERROR_MESSAGE("PAYMENT_7_GC query: %s\n",query);
 #endif
-          if (!dbt2_sql_execute(dbc, query, &result, "PAYMENT_7_GC"))
+          if (!(*dbc->sql_execute)(dbc, query, &result, "PAYMENT_7_GC"))
           {
             return -1;
           }
@@ -264,7 +265,7 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
           LOG_ERROR_MESSAGE("PAYMENT_7_BC query: %s\n",query);
 #endif
 
-          if (!dbt2_sql_execute(dbc, query, &result, "PAYMENT_7_BC"))
+          if (!(*dbc->sql_execute)(dbc, query, &result, "PAYMENT_7_BC"))
           {
             return -1;
           }
@@ -281,7 +282,7 @@ int  payment(struct db_context_t *dbc, struct payment_t *data, char ** vals, int
         LOG_ERROR_MESSAGE("PAYMENT_8 query: %s\n",query);
 #endif
 
-        if (!dbt2_sql_execute(dbc, query, &result, "PAYMENT_8"))
+        if (!(*dbc->sql_execute)(dbc, query, &result, "PAYMENT_8"))
         {
           return -1;
         }

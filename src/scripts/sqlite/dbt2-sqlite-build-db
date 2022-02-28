@@ -356,7 +356,7 @@ DB_PATH=""
 DB_NAME=""
 
 SQLITE="sqlite3"
-DB_NAME=${DBNAME}
+DB_NAME="./dbt2.sqlite"
 DB_PATH=${DBDATA}
 DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
@@ -399,11 +399,6 @@ mkdir -p $DB_PATH
 if [ ! -d "$DB_PATH" ]; then
   usage "Directory '$DB_PATH' not exists. Please specify
        correct path to data files using -f <absolute path>"
-  exit 1
-fi
-
-if [ "$DB_NAME" == "" ]; then
-  usage "specify database filename using -d <path>"
   exit 1
 fi
 

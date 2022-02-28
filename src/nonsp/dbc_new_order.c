@@ -2,27 +2,23 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
 
 #include <nonsp_new_order.h>
 
-const char s_dist[10][11] = {
-        "s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04", "s_dist_05",
-        "s_dist_06", "s_dist_07", "s_dist_08", "s_dist_09", "s_dist_10"
-};
-
-int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
+int execute_new_order_nonsp(struct db_context_t *dbc, struct new_order_t *data)
 {
         int rc;
 
         char * vals[6];
         int nvals=6;
 
-        rc= new_order(dbc, data, vals, nvals);
+        rc= new_order_nonsp(dbc, data, vals, nvals);
   
         if (rc)
         {
@@ -37,7 +33,7 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 	return OK;
 }
 
-int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals, int nvals)
+int  new_order_nonsp(struct db_context_t *dbc, struct new_order_t *data, char ** vals, int nvals)
 {
 	/* Input variables. */
 	int w_id = data->w_id;
@@ -94,12 +90,12 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("NEW_ORDER_1: %s\n",query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_1") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_1") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
 
-          vals[W_TAX]= dbt2_sql_getvalue(dbc, &result, 0);  //W_TAX
-          dbt2_sql_close_cursor(dbc, &result);
+          vals[W_TAX]= (*dbc->sql_getvalue)(dbc, &result, 0);  //W_TAX
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {
@@ -112,13 +108,13 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
           LOG_ERROR_MESSAGE("NEW_ORDER_2 query: %s\n", query);
 #endif
 
-        if (dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_2") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_2") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
 
-          vals[D_TAX]= dbt2_sql_getvalue(dbc, &result, 0);       //D_TAX
-          vals[D_NEXT_O_ID]= dbt2_sql_getvalue(dbc, &result, 1); //D_NEXT_O_ID
-          dbt2_sql_close_cursor(dbc, &result);          
+          vals[D_TAX]= (*dbc->sql_getvalue)(dbc, &result, 0);       //D_TAX
+          vals[D_NEXT_O_ID]= (*dbc->sql_getvalue)(dbc, &result, 1); //D_NEXT_O_ID
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {
@@ -131,7 +127,7 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
         LOG_ERROR_MESSAGE("NEW_ORDER_3 query: %s\n", query);
 #endif
 
-        if (!dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_3"))
+        if (!(*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_3"))
         {
           return 12;
         }
@@ -141,15 +137,15 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("NEW_ORDER_4: %s\n", query);
 #endif
-        if (dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_4") && result.result_set)
+        if ((*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_4") && result.library.sqlite.query_running)
         {
-          dbt2_sql_fetchrow(dbc, &result);
+          (*dbc->sql_fetchrow)(dbc, &result);
 
-          vals[C_DISCOUNT]= dbt2_sql_getvalue(dbc, &result, 0);  //C_DISCOUNT
-          vals[C_LAST]= dbt2_sql_getvalue(dbc, &result, 1);      //C_LAST
-          vals[C_CREDIT]= dbt2_sql_getvalue(dbc, &result, 2);    //C_CREDIT
+          vals[C_DISCOUNT]= (*dbc->sql_getvalue)(dbc, &result, 0);  //C_DISCOUNT
+          vals[C_LAST]= (*dbc->sql_getvalue)(dbc, &result, 1);      //C_LAST
+          vals[C_CREDIT]= (*dbc->sql_getvalue)(dbc, &result, 2);    //C_CREDIT
           
-          dbt2_sql_close_cursor(dbc, &result);
+          (*dbc->sql_close_cursor)(dbc, &result);
         }
         else //error
         {
@@ -161,7 +157,7 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #ifdef DEBUG_QUERY
           LOG_ERROR_MESSAGE("NEW_ORDER_5 query: %s\n", query);
 #endif
-        if (!dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_5"))
+        if (!(*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_5"))
         {
           return 14;
         }
@@ -171,7 +167,7 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("NEW_ORDER_6 query: %s\n", query);
 #endif
-        if (!dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_6"))
+        if (!(*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_6"))
         {
           return 15;
         }
@@ -187,15 +183,15 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #endif
           if (ol_i_id[i] != 0)
           {
-            if (dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_7") && result.result_set)
+            if ((*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_7") && result.library.sqlite.query_running)
             {
-              dbt2_sql_fetchrow(dbc, &result);
+              (*dbc->sql_fetchrow)(dbc, &result);
 
-              i_price[i]= dbt2_sql_getvalue(dbc, &result, 0);  
-              i_name[i]= dbt2_sql_getvalue(dbc, &result, 1);   
-              i_data[i]= dbt2_sql_getvalue(dbc, &result, 2);   
+              i_price[i]= (*dbc->sql_getvalue)(dbc, &result, 0);
+              i_name[i]= (*dbc->sql_getvalue)(dbc, &result, 1);
+              i_data[i]= (*dbc->sql_getvalue)(dbc, &result, 2);
               
-              dbt2_sql_close_cursor(dbc, &result);
+              (*dbc->sql_close_cursor)(dbc, &result);
             }
             else
             {
@@ -220,15 +216,15 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #ifdef DEBUG_QUERY
           LOG_ERROR_MESSAGE("NEW_ORDER_8 query: %s\n", query);
 #endif
-          if (dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_8") && result.result_set)
+          if ((*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_8") && result.library.sqlite.query_running)
           {
-            dbt2_sql_fetchrow(dbc, &result);
+            (*dbc->sql_fetchrow)(dbc, &result);
 
-            s_quantity[i]= dbt2_sql_getvalue(dbc, &result, 0);
-            my_s_dist[i]= dbt2_sql_getvalue(dbc, &result, 1);
-            s_data[i]= dbt2_sql_getvalue(dbc, &result, 2);
+            s_quantity[i]= (*dbc->sql_getvalue)(dbc, &result, 0);
+            my_s_dist[i]= (*dbc->sql_getvalue)(dbc, &result, 1);
+            s_data[i]= (*dbc->sql_getvalue)(dbc, &result, 2);
 
-            dbt2_sql_close_cursor(dbc, &result);
+            (*dbc->sql_close_cursor)(dbc, &result);
           }
           else //error
           {
@@ -251,7 +247,7 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #ifdef DEBUG_QUERY
           LOG_ERROR_MESSAGE("NEW_ORDER_9 query: %s\n", query);
 #endif
-          if (!dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_9"))
+          if (!(*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_9"))
           {
             LOG_ERROR_MESSAGE("NEW_ORDER_9 query: %s", query);
             rc=17;
@@ -264,7 +260,7 @@ int  new_order(struct db_context_t *dbc, struct new_order_t *data, char ** vals,
 #ifdef DEBUG_QUERY
           LOG_ERROR_MESSAGE("NEW_ORDER_10 query: %s\n", query);
 #endif
-          if (!dbt2_sql_execute(dbc, query, &result, "NEW_ORDER_10"))
+          if (!(*dbc->sql_execute)(dbc, query, &result, "NEW_ORDER_10"))
           {
             LOG_ERROR_MESSAGE("NEW_ORDER_10 query: %s", query);
             rc=18; 

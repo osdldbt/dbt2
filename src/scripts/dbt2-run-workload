@@ -486,7 +486,7 @@ if [ "x${DBMS}" = "x" ]; then
 	exit 1
 fi
 
-if [ "x${DBNAME}" = "x" ]; then
+if [ "x${DBNAME}" = "x" ] && [ ! "x${DBMS}" = "xsqlite" ]; then
 	echo "specify the database name using -D "
 	echo "or by setting the DBT2DBNAME environment variable"
 	exit 1

@@ -40,12 +40,40 @@ struct db_context_libpq {
 #include "mysql_common.h"
 #endif /* LIBMYSQL */
 
-#ifdef LIBSQLITE
-#include "sqlite_common.h"
-#endif /* LIBSQLITE */
+#ifdef HAVE_SQLITE3
+#include <sqlite3.h>
+
+#define SQLITE3_DBNAME_LEN 255
+
+struct db_context_sqlite {
+	char dbname[SQLITE3_DBNAME_LEN + 1];
+	unsigned char inTransaction;
+	sqlite3 *db;
+};
+
+struct sql_result_sqlite
+{
+	unsigned char query_running;
+	unsigned char error;
+	unsigned char prefetched;
+	unsigned int num_fields;
+	sqlite3_stmt * pStmt;
+};
+#endif /* HAVE_SQLITE3 */
 
 #define DBMSCOCKROACH 1
 #define DBMSLIBPQ 2
+#define DBMSSQLITE 3
+
+struct sql_result_t
+{
+	int type;
+	union {
+#ifdef HAVE_SQLITE3
+		struct sql_result_sqlite sqlite;
+#endif /* HAVE_SQLITE3 */
+	} library;
+};
 
 struct db_context_t {
 	int type;
@@ -59,12 +87,22 @@ struct db_context_t {
 	int (*execute_order_status)(struct db_context_t *, struct order_status_t *);
 	int (*execute_payment)(struct db_context_t *, struct payment_t *);
 	int (*execute_stock_level)(struct db_context_t *, struct stock_level_t *);
+	int (*sql_execute)(struct db_context_t *, char *, struct sql_result_t *,
+			char *);
+	int (*sql_fetchrow)(struct db_context_t *, struct sql_result_t *);
+	int (*sql_close_cursor)(struct db_context_t *, struct sql_result_t *);
+	char *(*sql_getvalue)(struct db_context_t *, struct sql_result_t *, int);
 	union {
 #ifdef HAVE_LIBPQ
 		struct db_context_libpq libpq;
 #endif /* HAVE_LIBPQ */
+#ifdef HAVE_SQLITE3
+		struct db_context_sqlite sqlite;
+#endif /* HAVE_SQLITE3 */
 	} library;
 };
+
+extern const char s_dist[10][11];
 
 int connect_to_db(struct db_context_t *);
 #ifdef ODBC
@@ -95,4 +133,19 @@ int db_init_libpq(struct db_context_t *, char *, char *, char *);
 int disconnect_from_db_libpq(struct db_context_t *);
 int rollback_transaction_libpq(struct db_context_t *);
 #endif /* HAVE_LIBPQ */
+
+#ifdef HAVE_SQLITE3
+int commit_transaction_sqlite(struct db_context_t *);
+int connect_to_db_sqlite(struct db_context_t *);
+int db_init_sqlite(struct db_context_t *, char *);
+int disconnect_from_db_sqlite(struct db_context_t *);
+int rollback_transaction_sqlite(struct db_context_t *);
+
+int sql_execute_sqlite(struct db_context_t *, char *, struct sql_result_t *,
+		char *);
+int sql_close_cursor_sqlite(struct db_context_t *, struct sql_result_t *);
+int sql_fetchrow_sqlite(struct db_context_t *, struct sql_result_t *);
+char *sql_getvalue_sqlite(struct db_context_t *, struct sql_result_t *, int);
+#endif /* HAVE_SQLITE3*/
+
 #endif /* _DB_H_ */
