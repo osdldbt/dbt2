@@ -3,10 +3,9 @@ From dbt2-base
 ARG PGVERSION
 
 ENV PATH="/usr/pgsql-${PGVERSION}/bin:$PATH"
+ENV PKG_CONFIG_PATH="/usr/pgsql-${PGVERSION}/lib/pkgconfig"
 
 COPY . /usr/local/src/dbt2
 WORKDIR /usr/local/src/dbt2
-ARG dbms=pgsql
-ENV DBMS="$dbms"
 RUN make release
 RUN (cd builds/release && make install)

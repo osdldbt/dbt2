@@ -17,13 +17,23 @@ GID=`id -g`
 
 DBT2_PATH="/usr/local/src/dbt2"
 
+PGVERSION=13
+which jq > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "install jq to automatically use the latest postgres version"
+	echo "defaulting to version $PGVERSION"
+else
+	PGORG="https://www.postgresql.org/versions.json"
+	PGVERSION=`curl -s $PGORG | jq -r 'sort | .[].major' | tail -n 1`
+fi
+
 docker run --rm -v ${DOCKER_DIR}/..:${DBT2_PATH}:rw -w ${DBT2_PATH} \
 		-u ${UID}:${GID} $DOCKER_TAG make clean
 docker run --rm -v ${DOCKER_DIR}/..:${DBT2_PATH}:rw -w ${DBT2_PATH} \
 		-u ${UID}:${GID} $DOCKER_TAG rm -f CMakeCache.txt || exit 1
 docker run --rm -v ${DOCKER_DIR}/..:${DBT2_PATH}:rw -w ${DBT2_PATH} \
 		-u ${UID}:${GID} $DOCKER_TAG \
-		bash -c 'exec env PATH="/usr/pgsql-13/bin:$PATH" cmake -DDBMS=pgsql . ' \
+		bash -c 'exec env PATH="/usr/pgsql-${PGVERSION}/bin:$PATH" make debug' \
 		|| exit 1
 docker run --rm -v ${DOCKER_DIR}/..:${DBT2_PATH}:rw -w ${DBT2_PATH} \
 		-u ${UID}:${GID} $DOCKER_TAG make

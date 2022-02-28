@@ -9,12 +9,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-DBMS="pgsql"
 PGVERSION=13
-
-if [ $# -ge 1 ]; then
-	DBMS=$1
-fi
 
 which jq > /dev/null 2>&1
 if [ $? -eq 0 ]; then
@@ -27,13 +22,5 @@ TOPDIR=`dirname $0`
 ${TOPDIR}/prepare-image || exit 1
 
 TOPDIR="${TOPDIR}/.."
-docker build --build-arg PGVERSION=$PGVERSION -t dbt2-client-${DBMS} \
+docker build --build-arg PGVERSION=$PGVERSION -t dbt2-client \
 		-f Dockerfile.client ${TOPDIR}
-if [ $? -ne 0 ]; then
-        echo "usage: $0 [DBMS]"
-        echo
-        echo "DBMS options: (default: pgsql)"
-        echo "  pgsql"
-        exit 1
-fi
-

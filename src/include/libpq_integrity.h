@@ -13,7 +13,6 @@
 #define _LIBPQ_INTEGRITY_H_
 
 #include "db.h"
-#include "transaction_data.h"
 
 int execute_integrity_libpq(struct db_context_t *, struct integrity_t *);
 

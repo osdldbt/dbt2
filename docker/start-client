@@ -32,10 +32,10 @@ if [ $# -ge 3 ]; then
 fi
 
 DOCKERDIR=`dirname $0`
-DOCKER_NAME="dbt2-client-${DBMS}-${DATABASE_CONNECTIONS}"
-DOCKER_TAG="dbt2-client-${DBMS}"
+DOCKER_NAME="dbt2-client-${DATABASE_CONNECTIONS}"
+DOCKER_TAG="dbt2-client"
 
-PGDATABASE="dbt2"
+DBNAME="dbt2"
 
 # Use the return code from `docker inspect` to determine if the docker image
 # needs to be created.
@@ -48,7 +48,7 @@ if [ "x$DBMS" = "xpgsql" ]; then
 	docker run -d --rm --name $DOCKER_NAME -p 30000:30000 \
 		-e PGUSER="postgres" \
 		$DOCKER_TAG \
-		dbt2-client -f -c $DATABASE_CONNECTIONS -d $HOST -b $PGDATABASE
+		dbt2-client -a $DBMS -f -c $DATABASE_CONNECTIONS -d $HOST -b $DBNAME
 	RC=$?
 else
 	RC=1

@@ -63,20 +63,12 @@ endif (HAVE_GETHOSTBYADDR AND HAVE_GETHOSTBYNAME AND HAVE_INET_ADDR)
 
 # Determine what DBMS connectivity libraries to build against.
 
+find_package(PkgConfig REQUIRED)
+
 # libpq covers CockroachDB, PostgreSQL and YugabyteDB
 
-find_program (PG_CONFIG pg_config)
-if (PG_CONFIG)
-    set (PG_CONFIG_FOUND TRUE)
-
-    execute_process (COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
-            PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    check_library_exists (pq PQexecParams "${PG_LIBDIR}" HAVE_LIBPQ)
-    set (DBMSFLAGS "${DBMSFLAG} -DHAVE_LIBPQ")
-
-    message (STATUS "Found pg_config (CockroachDB, PostgreSQL and YubabyteDB): "
-            "${PG_CONFIG}")
+pkg_check_modules(LIBPQ libpq)
+if (LIBPQ_FOUND)
     set (DB_SOURCE
             ${DB_SOURCE}
             libpq/dbc_common.c
@@ -94,20 +86,15 @@ if (PG_CONFIG)
             cockroach/dbc_payment.c
             cockroach/dbc_stock_level.c
     )
-    execute_process (COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
-            PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    execute_process (COMMAND ${PG_CONFIG} --includedir-server
+    execute_process (COMMAND pg_config --includedir-server
             OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
             OUTPUT_STRIP_TRAILING_WHITESPACE)
-    set (DBCFLAGS "${DBCFLAGS} -I${PG_INCLUDEDIR} -I${PG_INCLUDEDIR_SERVER}")
-    set (DB_LIBS "${DB_LIBS} -L${PG_LIBDIR}")
-endif (PG_CONFIG)
+    set (DBCFLAGS "${DBCFLAGS} -DHAVE_LIBPQ ${LIBPQ_CFLAGS} -I${PG_INCLUDEDIR_SERVER}")
+endif (LIBPQ_FOUND)
 
-find_package(PkgConfig)
-if (PKGCONFIG_FOUND)
-    #
-    # Check for sqlite3
-    #
+#
+# Check for sqlite3
+#
 
 pkg_check_modules(SQLITE3 sqlite3)
 if (SQLITE3_FOUND)
@@ -255,10 +242,10 @@ if (NEED_LIBNSL)
     target_link_libraries (${TXN_TEST} nsl)
 endif (NEED_LIBNSL)
 
-if (PG_CONFIG)
-    target_link_libraries (${CLIENT} pq)
-    target_link_libraries (${TXN_TEST} pq)
-endif (PG_CONFIG)
+if (LIBPQ_FOUND)
+    target_link_libraries (${CLIENT} ${LIBPQ_LDFLAGS})
+    target_link_libraries (${TXN_TEST} ${LIBPQ_LDFLAGS})
+endif (LIBPQ_FOUND)
 if (SQLITE3_FOUND)
     target_link_libraries (${CLIENT} ${SQLITE3_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${SQLITE3_LIBRARIES})
@@ -290,7 +277,7 @@ set_source_files_properties (
         logging.c
         transaction_data.c
         transaction_queue.c
-        COMPILE_FLAGS "${DBMSFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         _semaphore.c
@@ -302,7 +289,7 @@ set_source_files_properties (
         db.c
         db_threadpool.c
         transaction_test.c
-        COMPILE_FLAGS "${DBMSFLAGS} ${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 
 #

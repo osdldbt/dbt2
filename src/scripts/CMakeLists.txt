@@ -1,8 +1,8 @@
-if (PG_CONFIG_FOUND)
+if (LIBPQ_FOUND)
 	add_subdirectory (cockroach)
 	add_subdirectory (pgsql)
 	add_subdirectory (yugabyte)
-endif (PG_CONFIG_FOUND)
+endif (LIBPQ_FOUND)
 
 if (SQLITE3_FOUND)
 	add_subdirectory (sqlite)
