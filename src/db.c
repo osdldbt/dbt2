@@ -33,16 +33,14 @@
 #include "libpq_integrity.h"
 #endif /* HAVE_LIBPQ */
 
-
-#ifdef LIBMYSQL
+#ifdef HAVE_MYSQL
 #include "mysql_delivery.h"
+#include "mysql_integrity.h"
+#include "mysql_new_order.h"
 #include "mysql_order_status.h"
 #include "mysql_payment.h"
 #include "mysql_stock_level.h"
-#include "mysql_new_order.h"
-#include "mysql_integrity.h"
-#endif /* LIBMYSQL */
-
+#endif /* HAVE_MYSQL */
 
 #ifdef HAVE_SQLITE3
 #include "nonsp_delivery.h"

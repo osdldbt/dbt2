@@ -2,8 +2,9 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
 
@@ -14,7 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 
-int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
+int execute_new_order_mysql(struct db_context_t *dbc, struct new_order_t *data)
 {
 	char stmt[512];
         int rc;
@@ -81,24 +82,24 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
         LOG_ERROR_MESSAGE("execute_new_order stmt: %s\n", stmt);
 #endif
 
-        if (mysql_query(dbc->mysql, stmt))
+        if (mysql_query(dbc->library.mysql.mysql, stmt))
         {
 
-          LOG_ERROR_MESSAGE("mysql reports: SQL: %s,  ERROR: %d %s", stmt, mysql_errno(dbc->mysql) ,
-                            mysql_error(dbc->mysql));
+          LOG_ERROR_MESSAGE("mysql reports: SQL: %s,  ERROR: %d %s", stmt, mysql_errno(dbc->library.mysql.mysql) ,
+                            mysql_error(dbc->library.mysql.mysql));
           return ERROR;
         }
 
         rc= ERROR;
 
-        if (mysql_query(dbc->mysql, "select @rc"))
+        if (mysql_query(dbc->library.mysql.mysql, "select @rc"))
         {
-          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->mysql) ,
-                            mysql_error(dbc->mysql));
+          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->library.mysql.mysql) ,
+                            mysql_error(dbc->library.mysql.mysql));
         }
         else
         {
-          if ((result = mysql_store_result(dbc->mysql)))
+          if ((result = mysql_store_result(dbc->library.mysql.mysql)))
           {
             if ((row = mysql_fetch_row(result)) && (row[0]))
             {
@@ -111,7 +112,7 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
             }
             else
             {
-              fprintf(stderr, "Error: %s\n", mysql_error(dbc->mysql));
+              fprintf(stderr, "Error: %s\n", mysql_error(dbc->library.mysql.mysql));
             }
             mysql_free_result(result);
           }

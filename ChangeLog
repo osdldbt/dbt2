@@ -6,6 +6,8 @@ vX.Y.Z
 - Allow specifying partitioning options in PostgreSQL data load script 
 - Refactor client code for sqlite3 to automatically build support if libraries
   exist
+- Refactor client code for MySQL to automatically build support if libraries
+  exist
 
 v0.45.1
 

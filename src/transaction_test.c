@@ -196,13 +196,6 @@ int main(int argc, char *argv[])
 		 */
 		printf("connecting directly to the database...\n");
 		switch(dbms) {
-#ifdef HAVE_LIBMYSQL
-		case DBMSLIBMYSQL:
-				rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,
-						_mysql_port, _mysql_socket);
-				break;
-#endif /* HAVE_LIBMYSQL */
-
 #ifdef HAVE_LIBPQ
 		case DBMSCOCKROACH:
 				db_init_cockroach(&dbc, "", connect_str, "");
@@ -211,6 +204,14 @@ int main(int argc, char *argv[])
 				db_init_libpq(&dbc, "", connect_str, "");
 				break;
 #endif /* HAVE_LIBPQ */
+
+#ifdef HAVE_MYSQL
+		case DBMSMYSQL:
+				/* TODO: Implement this for MySQL */
+				printf("error: not implemented for mysql");
+				exit(1);
+				break;
+#endif /* HAVE_MYSQL */
 
 #ifdef HAVE_SQLITE3
 		case DBMSSQLITE:

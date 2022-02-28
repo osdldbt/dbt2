@@ -93,6 +93,29 @@ if (LIBPQ_FOUND)
 endif (LIBPQ_FOUND)
 
 #
+# Check for mysqlclient
+#
+
+pkg_check_modules(MYSQLCLIENT mysqlclient)
+if (MYSQLCLIENT_FOUND)
+    #
+    # Create MySQL specific configuration.
+    #
+
+    set (DB_SOURCE
+            ${DB_SOURCE}
+            mysql/dbc_common.c
+            mysql/dbc_delivery.c
+            mysql/dbc_integrity.c
+            mysql/dbc_new_order.c
+            mysql/dbc_order_status.c
+            mysql/dbc_payment.c
+            mysql/dbc_stock_level.c
+    )
+    set (DBCFLAGS "${DBCFLAGS} -DHAVE_MYSQL ${MYSQLCLIENT_CFLAGS}")
+endif (MYSQLCLIENT_FOUND)
+
+#
 # Check for sqlite3
 #
 
@@ -111,37 +134,6 @@ if (SQLITE3_FOUND)
     )
     set (DBCFLAGS "${DBCFLAGS} -DHAVE_SQLITE3 ${SQLITE3_CFLAGS}")
 endif (SQLITE3_FOUND)
-
-if (DBMS STREQUAL "mysql")
-    #
-    # Create MySQL specific configuration.
-    #
-
-    find_program (MYSQL_CONFIG mysql_config)
-
-    if (MYSQL_CONFIG)
-        set (MYSQL_CONFIG_FOUND TRUE)
-    endif (MYSQL_CONFIG)
-
-    if (NOT DEFINED MYSQL)
-        set (MYSQL /usr/bin/sql )
-    endif (NOT DEFINED MYSQL)
-
-    if (MYSQL_CONFIG_FOUND)
-        message (STATUS "Found mysql_config for MySQL: ${MYSQL_CONFIG}")
-        set (DB_SOURCE src/mysql/dbc_common.c src/mysql/dbc_new_order.c
-                src/mysql/dbc_payment.c src/mysql/dbc_order_status.c
-                src/mysql/dbc_delivery.c src/mysql/dbc_stock_level.c
-                src/mysql/dbc_integrity.c)
-        execute_process (COMMAND ${MYSQL_CONFIG} --include OUTPUT_VARIABLE
-                MYSQL_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-        execute_process (COMMAND ${MYSQL_CONFIG} --libs OUTPUT_VARIABLE
-                DB_LIBS OUTPUT_STRIP_TRAILING_WHITESPACE)
-        set (DBCFLAGS "-DLIBMYSQL ${MYSQL_INCLUDEDIR}")
-    endif (MYSQL_CONFIG_FOUND)
-elseif (DBMS STREQUAL "cpack")
-    message (STATUS "prepared for packaging")
-endif (DBMS STREQUAL "mysql")
 
 #
 # Defining common groups of source files.
@@ -246,6 +238,10 @@ if (LIBPQ_FOUND)
     target_link_libraries (${CLIENT} ${LIBPQ_LDFLAGS})
     target_link_libraries (${TXN_TEST} ${LIBPQ_LDFLAGS})
 endif (LIBPQ_FOUND)
+if (MYSQLCLIENT_FOUND)
+    target_link_libraries (${CLIENT} ${MYSQLCLIENT_LIBRARIES})
+    target_link_libraries (${TXN_TEST} ${MYSQLCLIENT_LIBRARIES})
+endif (MYSQLCLIENT_FOUND)
 if (SQLITE3_FOUND)
     target_link_libraries (${CLIENT} ${SQLITE3_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${SQLITE3_LIBRARIES})

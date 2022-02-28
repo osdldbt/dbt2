@@ -2,8 +2,9 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Labs, Inc.
- * Copyright (C) 2004 Alexey Stroganov & MySQL AB.
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ *               2004      Alexey Stroganov & MySQL AB.
+ *               2002-2022 Mark Wong
  *
  */
       
@@ -14,21 +15,24 @@
 
 #include <stdio.h>
 
-int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
+int execute_order_status_mysql(struct db_context_t *dbc, struct order_status_t *data)
 {
 	char stmt[128];
+	char c_last[4 * (C_LAST_LEN +1)];
+
+	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN +1));
 
 	/* Create the query and execute it. */
 	sprintf(stmt, "call order_status(%d, %d, %d, '%s')",
-		data->c_id, data->c_w_id, data->c_d_id, data->c_last);
+		data->c_id, data->c_w_id, data->c_d_id, c_last);
 
 #ifdef DEBUG_QUERY
         LOG_ERROR_MESSAGE("execute_order_status stmt: %s\n", stmt);
 #endif
-        if (mysql_query(dbc->mysql, stmt))
+        if (mysql_query(dbc->library.mysql.mysql, stmt))
         {
-          LOG_ERROR_MESSAGE("mysql reports: SQL STMT %s ERROR: %d %s", stmt,  mysql_errno(dbc->mysql) ,
-                            mysql_error(dbc->mysql));
+          LOG_ERROR_MESSAGE("mysql reports: SQL STMT %s ERROR: %d %s", stmt,  mysql_errno(dbc->library.mysql.mysql) ,
+                            mysql_error(dbc->library.mysql.mysql));
           return ERROR;
         }
 	return OK;

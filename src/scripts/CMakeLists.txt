@@ -8,9 +8,9 @@ if (SQLITE3_FOUND)
 	add_subdirectory (sqlite)
 endif (SQLITE3_FOUND)
 
-if (DBMS STREQUAL "mysql")
+if (MYSQLCLIENT_FOUND)
 	add_subdirectory (mysql)
-endif (DBMS STREQUAL "mysql")
+endif (MYSQLCLIENT_FOUND)
 
 install (
 	PROGRAMS

@@ -36,9 +36,36 @@ struct db_context_libpq {
 };
 #endif /* HAVE_LIBPQ */
 
-#ifdef LIBMYSQL
-#include "mysql_common.h"
-#endif /* LIBMYSQL */
+#ifdef HAVE_MYSQL
+#include <mysql.h>
+
+#define MYSQL_DBNAME_LEN 31
+#define MYSQL_HOST_LEN 31
+#define MYSQL_PASS_LEN 31
+#define MYSQL_PORT_T_LEN 31
+#define MYSQL_SOCKET_T_LEN 255
+#define MYSQL_USER_LEN 31
+
+struct db_context_mysql {
+	MYSQL *mysql;
+	char dbname[MYSQL_DBNAME_LEN + 1];
+	char host[MYSQL_HOST_LEN + 1];
+	char port_t[MYSQL_PORT_T_LEN + 1];
+	char user[MYSQL_USER_LEN + 1];
+	char pass[MYSQL_PASS_LEN + 1];
+	char socket_t[MYSQL_SOCKET_T_LEN + 1];
+};
+
+struct sql_result_mysql
+{
+	MYSQL_RES * result_set;
+	MYSQL_ROW current_row;
+	unsigned int num_fields;
+	unsigned int num_rows;
+	unsigned long * lengths;
+	char * query;
+};
+#endif /* HAVE_MYSQL */
 
 #ifdef HAVE_SQLITE3
 #include <sqlite3.h>
@@ -63,12 +90,16 @@ struct sql_result_sqlite
 
 #define DBMSCOCKROACH 1
 #define DBMSLIBPQ 2
-#define DBMSSQLITE 3
+#define DBMSMYSQL 3
+#define DBMSSQLITE 4
 
 struct sql_result_t
 {
 	int type;
 	union {
+#ifdef HAVE_MYSQL
+		struct sql_result_mysql mysql;
+#endif /* HAVE_MYSQL */
 #ifdef HAVE_SQLITE3
 		struct sql_result_sqlite sqlite;
 #endif /* HAVE_SQLITE3 */
@@ -96,6 +127,9 @@ struct db_context_t {
 #ifdef HAVE_LIBPQ
 		struct db_context_libpq libpq;
 #endif /* HAVE_LIBPQ */
+#ifdef HAVE_MYSQL
+		struct db_context_mysql mysql;
+#endif /* HAVE_MYSQL */
 #ifdef HAVE_SQLITE3
 		struct db_context_sqlite sqlite;
 #endif /* HAVE_SQLITE3 */
@@ -112,10 +146,20 @@ int db_init(char *sname, char *uname, char *auth);
 int db_init(char *_dbname, char *_pghost, char *_pgport);
 #endif /* HAVE_LIBPQ */
 
-#ifdef LIBMYSQL
-int db_init(char * _mysql_dbname, char *_mysql_host, char * _mysql_user,
-            char * _mysql_pass, char * _mysql_port, char * _mysql_socket);
-#endif /* LIBMYSQL */
+#ifdef HAVE_MYSQL
+int commit_transaction_mysql(struct db_context_t *);
+int connect_to_db_mysql(struct db_context_t *);
+int db_init_mysql(struct db_context_t *, char *, char *, char *, char *, char *,
+		char *);
+int disconnect_from_db_mysql(struct db_context_t *);
+int rollback_transaction_mysql(struct db_context_t *);
+
+int sql_execute_mysql(struct db_context_t *, char *, struct sql_result_t *,
+		char *);
+int sql_close_cursor_mysql(struct db_context_t *, struct sql_result_t *);
+int sql_fetchrow_mysql(struct db_context_t *, struct sql_result_t *);
+char *sql_getvalue_mysql(struct db_context_t *, struct sql_result_t *, int);
+#endif /* HAVE_MYSQL */
 
 int disconnect_from_db(struct db_context_t *);
 int process_transaction(int, struct db_context_t *, union transaction_data_t *);

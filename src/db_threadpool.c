@@ -50,7 +50,7 @@ extern FILE *log_mix;
 extern pthread_mutex_t mutex_mix_log;
 #endif /* STANDALONE */
 
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(ODBC)
 extern char dbt2_user[128];
 extern char dbt2_pass[128];
 #endif
@@ -59,11 +59,11 @@ extern char dbt2_pass[128];
 extern char postmaster_port[32];
 #endif /* HAVE_LIBPQ */
 
-#ifdef LIBMYSQL
+#ifdef HAVE_MYSQL
 extern char dbt2_mysql_port[32];
 extern char dbt2_mysql_host[128];
 extern char dbt2_mysql_socket[256];
-#endif /* LIBMYSQL */
+#endif /* HAVE_MYSQL */
 
 void *db_worker(void *data)
 {
@@ -85,21 +85,9 @@ void *db_worker(void *data)
         db_init(sname, dbt2_user, dbt2_pass);
 #endif /* ODBC */
 
-#ifdef LIBMYSQL
-       printf("connect to mysql server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
-       db_init(sname, dbt2_mysql_host , dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
-#endif /* LIBMYSQL */
-
         memset(&dbc, 0, sizeof(struct db_context_t));
 
         switch(dbms) {
-
-#ifdef HAVE_LIBMYSQL
-        case DBMSLIBMYSQL:
-                rc = _db_init(_mysql_dbname, _mysql_host, _mysql_user, _mysql_pass,
-                        _mysql_port, _mysql_socket);
-                break;
-#endif /* HAVE_LIBMYSQL */
 
 #ifdef HAVE_LIBPQ
         case DBMSCOCKROACH:
@@ -109,6 +97,13 @@ void *db_worker(void *data)
                 db_init_libpq(&dbc, dname, sname, postmaster_port);
                 break;
 #endif /* HAVE_LIBPQ */
+
+#ifdef HAVE_MYSQL
+        case DBMSMYSQL:
+                printf("connect to mysql server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
+                db_init_mysql(&dbc, sname, dbt2_mysql_host , dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
+                break;
+#endif /* HAVE_MYSQL */
 
 #ifdef HAVE_SQLITE3
         case DBMSSQLITE:

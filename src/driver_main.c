@@ -31,9 +31,9 @@ int exiting = 0;
 char postmaster_port[32];
 #endif /* HAVE_LIBPQ */
 
-#ifdef LIBMYSQL
+#ifdef HAVE_MYSQL
 char dbt2_mysql_port[32];
-#endif /* LIBMYSQL */
+#endif /* HAVE_MYSQL */
 
 int perform_integrity_check = 0;
 
@@ -61,10 +61,10 @@ int main(int argc, char *argv[])
 		printf("-z #\n");
 		printf("\tpostmaster listener port\n");
 #endif /* HAVE_LIBPQ */
-#ifdef LIBMYSQL
+#ifdef HAVE_MYSQL
 		printf("-z #\n");
 		printf("\tmysql server listener port\n");
-#endif /* LIBMYSQL */
+#endif /* HAVE_MYSQL */
 #else /* STANDALONE */
 		printf("-d <address>\n");
 		printf("\tnetwork address where client program is running\n");
@@ -254,10 +254,10 @@ int parse_arguments(int argc, char *argv[])
 		} else if (strcmp(flag, "z") == 0) {
 			strcpy(postmaster_port, argv[i + 1]);
 #endif /* HAVE_LIBPQ */
-#ifdef LIBMYSQL
+#ifdef HAVE_MYSQL
 		} else if (strcmp(flag, "z") == 0) {
 			strcpy(dbt2_mysql_port, argv[i + 1]);
-#endif /* LIBMYSQL */
+#endif /* HAVE_MYSQL */
 		} else if (strcmp(flag, "p") == 0) {
 			set_client_port(atoi(argv[i + 1]));
 		} else if (strcmp(flag, "L") == 0) {

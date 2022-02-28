@@ -18,10 +18,6 @@
 #include "odbc_common.h"
 #endif
 
-#ifdef LIBMYSQL
-#include "mysql_common.h"
-#endif
-
 void dbt2_escape_str(char *orig_str, char *esc_str);
 int dbt2_init_values(char ** values, int max_values);
 int dbt2_free_values(char ** values, int max_values);

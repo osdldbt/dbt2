@@ -40,7 +40,7 @@ int sockfd;
 int exiting = 0;
 int force_sleep = 0;
 
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(ODBC)
 char dbt2_user[128] = DB_USER;
 char dbt2_pass[128] = DB_PASS;
 #endif
@@ -49,11 +49,11 @@ char dbt2_pass[128] = DB_PASS;
 char postmaster_port[32] = "5432";
 #endif /* HAVE_LIBPQ */
 
-#ifdef LIBMYSQL
+#ifdef HAVE_MYSQL
 char dbt2_mysql_host[128];
 char dbt2_mysql_port[32];
 char dbt2_mysql_socket[256];
-#endif /* LIBMYSQL */
+#endif /* HAVE_MYSQL */
 
 int startup();
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
                 printf("-b <dbname>\n");
                 printf("\tdatabase name\n");
 #endif /* HAVE_LIBPQ */
-#ifdef LIBMYSQL
+#ifdef HAVE_MYSQL
 		printf("-h <hostname of mysql server>\n");
 		printf("\tname of host where mysql server is running\n");
 		printf("-d <db_name>\n");
@@ -97,10 +97,10 @@ int main(int argc, char *argv[])
 		printf("\tport number to use for connection to mysql server\n");
 		printf("-t <socket>\n");
 		printf("\tsocket for connection to mysql server\n");
-#endif /* LIBMYSQL */
+#endif /* HAVE_MYSQL */
 		printf("-s #\n");
 		printf("\tseconds to sleep between openning db connections, default 1 s\n");
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(ODBC)
 		printf("-u <db user>\n");
 		printf("-a <db password>\n");
 #endif
@@ -120,10 +120,6 @@ int main(int argc, char *argv[])
 		printf("-c not used\n");
 		return 3;
 	}
-
-#if defined(LIBMYSQL) || defined(ODBC)
-	printf("User %s Pass %s\n", dbt2_user, dbt2_pass);
-#endif
 
 	/* Ok, let's get started! */
 	init_logging();
@@ -187,7 +183,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "a:c:d:b:l:o:p:s:t:h:u:a:f",
+		c = getopt_long(argc, argv, "A:a:c:d:b:l:o:p:s:t:h:u:a:f",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -224,12 +220,12 @@ int parse_arguments(int argc, char *argv[])
 #if defined(HAVE_LIBPQ)
 			strcpy(postmaster_port, optarg);
 #endif
-#if defined(LIBMYSQL)
+#if defined(HAVE_MYSQL)
 			strcpy(dbt2_mysql_port, optarg);
 #endif
 			break;
 		case 'h':
-#if defined(LIBMYSQL)
+#if defined(HAVE_MYSQL)
 			strcpy(dbt2_mysql_host, optarg);
 #endif
 			break;
@@ -243,15 +239,15 @@ int parse_arguments(int argc, char *argv[])
 			db_conn_sleep = atoi(optarg);
 			break;
 		case 't':
-#if defined(LIBMYSQL)
+#if defined(HAVE_MYSQL)
 			strcpy(dbt2_mysql_socket, optarg);
 #endif
 			break;
-#if defined(LIBMYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(ODBC)
 		case 'u':
 			strncpy(dbt2_user, optarg, 127);
 			break;
-		case 'a':
+		case 'A':
 			strncpy(dbt2_pass, optarg, 127);
 			break;
 #endif
