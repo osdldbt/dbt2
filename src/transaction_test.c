@@ -70,11 +70,11 @@ int main(int argc, char *argv[])
 		printf("-p #\n");
 		printf("\tport of client program, if -d is used, -d takes the address\n");
 		printf("\tof the client program host system\n");
-#ifdef ODBC
+#ifdef HAVE_ODBC
 		printf("\nODBC:\n");
 		printf("-d <connect string>\n");
 		printf("\tdatabase connect string\n");
-#endif /* ODBC */
+#endif /* HAVE_ODBC */
 #ifdef HAVE_LIBPQ
 		printf("\nPostgreSQL (pgsql: Use env vars to set PGDATABASE etc.):\n");
 		printf("-d <connect string>\n");
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 
 #ifdef HAVE_ODBC
 		case DBMSODBC:
-				rc = _db_init(sname, uname, auth);
+				db_init_odbc(connect_str, "", "");
 				break;
 #endif /* HAVE_ODBC */
 

@@ -26,10 +26,10 @@
 
 #include "pcg_variants.h"
 
-#if defined(ODBC) || defined(HAVE_MYSQL)
+#if defined(HAVE_ODBC) || defined(HAVE_MYSQL)
 #define DB_USER "dbt"
 #define DB_PASS ""
-#endif /* ODBC || HAVE_MYSQL */
+#endif /* HAVE_ODBC || HAVE_MYSQL */
 
 #define DB_NAME "dbt2"
 

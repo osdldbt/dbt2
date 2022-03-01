@@ -40,7 +40,7 @@ int sockfd;
 int exiting = 0;
 int force_sleep = 0;
 
-#if defined(HAVE_MYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
 char dbt2_user[128] = DB_USER;
 char dbt2_pass[128] = DB_PASS;
 #endif
@@ -76,10 +76,10 @@ int main(int argc, char *argv[])
 		printf("-p #\n");
 		printf("\tport to listen for incoming connections, default %d\n",
 			CLIENT_PORT);
-#ifdef ODBC
+#ifdef HAVE_ODBC
 		printf("-d <db_name>\n");
 		printf("\tdatabase connect string\n");
-#endif /* ODBC */
+#endif /* HAVE_ODBC */
 #ifdef HAVE_LIBPQ
 		printf("-d <hostname>\n");
 		printf("\tdatabase hostname\n");
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 #endif /* HAVE_MYSQL */
 		printf("-s #\n");
 		printf("\tseconds to sleep between openning db connections, default 1 s\n");
-#if defined(HAVE_MYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
 		printf("-u <db user>\n");
 		printf("-a <db password>\n");
 #endif
@@ -195,6 +195,8 @@ int parse_arguments(int argc, char *argv[])
 		case 'a':
 			if (strcmp(optarg, "cockroach") == 0)
 				dbms = DBMSCOCKROACH;
+			else if (strcmp(optarg, "odbc") == 0)
+				dbms = DBMSODBC;
 			else if (strcmp(optarg, "pgsql") == 0)
 				dbms = DBMSLIBPQ;
 			else if (strcmp(optarg, "sqlite") == 0)
@@ -243,7 +245,7 @@ int parse_arguments(int argc, char *argv[])
 			strcpy(dbt2_mysql_socket, optarg);
 #endif
 			break;
-#if defined(HAVE_MYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
 		case 'u':
 			strncpy(dbt2_user, optarg, 127);
 			break;

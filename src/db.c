@@ -15,14 +15,14 @@
 #include "db.h"
 #include "logging.h"
 
-#ifdef ODBC
+#ifdef HAVE_ODBC
 #include "odbc_delivery.h"
 #include "odbc_order_status.h"
 #include "odbc_payment.h"
 #include "odbc_stock_level.h"
 #include "odbc_new_order.h"
 #include "odbc_integrity.h"
-#endif /* ODBC */
+#endif /* HAVE_ODBC */
 
 #ifdef HAVE_LIBPQ
 #include "libpq_delivery.h"

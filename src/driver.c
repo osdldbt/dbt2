@@ -487,9 +487,9 @@ void *terminal_worker(void *data)
 	pcg64f_srandom_r(&rng, local_seed);
 
 #ifdef STANDALONE
-#ifdef ODBC
+#ifdef HAVE_ODBC
 	db_init(sname, DB_USER, DB_PASS);
-#endif /* ODBC */
+#endif /* HAVE_ODBC */
 #ifdef HAVE_LIBPQ
 	db_init(DB_NAME, sname, postmaster_port);
 #endif /* HAVE_LIBPQ */

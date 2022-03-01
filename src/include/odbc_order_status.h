@@ -4,7 +4,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002      Open Source Development Lab, Inc.
+ *               2002-2022 Mark Wong
  *
  * 16 july 2002
  * Based on TPC-C Standard Specification Revision 5.0.
@@ -13,8 +14,7 @@
 #ifndef _ODBC_ORDER_STATUS_H_
 #define _ODBC_ORDER_STATUS_H_
 
-#include <transaction_data.h>
-#include <odbc_common.h>
+#include "db.h"
 
 #define STMT_ORDER_STATUS \
 	"CALL order_status (?, ?, ?, " \

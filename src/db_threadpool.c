@@ -50,7 +50,7 @@ extern FILE *log_mix;
 extern pthread_mutex_t mutex_mix_log;
 #endif /* STANDALONE */
 
-#if defined(HAVE_MYSQL) || defined(ODBC)
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
 extern char dbt2_user[128];
 extern char dbt2_pass[128];
 #endif
@@ -80,10 +80,6 @@ void *db_worker(void *data)
 #endif /* STANDALONE */
 
         /* Open a connection to the database. */
-#ifdef ODBC
-        printf("connect to ODBC server with parameters: DSN: |%s| user: |%s| pass: |%s|\n", sname, dbt2_user, dbt2_pass);
-        db_init(sname, dbt2_user, dbt2_pass);
-#endif /* ODBC */
 
         memset(&dbc, 0, sizeof(struct db_context_t));
 
@@ -112,8 +108,8 @@ void *db_worker(void *data)
 #endif /* HAVE_SQLITE3 */
 
 #ifdef HAVE_ODBC
-        case DBMSLIBPQ:
-                rc = _db_init(sname, uname, auth);
+        case DBMSODBC:
+                db_init_odbc(sname, "", "");
                 break;
 #endif /* HAVE_ODBC */
 

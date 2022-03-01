@@ -116,6 +116,25 @@ if (MYSQLCLIENT_FOUND)
 endif (MYSQLCLIENT_FOUND)
 
 #
+# Check for unixODBC
+#
+
+pkg_check_modules(ODBC odbc)
+if (ODBC_FOUND)
+    set (DB_SOURCE
+        ${DB_SOURCE}
+        odbc/dbc_common.c
+        odbc/dbc_new_order.c
+        odbc/dbc_payment.c
+        odbc/dbc_order_status.c
+        odbc/dbc_delivery.c
+        odbc/dbc_stock_level.c
+        odbc/dbc_integrity.c
+    )
+    set (DBCFLAGS "${DBCFLAGS} -DHAVE_ODBC ${ODBC_CFLAGS}")
+endif (ODBC_FOUND)
+
+#
 # Check for sqlite3
 #
 
@@ -242,6 +261,10 @@ if (MYSQLCLIENT_FOUND)
     target_link_libraries (${CLIENT} ${MYSQLCLIENT_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${MYSQLCLIENT_LIBRARIES})
 endif (MYSQLCLIENT_FOUND)
+if (ODBC_FOUND)
+    target_link_libraries (${CLIENT} ${ODBC_LIBRARIES})
+    target_link_libraries (${TXN_TEST} ${ODBC_LIBRARIES})
+endif (ODBC_FOUND)
 if (SQLITE3_FOUND)
     target_link_libraries (${CLIENT} ${SQLITE3_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${SQLITE3_LIBRARIES})

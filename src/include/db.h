@@ -17,10 +17,6 @@
 
 #include "transaction_data.h"
 
-#ifdef ODBC
-#include "odbc_common.h"
-#endif /* ODBC */
-
 #ifdef HAVE_LIBPQ
 #include <libpq-fe.h>
 
@@ -67,6 +63,40 @@ struct sql_result_mysql
 };
 #endif /* HAVE_MYSQL */
 
+#ifdef HAVE_ODBC
+#ifdef IODBC
+#include <isql.h>
+#include <isqlext.h>
+#include <isqltypes.h>
+#else /* IODBC */
+#include <sql.h>
+#include <sqlext.h>
+#include <sqltypes.h>
+#endif /* IODBC */
+
+#ifndef SQLLEN
+#define SQLLEN SQLINTEGER
+#endif
+
+#define LOG_ODBC_ERROR(type, handle) \
+		log_odbc_error(__FILE__, __LINE__, type, handle)
+
+struct db_context_odbc {
+	SQLHDBC hdbc;
+	SQLHSTMT hstmt;
+};
+
+struct sql_result_odbc
+{
+	unsigned int current_row;
+	unsigned int result_set;
+	SQLSMALLINT num_fields;
+	SQLLEN num_rows;
+	SQLUINTEGER *lengths;
+	char *query;
+};
+#endif /* HAVE_ODBC */
+
 #ifdef HAVE_SQLITE3
 #include <sqlite3.h>
 
@@ -91,7 +121,8 @@ struct sql_result_sqlite
 #define DBMSCOCKROACH 1
 #define DBMSLIBPQ 2
 #define DBMSMYSQL 3
-#define DBMSSQLITE 4
+#define DBMSODBC 4
+#define DBMSSQLITE 5
 
 struct sql_result_t
 {
@@ -100,6 +131,9 @@ struct sql_result_t
 #ifdef HAVE_MYSQL
 		struct sql_result_mysql mysql;
 #endif /* HAVE_MYSQL */
+#ifdef HAVE_ODBC
+		struct sql_result_odbc odbc;
+#endif /* HAVE_ODBC */
 #ifdef HAVE_SQLITE3
 		struct sql_result_sqlite sqlite;
 #endif /* HAVE_SQLITE3 */
@@ -130,6 +164,9 @@ struct db_context_t {
 #ifdef HAVE_MYSQL
 		struct db_context_mysql mysql;
 #endif /* HAVE_MYSQL */
+#ifdef HAVE_ODBC
+		struct db_context_odbc odbc;
+#endif /* HAVE_ODBC */
 #ifdef HAVE_SQLITE3
 		struct db_context_sqlite sqlite;
 #endif /* HAVE_SQLITE3 */
@@ -139,9 +176,9 @@ struct db_context_t {
 extern const char s_dist[10][11];
 
 int connect_to_db(struct db_context_t *);
-#ifdef ODBC
+#ifdef HAVE_ODBC
 int db_init(char *sname, char *uname, char *auth);
-#endif /* ODBC */
+#endif /* HAVE_ODBC */
 #ifdef HAVE_LIBPQ
 int db_init(char *_dbname, char *_pghost, char *_pgport);
 #endif /* HAVE_LIBPQ */
@@ -177,6 +214,22 @@ int db_init_libpq(struct db_context_t *, char *, char *, char *);
 int disconnect_from_db_libpq(struct db_context_t *);
 int rollback_transaction_libpq(struct db_context_t *);
 #endif /* HAVE_LIBPQ */
+
+#ifdef HAVE_ODBC
+int check_odbc_rc(SQLSMALLINT, SQLHANDLE, SQLRETURN);
+int log_odbc_error(char *, int, SQLSMALLINT, SQLHANDLE);
+int commit_transaction(struct db_context_t *);
+int connect_to_db_odbc(struct db_context_t *);
+int disconnect_from_db_odbc(struct db_context_t *);
+int db_init_odbc(char *, char *, char *);
+int rollback_transaction_odbc(struct db_context_t *);
+
+int sql_execute_odbc(struct db_context_t *, char *, struct sql_result_t *,
+		char *);
+int sql_close_cursor_odbc(struct db_context_t *, struct sql_result_t *);
+int sql_fetchrow_odbc(struct db_context_t *, struct sql_result_t *);
+char *sql_getvalue_odbc(struct db_context_t *, struct sql_result_t *, int);
+#endif /* HAVE_ODBC */
 
 #ifdef HAVE_SQLITE3
 int commit_transaction_sqlite(struct db_context_t *);

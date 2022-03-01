@@ -8,6 +8,8 @@ vX.Y.Z
   exist
 - Refactor client code for MySQL to automatically build support if libraries
   exist
+- Refactor client code for unixODBC to automatically build support if libraries
+  exist
 
 v0.45.1
 
