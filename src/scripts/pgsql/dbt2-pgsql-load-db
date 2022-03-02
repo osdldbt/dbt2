@@ -32,8 +32,12 @@ usage()
 
 SEED=""
 WAREHOUSES=1
-while getopts "l:p:s:t:w:" OPT; do
+while getopts "hl:p:s:t:w:" OPT; do
 	case ${OPT} in
+	h)
+		usage
+		exit 0
+		;;
 	l)
 		PORT=${OPTARG}
 		;;
