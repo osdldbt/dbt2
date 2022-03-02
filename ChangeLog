@@ -10,6 +10,7 @@ vX.Y.Z
   exist
 - Refactor client code for unixODBC to automatically build support if libraries
   exist
+- Fix some issues in CockroachDB transaction code.
 
 v0.45.1
 

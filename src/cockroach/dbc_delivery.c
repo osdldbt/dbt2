@@ -67,8 +67,9 @@ int execute_delivery_cockroach(struct db_context_t *dbc,
 
 	char d_id[D_ID_LEN + 1];
 	char o_carrier_id[O_CARRIER_ID_LEN + 1];
-	char o_id[O_ID_LEN + 1];
 	char ol_amount[OL_AMOUNT_LEN + 1];
+	char o_id[O_ID_LEN + 1];
+	char o_c_id[C_ID_LEN + 1];
 	char w_id[W_ID_LEN + 1];
 
 	int i;
@@ -132,6 +133,15 @@ int execute_delivery_cockroach(struct db_context_t *dbc,
 			PQclear(res);
 			return ERROR;
 		}
+		if (PQntuples(res) == 1)
+			strncpy(o_c_id, PQgetvalue(res, 0, 0), C_ID_LEN);
+		else {
+			LOG_ERROR_MESSAGE("D3 unexpected rows %d", PQntuples(res));
+			LOG_ERROR_MESSAGE("D3 o_carrier_id %s o_id %s w_id %s d_id %s",
+					o_carrier_id, o_id, w_id, d_id);
+			PQclear(res);
+			return ERROR;
+		}
 #ifdef DEBUG
 		for (j = 0; j < PQntuples(res); j++) {
 			LOG_ERROR_MESSAGE("D3[%d][%d] o_c_id %s",
@@ -169,7 +179,7 @@ int execute_delivery_cockroach(struct db_context_t *dbc,
 		PQclear(res);
 
 		paramValues[0] = ol_amount;
-		paramValues[1] = w_id;
+		paramValues[1] = o_c_id;
 		paramValues[2] = w_id;
 		paramValues[3] = d_id;
 		res = PQexecParams(dbc->library.libpq.conn, DELIVERY_6, 4, NULL,

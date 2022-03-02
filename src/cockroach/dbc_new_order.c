@@ -293,8 +293,8 @@ int execute_new_order_cockroach(struct db_context_t *dbc,
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			LOG_ERROR_MESSAGE("NO8 %s\n"
-					"NO8 [%d] decr_quantity = %s"
-					"NO8 [%d] ol_i_id = %s"
+					"NO8 [%d] decr_quantity = %s\n"
+					"NO8 [%d] ol_i_id = %s\n"
 					"NO8 [%d] w_id = %s",
 					NEW_ORDER_8, i, qty, i, ol_i_id, i, w_id);
 			PQclear(res);
@@ -329,6 +329,22 @@ int execute_new_order_cockroach(struct db_context_t *dbc,
 				paramValues, NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
+			LOG_ERROR_MESSAGE("NO8[%d][%d] d_next_o_id %s\n"
+					"NO9[%d] d_id %s\n"
+					"NO9[%d] w_id %s\n"
+					"NO9[%d] ol_number %s\n"
+					"NO9[%d] ol_i_id %s\n"
+					"NO9[%d] ol_supply_w_id %s\n"
+					"NO9[%d] qty %s\n"
+					"NO9[%d] s_dist %s",
+					i, paramValues[0],
+					i, paramValues[1],
+					i, paramValues[2],
+					i, paramValues[3],
+					i, paramValues[4],
+					i, paramValues[5],
+					i, paramValues[6],
+					i, paramValues[7]);
 			PQclear(res);
 			return ERROR;
 		}
