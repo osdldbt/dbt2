@@ -1,4 +1,4 @@
-vX.Y.Z
+v0.45.0
 
 - Fix memory clobbering bug introduced when using libpq functions in binary
   mode
