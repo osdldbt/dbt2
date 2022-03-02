@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+ * Copyright (C) 2002 Open Source Development Lab, Inc.
+ *               2002-2022 Mark Wong
  *
  * 24 june 2002
  */
@@ -42,8 +43,8 @@ int dump(FILE *fp, int type, void *data)
 		fprintf(fp, "d_id = %d\n", ptr.no->d_id);
 		fprintf(fp, "d_tax = %0.4f\n", ptr.no->d_tax);
 		fprintf(fp, "c_id = %d\n", ptr.no->c_id);
-		fprintf(fp, "c_last = %s\n", ptr.no->c_last);
-		fprintf(fp, "c_credit = %s\n", ptr.no->c_credit);
+		fprintf(fp, "c_last = '%s'\n", ptr.no->c_last);
+		fprintf(fp, "c_credit = '%s'\n", ptr.no->c_credit);
 		fprintf(fp, "c_discount = %0.4f\n", ptr.no->c_discount);
 		fprintf(fp, "o_all_local = %d\n", ptr.no->o_all_local);
 		fprintf(fp, "o_ol_cnt = %d\n", ptr.no->o_ol_cnt);
@@ -78,14 +79,14 @@ int dump(FILE *fp, int type, void *data)
 		fprintf(fp, "c_id = %d\n", ptr.os->c_id);
 		fprintf(fp, "c_w_id = %d\n", ptr.os->c_w_id);
 		fprintf(fp, "c_d_id = %d\n", ptr.os->c_d_id);
-		fprintf(fp, "c_first = %s\n", ptr.os->c_first);
-		fprintf(fp, "c_middle = %s\n", ptr.os->c_middle);
+		fprintf(fp, "c_first = '%s'\n", ptr.os->c_first);
+		fprintf(fp, "c_middle = '%s'\n", ptr.os->c_middle);
 		wcstombs(s, ptr.os->c_last, 1024);
-		fprintf(fp, "c_last = %s\n", s);
+		fprintf(fp, "c_last = '%s'\n", s);
 		fprintf(fp, "c_balance = %0.2f\n", ptr.os->c_balance);
 		fprintf(fp, "o_id = %d\n", ptr.os->o_id);
 		fprintf(fp, "o_carrier_id = %d\n", ptr.os->o_carrier_id);
-		fprintf(fp, "o_entry_d = %s\n", ptr.os->o_entry_d);
+		fprintf(fp, "o_entry_d = '%s'\n", ptr.os->o_entry_d);
 		fprintf(fp, "o_ol_cnt = %d\n", ptr.os->o_ol_cnt);
 		fprintf(fp, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d\n");
 		for (i = 0; i < ptr.os->o_ol_cnt; i++) {
@@ -102,38 +103,38 @@ int dump(FILE *fp, int type, void *data)
 		ptr.pa = (struct payment_t *) data;
 		pthread_mutex_lock(&mut);
 		fprintf(fp, "w_id = %d\n", ptr.pa->w_id);
-		fprintf(fp, "w_name = %s\n", ptr.pa->w_name);
-		fprintf(fp, "w_street_1 = %s\n", ptr.pa->w_street_1);
-		fprintf(fp, "w_street_2 = %s\n", ptr.pa->w_street_2);
-		fprintf(fp, "w_city = %s\n", ptr.pa->w_city);
-		fprintf(fp, "w_state = %s\n", ptr.pa->w_state);
-		fprintf(fp, "w_zip = %s\n", ptr.pa->w_zip);
+		fprintf(fp, "w_name = '%s'\n", ptr.pa->w_name);
+		fprintf(fp, "w_street_1 = '%s'\n", ptr.pa->w_street_1);
+		fprintf(fp, "w_street_2 = '%s'\n", ptr.pa->w_street_2);
+		fprintf(fp, "w_city = '%s'\n", ptr.pa->w_city);
+		fprintf(fp, "w_state = '%s'\n", ptr.pa->w_state);
+		fprintf(fp, "w_zip = '%s'\n", ptr.pa->w_zip);
 		fprintf(fp, "d_id = %d\n", ptr.pa->d_id);
-		fprintf(fp, "d_name = %s\n", ptr.pa->d_name);
-		fprintf(fp, "d_street_1 = %s\n", ptr.pa->d_street_1);
-		fprintf(fp, "d_street_2 = %s\n", ptr.pa->d_street_2);
-		fprintf(fp, "d_city = %s\n", ptr.pa->d_city);
-		fprintf(fp, "d_state = %s\n", ptr.pa->d_state);
-		fprintf(fp, "d_zip = %s\n", ptr.pa->d_zip);
+		fprintf(fp, "d_name = '%s'\n", ptr.pa->d_name);
+		fprintf(fp, "d_street_1 = '%s'\n", ptr.pa->d_street_1);
+		fprintf(fp, "d_street_2 = '%s'\n", ptr.pa->d_street_2);
+		fprintf(fp, "d_city = '%s'\n", ptr.pa->d_city);
+		fprintf(fp, "d_state = '%s'\n", ptr.pa->d_state);
+		fprintf(fp, "d_zip = '%s'\n", ptr.pa->d_zip);
 		fprintf(fp, "c_id = %d\n", ptr.pa->c_id);
 		wcstombs(s, ptr.pa->c_last, 1024);
-		fprintf(fp, "c_last = %s\n", s);
+		fprintf(fp, "c_last = '%s'\n", s);
 		fprintf(fp, "c_w_id = %d\n", ptr.pa->c_w_id);
 		fprintf(fp, "c_d_id = %d\n", ptr.pa->c_d_id);
-		fprintf(fp, "c_first = %s\n", ptr.pa->c_first);
-		fprintf(fp, "c_middle = %s\n", ptr.pa->c_middle);
-		fprintf(fp, "c_street_1 = %s\n", ptr.pa->c_street_1);
-		fprintf(fp, "c_street_2 = %s\n", ptr.pa->c_street_2);
-		fprintf(fp, "c_city = %s\n", ptr.pa->c_city);
-		fprintf(fp, "c_state = %s\n", ptr.pa->c_state);
-		fprintf(fp, "c_zip = %s\n", ptr.pa->c_zip);
-		fprintf(fp, "c_phone = %s\n", ptr.pa->c_phone);
-		fprintf(fp, "c_since = %s\n", ptr.pa->c_since);
-		fprintf(fp, "c_credit = %s\n", ptr.pa->c_credit);
+		fprintf(fp, "c_first = '%s'\n", ptr.pa->c_first);
+		fprintf(fp, "c_middle = '%s'\n", ptr.pa->c_middle);
+		fprintf(fp, "c_street_1 = '%s'\n", ptr.pa->c_street_1);
+		fprintf(fp, "c_street_2 = '%s'\n", ptr.pa->c_street_2);
+		fprintf(fp, "c_city = '%s'\n", ptr.pa->c_city);
+		fprintf(fp, "c_state = '%s'\n", ptr.pa->c_state);
+		fprintf(fp, "c_zip = '%s'\n", ptr.pa->c_zip);
+		fprintf(fp, "c_phone = '%s'\n", ptr.pa->c_phone);
+		fprintf(fp, "c_since = '%s'\n", ptr.pa->c_since);
+		fprintf(fp, "c_credit = '%s'\n", ptr.pa->c_credit);
 		fprintf(fp, "c_credit_lim = %0.2f\n", ptr.pa->c_credit_lim);
 		fprintf(fp, "c_discount = %0.4f\n", ptr.pa->c_discount);
 		fprintf(fp, "c_balance = %0.2f\n", ptr.pa->c_balance);
-		fprintf(fp, "c_data = %s\n", ptr.pa->c_data);
+		fprintf(fp, "c_data = '%s'\n", ptr.pa->c_data);
 		fprintf(fp, "h_amount = %0.2f\n", ptr.pa->h_amount);
 		pthread_mutex_unlock(&mut);
 		break;

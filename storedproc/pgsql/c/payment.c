@@ -3,7 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2003-2006 Open Source Development Labs, Inc.
- *               2003-2021 Mark Wong
+ *               2003-2022 Mark Wong
  *
  * Based on TPC-C Standard Specification Revision 5.11 Clause 2.5.2.
  */
@@ -21,31 +21,31 @@
 
 typedef struct
 {
-    char w_street_1[W_STREET_1_LEN + 1];
-    char w_street_2[W_STREET_2_LEN + 1];
-    char w_city[W_CITY_LEN + 1];
-    char w_state[W_STATE_LEN + 1];
-    char w_zip[W_ZIP_LEN + 1];
-    char d_street_1[D_STREET_1_LEN + 1];
-    char d_street_2[D_STREET_2_LEN + 1];
-    char d_city[D_CITY_LEN + 1];
-    char d_state[D_STATE_LEN + 1];
-    char d_zip[D_ZIP_LEN + 1];
-    char c_first[C_FIRST_LEN + 1];
+    char w_street_1[4 * (W_STREET_1_LEN + 1)];
+    char w_street_2[4 * (W_STREET_2_LEN + 1)];
+    char w_city[4 * (W_CITY_LEN + 1)];
+    char w_state[4 * (W_STATE_LEN + 1)];
+    char w_zip[4 * (W_ZIP_LEN + 1)];
+    char d_street_1[4 * (D_STREET_1_LEN + 1)];
+    char d_street_2[4 * (D_STREET_2_LEN + 1)];
+    char d_city[4 * (D_CITY_LEN + 1)];
+    char d_state[4 * (D_STATE_LEN + 1)];
+    char d_zip[4 * (D_ZIP_LEN + 1)];
+    char c_first[4 *(C_FIRST_LEN + 1)];
     char c_middle[C_MIDDLE_LEN + 1];
-    char c_last[C_LAST_LEN + 1];
-    char c_street_1[C_STREET_1_LEN + 1];
-    char c_street_2[C_STREET_2_LEN + 1];
-    char c_city[C_CITY_LEN + 1];
-    char c_state[C_STATE_LEN + 1];
-    char c_zip[C_ZIP_LEN + 1];
-    char c_phone[C_PHONE_LEN + 1];
+    char c_last[4 * (C_LAST_LEN + 1)];
+    char c_street_1[4 * (C_STREET_1_LEN + 1)];
+    char c_street_2[4 * (C_STREET_2_LEN + 1)];
+    char c_city[4 * (C_CITY_LEN + 1)];
+    char c_state[4 * (C_STATE_LEN + 1)];
+    char c_zip[4 * (C_ZIP_LEN + 1)];
+    char c_phone[4 * (C_PHONE_LEN + 1)];
     char c_since[C_SINCE_LEN + 1];
     char c_credit[C_CREDIT_LEN + 1];
     float c_credit_lim;
     float c_discount;
     float c_balance;
-    char c_data[C_DATA_BC_LEN + 1];
+    char c_data[4 * (C_DATA_BC_LEN + 1)];
     char h_date[H_DATE_LEN + 1];
 } payment_row;
 
@@ -241,15 +241,15 @@ Datum payment(PG_FUNCTION_ARGS)
 
 			w_name = SPI_getvalue(tuple, tupdesc, 1);
 			w_street_1 = SPI_getvalue(tuple, tupdesc, 2);
-			strncpy(pp->w_street_1, w_street_1, W_STREET_1_LEN);
+			strncpy(pp->w_street_1, w_street_1, 4 * W_STREET_1_LEN);
 			w_street_2 = SPI_getvalue(tuple, tupdesc, 3);
-			strncpy(pp->w_street_2, w_street_2, W_STREET_2_LEN);
+			strncpy(pp->w_street_2, w_street_2, 4 * W_STREET_2_LEN);
 			w_city = SPI_getvalue(tuple, tupdesc, 4);
-			strncpy(pp->w_city, w_city, W_CITY_LEN);
+			strncpy(pp->w_city, w_city, 4 * W_CITY_LEN);
 			w_state = SPI_getvalue(tuple, tupdesc, 5);
-			strncpy(pp->w_state, w_state, W_STATE_LEN);
+			strncpy(pp->w_state, w_state, 4 * W_STATE_LEN);
 			w_zip = SPI_getvalue(tuple, tupdesc, 6);
-			strncpy(pp->w_zip, w_zip, W_ZIP_LEN);
+			strncpy(pp->w_zip, w_zip, 4 * W_ZIP_LEN);
 			elog(DEBUG1, "w_name = %s", w_name);
 			elog(DEBUG1, "w_street_1 = %s", w_street_1);
 			elog(DEBUG1, "w_street_2 = %s", w_street_2);
@@ -272,15 +272,15 @@ Datum payment(PG_FUNCTION_ARGS)
 
 			d_name = SPI_getvalue(tuple, tupdesc, 1);
 			d_street_1 = SPI_getvalue(tuple, tupdesc, 2);
-			strncpy(pp->d_street_1, d_street_1, D_STREET_1_LEN);
+			strncpy(pp->d_street_1, d_street_1, 4 * D_STREET_1_LEN);
 			d_street_2 = SPI_getvalue(tuple, tupdesc, 3);
-			strncpy(pp->d_street_2, d_street_2, D_STREET_2_LEN);
+			strncpy(pp->d_street_2, d_street_2, 4 * D_STREET_2_LEN);
 			d_city = SPI_getvalue(tuple, tupdesc, 4);
-			strncpy(pp->d_city, d_city, D_CITY_LEN);
+			strncpy(pp->d_city, d_city, 4 * D_CITY_LEN);
 			d_state = SPI_getvalue(tuple, tupdesc, 5);
-			strncpy(pp->d_state, d_state, D_STATE_LEN);
+			strncpy(pp->d_state, d_state, 4 * D_STATE_LEN);
 			d_zip = SPI_getvalue(tuple, tupdesc, 6);
-			strncpy(pp->d_zip, d_zip, D_ZIP_LEN);
+			strncpy(pp->d_zip, d_zip, 4 * D_ZIP_LEN);
 			elog(DEBUG1, "d_name = %s", d_name);
 			elog(DEBUG1, "d_street_1 = %s", d_street_1);
 			elog(DEBUG1, "d_street_2 = %s", d_street_2);
@@ -325,23 +325,23 @@ Datum payment(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 
 			c_first = SPI_getvalue(tuple, tupdesc, 1);
-			strncpy(pp->c_first, c_first, C_FIRST_LEN);
+			strncpy(pp->c_first, c_first, 4 * C_FIRST_LEN);
 			c_middle = SPI_getvalue(tuple, tupdesc, 2);
 			strncpy(pp->c_middle, c_middle, C_MIDDLE_LEN);
 			my_c_last = SPI_getvalue(tuple, tupdesc, 3);
-			strncpy(pp->c_last, my_c_last, C_LAST_LEN);
+			strncpy(pp->c_last, my_c_last, 4 * C_LAST_LEN);
 			c_street_1 = SPI_getvalue(tuple, tupdesc, 4);
-			strncpy(pp->c_street_1, c_street_1, C_STREET_1_LEN);
+			strncpy(pp->c_street_1, c_street_1, 4 * C_STREET_1_LEN);
 			c_street_2 = SPI_getvalue(tuple, tupdesc, 5);
-			strncpy(pp->c_street_2, c_street_2, C_STREET_2_LEN);
+			strncpy(pp->c_street_2, c_street_2, 4 * C_STREET_2_LEN);
 			c_city = SPI_getvalue(tuple, tupdesc, 6);
-			strncpy(pp->c_city, c_city, C_CITY_LEN);
+			strncpy(pp->c_city, c_city, 4 * C_CITY_LEN);
 			c_state = SPI_getvalue(tuple, tupdesc, 7);
-			strncpy(pp->c_state, c_state, C_STATE_LEN);
+			strncpy(pp->c_state, c_state, 4 * C_STATE_LEN);
 			c_zip = SPI_getvalue(tuple, tupdesc, 8);
-			strncpy(pp->c_zip, c_zip, C_ZIP_LEN);
+			strncpy(pp->c_zip, c_zip, 4 * C_ZIP_LEN);
 			c_phone = SPI_getvalue(tuple, tupdesc, 9);
-			strncpy(pp->c_phone, c_phone, C_PHONE_LEN);
+			strncpy(pp->c_phone, c_phone, 4 * C_PHONE_LEN);
 			c_since = SPI_getvalue(tuple, tupdesc, 10);
 			strncpy(pp->c_since, c_since, C_SINCE_LEN);
 			c_credit = SPI_getvalue(tuple, tupdesc, 11);
@@ -401,7 +401,7 @@ Datum payment(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 
 				c_data = SPI_getvalue(tuple, tupdesc, 1);
-				strncpy(pp->c_data, c_data, C_DATA_BC_LEN);
+				strncpy(pp->c_data, c_data, 4 * C_DATA_BC_LEN);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
 					 errmsg("PAYMENT_7_BC failed")));
@@ -476,36 +476,36 @@ Datum payment(PG_FUNCTION_ARGS)
 		values[24] = (char *) palloc((C_DATA_BC_LEN + 1) * sizeof(char));
 		values[25] = (char *) palloc((H_DATE_LEN + 1) * sizeof(char));
 
-		strncpy(values[0], pp->w_street_1, W_STREET_1_LEN);
-		strncpy(values[1], pp->w_street_2, W_STREET_2_LEN);
-		strncpy(values[2], pp->w_city, W_CITY_LEN);
-		strncpy(values[3], pp->w_state, W_STATE_LEN);
-		strncpy(values[4], pp->w_zip, W_ZIP_LEN);
+		strncpy(values[0], pp->w_street_1, 4 * W_STREET_1_LEN);
+		strncpy(values[1], pp->w_street_2, 4 * W_STREET_2_LEN);
+		strncpy(values[2], pp->w_city, 4 * W_CITY_LEN);
+		strncpy(values[3], pp->w_state, 4 * W_STATE_LEN);
+		strncpy(values[4], pp->w_zip, 4 * W_ZIP_LEN);
 
-		strncpy(values[5], pp->d_street_1, D_STREET_1_LEN);
-		strncpy(values[6], pp->d_street_2, D_STREET_2_LEN);
-		strncpy(values[7], pp->d_city, D_CITY_LEN);
-		strncpy(values[8], pp->d_state, D_STATE_LEN);
-		strncpy(values[9], pp->d_zip, D_ZIP_LEN);
+		strncpy(values[5], pp->d_street_1, 4 * D_STREET_1_LEN);
+		strncpy(values[6], pp->d_street_2, 4 * D_STREET_2_LEN);
+		strncpy(values[7], pp->d_city, 4 * D_CITY_LEN);
+		strncpy(values[8], pp->d_state, 4 * D_STATE_LEN);
+		strncpy(values[9], pp->d_zip, 4 * D_ZIP_LEN);
 
-		strncpy(values[10], pp->c_first, C_FIRST_LEN);
+		strncpy(values[10], pp->c_first, 4 * C_FIRST_LEN);
 		strncpy(values[11], pp->c_middle, C_MIDDLE_LEN);
-		strncpy(values[12], pp->c_last, C_LAST_LEN);
+		strncpy(values[12], pp->c_last, 4 * C_LAST_LEN);
 
-		strncpy(values[13], pp->c_street_1, C_STREET_1_LEN);
-		strncpy(values[14], pp->c_street_2, C_STREET_2_LEN);
-		strncpy(values[15], pp->c_city, C_CITY_LEN);
-		strncpy(values[16], pp->c_state, C_STATE_LEN);
-		strncpy(values[17], pp->c_zip, C_ZIP_LEN);
+		strncpy(values[13], pp->c_street_1, 4 * C_STREET_1_LEN);
+		strncpy(values[14], pp->c_street_2, 4 * C_STREET_2_LEN);
+		strncpy(values[15], pp->c_city, 4 * C_CITY_LEN);
+		strncpy(values[16], pp->c_state, 4 * C_STATE_LEN);
+		strncpy(values[17], pp->c_zip, 4 * C_ZIP_LEN);
 
-		strncpy(values[18], pp->c_phone, C_PHONE_LEN);
+		strncpy(values[18], pp->c_phone, 4 * C_PHONE_LEN);
 		strncpy(values[19], pp->c_since, C_SINCE_LEN);
 		strncpy(values[20], pp->c_credit, C_CREDIT_LEN);
 
 		snprintf(values[21], 10, "%f", pp->c_credit_lim);
 		snprintf(values[22], 10, "%f", pp->c_discount);
 		snprintf(values[23], 10, "%f", pp->c_balance);
-		strncpy(values[24], pp->c_data, C_DATA_BC_LEN);
+		strncpy(values[24], pp->c_data, 4 * C_DATA_BC_LEN);
 		strncpy(values[25], pp->h_date, H_DATE_LEN);
 
 		tuple = BuildTupleFromCStrings(attinmeta, values);

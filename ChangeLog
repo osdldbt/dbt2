@@ -2,6 +2,7 @@ vX.Y.Z
 
 - Fix memory clobbering bug introduced when using libpq functions in binary
   mode
+- Increase size of additional data structures for UTF-8
 
 v0.44.0
 

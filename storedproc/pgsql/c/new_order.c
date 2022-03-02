@@ -3,7 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2003-2008 Open Source Development Labs, Inc.
- *               2003-2021 Mark Wong
+ *               2003-2022 Mark Wong
  *
  * Based on TPC-C Standard Specification Revision 5.11 Clause 2.4.2.
  */
@@ -123,7 +123,7 @@ typedef struct
 {
 	int ol_supply_w_id;
 	int ol_i_id;
-	char i_name[I_NAME_LEN + 1];
+	char i_name[4 * (I_NAME_LEN + 1)];
 	int ol_quantity;
 	int s_quantity;
 	float i_price;
@@ -316,7 +316,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 				i_price[i] = SPI_getvalue(tuple, tupdesc, 1);
 				pp[i].i_price = atof(i_price[i]);
 				i_name[i] = SPI_getvalue(tuple, tupdesc, 2);
-				strncpy(pp[i].i_name, i_name[i], I_NAME_LEN);
+				strncpy(pp[i].i_name, i_name[i], 4 * I_NAME_LEN);
 				i_data[i] = SPI_getvalue(tuple, tupdesc, 3);
 				elog(DEBUG1, "i_price[%d] = %s", i, i_price[i]);
 				elog(DEBUG1, "i_name[%d] = %s", i, i_name[i]);
@@ -409,7 +409,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 
 		values[0] = (char *) palloc(11 * sizeof(char));
 		values[1] = (char *) palloc(11 * sizeof(char));
-		values[2] = (char *) palloc((I_NAME_LEN + 1) * sizeof(char));
+		values[2] = (char *) palloc(4 * (I_NAME_LEN + 1) * sizeof(char));
 		values[3] = (char *) palloc(11 * sizeof(char));
 		values[4] = (char *) palloc(11 * sizeof(char));
 		values[5] = (char *) palloc(11 * sizeof(char));
@@ -418,7 +418,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 
 		snprintf(values[0], 10, "%d", pp[funcctx->call_cntr].ol_supply_w_id);
 		snprintf(values[1], 10, "%d", pp[funcctx->call_cntr].ol_i_id);
-		strncpy(values[2], pp[funcctx->call_cntr].i_name, I_NAME_LEN);
+		strncpy(values[2], pp[funcctx->call_cntr].i_name, 4 * I_NAME_LEN);
 		snprintf(values[3], 10, "%d", pp[funcctx->call_cntr].ol_quantity);
 		snprintf(values[4], 10, "%d", pp[funcctx->call_cntr].s_quantity);
 		snprintf(values[5], 10, "%f", pp[funcctx->call_cntr].i_price);
