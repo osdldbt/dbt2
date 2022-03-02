@@ -1,3 +1,8 @@
+vX.Y.Z
+
+- Fix memory clobbering bug introduced when using libpq functions in binary
+  mode
+
 v0.44.0
 
 - Made some changes to Docker scripts to help customize PostgreSQL version used

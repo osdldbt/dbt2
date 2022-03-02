@@ -34,14 +34,6 @@
 		"($45, $46, $47), " \
 		"($48, $49, $50))"
 
-int paramLengthNO[50] = {
-	sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t),
-	sizeof(uint32_t),
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0
-};
-
 int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 {
 	int i;
@@ -52,6 +44,14 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 			1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 	};
+	int paramLengths[50] = {
+		sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t),
+		sizeof(uint32_t),
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0
+	};
+
 
 	uint32_t w_id;
 	uint32_t d_id;
@@ -98,9 +98,9 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		paramValues[(i * 3) + 6] = (char *) &ol_supply_w_id[i];
 		paramValues[(i * 3) + 7] = (char *) &ol_quantity[i];
 
-		paramLengthNO[(i * 3) + 5] = sizeof(ol_i_id[i]);
-		paramLengthNO[(i * 3) + 6] = sizeof(ol_supply_w_id[i]);
-		paramLengthNO[(i * 3) + 7] = sizeof(ol_quantity[i]);
+		paramLengths[(i * 3) + 5] = sizeof(ol_i_id[i]);
+		paramLengths[(i * 3) + 6] = sizeof(ol_supply_w_id[i]);
+		paramLengths[(i * 3) + 7] = sizeof(ol_quantity[i]);
 #ifdef DEBUG
 		LOG_ERROR_MESSAGE("NO[%d] ol_i_id %d ol_supply_w_id %d ol_quantity %d",
 				i + 1, data->order_line[i].ol_i_id,
@@ -113,13 +113,13 @@ int execute_new_order(struct db_context_t *dbc, struct new_order_t *data)
 		paramValues[(i * 3) + 6] = NULL;
 		paramValues[(i * 3) + 7] = NULL;
 
-		paramLengthNO[(i * 3) + 5] = 0;
-		paramLengthNO[(i * 3) + 6] = 0;
-		paramLengthNO[(i * 3) + 7] = 0;
+		paramLengths[(i * 3) + 5] = 0;
+		paramLengths[(i * 3) + 6] = 0;
+		paramLengths[(i * 3) + 7] = 0;
 	}
 
 	res = PQexecParams(dbc->conn, UDF_NEW_ORDER, 50, NULL, paramValues,
-			paramLengthNO, paramFormats, 1);
+			paramLengths, paramFormats, 1);
 	if (PQresultStatus(res) != PGRES_TUPLES_OK) {
 		data->rollback = 0;
 		LOG_ERROR_MESSAGE("NO %s", PQerrorMessage(dbc->conn));

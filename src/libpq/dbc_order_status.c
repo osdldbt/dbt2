@@ -19,15 +19,11 @@
 
 #define UDF_ORDER_STATUS "SELECT * FROM order_status($1, $2, $3, $4)"
 
-int paramLengthsOS[4] = {
-		sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), 0
-};
-
 int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 {
 	PGresult *res;
 	const char *paramValues[4];
-	int paramLengthsOS[4] = {
+	int paramLengths[4] = {
 			sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), 0
 	};
 	const int paramFormats[4] = {1, 1, 1, 1};
@@ -56,7 +52,7 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	paramValues[2] = (char *) &c_d_id;
 	paramValues[3] = c_last;
 
-	paramLengthsOS[3] = strlen(c_last);
+	paramLengths[3] = strlen(c_last);
 
 	/* Start a transaction block. */
 	res = PQexec(dbc->conn, "BEGIN");
@@ -68,7 +64,7 @@ int execute_order_status(struct db_context_t *dbc, struct order_status_t *data)
 	PQclear(res);
 
 	res = PQexecParams(dbc->conn, UDF_ORDER_STATUS, 4, NULL, paramValues,
-			paramLengthsOS, paramFormats, 1);
+			paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("OS %s", PQerrorMessage(dbc->conn));
 		PQclear(res);

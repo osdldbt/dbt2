@@ -18,16 +18,15 @@
 
 #define UDF_PAYMENT "SELECT * FROM payment($1, $2, $3, $4, $5, $6, $7)"
 
-int paramLengths[7] = {
-	sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t),
-	sizeof(uint32_t), 0, sizeof(uint32_t)
-};
-
 int execute_payment(struct db_context_t *dbc, struct payment_t *data)
 {
 	PGresult *res;
 	const char *paramValues[7];
 	const int paramFormats[7] = {1, 1, 1, 1, 1, 1, 1};
+	int paramLengths[7] = {
+		sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t),
+		sizeof(uint32_t), 0, sizeof(uint32_t)
+	};
 	char c_last[4 * (C_LAST_LEN + 1)];
 
 	uint32_t w_id;
