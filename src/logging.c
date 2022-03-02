@@ -51,14 +51,16 @@ int log_error_message(char *filename, int line, const char *fmt, ...)
 {
 	va_list fmtargs;
 	time_t t;
+	struct tm *tmp;
 	FILE *of = (log_error) ? log_error: stderr;
+	char outstr[32];
 
-	/* Print the error message(s) */
 	t = time(NULL);
-	va_start(fmtargs, fmt);
+	tmp = localtime(&t);
+	strftime(outstr, sizeof(outstr), "%Y-%m-%d %T %Z", tmp);
 
 	pthread_mutex_lock(&mutex_error_log);
-	fprintf(of, "%stid:%lx %s:%d\n", ctime(&t), pthread_self(), filename, line);
+	fprintf(of, "%s tid:%lx %s:%d\n", outstr, pthread_self(), filename, line);
 	va_start(fmtargs, fmt);
 	vfprintf(of, fmt, fmtargs);
 	va_end(fmtargs);
