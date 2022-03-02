@@ -1,3 +1,7 @@
+v0.45.1
+
+- Rename PostgreSQL dbt2 extension's SQL file
+
 v0.45.0
 
 - Fix memory clobbering bug introduced when using libpq functions in binary
