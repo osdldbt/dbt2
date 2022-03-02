@@ -158,9 +158,9 @@ void *db_worker(void *data)
                 }
                 response_time = difftimeval(rt1, rt0);
                 pthread_mutex_lock(&mutex_mix_log);
-                fprintf(log_mix, "%d,%c,%f,%d\n", (int) time(NULL),
+                fprintf(log_mix, "%d,%c,%f,%lx\n", (int) time(NULL),
                 transaction_short_name[node->client_data.transaction],
-                        response_time, (int) pthread_self());
+                        response_time, pthread_self());
                         fflush(log_mix);
                 pthread_mutex_unlock(&mutex_mix_log);
 #endif /* STANDALONE */

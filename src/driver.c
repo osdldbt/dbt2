@@ -481,8 +481,7 @@ void *terminal_worker(void *data)
     tid = pthread_self();
     pid = getpid();
 	entropy_getbytes((void *) &local_seed, sizeof(local_seed));
-	printf("seed for %d:%x : %llu\n",
-			(unsigned int) pid, (unsigned int) tid, local_seed);
+	printf("seed for %d:%lx : %llu\n", pid, tid, local_seed);
 	fflush(stdout);
 	pcg64f_srandom_r(&rng, local_seed);
 
@@ -634,9 +633,9 @@ void *terminal_worker(void *data)
 		} else if (rc == ERROR) {
 			code = 'E';
 		}
-		fprintf(log_mix, "%d,%c,%c,%f,%lld,%d,%d\n", (int) time(NULL),
+		fprintf(log_mix, "%d,%c,%c,%f,%lx,%d,%d\n", (int) time(NULL),
 				transaction_short_name[client_data.transaction], code,
-				response_time, (long long) pthread_self(), tc->w_id, tc->d_id);
+				response_time, pthread_self(), tc->w_id, tc->d_id);
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
 		pthread_mutex_lock(&mutex_terminal_state[EXECUTING][client_data.transaction]);
