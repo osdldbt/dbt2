@@ -320,7 +320,6 @@ int startup()
 	pthread_t tid;
 	int ret;
 
-	printf("listening on port '%d'\n", port);
 	fflush(stdout);
 	sockfd = _listen(port);
 	if (sockfd < 1) {
