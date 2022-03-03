@@ -90,20 +90,20 @@ int partitions = 1; /* How many partitions of data. */
 		METAPRINTF((a, b)); \
 	}
 
-void print_timestamp(FILE *ofile, struct tm *date)
+void (*print_timestamp)(FILE *, struct tm *);
+
+void print_timestamp_pgsql(FILE *ofile, struct tm *date)
 {
-	if (mode_string == MODE_SAPDB) {
-		METAPRINTF((ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
-				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-				date->tm_hour, date->tm_min, date->tm_sec));
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
-		METAPRINTF((ofile, "%04d-%02d-%02d %02d:%02d:%02d",
-				date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-				date->tm_hour, date->tm_min, date->tm_sec));
-	} else {
-		printf("unknown string mode: %d\n", mode_string);
-		exit(1);
-	}
+	METAPRINTF((ofile, "%04d-%02d-%02d %02d:%02d:%02d",
+			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
+			date->tm_hour, date->tm_min, date->tm_sec));
+}
+
+void print_timestamp_sapdb(FILE *ofile, struct tm *date)
+{
+	METAPRINTF((ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
+			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
+			date->tm_hour, date->tm_min, date->tm_sec));
 }
 
 /* Clause 4.3.3.1 */
@@ -255,7 +255,7 @@ void gen_customers()
 				 */
 				time(&t1);
 				tm1 = localtime(&t1);
-				print_timestamp(output, tm1);
+				(*print_timestamp)(output, tm1);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* c_credit */
@@ -571,7 +571,7 @@ void gen_history()
 				 */
 				time(&t1);
 				tm1 = localtime(&t1);
-				print_timestamp(output, tm1);
+				(*print_timestamp)(output, tm1);
 				METAPRINTF((output, "%c", delimiter));
 
 				/* h_amount */
@@ -1028,7 +1028,7 @@ void gen_orders()
 				 */
 				time(&t1);
 				tm1 = localtime(&t1);
-				print_timestamp(order, tm1);
+				(*print_timestamp)(order, tm1);
 				METAPRINTF((order, "%c", delimiter));
 
 				/* o_carrier_id */
@@ -1090,7 +1090,7 @@ void gen_orders()
 					 */
 						time(&t1);
 						tm1 = localtime(&t1);
-						print_timestamp(order_line, tm1);
+						(*print_timestamp)(order_line, tm1);
 					} else {
 						METAPRINTF((order_line, "%s", null_str));
 					}
@@ -1617,6 +1617,19 @@ int main(int argc, char *argv[])
 			printf("?? getopt returned character code 0%o ??\n", c);
 			return 2;
 		}
+	}
+
+	switch (mode_string) {
+	case MODE_MYSQL:
+	case MODE_PGSQL:
+		print_timestamp = print_timestamp_pgsql;
+		break;
+	case MODE_SAPDB:
+		print_timestamp = print_timestamp_sapdb;
+		break;
+	default:
+		printf("unknown string mode: %d\n", mode_string);
+		return 5;
 	}
 
 	if (partitions > 1) {
