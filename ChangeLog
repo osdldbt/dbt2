@@ -12,6 +12,7 @@ vX.Y.Z
   exist
 - Fix some issues in CockroachDB transaction code.
 - Use function pointers for managing output of timestamps in datagen
+- Replace macros with functions in datagen
 
 v0.45.1
 
