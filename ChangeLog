@@ -1,4 +1,4 @@
-vX.Y.Z
+v0.46.0
 
 - Refactor client code for libpq to automatically build support if libraries
   exist
