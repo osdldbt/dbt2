@@ -1,3 +1,7 @@
+vX.Y.Z
+
+- Fix data generator quoting bug introduced in v0.46.0
+
 v0.46.0
 
 - Refactor client code for libpq to automatically build support if libraries

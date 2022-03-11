@@ -171,21 +171,21 @@ void gen_customers()
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = 0; k < customers; k++) {
 				/* c_id */
-				fprintf(output, "%c%d%c", quoter[0], k + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, k + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_d_id */
-				fprintf(output, "%c%d%c", quoter[0], j + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, j + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_w_id */
-				fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_first */
 				get_a_string(&rng, a_string, 8, 16);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_middle */
@@ -199,43 +199,43 @@ void gen_customers()
 					get_c_last(a_string, get_nurand(&rng, 255, 0, 999));
 				}
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_street_1 */
 				get_a_string(&rng, a_string, 10, 20);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_street_2 */
 				get_a_string(&rng, a_string, 10, 20);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_city */
 				get_a_string(&rng, a_string, 10, 20);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_state */
 				get_a_string(&rng, a_string, 2, 2);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_zip */
 				get_n_string(&rng, a_string, 4, 4);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s11111%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s11111%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_phone */
 				get_n_string(&rng, a_string, 16, 16);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_since */
@@ -262,7 +262,8 @@ void gen_customers()
 				metaprintf(output, "%c", delimiter);
 
 				/* c_discount */
-				fprintf(output, "%c0.%04d%c", quoter[0], (int) get_random(&rng, 5000), quoter[0]);
+				fprintf(output, "%s0.%04d%s",
+						quoter, (int) get_random(&rng, 5000), quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_balance */
@@ -284,7 +285,7 @@ void gen_customers()
 				/* c_data */
 				get_a_string(&rng, a_string, 300, 500);
 				wcstombs(sa_string, a_string, 4096);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "\n");
 			}
 		}
@@ -382,51 +383,52 @@ void gen_districts()
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			/* d_id */
-			fprintf(output, "%c%d%c", quoter[0], j + 1, quoter[0]);
+			fprintf(output, "%s%d%s", quoter, j + 1, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_w_id */
-			fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+			fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_name */
 			get_a_string(&rng, a_string, 6, 10);
 			wcstombs(sa_string, a_string, 192);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_street_1 */
 			get_a_string(&rng, a_string, 10, 20);
 			wcstombs(sa_string, a_string, 192);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_street_2 */
 			get_a_string(&rng, a_string, 10, 20);
 			wcstombs(sa_string, a_string, 192);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_city */
 			get_a_string(&rng, a_string, 10, 20);
 			wcstombs(sa_string, a_string, 192);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_state */
 			get_a_string(&rng, a_string, 2, 2);
 			wcstombs(sa_string, a_string, 192);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_zip */
 			get_n_string(&rng, a_string, 4, 4);
 			wcstombs(sa_string, a_string, 192);
-			fprintf(output, "%c%s11111%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s11111%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_tax */
-			fprintf(output, "%c0.%04d%c", quoter[0], (int) get_random(&rng, 2000), quoter[0]);
+			fprintf(output, "%s0.%04d%s",
+					quoter, (int) get_random(&rng, 2000), quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_ytd */
@@ -535,23 +537,23 @@ void gen_history()
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = 0; k < customers; k++) {
 				/* h_c_id */
-				fprintf(output, "%c%d%c", quoter[0], k + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, k + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* h_c_d_id */
-				fprintf(output, "%c%d%c", quoter[0], j + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, j + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* h_c_w_id */
-				fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* h_d_id */
-				fprintf(output, "%c%d%c", quoter[0], j + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, j + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* h_w_id */
-				fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* h_date */
@@ -572,7 +574,7 @@ void gen_history()
 				/* h_data */
 				get_a_string(&rng, a_string, 12, 24);
 				wcstombs(sa_string, a_string, 256);
-				fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 
 				metaprintf(output, "\n");
 			}
@@ -672,23 +674,23 @@ void gen_items()
 
 	for (i = start; i < end; i++) {
 		/* i_id */
-		fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+		fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* i_im_id */
-		fprintf(output, "%c%d%c", quoter[0], (int) get_random(&rng, 9999) + 1,
-				quoter[0]);
+		fprintf(output, "%s%d%s",
+				quoter, (int) get_random(&rng, 9999) + 1, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* i_name */
 		get_a_string(&rng, a_string, 14, 24);
 		wcstombs(sa_string, a_string, 512);
-		fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* i_price */
-		fprintf(output, "%c%0.2f%c", quoter[0],
-				((double) get_random(&rng, 9900) + 100.0) / 100.0, quoter[0]);
+		fprintf(output, "%s%0.2f%s", quoter,
+				((double) get_random(&rng, 9900) + 100.0) / 100.0, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* i_data */
@@ -706,7 +708,7 @@ void gen_items()
 			a_string[j] = L'L';
 		}
 		wcstombs(sa_string, a_string, 512);
-		fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 
 		metaprintf(output, "\n");
 	}
@@ -798,15 +800,15 @@ void gen_new_orders()
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
 			for (k = orders - new_orders; k < orders; k++) {
 				/* no_o_id */
-				fprintf(output, "%c%d%c", quoter[0], k + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, k + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* no_d_id */
-				fprintf(output, "%c%d%c", quoter[0], j + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, j + 1, quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* no_w_id */
-				fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+				fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 
 				metaprintf(output, "\n");
 			}
@@ -997,19 +999,19 @@ void gen_orders()
 			current = head;
 			for (k = 0; k < orders; k++) {
 				/* o_id */
-				fprintf(order, "%c%d%c", quoter[0], k + 1, quoter[0]);
+				fprintf(order, "%s%d%s", quoter, k + 1, quoter);
 				metaprintf(order, "%c", delimiter);
 
 				/* o_d_id */
-				fprintf(order, "%c%d%c", quoter[0], j + 1, quoter[0]);
+				fprintf(order, "%s%d%s", quoter, j + 1, quoter);
 				metaprintf(order, "%c", delimiter);
 
 				/* o_w_id */
-				fprintf(order, "%c%d%c", quoter[0], i + 1, quoter[0]);
+				fprintf(order, "%s%d%s", quoter, i + 1, quoter);
 				metaprintf(order, "%c", delimiter);
 
 				/* o_c_id */
-				fprintf(order, "%c%d%c", quoter[0], current->value, quoter[0]);
+				fprintf(order, "%s%d%s", quoter, current->value, quoter);
 				metaprintf(order, "%c", delimiter);
 				current = current->next;
 
@@ -1026,8 +1028,8 @@ void gen_orders()
 
 				/* o_carrier_id */
 				if (k < 2101) {
-					fprintf(order, "%c%d%c", quoter[0],
-							(int) get_random(&rng, 9) + 1, quoter[0]);
+					fprintf(order, "%s%d%s",
+							quoter, (int) get_random(&rng, 9) + 1, quoter);
 				} else {
 					metaprintf(order, "%s", null_str);
 				}
@@ -1036,7 +1038,7 @@ void gen_orders()
 				/* o_ol_cnt */
 				pcg64f_srandom_r(&ol_rng, pcg64f_random_r(&rng));
 				o_ol_cnt = (int) get_random(&ol_rng, 10) + 5;
-				fprintf(order, "%c%d%c", quoter[0], o_ol_cnt, quoter[0]);
+				fprintf(order, "%s%d%s", quoter, o_ol_cnt, quoter);
 				metaprintf(order, "%c", delimiter);
 
 				/* o_all_local */
@@ -1050,29 +1052,29 @@ void gen_orders()
 				 */
 				for (l = 0; l < o_ol_cnt; l++) {
 					/* ol_o_id */
-					fprintf(order_line, "%c%d%c", quoter[0], k + 1, quoter[0]);
+					fprintf(order_line, "%s%d%s", quoter, k + 1, quoter);
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_d_id */
-					fprintf(order_line, "%c%d%c", quoter[0], j + 1, quoter[0]);
+					fprintf(order_line, "%s%d%s", quoter, j + 1, quoter);
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_w_id */
-					fprintf(order_line, "%c%d%c", quoter[0], i + 1, quoter[0]);
+					fprintf(order_line, "%s%d%s", quoter, i + 1, quoter);
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_number */
-					fprintf(order_line, "%c%d%c", quoter[0], l + 1, quoter[0]);
+					fprintf(order_line, "%s%d%s", quoter, l + 1, quoter);
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_i_id */
-					fprintf(order_line, "%c%d%c", quoter[0],
-							(int) get_random(&ol_rng,
-									ITEM_CARDINALITY - 1) + 1, quoter[0]);
+					fprintf(order_line, "%s%d%s", quoter,
+							(int) get_random(&ol_rng, ITEM_CARDINALITY - 1) + 1,
+							quoter);
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_supply_w_id */
-					fprintf(order_line, "%c%d%c", quoter[0], i + 1, quoter[0]);
+					fprintf(order_line, "%s%d%s", quoter, i + 1, quoter);
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_delivery_d */
@@ -1099,16 +1101,16 @@ void gen_orders()
 					if (k < 2101) {
 						metaprintf(order_line, "0.00");
 					} else {
-						fprintf(order_line, "%c%f%c", quoter[0],
+						fprintf(order_line, "%s%f%s", quoter,
 								(double) (get_random(&ol_rng,
-										999998) + 1) / 100.0, quoter[0]);
+										999998) + 1) / 100.0, quoter);
 					}
 					metaprintf(order_line, "%c", delimiter);
 
 					/* ol_dist_info */
 					get_l_string(&ol_rng, a_string, 24, 24);
 					wcstombs(sa_string, a_string, 256);
-					fprintf(order_line, "%c%s%c", quoter[0], sa_string, quoter[0]);
+					fprintf(order_line, "%s%s%s", quoter, sa_string, quoter);
 
 					metaprintf(order_line, "\n");
 				}
@@ -1221,76 +1223,76 @@ void gen_stock()
 	for (i = start; i < end; i++) {
 		for (j = 0; j < items; j++) {
 			/* s_i_id */
-			fprintf(output, "%c%d%c", quoter[0], j + 1, quoter[0]);
+			fprintf(output, "%s%d%s", quoter, j + 1, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_w_id */
-			fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+			fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_quantity */
-			fprintf(output, "%c%d%c", quoter[0], (int) get_random(&rng, 90) + 10,
-					quoter[0]);
+			fprintf(output, "%s%d%s",
+					quoter, (int) get_random(&rng, 90) + 10, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_01 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_02 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_03 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_04 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_05 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_06 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_07 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_08 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_09 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_10 */
 			get_l_string(&rng, a_string, 24, 24);
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_ytd */
@@ -1320,7 +1322,7 @@ void gen_stock()
 				a_string[k] = L'L';
 			}
 			wcstombs(sa_string, a_string, 512);
-			fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 
 			metaprintf(output, "\n");
 		}
@@ -1416,48 +1418,48 @@ void gen_warehouses()
 
 	for (i = start; i < end; i++) {
 		/* w_id */
-		fprintf(output, "%c%d%c", quoter[0], i + 1, quoter[0]);
+		fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_name */
 		get_a_string(&rng, a_string, 6, 10);
 		wcstombs(sa_string, a_string, 192);
-		fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_street_1 */
 		get_a_string(&rng, a_string, 10, 20);
 		wcstombs(sa_string, a_string, 192);
-		fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_street_2 */
 		get_a_string(&rng, a_string, 10, 20);
 		wcstombs(sa_string, a_string, 192);
-		fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_city */
 		get_a_string(&rng, a_string, 10, 20);
 		wcstombs(sa_string, a_string, 192);
-		fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_state */
 		get_a_string(&rng, a_string, 2, 2);
 		wcstombs(sa_string, a_string, 192);
-		fprintf(output, "%c%s%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_zip */
 		get_n_string(&rng, a_string, 4, 4);
 		wcstombs(sa_string, a_string, 192);
-		fprintf(output, "%c%s11111%c", quoter[0], sa_string, quoter[0]);
+		fprintf(output, "%s%s11111%s", quoter, sa_string, quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_tax */
-		fprintf(output, "%c0.%04d%c", quoter[0], (int) get_random(&rng, 2000),
-				quoter[0]);
+		fprintf(output, "%s0.%04d%s", quoter, (int) get_random(&rng, 2000),
+				quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* w_ytd */
@@ -1663,6 +1665,7 @@ int main(int argc, char *argv[])
 	if (mode_string == MODE_SAPDB) {
 		delimiter = ',';
 		quoter[0] = '\"';
+		quoter[1] = '\0';
 		strcpy(null_str, "\"NULL\"");
 	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		delimiter = '\t';
