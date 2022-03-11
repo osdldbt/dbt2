@@ -56,62 +56,25 @@ char dbt2_mysql_socket[256];
 #endif /* HAVE_MYSQL */
 
 int startup();
+void usage(char *);
 
 int main(int argc, char *argv[])
 {
 	unsigned int count;
 	char command[128];
 
-	init_common();
-
 	if (parse_arguments(argc, argv) != OK) {
-		printf("usage: %s -d <db_name> -c # [-p #]\n", argv[0]);
-		printf("\n");
-		printf("-a <dbms>\n");
-		printf("\tcockroach|mysql|pgsql|yugabyte\n");
-		printf("-f\n");
-		printf("\tset force sleep\n");
-		printf("-c #\n");
-		printf("\tnumber of database connections\n");
-		printf("-p #\n");
-		printf("\tport to listen for incoming connections, default %d\n",
-			CLIENT_PORT);
-#ifdef HAVE_ODBC
-		printf("-d <db_name>\n");
-		printf("\tdatabase connect string\n");
-#endif /* HAVE_ODBC */
-#ifdef HAVE_LIBPQ
-		printf("-d <hostname>\n");
-		printf("\tdatabase hostname\n");
-		printf("-l #\n");
-		printf("\tpostmaster port\n");
-                printf("-b <dbname>\n");
-                printf("\tdatabase name\n");
-#endif /* HAVE_LIBPQ */
-#ifdef HAVE_MYSQL
-		printf("-h <hostname of mysql server>\n");
-		printf("\tname of host where mysql server is running\n");
-		printf("-d <db_name>\n");
-		printf("\tdatabase name\n");
-		printf("-l #\n");
-		printf("\tport number to use for connection to mysql server\n");
-		printf("-t <socket>\n");
-		printf("\tsocket for connection to mysql server\n");
-#endif /* HAVE_MYSQL */
-		printf("-s #\n");
-		printf("\tseconds to sleep between openning db connections, default 1 s\n");
-#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
-		printf("-u <db user>\n");
-		printf("-a <db password>\n");
-#endif
-#ifdef HAVE_SQLITE3
-		printf("-d <db_file>\n");
-		printf("\tpath to database file\n");
-#endif
+		usage(argv[0]);
 		return 1;
 	}
 
+	init_common();
+
 	/* Check to see if the required flags were used. */
+	if (dbms == -1) {
+		printf("-a not used to specify dbms\n");
+		return 2;
+	}
 	if (strlen(sname) == 0) {
 		printf("-d not used\n");
 		return 2;
@@ -183,7 +146,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "A:a:c:d:b:l:o:p:s:t:h:u:a:f",
+		c = getopt_long(argc, argv, "a:b:c:d:fl:o:p:s:t:h:u:z:",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -206,15 +169,15 @@ int parse_arguments(int argc, char *argv[])
 				exit(1);
 			}
 			break;
+		case 'b':
+			strcpy(dname, optarg);
+			break;
 		case 'c':
 			db_connections = atoi(optarg);
 			break;
 		case 'd':
 			strncpy(sname, optarg, sizeof(sname));
 			break;
-                case 'b':
-                        strcpy(dname, optarg);
-                        break;
 		case 'f':
 			force_sleep=1;
 			break;
@@ -249,7 +212,7 @@ int parse_arguments(int argc, char *argv[])
 		case 'u':
 			strncpy(dbt2_user, optarg, 127);
 			break;
-		case 'A':
+		case 'z':
 			strncpy(dbt2_pass, optarg, 127);
 			break;
 #endif
@@ -367,4 +330,44 @@ int create_pid_file()
   fclose(fpid);
 
   return OK;
+}
+
+void usage(char *name)
+{
+	printf("%s is the DBT-2 Client\n\n", name);
+	printf("Usage:\n");
+	printf("  %s [OPTION]\n\n", name);
+	printf("General options:\n");
+	printf("  -a <dbms>      cockroach|mysql|pgsql|yugabyte\n");
+	printf("  -c #           number of database connections\n");
+	printf("  -f             set forced sleep\n");
+	printf("  -p #           port to listen for incoming driver connections, "
+			"default %d\n", CLIENT_PORT);
+	printf("  -s #           seconds to sleep between openning db connections, "
+			"default 1 s\n");
+#ifdef HAVE_ODBC
+	printf("\nunixODBC options:\n");
+	printf("  -d <db_name>   database connect string\n");
+	printf("  -u <db user>\n");
+	printf("  -z <db password>\n");
+#endif /* HAVE_ODBC */
+#ifdef HAVE_LIBPQ
+	printf("\nlibpq (CockroachDB, PostgreSQL, YugabyteDB) options:\n");
+	printf("  -b <dbname>    database name\n");
+	printf("  -d <hostname>  database hostname\n");
+	printf("  -l #           postmaster port\n");
+#endif /* HAVE_LIBPQ */
+#ifdef HAVE_MYSQL
+	printf("\nMySQL options:\n");
+	printf("  -d <db_name>   database name\n");
+	printf("  -l #           MySQL port number to\n");
+	printf("  -h <hostname>  MySQL hostname\n");
+	printf("  -t <socket>    MySQL socket\n");
+	printf("  -u <db user>\n");
+	printf("  -z <db password>\n");
+#endif /* HAVE_MYSQL */
+#ifdef HAVE_SQLITE3
+	printf("\nSQLite options:\n");
+	printf("  -d <db_file>   path to database file\n");
+#endif
 }

@@ -38,7 +38,7 @@ int db_connections = 0;
 int db_conn_sleep = 1000; /* milliseconds */
 int *worker_count;
 time_t *last_txn;
-int dbms;
+int dbms = -1;
 
 /* These should probably be handled differently. */
 extern char sname[32];

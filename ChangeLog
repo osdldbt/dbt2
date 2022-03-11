@@ -1,6 +1,7 @@
 vX.Y.Z
 
 - Fix data generator quoting bug introduced in v0.46.0
+- Clean up client usage message with additions in v0.46.0
 
 v0.46.0
 
