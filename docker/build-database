@@ -41,6 +41,7 @@ docker build -t dbt2-database-${DBMS}-${WAREHOUSES}w \
 		--build-arg PGVERSION=$PGVERSION \
 		--build-arg dbms=$DBMS \
 		--build-arg warehouses=$WAREHOUSES \
+		--shm-size=128m \
 		-f Dockerfile.database $TOPDIR
 if [ $? -ne 0 ]; then
 	echo "usage: $0 [WAREHOUSES [DBMS]]"

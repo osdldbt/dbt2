@@ -28,6 +28,8 @@ usage()
 	echo "        Run as an unprivileged PostgreSQL user."
 	echo "    -w <scale factor>"
 	echo "        Number of warehouses to build. Default 1."
+	echo "    -f"
+	echo "        Perform vacuum operation in FULL mode."
 }
 
 WAREHOUSES=1
@@ -35,7 +37,9 @@ GENERATE_DATAFILE=0
 PRIVILEGED=1
 REBUILD_DB=0
 UDF_TYPE="c"
-while getopts "hl:p:rs:tuw:" OPT; do
+VACUUM_FULL=0
+
+while getopts "hl:p:rs:tuw:f" OPT; do
 	case ${OPT} in
 	h)
 		usage
@@ -61,6 +65,9 @@ while getopts "hl:p:rs:tuw:" OPT; do
 		;;
 	w)
 		WAREHOUSES=${OPTARG}
+		;;
+	f)
+		VACUUM_FULL=1
 		;;
 	esac
 done
@@ -102,11 +109,47 @@ fi
 SEED=`dbt2-rand -1 1 15`
 psql ${PORTARG} -e -d ${DBT2DBNAME} -c "SELECT setseed(${SEED});" || exit 1
 
+# Set the number of vacuumdb jobs to 1 (no parallelism) and let see
+# if the system can support a greater value.
+VACUUM_JOBS=1
+# Based on server version, enable vaccumdb parallelism if that version
+# is greater than or equal to 9.5.
+PG_VERSION_NUM=$(psql ${PORTARG} -At -d ${DBT2DBNAME} -c "SHOW server_version_num")
+PG_VERSION_NUM=$(( $PG_VERSION_NUM + 0 ))
+if [ $PG_VERSION_NUM -ge 95000 ]; then
+	# Set default vacuum jobs to 9 because this is the number of tables
+	# present in the database. Setting the number of job to a value
+	# greater than 9 won't bring any additional benefit.
+	VACUUM_JOBS=9
+	# If the number of CPUs is less than 9, then we set the vacuum job
+	# number to that number of CPUs.
+	if [ -f "/proc/stat" ]; then
+		CPUS=$(grep cpu /proc/stat | wc -l)
+		CPUS=$(( $CPUS - 1 ))
+		if [ $CPUS -lt $VACUUM_JOBS ]; then
+			VACUUM_JOBS=$CPUS
+		fi
+	fi
+fi
+
 # VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
 # tables. The VACUUM FULL is probably unnecessary; we want to scan the
 # heap and update the commit-hint bits on each new tuple, but a regular
 # VACUUM ought to suffice for that.
+# Note: by default, VACUUM FREEZE ANALYZE is performed. The -f option
+# can be used to execute VACUUM in FULL mode.
 
-vacuumdb ${PORTARG} -z -f -d ${DBT2DBNAME} || exit 1
+# Perform VACUUM FREEZE ANALYZE by default
+VACUUM_OPTS="-z -F"
+if [ $VACUUM_FULL -eq 1 ]; then
+	VACUUM_OPTS="-z -f"
+fi
+
+# Use vacuumdb's -j option only if VACUUM_JOBS is greater than 1.
+if [ $VACUUM_JOBS -gt 1 ]; then
+	VACUUM_OPTS+=" -j ${VACUUM_JOBS}"
+fi
+
+vacuumdb ${PORTARG} ${VACUUM_OPTS} -d ${DBT2DBNAME} || exit 1
 
 exit 0

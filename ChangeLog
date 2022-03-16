@@ -4,6 +4,7 @@ vX.Y.Z
 - Add new standalone driver (driver3) combining event callbacks with
   multi-process parallelism model, replacing previous thread based standalone
   driver
+- Parallelize PostgreSQL vacuuming when building the database
 
 v0.46.2
 
