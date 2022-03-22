@@ -99,6 +99,8 @@ int main(int argc, char *argv[])
 	fflush(stdout);
 	create_pid_file();
 
+	free(output_path);
+
 	/* Wait for command line input. */
 	do {
 		if (force_sleep == 1) {
@@ -135,6 +137,7 @@ exit(0);
 int parse_arguments(int argc, char *argv[])
 {
 	int c;
+	int length;
 
 	if (argc < 3) {
 		return ERROR;
@@ -195,7 +198,15 @@ int parse_arguments(int argc, char *argv[])
 #endif
 			break;
 		case 'o':
+			length = strlen(optarg);
+			output_path = malloc(sizeof(char) * (length + 1));
+			if (output_path == NULL) {
+				printf("error allocating output_path\n");
+				exit(1);
+			}
 			strcpy(output_path, optarg);
+			if (output_path[length] == '/')
+				output_path[length] = '\0';
 			break;
 		case 'p':
 			port = atoi(optarg);
@@ -219,6 +230,16 @@ int parse_arguments(int argc, char *argv[])
 		default:
 			printf("?? getopt returned character code 0%o ??\n", c);
 		}
+	}
+
+	if (output_path == NULL) {
+		output_path = malloc(sizeof(char) * 2);
+		if (output_path == NULL) {
+			printf("error allocating output_path\n");
+			exit(1);
+		}
+		output_path[0] = '.';
+		output_path[1] = '\0';
 	}
 
 	return OK;
@@ -315,9 +336,10 @@ int startup()
 int create_pid_file()
 {
   FILE * fpid;
-  char pid_filename[1024];
+  char pid_filename[512];
 
-  sprintf(pid_filename, "%s%s", output_path, CLIENT_PID_FILENAME);
+  pid_filename[511] = '\0';
+  snprintf(pid_filename, 511, "%s/%s", output_path, CLIENT_PID_FILENAME);
 
   fpid = fopen(pid_filename,"w");
   if (!fpid)
@@ -341,6 +363,7 @@ void usage(char *name)
 	printf("  -a <dbms>      cockroach|mysql|pgsql|yugabyte\n");
 	printf("  -c #           number of database connections\n");
 	printf("  -f             set forced sleep\n");
+	printf("  -o <path>      output directory, default '.'\n");
 	printf("  -p #           port to listen for incoming driver connections, "
 			"default %d\n", CLIENT_PORT);
 	printf("  -s #           seconds to sleep between openning db connections, "

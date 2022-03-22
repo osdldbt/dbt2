@@ -57,7 +57,7 @@ fi
 NO_THINK_TIME="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 "
 docker run --rm --name $DOCKER_NAME \
 		$DOCKER_TAG \
-		bash -c "dbt2-driver -d $HOST -wmin $WMIN -wmax $WMAX -w $WAREHOUSES -l $TEST_LENGTH $NO_THINK_TIME -sleep 100 && dbt2-post-process mix.log"
+		bash -c "dbt2-driver -d $HOST -wmin $WMIN -wmax $WMAX -w $WAREHOUSES -l $TEST_LENGTH $NO_THINK_TIME -sleep 100 -outdir /tmp && dbt2-post-process /tmp/mix.log"
 if [ $? -ne 0 ]; then
 	usage
 	exit 1

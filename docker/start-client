@@ -48,7 +48,8 @@ if [ "x$DBMS" = "xpgsql" ]; then
 	docker run -d --rm --name $DOCKER_NAME -p 30000:30000 \
 		-e PGUSER="postgres" \
 		$DOCKER_TAG \
-		dbt2-client -a $DBMS -f -c $DATABASE_CONNECTIONS -d $HOST -b $DBNAME
+		dbt2-client -a $DBMS -f -c $DATABASE_CONNECTIONS -d $HOST -b $DBNAME \
+				-o /tmp
 	RC=$?
 else
 	RC=1

@@ -171,7 +171,7 @@ int init_common();
 int create_pid_file();
 unsigned long int ntohll(long int);
 
-extern char output_path[256];
+extern char *output_path;
 extern const wchar_t *c_last_syl[C_LAST_SYL_MAX];
 extern struct table_cardinality_t table_cardinality;
 extern const char transaction_short_name[TRANSACTION_MAX];

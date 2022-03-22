@@ -21,7 +21,7 @@
 #include "common.h"
 #include "transaction_data.h"
 
-char output_path[256] = "";
+char *output_path = NULL;
 /*
  * Initialize a-string character set to 128 ascii characters.  Clause 4.3.2.2.
  *

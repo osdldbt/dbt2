@@ -80,7 +80,7 @@ pthread_mutex_t mutex_terminal_state[3][TRANSACTION_MAX] = {
 int create_pid_file()
 {
 	FILE * fpid;
-	char pid_filename[1024];
+	char pid_filename[512];
 
 	sprintf(pid_filename, "%s/%s", output_path, DRIVER_PID_FILENAME);
 
@@ -122,9 +122,10 @@ int init_driver()
 
 int init_driver_logging()
 {
-	char log_filename[1024];
+	char log_filename[512];
 
-	sprintf(log_filename, "%s%s", output_path, MIX_LOG_NAME);
+	log_filename[511] = '\0';
+	snprintf(log_filename, 511, "%s/%s", output_path, MIX_LOG_NAME);
 	log_mix = fopen(log_filename, "w");
 	if (log_mix == NULL) {
 		fprintf(stderr, "cannot open %s\n", log_filename);

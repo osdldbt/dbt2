@@ -120,7 +120,7 @@ void gen_customers()
 			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -335,7 +335,7 @@ void gen_districts()
 			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -488,7 +488,7 @@ void gen_history()
 			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -626,7 +626,7 @@ void gen_items()
 	printf("Generating item table data from %d to %d...\n", start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -754,7 +754,7 @@ void gen_new_orders()
 			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -875,7 +875,7 @@ void gen_orders()
 			"...\n", start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -893,7 +893,7 @@ void gen_orders()
 		}
 
 		filename[0] = '\0';
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -1175,7 +1175,7 @@ void gen_stock()
 			start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -1371,7 +1371,7 @@ void gen_warehouses()
 	printf("Generating warehouse table data %d to %d...\n", start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			strcpy(filename, output_path);
 			strcat(filename, "/");
 		}
@@ -1492,6 +1492,7 @@ void gen_warehouses()
 
 int main(int argc, char *argv[])
 {
+	int length;
 	struct stat st;
 
 	/* For getoptlong(). */
@@ -1580,7 +1581,15 @@ int main(int argc, char *argv[])
 			customers = atoi(optarg);
 			break;
 		case 'd':
+			length = strlen(optarg);
+			output_path = malloc(sizeof(char) * (length + 1));
+			if (output_path == NULL) {
+				printf("error allocating output_path\n");
+				exit(1);
+			}
 			strcpy(output_path, optarg);
+			if (output_path[length] == '/')
+				output_path[length] = '\0';
 			break;
 		case 'i':
 			items = atoi(optarg);
@@ -1645,7 +1654,7 @@ int main(int argc, char *argv[])
 		return 3;
 	}
 
-	if (strlen(output_path) > 0 && ((stat(output_path, &st) < 0) ||
+	if (output_path != NULL && ((stat(output_path, &st) < 0) ||
 			(st.st_mode & S_IFMT) != S_IFDIR)) {
 		printf("Output directory of data files '%s' not exists\n", output_path);
 		return 3;
@@ -1687,7 +1696,7 @@ int main(int argc, char *argv[])
 	printf("\n");
 
 	if (mode_load != MODE_DIRECT) {
-		if (strlen(output_path) > 0) {
+		if (output_path != NULL) {
 			printf("Output directory of data files: %s\n",output_path);
 		} else {
 			printf("Output directory of data files: current directory\n");

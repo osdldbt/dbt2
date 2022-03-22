@@ -158,6 +158,8 @@ int main(int argc, char *argv[])
 		return 1;
 	};
 
+	free(output_path);
+
 	/* Sanity check on the parameters. */
 	if (w_id_min > w_id_max) {
 		printf("wmin cannot be larger than wmax\n");
@@ -328,11 +330,29 @@ int parse_arguments(int argc, char *argv[])
 			strcpy(sname, argv[i + 1]);
 #endif /* STANDALONE */
 		} else if (strcmp(flag, "outdir") == 0) {
+			int length = strlen(argv[i + 1]);
+			output_path = malloc(sizeof(char) * (length + 1));
+			if (output_path == NULL) {
+				printf("error allocating output_path\n");
+				exit(1);
+			}
 			strcpy(output_path, argv[i + 1]);
+			if (output_path[length] == '/')
+				output_path[length] = '\0';
 		} else {
 			printf("invalid flag: %s\n", argv[i]);
 			exit(1);
 		}
+	}
+
+	if (output_path == NULL) {
+		output_path = malloc(sizeof(char) * 2);
+		if (output_path == NULL) {
+			printf("error allocating output_path\n");
+			exit(1);
+		}
+		output_path[0] = '.';
+		output_path[1] = '\0';
 	}
 
 	return OK;
