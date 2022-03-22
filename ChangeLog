@@ -4,6 +4,7 @@ vX.Y.Z
 - Clean up client usage message with additions in v0.46.0
 - Fix inconsistencies with handling output directory
 - Reformat driver usage to be consistent with other programs
+- Clean up datagen usage message
 
 v0.46.0
 

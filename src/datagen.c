@@ -68,12 +68,12 @@ char quoter[2] = "";
 unsigned long long seed = 0;
 int table = TABLE_ALL;
 
-int w_id = -1;
-
 int part = 1; /* Which partition to generator. */
 int partitions = 1; /* How many partitions of data. */
 
 void (*print_timestamp)(FILE *, struct tm *);
+
+void usage(char *);
 
 void metaprintf(FILE *fp, char *fmt, ...)
 {
@@ -955,9 +955,6 @@ void gen_orders()
 
 	if (part > 1)
 		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * ((customers - 1) + 2101 + orders));
-		/*
-		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * ((customers - 1) + orders + 2100));
-		*/
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -1501,29 +1498,7 @@ int main(int argc, char *argv[])
 	init_common();
 
 	if (argc < 2) {
-		printf("usage: %s [options]\n", argv[0]);
-		printf("  options:\n");
-		printf("    -w <int> - warehouse cardinality\n");
-		printf("    -c <int> - customer cardinality, default %d\n",
-				CUSTOMER_CARDINALITY);
-		printf("    -i <int> - item cardinality, default %d\n",
-				ITEM_CARDINALITY);
-		printf("    -o <int> - order cardinality, default %d\n",
-				ORDER_CARDINALITY);
-		printf("    -n <int> - new-order cardinality, default %d\n",
-				NEW_ORDER_CARDINALITY);
-		printf("    -d <path> - output path of data files\n");
-		printf("    --seed <int> - set random number generation seed\n");
-		printf("    --table <table> - set random number generation seed\n");
-		printf("    --mysql - format data for MySQL\n");
-		printf("    --pgsql - format data for PostgreSQL\n");
-		printf("    --sapdb - format data for SAP DB\n");
-		printf("    --direct - don't generate flat files, load directly into "
-				"database\n");
-		printf("    -W <int> - warehouse id start\n");
-		printf("    -P | --partitions <int> - how many partitions of data, "
-				"default 1\n");
-		printf("    -p | --part <int> - wich partition of data to generate\n");
+		usage(argv[0]);
 		return 1;
 	}
 
@@ -1542,7 +1517,7 @@ int main(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "c:d:i:n:o:P:p:w:W:",
+		c = getopt_long(argc, argv, "c:d:i:n:o:P:p:w:",
 				long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -1567,8 +1542,6 @@ int main(int argc, char *argv[])
 					table = TABLE_NEW_ORDER;
 				} else if (strcmp(optarg, "history") == 0) {
 					table = TABLE_HISTORY;
-				} else if (strcmp(optarg, "order_line") == 0) {
-					table = TABLE_ORDER_LINE;
 				} else {
 					printf("unknown table: %s\n", optarg);
 					return 2;
@@ -1613,11 +1586,6 @@ int main(int argc, char *argv[])
 				printf("the part to generate must start at 1\n");
 				return 2;
 			}
-			break;
-		case 'W':
-			w_id = atoi(optarg);
-			/* shift w_id because counts start at 0 */
-			--w_id;
 			break;
 		case 'w':
 			warehouses = atoi(optarg);
@@ -1724,4 +1692,44 @@ int main(int argc, char *argv[])
 		gen_new_orders();
 
 	return 0;
+}
+
+void usage(char *name)
+{
+	printf("%s is the DBT-2 data generator\n\n", name);
+	printf("Usage:\n");
+	printf("  %s [OPTION]\n", name);
+	printf("\nGeneral options:\n");
+	printf("  -d <path>           output path of data files\n");
+	printf("  -w <int>            warehouse cardinality\n");
+	printf("  --direct            don't generate flat files, load directly into "
+			"database\n");
+	printf("  --seed <int>        set random number generation seed\n");
+	printf("\nCardinality options:\n");
+	printf("  -c <int>            customer cardinality, default %d\n",
+			CUSTOMER_CARDINALITY);
+	printf("  -i <int>            item cardinality, default %d\n",
+			ITEM_CARDINALITY);
+	printf("  -n <int>            new-order cardinality, default %d\n",
+			NEW_ORDER_CARDINALITY);
+	printf("  -o <int>            order cardinality, default %d\n",
+			ORDER_CARDINALITY);
+	printf("\nData format options:\n");
+	printf("  --mysql             format data for MySQL\n");
+	printf("  --pgsql             format data for PostgreSQL\n");
+	printf("  --sapdb             format data for SAP DB\n");
+	printf("\nPartitioning options:\n");
+	printf("  --table <table>     table to generate, default all\n");
+	printf("  -P, --partitions <int>\n");
+	printf("                      how many partitions of data, default 1\n");
+	printf("  -p, --part <int>    which partition of data to generate\n");
+	printf("\nTable options:\n");
+	printf("  warehouse\n");
+	printf("  district\n");
+	printf("  customer\n");
+	printf("  item\n");
+	printf("  orders (also generates order_line at the same time)\n");
+	printf("  stock\n");
+	printf("  new_order\n");
+	printf("  history\n");
 }
