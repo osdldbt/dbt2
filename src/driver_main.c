@@ -38,6 +38,7 @@ char dbt2_mysql_port[32];
 int perform_integrity_check = 0;
 
 int parse_arguments(int argc, char *argv[]);
+void usage(char *);
 
 int main(int argc, char *argv[])
 {
@@ -46,111 +47,10 @@ int main(int argc, char *argv[])
 	init_driver();
 
 	if (parse_arguments(argc, argv) != OK) {
-		printf("usage: %s -d <address> -wmin # -wmax # -l # [-w #] [-p #] [-c #] [-i #] [-o #] [-n #] [-q %%] [-r %%] [-e %%] [-t %%] [-altered 0] [-spread #] [-z]",
-			argv[0]);
-#ifdef STANDALONE
-#ifdef HAVE_LIBPQ
-		printf(" -z #");
-#endif /* HAVE_LIBPQ */
-#endif /* STANDALONE */
-		printf("\n\n");
-#ifdef STANDALONE
-		printf("-dbname <connect_string>\n");
-		printf("\tdatabase connect string\n");
-#ifdef HAVE_LIBPQ
-		printf("-z #\n");
-		printf("\tpostmaster listener port\n");
-#endif /* HAVE_LIBPQ */
-#ifdef HAVE_MYSQL
-		printf("-z #\n");
-		printf("\tmysql server listener port\n");
-#endif /* HAVE_MYSQL */
-#else /* STANDALONE */
-		printf("-d <address>\n");
-		printf("\tnetwork address where client program is running\n");
-		printf("-p #\n");
-		printf("\tclient port, default %d\n", CLIENT_PORT);
-#endif /* STANDALONE */
-		printf("\n");
-		printf("-L #\n");
-		printf("\tlimit the total number of terminals emulated\n");
-		printf("-l #\n");
-		printf("\tthe duration of the run in seconds\n");
-		printf("\n");
-		printf("-wmin #\n");
-		printf("\tlower warehouse id\n");
-		printf("-wmax #\n");
-		printf("\tupper warehouse id\n");
-		printf("-w #\n");
-		printf("\twarehouse cardinality, default 1\n");
-		printf("-c #\n");
-		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
-		printf("-i #\n");
-		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
-		printf("-o #\n");
-		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
-		printf("-n #\n");
-		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
-		printf("\n");
-		printf("-q %%\n");
-		printf("\tmix percentage of Payment transaction, default %0.2f\n",
-				MIX_PAYMENT);
-		printf("-r %%\n");
-		printf("\tmix percentage of Order-Status transaction, default %0.2f\n",
-				MIX_ORDER_STATUS);
-		printf("-e %%\n");
-		printf("\tmix percentage of Delivery transaction, default %0.2f\n",
-				MIX_DELIVERY);
-		printf("-t %%\n");
-		printf("\tmix percentage of Stock-Level transaction, default %0.2f\n",
-				MIX_STOCK_LEVEL);
-		printf("\n");
-		printf("-ktd #\n");
-		printf("\tdelivery keying time, default %d s\n", KEY_TIME_DELIVERY);
-		printf("-ktn #\n");
-		printf("\tnew-order keying time, default %d s\n", KEY_TIME_NEW_ORDER);
-		printf("-kto #\n");
-		printf("\torder-status keying time, default %d s\n",
-				KEY_TIME_ORDER_STATUS);
-		printf("-ktp #\n");
-		printf("\tpayment keying time, default %d s\n", KEY_TIME_PAYMENT);
-		printf("-kts #\n");
-		printf("\tstock-level keying time, default %d s\n",
-				KEY_TIME_STOCK_LEVEL);
-		printf("-ttd #\n");
-		printf("\tdelivery thinking time, default %d ms\n",
-				THINK_TIME_DELIVERY);
-		printf("-ttn #\n");
-		printf("\tnew-order thinking time, default %d ms\n",
-				THINK_TIME_NEW_ORDER);
-		printf("-tto #\n");
-		printf("\torder-status thinking time, default %d ms\n",
-				THINK_TIME_ORDER_STATUS);
-		printf("-ttp #\n");
-		printf("\tpayment thinking time, default %d ms\n", THINK_TIME_PAYMENT);
-		printf("-tts #\n");
-		printf("\tstock-level thinking time, default %d ms\n",
-				THINK_TIME_STOCK_LEVEL);
-		printf("\n");
-		printf("-tpw #\n");
-		printf("\tterminals started per warehouse, default 10\n");
-
-		printf("\n");
-		printf("-altered [0/1]\n");
-		printf("\trandom warehouse and district per transaction, default: 0\n");
-		printf("-sleep #\n");
-		printf("\tnumber of milliseconds to sleep between terminal creation\n");
-		printf("-spread #\n");
-		printf("\tfancy warehouse skipping trick for low i/o runs\n");
-
-		printf("-z #\n");
-		printf("\tperform database integrity check\n");
-#ifdef STANDALONE
-		printf("\nDriver is in STANDALONE mode.\n");
-#endif /* STANDALONE */
-
+		usage(argv[0]);
 		return 1;
 	}
+
 	create_pid_file();
 
 	if(init_logging() != OK || init_driver_logging() != OK) {
@@ -356,4 +256,69 @@ int parse_arguments(int argc, char *argv[])
 	}
 
 	return OK;
+}
+
+void usage(char *name)
+{
+	printf("%s is the DBT-2 remote terminal emulator\n\n", name);
+	printf("Usage:\n");
+	printf("  %s [OPTION]\n", name);
+	printf("\nGeneral options:\n");
+	printf("  -d <address>   client network address\n");
+	printf("  -l #           the duration of the run in seconds\n");
+	printf("  -outdir <path> location of log files, default ./\n");
+	printf("  -p #           client port, default %d\n", CLIENT_PORT);
+	printf("  -sleep #       number of milliseconds to sleep between opening "
+			"client connections, default %d\n", client_conn_sleep);
+	printf("  -z #           perform database integrity check\n");
+	printf("\nPartitioning options:\n");
+	printf("  -wmin #        lower warehouse id\n");
+	printf("  -wmax #        upper warehouse id\n");
+	printf("\nDatabase cardinality options:\n");
+	printf("  -w #           warehouse cardinality, default 1\n");
+	printf("  -c #           customer cardinality, default %d\n",
+			CUSTOMER_CARDINALITY);
+	printf("  -i #           item cardinality, default %d\n", ITEM_CARDINALITY);
+	printf("  -o #           order cardinality, default %d\n",
+			ORDER_CARDINALITY);
+	printf("  -n #           new-order cardinality, default %d\n",
+			NEW_ORDER_CARDINALITY);
+	printf("\nTransaction mix options:\n");
+	printf("  -q %%           mix percentage of Payment transaction, default "
+			"%0.2f\n", MIX_PAYMENT);
+	printf("  -r %%           mix percentage of Order-Status transaction, "
+			"default %0.2f\n", MIX_ORDER_STATUS);
+	printf("  -e %%           mix percentage of Delivery transaction, default "
+			"%0.2f\n", MIX_DELIVERY);
+	printf("  -t %%           mix percentage of Stock-Level transaction, "
+			"default %0.2f\n", MIX_STOCK_LEVEL);
+	printf("\nKeying time options:\n");
+	printf("  -ktd #         delivery keying time, default %d s\n",
+			KEY_TIME_DELIVERY);
+	printf("  -ktn #         new-order keying time, default %d s\n",
+			KEY_TIME_NEW_ORDER);
+	printf("  -kto #         order-status keying time, default %d s\n",
+			KEY_TIME_ORDER_STATUS);
+	printf("  -ktp #         payment keying time, default %d s\n",
+			KEY_TIME_PAYMENT);
+	printf("  -kts #         stock-level keying time, default %d s\n",
+			KEY_TIME_STOCK_LEVEL);
+	printf("\nThinking time options:\n");
+	printf("  -ttd #         delivery thinking time, default %d ms\n",
+			THINK_TIME_DELIVERY);
+	printf("  -ttn #         new-order thinking time, default %d ms\n",
+			THINK_TIME_NEW_ORDER);
+	printf("  -tto #         order-status thinking time, default %d ms\n",
+			THINK_TIME_ORDER_STATUS);
+	printf("  -ttp #         payment thinking time, default %d ms\n",
+			THINK_TIME_PAYMENT);
+	printf("  -tts #         stock-level thinking time, default %d ms\n",
+			THINK_TIME_STOCK_LEVEL);
+	printf("\nAltered specification options:\n");
+	printf("  -altered [0/1] random warehouse and district per transaction, "
+			"default: 0\n");
+	printf("  -L #           limit the total number of terminals emulated\n");
+	printf("  -spread #      fancy warehouse skipping trick for low i/o "
+			"runs\n");
+	printf("  -tpw #         terminals started per warehouse, default 10\n");
 }

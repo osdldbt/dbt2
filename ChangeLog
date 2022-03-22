@@ -3,6 +3,7 @@ vX.Y.Z
 - Fix data generator quoting bug introduced in v0.46.0
 - Clean up client usage message with additions in v0.46.0
 - Fix inconsistencies with handling output directory
+- Reformat driver usage to be consistent with other programs
 
 v0.46.0
 
