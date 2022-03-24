@@ -218,7 +218,7 @@ for HOST in $@; do
 	rsync -avz $HOST:$OUTDIR/ $HOST
 done
 
-cat */mix.log | sort > mix.log
+cat */mix.log > mix.log
 
 for HOST in $@; do
 	# copy readme.txt to fake out report script

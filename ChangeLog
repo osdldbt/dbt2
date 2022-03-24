@@ -5,6 +5,7 @@ vX.Y.Z
 - Fix inconsistencies with handling output directory
 - Reformat driver usage to be consistent with other programs
 - Clean up datagen usage message
+- Fix post-process script to correctly handle merged mix logs
 
 v0.46.0
 

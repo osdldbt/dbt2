@@ -408,7 +408,7 @@ int start_driver()
 
 	/* Note that the driver has started up all threads in the log. */
 	pthread_mutex_lock(&mutex_mix_log);
-	fprintf(log_mix, "%d,START,,,\n", (int) time(NULL));
+	fprintf(log_mix, "%d,START,,,%d,,\n", (int) time(NULL), getpid());
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);
 

@@ -4,8 +4,8 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2006      Open Source Development Labs, Inc.
-#               2006-2014 Mark Wong
 #               2014      2ndQuadrant, Ltd.
+#               2006-2022 Mark Wong
 #
 
 MIXFILE=$1
@@ -15,24 +15,29 @@ if [ $# -ne 1 ]; then
 	exit 1
 fi
 
+if [ ! "x$VERBOSE" = "x1" ]; then
+	VERBOSE=0
+fi
+
 R --slave --no-save << __EOF__
-# Is there an escape error in pipe()? It shouldn't print the START marker line
-# nor the TERMINATED line.
-cmd <- "sed -n '/START/,/TERMINATED/{/START|TERMINATED/!p}' ${MIXFILE}"
-mix <- read.csv(pipe(cmd), header=F)
-mix <- mix[-1,]
-mix <- mix[-nrow(mix),]
+mix <- read.csv("$MIXFILE", header=FALSE)
 
 colnames(mix)[1] <- 'ctime'
 colnames(mix)[2] <- 'txn'
 colnames(mix)[3] <- 'status'
 colnames(mix)[4] <- 'response'
+colnames(mix)[5] <- 'id'
+colnames(mix)[6] <- 'wid'
+colnames(mix)[7] <- 'did'
 
-# Get the ctime after the START marker and the ctime before the first
-# TERMINATED marker.
-start <- mix[1,]\$ctime
-total_txn <- nrow(mix)
-end <- mix[total_txn:total_txn,]\$ctime
+# Get the ctime of the last START marker and the ctime the first TERMINATED
+# marker to calculate steady state.
+start <- max(mix\$ctime[mix\$txn == "START"])
+
+end <- min(mix\$ctime[mix\$txn == "TERMINATED"])
+
+total_txn <- sum(mix\$ctime >= start & mix\$ctime <= end & mix\$txn != "START" &
+                 mix\$txn != "TERMINATED")
 
 duration = end - start
 errors <- sum(mix\$status == "E")
@@ -48,13 +53,16 @@ txn_name <- c("Delivery", "New Order", "Order Status", "Payment",
               "Stock Level")
 
 for (i in 1:5) {
-  t_total <- sum(mix\$txn == txn[i])
+  t_total <- sum(mix\$txn == txn[i] & mix\$ctime >= start & mix\$ctime <= end)
   if (i == 2) {
     total_n <- t_total
   }
-  t_rollback <- sum(mix\$txn == txn[i] & mix\$status == "R")
-  t_mean <- mean(mix\$response[mix\$txn == txn[i]])
-  t_q90 <- quantile(mix\$response[mix\$txn == txn[i]], .9)
+  t_rollback <- sum(mix\$txn == txn[i] & mix\$status == "R" &
+                    mix\$ctime >= start & mix\$ctime <= end)
+  t_mean <- mean(mix\$response[mix\$txn == txn[i] & mix\$ctime >= start &
+                 mix\$ctime <= end])
+  t_q90 <- quantile(mix\$response[mix\$txn == txn[i] & mix\$ctime >= start &
+                    mix\$ctime <= end], .9)
   cat(sprintf("%12s  %5.2f  %9.3f : %9.3f  %11d  %15d  %5.2f\n",
               txn_name[i], t_total / total_txn * 100, t_mean, t_q90,
               t_total, t_rollback, t_rollback / t_total * 100))
@@ -69,31 +77,20 @@ cat(sprintf("%d total unknown errors\n", errors))
 
 # Calculate the ramp up time.
 
-cmd <- "sed -e '/START/q' ${MIXFILE}"
-mix <- read.csv(pipe(cmd), header=F)
-mix <- mix[-nrow(mix),]
-
-colnames(mix)[1] <- 'ctime'
-colnames(mix)[2] <- 'txn'
-colnames(mix)[3] <- 'status'
-colnames(mix)[4] <- 'response'
-colnames(mix)[6] <- 'wid'
-colnames(mix)[7] <- 'did'
-
-start <- mix[1,]\$ctime
-total_txn <- dim(mix)[1]
-end <- mix[total_txn:total_txn,]\$ctime
-duration = end - start
-
+duration <- start - mix[1,]\$ctime
 cat(sprintf("%0.1f seconds(s) ramping up\n", duration))
 
-wid_min <- min(mix\$wid)
-wid_max <- max(mix\$wid)
-wid_mean <- mean(mix\$wid)
-wid_median <- median(mix\$wid)
-wid_sd <- sd(mix\$wid)
-wid_var <- var(mix\$wid)
-cat(sprintf("warehouse range: min %d max %d\n", wid_min, wid_max))
-cat(sprintf("warehouse stats: median %0.1f mean %0.1f sd %0.1f var %0.1f\n",
-            wid_median, wid_mean, wid_sd, wid_var))
+if ($VERBOSE == 1) {
+  wid_min <- min(mix\$wid, na.rm=TRUE)
+  wid_max <- max(mix\$wid, na.rm=TRUE)
+  wid_mean <- mean(mix\$wid, na.rm=TRUE)
+  wid_median <- median(mix\$wid, na.rm=TRUE)
+  wid_sd <- sd(mix\$wid, na.rm=TRUE)
+  wid_var <- var(mix\$wid, na.rm=TRUE)
+  cat(sprintf("warehouse range: min %d max %d\n", wid_min, wid_max))
+  cat(sprintf("warehouse stats: median %0.1f mean %0.1f sd %0.1f var %0.1f\n",
+              wid_median, wid_mean, wid_sd, wid_var))
+
+  xtabs(~ id + wid + did, data=mix)
+}
 __EOF__
