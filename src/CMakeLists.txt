@@ -223,6 +223,7 @@ add_executable (${DRIVER}
                 ${COMMON_SOURCE}
                 ${PCG_SOURCE}
                 driver.c
+                driver_common.c
                 driver_main.c
                 input_data_generator.c
 )
@@ -290,6 +291,7 @@ set_source_files_properties (
         client_interface.c
         common.c
         driver.c
+        driver_common.c
         driver_main.c
         input_data_generator.c
         listener.c
