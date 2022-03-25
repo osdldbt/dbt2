@@ -14,8 +14,10 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
-#include <logging.h>
-#include <transaction_data.h>
+#include <unistd.h>
+
+#include "logging.h"
+#include "transaction_data.h"
 
 FILE *log_error;
 pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
@@ -36,6 +38,21 @@ int init_logging()
 	char log_filename[512];
 	log_filename[511] = '\0';
 	snprintf(log_filename, 511, "%s/%s", output_path, ERROR_LOG_NAME);
+	log_error = fopen(log_filename, "w");
+	if (log_error == NULL) {
+		fprintf(stderr, "cannot open %s\n", log_filename);
+		return ERROR;
+	}
+
+	return OK;
+}
+
+/* Open a file to log errors to, for multi process use. */
+int init_logging_f()
+{
+	char log_filename[512];
+	log_filename[511] = '\0';
+	snprintf(log_filename, 511, "%s/error-%d.log", output_path, getpid());
 	log_error = fopen(log_filename, "w");
 	if (log_error == NULL) {
 		fprintf(stderr, "cannot open %s\n", log_filename);

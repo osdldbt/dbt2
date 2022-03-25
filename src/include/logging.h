@@ -17,6 +17,7 @@
 
 int edump(int type, void *data);
 int init_logging();
+int init_logging_f();
 int log_error_message(char *filename, int line, const char *fmt, ...);
 
 #endif /* _LOGGING_H_ */
