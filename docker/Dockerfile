@@ -10,6 +10,7 @@ RUN dnf -y update
 RUN dnf -y install cmake \
                    gcc \
                    glibc-langpack-en \
+                   libev-devel \
                    openssl-devel \
                    make \
                    postgresql${PGVERSION}-devel \

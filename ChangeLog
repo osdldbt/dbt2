@@ -1,3 +1,7 @@
+vX.Y.Z
+
+- Add experimental multi-process driver2 that uses event callbacks (libev)
+
 v0.46.2
 
 - Fix post-process script to ignore transaction errors in statistical

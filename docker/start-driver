@@ -58,10 +58,14 @@ if [ ! "x$VERBOSE" = "x1" ]; then
 	VERBOSE=0
 fi
 
-NO_THINK_TIME="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 "
+if [ ! "x$VERSION" = "x2" ]; then
+	VERSION=""
+fi
+
+NO_THINK_TIME="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
 docker run --rm --name $DOCKER_NAME \
 		$DOCKER_TAG \
-		bash -c "dbt2-driver -d $HOST -wmin $WMIN -wmax $WMAX -w $WAREHOUSES -l $TEST_LENGTH $NO_THINK_TIME -sleep 100 -outdir /tmp && VERBOSE=${VERBOSE} dbt2-post-process /tmp/mix.log"
+		bash -c "dbt2-driver${VERSION} -d $HOST -wmin $WMIN -wmax $WMAX -w $WAREHOUSES -l $TEST_LENGTH $NO_THINK_TIME -sleep 100 -outdir /tmp && if [ "x$VERSION" = "x2" ]; then cat /tmp/mix-*.log > /tmp/mix.log; fi &&  VERBOSE=${VERBOSE} dbt2-post-process /tmp/mix.log"
 if [ $? -ne 0 ]; then
 	usage
 	exit 1

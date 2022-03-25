@@ -51,6 +51,7 @@ int mode_altered = 0;
 int client_conn_sleep = 1000; /* milliseconds */
 int spread = 1;
 int threads_start_time= 0;
+int fork_per_processor = 1; /* Not used by this driver. */
 
 FILE *log_mix = NULL;
 pthread_mutex_t mutex_mix_log = PTHREAD_MUTEX_INITIALIZER;

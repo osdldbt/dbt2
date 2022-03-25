@@ -5,6 +5,7 @@
 set (CLIENT ${PROJECT_NAME}-client)
 set (DATAGEN ${PROJECT_NAME}-datagen)
 set (DRIVER ${PROJECT_NAME}-driver)
+set (DRIVER2 ${PROJECT_NAME}-driver2)
 set (RAND ${PROJECT_NAME}-rand)
 set (TXN_TEST ${PROJECT_NAME}-transaction-test)
 
@@ -227,6 +228,7 @@ add_executable (${DRIVER}
                 driver_main.c
                 input_data_generator.c
 )
+target_compile_definitions(${DRIVER} PRIVATE -DDRIVER1)
 target_link_libraries (${DRIVER} m pthread)
 if (NEED_LIBRT)
     target_link_libraries (${DRIVER} rt)
@@ -236,6 +238,26 @@ if (NEED_LIBSOCKET)
 endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${DRIVER} nsl)
+endif (NEED_LIBNSL)
+
+add_executable (${DRIVER2}
+                ${COMMON_SOURCE}
+                ${PCG_SOURCE}
+                driver2.c
+                driver_common.c
+                driver_main.c
+                input_data_generator.c
+)
+target_compile_definitions(${DRIVER2} PRIVATE -DDRIVER2)
+target_link_libraries (${DRIVER2} m ev)
+if (NEED_LIBRT)
+    target_link_libraries (${DRIVER2} rt)
+endif (NEED_LIBRT)
+if (NEED_LIBSOCKET)
+    target_link_libraries (${DRIVER2} socket)
+endif (NEED_LIBSOCKET)
+if (NEED_LIBNSL)
+    target_link_libraries (${DRIVER2} nsl)
 endif (NEED_LIBNSL)
 
 add_executable(${TXN_TEST}
@@ -292,6 +314,7 @@ set_source_files_properties (
         common.c
         driver.c
         driver_common.c
+        driver2.c
         driver_main.c
         input_data_generator.c
         listener.c
@@ -328,6 +351,7 @@ install (PROGRAMS
          ${CMAKE_BINARY_DIR}/src/${CLIENT}
          ${CMAKE_BINARY_DIR}/src/${DATAGEN}
          ${CMAKE_BINARY_DIR}/src/${DRIVER}
+         ${CMAKE_BINARY_DIR}/src/${DRIVER2}
          ${CMAKE_BINARY_DIR}/src/${RAND}
          ${CMAKE_BINARY_DIR}/src/${TXN_TEST}
          DESTINATION "bin"

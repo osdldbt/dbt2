@@ -37,7 +37,7 @@ char dbt2_mysql_port[32];
 
 int perform_integrity_check = 0;
 
-int parse_arguments(int argc, char *argv[]);
+int parse_arguments(int, char **);
 void usage(char *);
 
 int main(int argc, char *argv[])
@@ -53,12 +53,13 @@ int main(int argc, char *argv[])
 
 	create_pid_file();
 
+#ifdef DRIVER1
 	if(init_logging() != OK || init_driver_logging() != OK) {
-		printf("cannot init driver\n");
+		printf("cannot initialize driver\n");
 		return 1;
 	};
-
 	free(output_path);
+#endif /* DRIVER1 */
 
 	/* Sanity check on the parameters. */
 	if (w_id_min > w_id_max) {
@@ -84,7 +85,8 @@ int main(int argc, char *argv[])
 	printf("\n");
 	printf("database table cardinalities:\n");
 	printf("warehouses = %d\n", table_cardinality.warehouses);
-	printf("districts = %d\n", table_cardinality.districts);
+	printf("districts = %d\n", table_cardinality.districts *
+			table_cardinality.warehouses);
 	printf("customers = %d\n", table_cardinality.customers);
 	printf("items = %d\n", table_cardinality.items);
 	printf("orders = %d\n", table_cardinality.orders);
@@ -239,6 +241,8 @@ int parse_arguments(int argc, char *argv[])
 			strcpy(output_path, argv[i + 1]);
 			if (output_path[length] == '/')
 				output_path[length] = '\0';
+		} else if (strcmp(flag, "fpp") == 0) {
+			fork_per_processor = atoi(argv[i + 1]);
 		} else {
 			printf("invalid flag: %s\n", argv[i]);
 			exit(1);
@@ -254,7 +258,6 @@ int parse_arguments(int argc, char *argv[])
 		output_path[0] = '.';
 		output_path[1] = '\0';
 	}
-
 	return OK;
 }
 
@@ -265,6 +268,10 @@ void usage(char *name)
 	printf("  %s [OPTION]\n", name);
 	printf("\nGeneral options:\n");
 	printf("  -d <address>   client network address\n");
+#ifdef DRIVER2
+	printf("  -fpp #         the number of processes started per proccessor, "
+			"default 1\n");
+#endif /* DRIVER2 */
 	printf("  -l #           the duration of the run in seconds\n");
 	printf("  -outdir <path> location of log files, default ./\n");
 	printf("  -p #           client port, default %d\n", CLIENT_PORT);
@@ -317,7 +324,9 @@ void usage(char *name)
 	printf("\nAltered specification options:\n");
 	printf("  -altered [0/1] random warehouse and district per transaction, "
 			"default: 0\n");
+#ifdef DRIVER2
 	printf("  -L #           limit the total number of terminals emulated\n");
+#endif /* DRIVER2 */
 	printf("  -spread #      fancy warehouse skipping trick for low i/o "
 			"runs\n");
 	printf("  -tpw #         terminals started per warehouse, default 10\n");
