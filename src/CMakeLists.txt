@@ -201,6 +201,8 @@ add_executable (${CLIENT}
                 ${DB_SOURCE}
                 ${PCG_SOURCE}
                 client.c
+                client_common.c
+                client_main.c
                 db.c
                 db_threadpool.c
                 listener.c
@@ -330,6 +332,8 @@ set_source_files_properties (
 set_source_files_properties (
         ${DB_SOURCE}
         client.c
+        client_common.c
+        client_main.c
         db.c
         db_threadpool.c
         transaction_test.c

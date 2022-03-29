@@ -24,6 +24,7 @@
 #include "common.h"
 #include "listener.h"
 #include "logging.h"
+#include "client.h"
 #include "client_interface.h"
 #include "transaction_queue.h"
 #include "db_threadpool.h"
@@ -34,16 +35,10 @@ void *db_worker(void *data);
 int startup();
 
 /* Global Variables */
-int db_connections = 0;
-int db_conn_sleep = 1000; /* milliseconds */
 int *worker_count;
 time_t *last_txn;
-int dbms = -1;
 
 /* These should probably be handled differently. */
-extern char sname[32];
-extern char dname[32];
-extern int exiting;
 sem_t db_worker_count;
 #ifdef STANDALONE
 extern FILE *log_mix;
@@ -81,43 +76,8 @@ void *db_worker(void *data)
 
         /* Open a connection to the database. */
 
-        memset(&dbc, 0, sizeof(struct db_context_t));
-
-        switch(dbms) {
-
-#ifdef HAVE_LIBPQ
-        case DBMSCOCKROACH:
-                db_init_cockroach(&dbc, dname, sname, postmaster_port);
-                break;
-        case DBMSLIBPQ:
-                db_init_libpq(&dbc, dname, sname, postmaster_port);
-                break;
-#endif /* HAVE_LIBPQ */
-
-#ifdef HAVE_MYSQL
-        case DBMSMYSQL:
-                printf("connect to mysql server with parameters: db_name: |%s| host: |%s| user: |%s| pass: |%s| port: |%s| socket: |%s|\n", sname, dbt2_mysql_host, dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
-                db_init_mysql(&dbc, sname, dbt2_mysql_host , dbt2_user, dbt2_pass, dbt2_mysql_port, dbt2_mysql_socket);
-                break;
-#endif /* HAVE_MYSQL */
-
-#ifdef HAVE_SQLITE3
-        case DBMSSQLITE:
-                db_init_sqlite(&dbc, sname);
-                break;
-#endif /* HAVE_SQLITE3 */
-
-#ifdef HAVE_ODBC
-        case DBMSODBC:
-                db_init_odbc(sname, "", "");
-                break;
-#endif /* HAVE_ODBC */
-
-        default:
-                printf("unrecognized dbms code: %d\n", dbms);
-                LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);
-                exit(1);
-        }
+        if (init_dbc(&dbc) != 0)
+                return NULL;
 
         if (!exiting && connect_to_db(&dbc) != OK) {
                 LOG_ERROR_MESSAGE("connect_to_db() error, terminating program");

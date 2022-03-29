@@ -99,7 +99,7 @@ int _receive(int s, void *data, int length)
 			perror("recv");
 			return -1;
 		} else if (received == 0) {
-			return 0;
+			return ERR_SOCKET_CLOSED;
 		}
 		total += received;
 		data += received;
