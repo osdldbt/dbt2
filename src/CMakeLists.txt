@@ -3,6 +3,7 @@
 #
 
 set (CLIENT ${PROJECT_NAME}-client)
+set (CLIENT2 ${PROJECT_NAME}-client2)
 set (DATAGEN ${PROJECT_NAME}-datagen)
 set (DRIVER ${PROJECT_NAME}-driver)
 set (DRIVER2 ${PROJECT_NAME}-driver2)
@@ -160,7 +161,6 @@ endif (SQLITE3_FOUND)
 #
 
 set (COMMON_SOURCE
-     _semaphore.c
      _socket.c
      client_interface.c
      common.c
@@ -200,6 +200,7 @@ add_executable (${CLIENT}
                 ${COMMON_SOURCE}
                 ${DB_SOURCE}
                 ${PCG_SOURCE}
+                _semaphore.c
                 client.c
                 client_common.c
                 client_main.c
@@ -208,15 +209,29 @@ add_executable (${CLIENT}
                 listener.c
                 transaction_queue.c
 )
+target_compile_definitions(${CLIENT} PRIVATE -DCLIENT1)
+add_executable (${CLIENT2}
+                ${COMMON_SOURCE}
+                ${DB_SOURCE}
+                ${PCG_SOURCE}
+                client_common.c
+                client_main.c
+                client2.c
+                db.c
+)
+target_compile_definitions(${CLIENT2} PRIVATE -DCLIENT2)
 target_link_libraries (${CLIENT} m pthread)
+target_link_libraries (${CLIENT2} m ev rt)
 if (NEED_LIBRT)
     target_link_libraries (${CLIENT} rt)
 endif (NEED_LIBRT)
 if (NEED_LIBSOCKET)
     target_link_libraries (${CLIENT} socket)
+    target_link_libraries (${CLIENT2} socket)
 endif (NEED_LIBSOCKET)
 if (NEED_LIBNSL)
     target_link_libraries (${CLIENT} nsl)
+    target_link_libraries (${CLIENT2} nsl)
 endif (NEED_LIBNSL)
 
 add_executable (${DATAGEN} ${PCG_SOURCE} datagen.c common.c)
@@ -280,18 +295,22 @@ endif (NEED_LIBNSL)
 
 if (LIBPQ_FOUND)
     target_link_libraries (${CLIENT} ${LIBPQ_LDFLAGS})
+    target_link_libraries (${CLIENT2} ${LIBPQ_LDFLAGS})
     target_link_libraries (${TXN_TEST} ${LIBPQ_LDFLAGS})
 endif (LIBPQ_FOUND)
 if (MYSQLCLIENT_FOUND)
     target_link_libraries (${CLIENT} ${MYSQLCLIENT_LIBRARIES})
+    target_link_libraries (${CLIENT2} ${MYSQLCLIENT_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${MYSQLCLIENT_LIBRARIES})
 endif (MYSQLCLIENT_FOUND)
 if (ODBC_FOUND)
     target_link_libraries (${CLIENT} ${ODBC_LIBRARIES})
+    target_link_libraries (${CLIENT2} ${ODBC_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${ODBC_LIBRARIES})
 endif (ODBC_FOUND)
 if (SQLITE3_FOUND)
     target_link_libraries (${CLIENT} ${SQLITE3_LIBRARIES})
+    target_link_libraries (${CLIENT2} ${SQLITE3_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${SQLITE3_LIBRARIES})
 endif (SQLITE3_FOUND)
 
@@ -334,6 +353,7 @@ set_source_files_properties (
         client.c
         client_common.c
         client_main.c
+        client2.c
         db.c
         db_threadpool.c
         transaction_test.c
@@ -345,6 +365,7 @@ set_source_files_properties (
 #
 
 set_target_properties (${CLIENT} PROPERTIES LINK_FLAGS "${DB_LIBS}")
+set_target_properties (${CLIENT2} PROPERTIES LINK_FLAGS "${DB_LIBS}")
 set_target_properties (${TXN_TEST} PROPERTIES LINK_FLAGS "${DB_LIBS}")
 
 #
@@ -353,6 +374,7 @@ set_target_properties (${TXN_TEST} PROPERTIES LINK_FLAGS "${DB_LIBS}")
 
 install (PROGRAMS
          ${CMAKE_BINARY_DIR}/src/${CLIENT}
+         ${CMAKE_BINARY_DIR}/src/${CLIENT2}
          ${CMAKE_BINARY_DIR}/src/${DATAGEN}
          ${CMAKE_BINARY_DIR}/src/${DRIVER}
          ${CMAKE_BINARY_DIR}/src/${DRIVER2}

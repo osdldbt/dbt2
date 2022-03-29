@@ -39,10 +39,12 @@ int main(int argc, char *argv[])
 		printf("-d not used\n");
 		return 2;
 	}
+#ifdef CLIENT1
 	if (db_connections == 0) {
 		printf("-c not used\n");
 		return 3;
 	}
+#endif /* CLIENT1 */
 
 	/* Ok, let's get started! */
 	create_pid_file();
@@ -78,7 +80,7 @@ int parse_arguments(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "a:b:c:C:d:fl:o:p:s:t:h:u:z:",
+		c = getopt_long(argc, argv, "a:b:c:C:d:fl:o:p:s:t:h:u:x:z:",
 			long_options, &option_index);
 		if (c == -1) {
 			break;
@@ -207,13 +209,22 @@ void usage(char *name)
 	printf("  %s [OPTION]\n\n", name);
 	printf("General options:\n");
 	printf("  -a <dbms>      cockroach|mysql|pgsql|yugabyte\n");
+#ifdef CLIENT1
 	printf("  -f             set forced sleep\n");
 	printf("  -c #           number of database connections\n");
+#endif /* CLIENT1 */
+#ifdef CLIENT2
+	printf("  -C #           roughly maximum number of driver connections, "
+			"default %d\n", max_driver_connections);
+#endif /* CLIENT2 */
 	printf("  -o <path>      output directory, default '.'\n");
 	printf("  -p #           port to listen for incoming driver connections, "
 			"default %d\n", CLIENT_PORT);
 	printf("  -s #           seconds to sleep between openning db connections, "
 			"default 1 s\n");
+#ifdef CLIENT2
+	printf("  -x #           number of database connections per process\n");
+#endif /* CLIENT2 */
 #ifdef HAVE_ODBC
 	printf("\nunixODBC options:\n");
 	printf("  -d <db_name>   database connect string\n");
