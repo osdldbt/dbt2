@@ -1,4 +1,4 @@
-vX.Y.Z
+v0.46.2
 
 - Fix post-process script to ignore transaction errors in statistical
   calculations
