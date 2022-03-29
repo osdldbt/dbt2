@@ -1,3 +1,8 @@
+vX.Y.Z
+
+- Fix post-process script to ignore transaction errors in statistical
+  calculations
+
 v0.46.1
 
 - Fix data generator quoting bug introduced in v0.46.0
