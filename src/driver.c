@@ -27,11 +27,6 @@
 #include "driver.h"
 #include "client_interface.h"
 #include "input_data_generator.h"
-#ifdef STANDALONE
-#include "db.h"
-#include "transaction_queue.h"
-#include "db_threadpool.h"
-#endif /* STANDALONE */
 
 #include "entropy.h"
 
@@ -140,15 +135,6 @@ int start_driver()
 
 	ts.tv_sec = (time_t) (client_conn_sleep / 1000);
 	ts.tv_nsec = (long) (client_conn_sleep % 1000) * 1000000;
-#ifdef STANDALONE
-	/* Open database connectiosn. */
-/*
-	if (db_threadpool_init() != OK) {
-		LOG_ERROR_MESSAGE("cannot open database connections");
-		return ERROR;
-	}
-*/
-#endif /* STANDALONE */
 
 	/* Caulculate when the test should stop. */
 	if (terminals_limit)
@@ -282,9 +268,7 @@ int start_driver()
 
 void *terminal_worker(void *data)
 {
-#ifndef STANDALONE
 	int sockfd;
-#endif /* NOT STANDALONE */
 
 	struct terminal_context_t *tc;
 	struct client_transaction_t client_data;
@@ -302,23 +286,6 @@ void *terminal_worker(void *data)
 	char code;
 	pcg64f_random_t rng;
 
-#ifdef STANDALONE
-	struct db_context_t dbc;
-	struct transaction_queue_node_t *node =
-			(struct transaction_queue_node_t *)
-			malloc(sizeof(struct transaction_queue_node_t));
-	extern char sname[32];
-	extern int exiting;
-#ifdef HAVE_LIBPQ
-	extern char postmaster_port[32];
-#endif /* HAVE_LIBPQ */
-
-#ifdef HAVE_MYSQL
-	extern char dbt2_mysql_port[32];
-#endif /* HAVE_MYSQL */
-
-#endif /* STANDALONE */
-
 	tc = (struct terminal_context_t *) data;
 	/* Each thread needs to seed in Linux. */
     tid = pthread_self();
@@ -328,27 +295,6 @@ void *terminal_worker(void *data)
 	fflush(stdout);
 	pcg64f_srandom_r(&rng, local_seed);
 
-#ifdef STANDALONE
-#ifdef HAVE_ODBC
-	db_init(sname, DB_USER, DB_PASS);
-#endif /* HAVE_ODBC */
-#ifdef HAVE_LIBPQ
-	db_init(DB_NAME, sname, postmaster_port);
-#endif /* HAVE_LIBPQ */
-#ifdef HAVE_MYSQL
-	printf("CONNECTED TO DB |%s| |%s| |%s|\n", DB_NAME, sname, dbt2_mysql_port);
-	db_init(sname, "", dbt2_mysql_port);
-#endif /* HAVE_MYSQL */
-#ifdef HAVE_SQLITE3
-	db_init(sname);
-#endif /* HAVE_SQLITE3 */
-
-	if (!exiting && connect_to_db(&dbc) != OK) {
-		LOG_ERROR_MESSAGE("db_connect() error, terminating program");
-		printf("cannot connect to database, exiting...\n");
-		exit(1);
-	}
-#else
 	/* Connect to the client program. */
 	sockfd = connect_to_client(hostname, client_port);
 	if (sockfd < 1) {
@@ -356,7 +302,6 @@ void *terminal_worker(void *data)
 		printf("connect_to_client() failed, thread exiting...\n");
 		pthread_exit(NULL);
 	}
-#endif /* STANDALONE */
 
 	do {
 		if (mode_altered == 1) {
@@ -444,26 +389,9 @@ void *terminal_worker(void *data)
 		if (gettimeofday(&rt0, NULL) == -1) {
 			perror("gettimeofday");
 		}
-#ifdef STANDALONE
-		memcpy(&node->client_data, &client_data, sizeof(client_data));
-/*
-		enqueue_transaction(node);
-		node = get_node();
-		if (node == NULL) {
-			LOG_ERROR_MESSAGE("Cannot get a transaction node.\n");
-		}
-*/
-		rc = process_transaction(node->client_data.transaction, &dbc,
-				&node->client_data.transaction_data);
-		if (rc == ERROR) {
-			LOG_ERROR_MESSAGE("process_transaction() error on %s",
-					transaction_name[node->client_data.transaction]);
-		}
-#else /* STANDALONE */
 		send_transaction_data(sockfd, &client_data);
 		receive_transaction_data(sockfd, &client_data);
 		rc = client_data.status;
-#endif /* STANDALONE */
 		if (gettimeofday(&rt1, NULL) == -1) {
 			perror("gettimeofday");
 		}
@@ -511,9 +439,6 @@ void *terminal_worker(void *data)
 		pthread_mutex_unlock(&mutex_terminal_state[THINKING][client_data.transaction]);
 	} while (time(NULL) < stop_time);
 
-#ifdef STANDALONE
-	/*recycle_node(node);*/
-#endif /* STANDALONE */
 	/* Note when each thread has exited. */
 	pthread_mutex_lock(&mutex_mix_log);
 	fprintf(log_mix, "%d,TERMINATED,,,%d,,\n", (int) time(NULL),

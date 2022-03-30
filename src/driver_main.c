@@ -15,27 +15,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <common.h>
-#include <logging.h>
-#include <client_interface.h>
-#include <driver.h>
 #include <unistd.h>
-#ifdef STANDALONE
-#include <db_threadpool.h>
 
-char sname[32] = "";
-int exiting = 0;
-#endif /* STANDALONE */
-
-#ifdef HAVE_LIBPQ
-char postmaster_port[32];
-#endif /* HAVE_LIBPQ */
-
-#ifdef HAVE_MYSQL
-char dbt2_mysql_port[32];
-#endif /* HAVE_MYSQL */
+#include "common.h"
+#include "logging.h"
+#include "client_interface.h"
+#include "driver.h"
+#include "db.h"
+#ifdef DRIVER3
+#include "client.h"
+#endif /* DRIVER3 */
 
 int perform_integrity_check = 0;
+
+#ifdef DRIVER3
+extern int dbms;
+extern char dname[32];
+extern char sname[64];
+#endif /* DRIVER3 */
 
 int parse_arguments(int, char **);
 void usage(char *);
@@ -149,19 +146,48 @@ int parse_arguments(int argc, char *argv[])
 	for (i = 1; i < argc; i += 2) {
 		if (strlen(argv[i]) < 2) {
 			printf("invalid flag: %s\n", argv[i]);
-			exit(1);
+			return ERROR;
 		}
 		flag = argv[i] + 1;
-		if (strcmp(flag, "d") == 0) {
+		if (strcmp(flag, "a") == 0) {
+#ifdef DRIVER3
+			if (strcmp(argv[i + 1], "cockroach") == 0)
+				dbms = DBMSCOCKROACH;
+			else if (strcmp(argv[i + 1], "odbc") == 0)
+				dbms = DBMSODBC;
+			else if (strcmp(argv[i + 1], "pgsql") == 0)
+				dbms = DBMSLIBPQ;
+			else if (strcmp(argv[i + 1], "sqlite") == 0)
+				dbms = DBMSSQLITE;
+			else {
+				printf("unrecognized dbms option: %s\n", argv[i + 1]);
+				return ERROR;
+			}
+#else
+#endif /* DRIVER3 */
+		} else if (strcmp(flag, "b") == 0) {
+#ifdef DRIVER3
+			strcpy(dname, argv[i + 1]);
+#else
+#endif /* DRIVER3 */
+		} else if (strcmp(flag, "d") == 0) {
+#ifdef DRIVER3
+			strncpy(sname, argv[i + 1], sizeof(sname));
+#else
 			set_client_hostname(argv[i + 1]);
+#endif /* DRIVER3 */
+#ifdef DRIVER3
 #ifdef HAVE_LIBPQ
 		} else if (strcmp(flag, "z") == 0) {
+			char postmaster_port[32];
 			strcpy(postmaster_port, argv[i + 1]);
 #endif /* HAVE_LIBPQ */
 #ifdef HAVE_MYSQL
 		} else if (strcmp(flag, "z") == 0) {
+			extern char dbt2_mysql_port[32];
 			strcpy(dbt2_mysql_port, argv[i + 1]);
 #endif /* HAVE_MYSQL */
+#endif /* DRIVER3 */
 		} else if (strcmp(flag, "p") == 0) {
 			set_client_port(atoi(argv[i + 1]));
 		} else if (strcmp(flag, "L") == 0) {
@@ -225,18 +251,12 @@ int parse_arguments(int argc, char *argv[])
 			mode_altered = atoi(argv[i + 1]);
 			if (mode_altered)
 				printf("altered mode detected\n");
-#ifdef STANDALONE
-		} else if (strcmp(flag, "dbc") == 0) {
-			db_connections = atoi(argv[i + 1]);
-		} else if (strcmp(flag, "dbname") == 0) {
-			strcpy(sname, argv[i + 1]);
-#endif /* STANDALONE */
 		} else if (strcmp(flag, "outdir") == 0) {
 			int length = strlen(argv[i + 1]);
 			output_path = malloc(sizeof(char) * (length + 1));
 			if (output_path == NULL) {
 				printf("error allocating output_path\n");
-				exit(1);
+				return ERROR;
 			}
 			strcpy(output_path, argv[i + 1]);
 			if (output_path[length] == '/')
@@ -245,7 +265,7 @@ int parse_arguments(int argc, char *argv[])
 			fork_per_processor = atoi(argv[i + 1]);
 		} else {
 			printf("invalid flag: %s\n", argv[i]);
-			exit(1);
+			return ERROR;
 		}
 	}
 
@@ -253,7 +273,7 @@ int parse_arguments(int argc, char *argv[])
 		output_path = malloc(sizeof(char) * 2);
 		if (output_path == NULL) {
 			printf("error allocating output_path\n");
-			exit(1);
+			return ERROR;
 		}
 		output_path[0] = '.';
 		output_path[1] = '\0';
@@ -267,16 +287,27 @@ void usage(char *name)
 	printf("Usage:\n");
 	printf("  %s [OPTION]\n", name);
 	printf("\nGeneral options:\n");
+#ifdef DRIVER3
+	printf("  -a <dbms>      cockroach|mysql|pgsql|yugabyte\n");
+#endif /* DRIVER3 */
+#if defined(DRIVER1) || defined(DRIVER2)
 	printf("  -d <address>   client network address\n");
-#ifdef DRIVER2
+#endif /* defined(DRIVER1) || defined(DRIVER2) */
+#if defined(DRIVER2) || defined(DRIVER3)
 	printf("  -fpp #         the number of processes started per proccessor, "
 			"default 1\n");
-#endif /* DRIVER2 */
+#endif /* defined(DRIVER2) || defined(DRIVER3) */
 	printf("  -l #           the duration of the run in seconds\n");
 	printf("  -outdir <path> location of log files, default ./\n");
+#if defined(DRIVER1) || defined(DRIVER2)
 	printf("  -p #           client port, default %d\n", CLIENT_PORT);
+	printf("  -sleep #       number of milliseconds to sleep between "
+			"opening client connections, default %d\n", client_conn_sleep);
+#endif /* defined(DRIVER1) || defined(DRIVER2) */
+#ifdef DRIVER3
 	printf("  -sleep #       number of milliseconds to sleep between opening "
-			"client connections, default %d\n", client_conn_sleep);
+			"database connections, default %d\n", client_conn_sleep);
+#endif /* DRIVER3 */
 	printf("  -z #           perform database integrity check\n");
 	printf("\nPartitioning options:\n");
 	printf("  -wmin #        lower warehouse id\n");
@@ -330,4 +361,32 @@ void usage(char *name)
 	printf("  -spread #      fancy warehouse skipping trick for low i/o "
 			"runs\n");
 	printf("  -tpw #         terminals started per warehouse, default 10\n");
+
+#ifdef DRIVER3
+#ifdef HAVE_ODBC
+	printf("\nunixODBC options:\n");
+	printf("  -d <db_name>   database connect string\n");
+	printf("  -u <db user>\n");
+	printf("  -z <db password>\n");
+#endif /* HAVE_ODBC */
+#ifdef HAVE_LIBPQ
+	printf("\nlibpq (CockroachDB, PostgreSQL, YugabyteDB) options:\n");
+	printf("  -b <dbname>    database name\n");
+	printf("  -d <hostname>  database hostname\n");
+	printf("  -l #           postmaster port\n");
+#endif /* HAVE_LIBPQ */
+#ifdef HAVE_MYSQL
+	printf("\nMySQL options:\n");
+	printf("  -d <db_name>   database name\n");
+	printf("  -l #           MySQL port number to\n");
+	printf("  -h <hostname>  MySQL hostname\n");
+	printf("  -t <socket>    MySQL socket\n");
+	printf("  -u <db user>\n");
+	printf("  -z <db password>\n");
+#endif /* HAVE_MYSQL */
+#ifdef HAVE_SQLITE3
+	printf("\nSQLite options:\n");
+	printf("  -d <db_file>   path to database file\n");
+#endif
+#endif /* DRIVER3 */
 }

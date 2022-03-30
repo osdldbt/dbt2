@@ -256,6 +256,7 @@ int startup()
 	const int nprocs = get_nprocs();
 	const int connections = nprocs * connections_per_process;
 	cpu_set_t set;
+	extern char sname[64];
 
 	/* Use a unix domain socket as a queue for incoming driver connections. */
 	if (socketpair(PF_UNIX, SOCK_STREAM, 0, pcsock)) {

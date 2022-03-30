@@ -7,6 +7,7 @@ set (CLIENT2 ${PROJECT_NAME}-client2)
 set (DATAGEN ${PROJECT_NAME}-datagen)
 set (DRIVER ${PROJECT_NAME}-driver)
 set (DRIVER2 ${PROJECT_NAME}-driver2)
+set (DRIVER3 ${PROJECT_NAME}-driver3)
 set (RAND ${PROJECT_NAME}-rand)
 set (TXN_TEST ${PROJECT_NAME}-transaction-test)
 
@@ -277,6 +278,29 @@ if (NEED_LIBNSL)
     target_link_libraries (${DRIVER2} nsl)
 endif (NEED_LIBNSL)
 
+add_executable (${DRIVER3}
+                ${COMMON_SOURCE}
+                ${DB_SOURCE}
+                ${PCG_SOURCE}
+                client_common.c
+                db.c
+                driver_common.c
+                driver_main.c
+                driver3.c
+                input_data_generator.c
+)
+target_compile_definitions(${DRIVER3} PRIVATE -DDRIVER3)
+target_link_libraries (${DRIVER3} m ev)
+if (NEED_LIBRT)
+    target_link_libraries (${DRIVER3} rt)
+endif (NEED_LIBRT)
+if (NEED_LIBSOCKET)
+    target_link_libraries (${DRIVER3} socket)
+endif (NEED_LIBSOCKET)
+if (NEED_LIBNSL)
+    target_link_libraries (${DRIVER3} nsl)
+endif (NEED_LIBNSL)
+
 add_executable(${TXN_TEST}
                ${COMMON_SOURCE}
                ${DB_SOURCE}
@@ -296,21 +320,25 @@ endif (NEED_LIBNSL)
 if (LIBPQ_FOUND)
     target_link_libraries (${CLIENT} ${LIBPQ_LDFLAGS})
     target_link_libraries (${CLIENT2} ${LIBPQ_LDFLAGS})
+    target_link_libraries (${DRIVER3} ${LIBPQ_LDFLAGS})
     target_link_libraries (${TXN_TEST} ${LIBPQ_LDFLAGS})
 endif (LIBPQ_FOUND)
 if (MYSQLCLIENT_FOUND)
     target_link_libraries (${CLIENT} ${MYSQLCLIENT_LIBRARIES})
     target_link_libraries (${CLIENT2} ${MYSQLCLIENT_LIBRARIES})
+    target_link_libraries (${DRIVER3} ${MYSQLCLIENT_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${MYSQLCLIENT_LIBRARIES})
 endif (MYSQLCLIENT_FOUND)
 if (ODBC_FOUND)
     target_link_libraries (${CLIENT} ${ODBC_LIBRARIES})
     target_link_libraries (${CLIENT2} ${ODBC_LIBRARIES})
+    target_link_libraries (${DRIVER3} ${ODBC_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${ODBC_LIBRARIES})
 endif (ODBC_FOUND)
 if (SQLITE3_FOUND)
     target_link_libraries (${CLIENT} ${SQLITE3_LIBRARIES})
     target_link_libraries (${CLIENT2} ${SQLITE3_LIBRARIES})
+    target_link_libraries (${DRIVER3} ${SQLITE3_LIBRARIES})
     target_link_libraries (${TXN_TEST} ${SQLITE3_LIBRARIES})
 endif (SQLITE3_FOUND)
 
@@ -336,13 +364,17 @@ set_source_files_properties (
         driver.c
         driver_common.c
         driver2.c
-        driver_main.c
+        driver3.c
         input_data_generator.c
         listener.c
         logging.c
         transaction_data.c
         transaction_queue.c
         COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+)
+set_source_files_properties (
+        driver_main.c
+        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         _semaphore.c
@@ -378,6 +410,7 @@ install (PROGRAMS
          ${CMAKE_BINARY_DIR}/src/${DATAGEN}
          ${CMAKE_BINARY_DIR}/src/${DRIVER}
          ${CMAKE_BINARY_DIR}/src/${DRIVER2}
+         ${CMAKE_BINARY_DIR}/src/${DRIVER3}
          ${CMAKE_BINARY_DIR}/src/${RAND}
          ${CMAKE_BINARY_DIR}/src/${TXN_TEST}
          DESTINATION "bin"

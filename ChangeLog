@@ -1,6 +1,9 @@
 vX.Y.Z
 
 - Add experimental multi-process driver2 that uses event callbacks (libev)
+- Add new standalone driver (driver3) combining event callbacks with
+  multi-process parallelism model, replacing previous thread based standalone
+  driver
 
 v0.46.2
 

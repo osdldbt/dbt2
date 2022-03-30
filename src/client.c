@@ -34,6 +34,7 @@ int startup()
 	pthread_t tid;
 	int ret;
 	char command[128];
+	extern char sname[64];
 
 	init_logging();
 	free(output_path);
