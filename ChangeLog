@@ -5,6 +5,7 @@ vX.Y.Z
   multi-process parallelism model, replacing previous thread based standalone
   driver
 - Parallelize PostgreSQL vacuuming when building the database
+- pgsql: Disable autovacuum on a table while it is being loaded
 
 v0.46.2
 
