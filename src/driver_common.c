@@ -22,25 +22,6 @@ struct transaction_mix_t transaction_mix;
 struct key_time_t key_time;
 struct think_time_t think_time;
 
-int create_pid_file()
-{
-	FILE * fpid;
-	char pid_filename[512];
-
-	sprintf(pid_filename, "%s/%s", output_path, DRIVER_PID_FILENAME);
-
-	fpid = fopen(pid_filename,"w");
-	if (!fpid) {
-		printf("cann't create pid file: %s\n", pid_filename);
-		return ERROR;
-	}
-
-	fprintf(fpid,"%d", (unsigned int) getpid());
-	fclose(fpid);
-
-	return OK;
-}
-
 int init_driver()
 {
 	terminals_per_warehouse = table_cardinality.districts;

@@ -38,7 +38,6 @@ extern char dbt2_mysql_port[32];
 extern char dbt2_mysql_socket[256];
 #endif /* HAVE_MYSQL */
 
-int create_pid_file();
 int init_dbc(struct db_context_t *);
 int startup();
 void status();

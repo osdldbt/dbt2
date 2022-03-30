@@ -42,27 +42,6 @@ char dbt2_mysql_port[32];
 char dbt2_mysql_socket[256];
 #endif /* HAVE_MYSQL */
 
-int create_pid_file()
-{
-	FILE *fpid;
-	char pid_filename[512];
-
-	pid_filename[511] = '\0';
-	snprintf(pid_filename, 511, "%s/%s", output_path, CLIENT_PID_FILENAME);
-
-	fpid = fopen(pid_filename,"w");
-	if (!fpid)
-	{
-		printf("cann't create pid file: %s\n", pid_filename);
-		return ERROR;
-	}
-
-	fprintf(fpid,"%d", getpid());
-	fclose(fpid);
-
-	return OK;
-}
-
 int init_dbc(struct db_context_t *dbc)
 {
 	memset(dbc, 0, sizeof(struct db_context_t));

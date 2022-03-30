@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 #endif /* CLIENT1 */
 
 	/* Ok, let's get started! */
-	create_pid_file();
+	create_pid_file(CLIENT_PID_FILENAME);
 
 	sockfd = _listen(port);
 	if (sockfd < 1) {

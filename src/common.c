@@ -11,12 +11,12 @@
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
-#include <pthread.h>
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
 #include <locale.h>
 #include <wchar.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "transaction_data.h"
@@ -54,6 +54,25 @@ char *transaction_name[TRANSACTION_MAX] =
 	};
 
 struct table_cardinality_t table_cardinality;
+
+int create_pid_file(char *name)
+{
+	FILE * fpid;
+	char pid_filename[512];
+
+	sprintf(pid_filename, "%s/%s", output_path, name);
+
+	fpid = fopen(pid_filename,"w");
+	if (!fpid) {
+		printf("cann't create pid file: %s\n", pid_filename);
+		return ERROR;
+	}
+
+	fprintf(fpid,"%d", getpid());
+	fclose(fpid);
+
+	return OK;
+}
 
 double difftimeval(struct timeval rt1, struct timeval rt0)
 {

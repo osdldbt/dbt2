@@ -157,6 +157,7 @@ struct table_cardinality_t {
 };
 
 /* Prototypes */
+int create_pid_file(char *);
 double difftimeval(struct timeval rt1, struct timeval rt0);
 int edump(int type, void *data);
 void get_a_string(pcg64f_random_t *, wchar_t *, int, int);

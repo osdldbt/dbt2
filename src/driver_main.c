@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	create_pid_file();
+	create_pid_file(DRIVER_PID_FILENAME);
 
 #ifdef DRIVER1
 	if(init_logging() != OK || init_driver_logging() != OK) {
