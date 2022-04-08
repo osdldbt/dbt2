@@ -1,3 +1,7 @@
+vX.Y.Z
+
+- Clean up CPack rules
+
 v0.47.0
 
 - Add experimental multi-process driver2 that uses event callbacks (libev)
