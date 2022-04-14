@@ -148,7 +148,7 @@ fi
 
 # Use vacuumdb's -j option only if VACUUM_JOBS is greater than 1.
 if [ $VACUUM_JOBS -gt 1 ]; then
-	VACUUM_OPTS+=" -j ${VACUUM_JOBS}"
+	VACUUM_OPTS="$VACUUM_OPTS -j $VACUUM_JOBS"
 fi
 
 vacuumdb ${PORTARG} ${VACUUM_OPTS} -d ${DBT2DBNAME} || exit 1
