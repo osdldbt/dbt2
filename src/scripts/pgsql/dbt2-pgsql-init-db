@@ -5,6 +5,7 @@
 #
 # Copyright (C) 2002-2008 Open Source Development Labs, Inc.
 #               2002-2021 Mark Wong
+#               2002-2022 Mark Wong
 #
 
 if [ -z ${DBT2PGDATA} ]; then
@@ -16,14 +17,6 @@ if [ -z ${DBT2DBNAME} ]; then
     echo "DBT2DBNAME not defined."
     exit 1
 fi
-
-while getopts "p:" OPT; do
-	case ${OPT} in
-	p)
-		PARAMETERS=${OPTARG}
-		;;
-	esac
-done
 
 if [ ! "x$DBT2XLOGDIR" = "x" ]; then
 	INITDBFLAGS="-X $DBT2XLOGDIR"
@@ -38,14 +31,3 @@ else
 			--lc-collate=en_US.utf8 --lc-ctype=en_US.utf8 $INITDBFLAGS || \
 			exit 1
 fi
-
-if [ ! "x${PARAMETERS}" = "x" ]; then
-    PARAMOPT="-p ${PARAMETERS}"
-fi
-
-dbt2-pgsql-start-db ${PARAMOPT} || exit 1
-
-# Give the database a few seconds to get started.
-sleep 4
-
-exit 0

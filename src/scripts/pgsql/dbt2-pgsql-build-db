@@ -5,7 +5,7 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2005-2006 Open Source Development Labs, Inc.
-#               2005-2021 Mark Wong
+#               2005-2022 Mark Wong
 #
 
 usage()
@@ -87,6 +87,7 @@ fi
 
 if [ $PRIVILEGED -eq 1 ]; then
 	dbt2-pgsql-init-db ${PORTARG} || exit 1
+	dbt2-pgsql-start-db -p "$PARAMETERS" || exit 1
 fi
 dbt2-pgsql-create-db ${PORTARG} || exit 1
 dbt2-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1

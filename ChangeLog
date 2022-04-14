@@ -1,6 +1,7 @@
 vX.Y.Z
 
 - Clean up CPack rules
+- Fix logic issue when starting PostgreSQL database after initialization
 
 v0.47.0
 
