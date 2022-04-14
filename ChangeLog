@@ -2,6 +2,8 @@ vX.Y.Z
 
 - Clean up CPack rules
 - Fix logic issue when starting PostgreSQL database after initialization
+- Replace HTML generated with reStructuredText, which can be converted to HTML
+  and PDF, or other formats.
 
 v0.47.0
 

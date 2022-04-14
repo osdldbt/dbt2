@@ -4,8 +4,8 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2006      Open Source Development Labs, Inc.
-#               2006-2021 Mark Wong
 #               2014      2ndQuadrant, Ltd.
+#               2006-2022 Mark Wong
 #
 
 usage() {
@@ -14,7 +14,6 @@ usage() {
 	echo "options:"
 	echo "       -b <comma delimited list of block devices (default: all devices)>"
 	echo "       -i <DBT-2 test output directory>"
-	echo "       -o <DBT-2 report directory (default: test output directory)>"
 }
 
 error() {
@@ -26,37 +25,73 @@ warning() {
 	echo "WARNING: $@"
 }
 
-create_html_stat_page()
+create_stat_page()
 {
 	local TITLE=$1
 	local TAG=$2
 	local DIR=$3
-	local FILE=$4
+	local ODIR=$4
 
-	cat > $FILE << __EOF__
-<html>
-<head>
-<title>Database Test 2 $TITLE $TAG Charts</title>
-</head>
-<body>
-__EOF__
+	mkdir -p $ODIR
 
-	CPUCHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png")`
-	for CHART in $CPUCHARTS; do
-		cat >> $FILE << __EOF__
-`basename $CHART`
-<img src="$CHART" width="90%" />
-<hr />
-__EOF__
-	done
+	cat > ${ODIR}/index.rst << __EOF__
+================================================================================
+Database Test 2 $TITLE $TAG Charts
+================================================================================
 
-	cat >> $FILE << __EOF__
-</body>
-</html>
+$(show_images $DIR $TAG)
 __EOF__
 }
 
-while getopts "b:hi:o:" opt; do
+links_index_metrics()
+{
+	INDEXMETRICS=`(cd ${INDIR}/db/indexes && ls *.png) \
+			| sed -e "s/index-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+
+	for METRIC in $INDEXMETRICS; do
+		echo -n "\`$METRIC <db/indexes/i_$METRIC/>\`__ "
+	done
+}
+
+links_indexes()
+{
+	for INDEX in $(cat ${INDIR}/db/index-list.txt); do
+		echo -n "\`$INDEX <db/indexes/${INDEX}/>\`_ "
+	done
+}
+
+links_table_metrics()
+{
+	TABLEMETRICS=`(cd ${INDIR}/db/tables && ls *.png) | \
+			sed -e "s/table-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+
+	for METRIC in $TABLEMETRICS; do
+		echo -n "\`$METRIC <db/tables/t_${METRIC}/>\`_ "
+	done
+}
+
+links_tables()
+{
+	for TABLE in $(cat $INDIR/db/table-list.txt); do
+		echo -n "\`$TABLE <db/tables/${TABLE}/>\`_ "
+	done
+}
+
+show_images()
+{
+	DIR=$1
+	TAG=$2
+
+	CPUCHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png")`
+	for CHART in $CPUCHARTS; do
+		echo ".. image:: ../$CHART"
+		echo "   :target: ../$CHART"
+		echo "   :width: 100%"
+		echo ""
+	done
+}
+
+while getopts "b:hi:" opt; do
 	case $opt in
 	b)
 		BLKDEVICES=${OPTARG}
@@ -66,23 +101,18 @@ while getopts "b:hi:o:" opt; do
 		exit 1
 		;;
 	i)
-		INDIR=${OPTARG}
-        MIXLOG=${INDIR}/mix.log
-		;;
-	o)
-		OUTDIR=${OPTARG}
+		INDIR="$OPTARG"
+		MIXLOG="${INDIR}/mix.log"
+		OUTDIR="$INDIR"
 		;;
 	esac
 done
 
-if [ "x$INDIR" = "x" ]; then
-	error "DBT-2 results directory was not specified"
-	usage
-	exit 1
-fi
-
-if [ "x$OUTDIR" = "x" ]; then
-	OUTDIR=$INDIR
+SUMMARY="${INDIR}/summary.rst"
+if [ ! -f "$SUMMARY" ]; then
+	MIXFILE="${INDIR}/mix.log"
+	dbt2-post-process $MIXFILE > $SUMMARY
+	VERBOSE=1 dbt2-post-process $MIXFILE > ${INDIR}/detailed-summary.rst
 fi
 
 DBMS=`grep RDBMS $INDIR/readme.txt | cut -d " " -f 2`
@@ -112,34 +142,34 @@ mkdir -p ${OUTDIR}/db/sar || exit 1
 
 echo "Generating sar io charts..."
 for SARBLOCKDEVFILE in `find $INDIR -name sar-blockdev.csv`; do
-	DIRNAME=`dirname $SARBLOCKDEVFILE`
-	mkdir -p $DIRNAME/sar
-	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME/sar \
-			$BLKDEVICES > /dev/null 2>&1 \
+	DIRNAME="$(dirname $SARBLOCKDEVFILE)/sar"
+	mkdir -p $DIRNAME
+	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME \
+			$BLKDEVICES \ > /dev/null 2>&1 \
 			|| warning "Could not create sar blockdev charts"
 done
 
 echo "Generating processor utilization charts..."
 for SARCPUFILE in `find $INDIR -name sar-cpu.csv`; do
-	DIRNAME=`dirname $SARCPUFILE`
-	mkdir -p $DIRNAME/sar
-	dbt-plot-sar-cpu $SARCPUFILE $DIRNAME/sar > /dev/null 2>&1 \
+	DIRNAME="$(dirname $SARCPUFILE)/sar"
+	mkdir -p $DIRNAME
+	dbt-plot-sar-cpu $SARCPUFILE $DIRNAME > /dev/null 2>&1 \
 			|| warning "Could not create sar cpu charts from $SARCPUFILE"
 done
 
 echo "Generating swap charts..."
 for SARSWAPFILE in `find $INDIR -name sar-swap.csv`; do
-	DIRNAME=`dirname $SARSWAPFILE`
-	mkdir -p $DIRNAME/sar
-	dbt-plot-sar-swap $SARSWAPFILE $DIRNAME/sar > /dev/null 2>&1 \
+	DIRNAME="$(dirname $SARSWAPFILE)/sar"
+	mkdir -p $DIRNAME
+	dbt-plot-sar-swap $SARSWAPFILE $DIRNAME > /dev/null 2>&1 \
 			|| warning "Could not create sar swap charts from $SARSWAPFILE"
 done
 
 echo "Generating network charts..."
 for SARNETFILE in `find $INDIR -name sar-net.csv`; do
-	DIRNAME=`dirname $SARNETFILE`
-	mkdir -p $DIRNAME/sar
-	dbt-plot-sar-net $SARNETFILE $DIRNAME/sar > /dev/null 2>&1 \
+	DIRNAME="$(dirname $SARNETFILE)/sar"
+	mkdir -p $DIRNAME
+	dbt-plot-sar-net $SARNETFILE $DIRNAME > /dev/null 2>&1 \
 			|| warning "Could not create sar net charts from $SARNETFILE"
 done
 
@@ -147,382 +177,189 @@ echo "Generating transaction rate charts..."
 dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn \
 		|| warning "Could not create transaction rate charts"
 
-echo "Generating database statistics charts..."
 TABLEDIR=$OUTDIR/db/tables
 INDEXDIR=$OUTDIR/db/indexes
 mkdir -p $TABLEDIR || exit 1
 mkdir -p $INDEXDIR || exit 1
 
-if [ "${DBMS}" = "pgsql" ]; then
-	export PGDATABASE=$DBNAME
-
-	dbt-$DBMS-plot-database-stats $INDIR/db/pg_stat_databases.csv $DBNAME \
-			$OUTDIR/db || warning "Could not create database stats charts"
+which dbt-${DBMS}-plot-database-stats > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	echo "Generating database statistics charts..."
+	dbt-$DBMS-plot-database-stats -i ${INDIR}/db/pg_stat_databases.csv \
+			-n $DBNAME -o $OUTDIR/db \
+			|| warning "Issue creating at least some database stats charts"
+fi
+which dbt-${DBMS}-plot-table-stats > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	echo "Generating database table statistics charts..."
 	for TABLENAME in `cat ${INDIR}/db/table-list.txt`; do
-		dbt-$DBMS-plot-table-stats $INDIR/db/pg_stat_tables.csv \
-				$TABLENAME $TABLEDIR \
-				> $TABLEDIR/r.log 2>&1 \
-				|| warning "Could not create table stats charts for $TABLENAME"
+		dbt-$DBMS-plot-table-stats -i ${INDIR}/db/pg_stat_tables.csv \
+				-n $TABLENAME -o $TABLEDIR > ${TABLEDIR}/r.log 2>&1 \
+				|| warning "Issues creating at least some charts for table $TABLENAME"
 	done
+fi
+which dbt-${DBMS}-plot-index-stats > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	echo "Generating database index statistics charts..."
 	for INDEXNAME in `cat ${INDIR}/db/index-list.txt`; do
-		dbt-$DBMS-plot-index-stats $INDIR/db/pg_stat_indexes.csv \
-				$INDEXNAME $INDEXDIR > $INDEXDIR/r.log 2>&1 \
-				|| warning "Could not create index stats charts for $INDEXNAME"
+		dbt-$DBMS-plot-index-stats -i ${INDIR}/db/pg_stat_indexes.csv \
+				-n $INDEXNAME -o $INDEXDIR > $INDEXDIR/r.log 2>&1 \
+				|| warning "Issues creating at least some charts for index $INDEXNAME"
 	done
-elif [ "${DBMS}" = "mysql" ]; then
-	warning "Charting for MySQL database statistics not implementd"
-elif [ "${DBMS}" = "sqlite" ]; then
-	warning "Charting for SQLite database statistics not implementd"
-else
-	error "unrecognized dbms"
 fi
 
-DMIX=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $2}'`
-DAVG=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $3}'`
-D90P=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $5}'`
-DTOT=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $6}'`
-DROL=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $7}'`
-DRPE=`grep Delivery ${INDIR}/report.txt | awk -F " " '{print $8}'`
+README="${INDIR}/db/readme-dbms.txt"
+if [ -f "$README" ]; then
+	OS=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 1`
+	OSVER=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 3`
+	ARCH=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 12`
+fi
 
-NMIX=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $3}'`
-NAVG=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $4}'`
-N90P=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $6}'`
-NTOT=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $7}'`
-NROL=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $8}'`
-NRPE=`grep "New Order" ${INDIR}/report.txt | awk -F " " '{print $9}'`
+REPORTFILE="${OUTDIR}/report.rst"
+cat > $REPORTFILE << __EOF__
+======================
+Database Test 2 Report
+======================
 
-OMIX=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $3}'`
-OAVG=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $4}'`
-O90P=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $6}'`
-OTOT=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $7}'`
-OROL=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $8}'`
-ORPE=`grep "Order Status" ${INDIR}/report.txt | awk -F " " '{print $9}'`
+**These results are not comparable to TPC Benchmark(TM) C Results.**
 
-PMIX=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $2}'`
-PAVG=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $3}'`
-P90P=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $5}'`
-PTOT=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $6}'`
-PROL=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $7}'`
-PRPE=`grep Payment ${INDIR}/report.txt | awk -F " " '{print $8}'`
+Summary
+=======
 
-SMIX=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $3}'`
-SAVG=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $4}'`
-S90P=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $6}'`
-STOT=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $7}'`
-SROL=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $8}'`
-SRPE=`grep "Stock Level" ${INDIR}/report.txt | awk -F " " '{print $9}'`
+$(head -n 1 ${INDIR}/readme.txt)
 
-OS=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 1`
-OSVER=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 3`
-ARCH=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 12`
+$(cat $SUMMARY)
 
-DBOS=`head -n 1 $INDIR/db/readme-dbms.txt | cut -d " " -f 1`
-DBOSVER=`head -n 1 $INDIR/db/readme-dbms.txt | cut -d " " -f 3`
-DBARCH=`head -n 1 $INDIR/db/readme-dbms.txt | cut -d " " -f 12`
+Notes: $(head -n 2 ${INDIR}/readme.txt | tail -n 1)
 
-# cd into the driver directory because there will be one in the db subdir also
-OSPROCFILE=`(cd $INDIR/driver && find */ -name proc.txt)`
+Transaction Charts
+==================
 
-cat > ${OUTDIR}/index.html << __EOF__
-<html>
-<head>
-<title>Database Test 2 Report</title>
-</head>
-<body>
-<h1>Database Test 2 Report</h1>
++------------+--------------------------------------+-----------------------------------+
+|Transaction |            Response Time             |        Time Distribution          |
++============+======================================+===================================+
+|Delivery    |.. image:: txn/d-transaction-rate.png |.. image:: txn/td-distribution.png |
+|            |   :target: txn/d-transaction-rate.png|   :target: txn/td-distribution.png|
+|            |   :width: 100%                       |   :width: 100%                    |
++------------+--------------------------------------+-----------------------------------+
+|New Order   |.. image:: txn/n-transaction-rate.png |.. image:: txn/tn-distribution.png |
+|            |   :target: txn/n-transaction-rate.png|   :target: txn/tn-distribution.png|
+|            |   :width: 100%                       |   :width: 100%                    |
++------------+--------------------------------------+-----------------------------------+
+|Order Status|.. image:: txn/o-transaction-rate.png |.. image:: txn/to-distribution.png |
+|            |   :target: txn/o-transaction-rate.png|   :target: txn/to-distribution.png|
+|            |   :width: 100%                       |   :width: 100%                    |
++------------+--------------------------------------+-----------------------------------+
+|Payment     |.. image:: txn/p-transaction-rate.png |.. image:: txn/tp-distribution.png |
+|            |   :target: txn/p-transaction-rate.png|   :target: txn/tp-distribution.png|
+|            |   :width: 100%                       |   :width: 100%                    |
++------------+--------------------------------------+-----------------------------------+
+|Stock Level |.. image:: txn/s-transaction-rate.png |.. image:: txn/ts-distribution.png |
+|            |   :target: txn/s-transaction-rate.png|   :target: txn/ts-distribution.png|
+|            |   :width: 100%                       |   :width: 100%                    |
++------------+--------------------------------------+-----------------------------------+
 
-<p>
-`head -n 1 ${INDIR}/readme.txt`
-</p>
+System Summary
+==============
 
-<table>
+.. list-table::
 
-<tr>
-<td>
-<table>
-<caption>Results Summary</caption>
+   * - Driver System
+     - 
+     - \`CPU Charts <driver/cpu/>\`_ | \`Blockdev Charts <driver/blockdev/>\`_ | \`Network Charts <driver/net/>\`_ | \`Swap Charts <driver/swap/>\`_
+   * - Client System
+     - 
+     - \`CPU Charts <client/cpu/>\`__ | \`Blockdev Charts <client/blockdev/>\`__ | \`Network Charts <client/net/>\`__ | \`Swap Charts <client/swap/>\`__
+   * - Database System
+     - ${OS} ${ARCH} ${OSVER}
+     - \`CPU Charts <db/cpu/>\`__ | \`Blockdev Charts <db/blockdev/>\`__ | \`Network Charts <db/net/>\`__ | \`Swap Charts <db/swap/>\`__ | \`Query Plans <db/plan0.txt>\`_
 
-<tr>
-<td align="right">New Order Transactions per Minute (notpm):</td>
-<td>`grep NOTPM ${INDIR}/report.txt | cut -d " " -f 1`</td>
-</tr>
+.. list-table::
 
-<tr>
-<td align="right">Scale Factor:</td>
-<td>`grep "Database Scale Factor" ${INDIR}/readme.txt | cut -d " " -f 4`</td>
-</tr>
+   * - \`Database Stats Charts <db/stats/>\`_
+     - 
+   * - Database Table Stats Charts:
+     - $(links_tables)
+   * - Database Index Stats Charts:
+     - $(links_indexes)
+   * - Database Table Stats by Metrics:
+     - $(links_table_metrics)
+   * - Database Index Stats by Metrics:
+     - $(links_index_metrics)
 
-<tr>
-<td align="right">Test Duration (sec):</td>
-<td>`grep Duration ${INDIR}/readme.txt | cut -d " " -f 3`</td>
-
-</tr>
-
-</table>
-</td>
-<td>
-  <a href="txn/n-transaction-rate.png">
-    <img width="128" src="txn/n-transaction-rate.png" height="96" />
-  </a>
-</td>
-</tr>
-
-</table>
-
-<table border="1">
-<caption>Transaction Summary</caption>
-
-<tr>
-<th colspan="3">Transaction</th>
-<th colspan="2">Response Time (seconds)</th>
-<th colspan="2">Rollbacks</th>
-<th colspan="2">Charts</th>
-</tr>
-
-<tr>
-<th>Name</th>
-<th>Mix %</th>
-<th>Total</th>
-<th>Average (s)</th>
-<th>90th %</th>
-<th>Total</th>
-<th>%</th>
-<th>Response Time</th>
-<th>Time Distribution</th>
-</tr>
-
-<tr>
-<td>Delivery</td>
-<td align="right">${DMIX}</td>
-<td align="right">${DTOT}</td>
-<td align="right">${DAVG}</td>
-<td align="right">${D90P}</td>
-<td align="right">${DROL}</td>
-<td align="right">${DRPE}</td>
-<td align="center">
-  <a href="txn/d-transaction-rate.png">
-    <img width="128" src="txn/d-transaction-rate.png" height="96" />
-  </a>
-</td>
-<td align="center">
-  <a href="txn/td-distribution.png">
-    <img width="128" src="txn/td-distribution.png" height="96" />
-  </a>
-</td>
-</tr>
-
-<tr>
-<td>New Order</td>
-<td align="right">${NMIX}</td>
-<td align="right">${NTOT}</td>
-<td align="right">${NAVG}</td>
-<td align="right">${N90P}</td>
-<td align="right">${NROL}</td>
-<td align="right">${NRPE}</td>
-<td align="center">
-  <a href="txn/n-transaction-rate.png">
-    <img width="128" src="txn/n-transaction-rate.png" height="96" />
-  </a>
-</td>
-<td align="center">
-  <a href="txn/tn-distribution.png">
-    <img width="128" src="txn/tn-distribution.png" height="96" />
-  </a>
-</td>
-</tr>
-
-<tr>
-<td>Order Status</td>
-<td align="right">${OMIX}</td>
-<td align="right">${OTOT}</td>
-<td align="right">${OAVG}</td>
-<td align="right">${O90P}</td>
-<td align="right">${OROL}</td>
-<td align="right">${ORPE}</td>
-<td align="center">
-  <a href="txn/o-transaction-rate.png">
-    <img width="128" src="txn/o-transaction-rate.png" height="96" />
-  </a>
-</td>
-<td align="center">
-  <a href="txn/to-distribution.png">
-    <img width="128" src="txn/to-distribution.png" height="96" />
-  </a>
-</td>
-</tr>
-
-<tr>
-<td>Payment</td>
-<td align="right">${PMIX}</td>
-<td align="right">${PTOT}</td>
-<td align="right">${PAVG}</td>
-<td align="right">${P90P}</td>
-<td align="right">${PROL}</td>
-<td align="right">${PRPE}</td>
-<td align="center">
-  <a href="txn/p-transaction-rate.png">
-    <img width="128" src="txn/p-transaction-rate.png" height="96" />
-  </a>
-</td>
-<td align="center">
-  <a href="txn/tp-distribution.png">
-    <img width="128" src="txn/tp-distribution.png" height="96" />
-  </a>
-</td>
-</tr>
-
-<tr>
-<td>Stock Level</td>
-<td align="right">${SMIX}</td>
-<td align="right">${STOT}</td>
-<td align="right">${SAVG}</td>
-<td align="right">${S90P}</td>
-<td align="right">${SROL}</td>
-<td align="right">${SRPE}</td>
-<td align="center">
-  <a href="txn/s-transaction-rate.png">
-    <img width="128" src="txn/s-transaction-rate.png" height="96" />
-  </a>
-</td>
-<td align="center">
-  <a href="txn/ts-distribution.png">
-    <img width="128" src="txn/ts-distribution.png" height="96" />
-  </a>
-</td>
-</tr>
-
-</table>
-
-<table>
-<caption>System Summary</caption>
-
-<tr>
-<td align="right">Driver System:</td>
-<td>${OS} ${ARCH} ${OSVER}</td>
-<td><a href="driver/$OSPROCFILE">OS Settings</a> |
-    <a href="driver/cpu.html">CPU Charts</a> |
-    <a href="driver/blockdev.html">Blockdev Charts</a> |
-    <a href="driver/net.html">Network Charts</a> |
-    <a href="driver/swap.html">Swap Charts</a> |
-</td>
-</tr>
-
-<tr>
-<td align="right">Client System:</td>
-<td>${OS} ${ARCH} ${OSVER}</td>
-<td><a href="client/$OSPROCFILE">OS Settings</a> |
-    <a href="client/cpu.html">CPU Charts</a> |
-    <a href="client/blockdev.html">Blockdev Charts</a> |
-    <a href="client/net.html">Network Charts</a> |
-    <a href="client/swap.html">Swap Charts</a> |
-</td>
-</tr>
-
-<tr>
-<td align="right">DBMS:</td>
-<td>${DBOS} ${DBARCH} ${DBOSVER}</td>
-<td><a href="db/proc.txt">OS Settings</a> |
-    <a href="db/cpu.html">CPU Charts</a> |
-    <a href="db/blockdev.html">Blockdev Charts</a> |
-    <a href="db/net.html">Network Charts</a> |
-    <a href="db/swap.html">Swap Charts</a> |
-    <a href="db/plan0.txt">Query Plans</a>
-</td>
-</tr>
-
-<tr>
-<td align="right">Notes:</td>
-<td>`head -n 1 ${INDIR}/readme.txt`</td>
-</tr>
-</table>
-
-<table>
-<tr>
-<td align="right">DB Table Stats Charts:</td>
-<td>
-__EOF__
-
-for TABLE in `cat $INDIR/db/table-list.txt`; do
-	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/tables/$TABLE-charts.html">$TABLE</a>
-__EOF__
-done
-
-cat >> $OUTDIR/index.html << __EOF__
-</td>
-</tr>
-
-<tr>
-<td align="right">DB Index Stats Charts:</td>
-<td>
-__EOF__
-
-for INDEX in `cat $INDIR/db/index-list.txt`; do
-	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/indexes/$INDEX-charts.html">$INDEX</a>
-__EOF__
-done
-
-cat >> $OUTDIR/index.html << __EOF__
-</td>
-</tr>
-
-<tr>
-<td align="right">DB Table Stats by Metrics:</td>
-<td>
-__EOF__
-
-TABLEMETRICS=`(cd $INDIR/db/tables && ls *.png) | sed -e "s/table-stat-.*-//" \
-		| sed -e "s/.png$//" | sort | uniq`
-
-for METRIC in $TABLEMETRICS; do
-	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/tables/t_$METRIC-charts.html">$METRIC</a>
-__EOF__
-done
-
-cat >> $OUTDIR/index.html << __EOF__
-</td>
-</tr>
-
-<tr>
-<td align="right">DB Index Stats by Metrics:</td>
-<td>
-__EOF__
-
-INDEXMETRICS=`(cd $INDIR/db/indexes && ls *.png) \
-		| sed -e "s/index-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
-
-for METRIC in $INDEXMETRICS; do
-	cat >> $OUTDIR/index.html << __EOF__
-<a href="db/indexes/i_$METRIC-charts.html">$METRIC</a>
-__EOF__
-done
-
-cat >> $OUTDIR/index.html << __EOF__
-</td>
-</tr>
-
-</table>
-
-</body>
-</html>
 __EOF__
 
 # Create additional HTML pages for operating system charts.
 
 for SYSTEM in db client driver; do
-	create_html_stat_page $SYSTEM cpu $INDIR/$SYSTEM $INDIR/$SYSTEM/cpu.html
-	create_html_stat_page $SYSTEM blockdev $INDIR/$SYSTEM \
-			$INDIR/$SYSTEM/blockdev.html
-	create_html_stat_page $SYSTEM net $INDIR/$SYSTEM $INDIR/$SYSTEM/net.html
-	create_html_stat_page $SYSTEM swap $INDIR/$SYSTEM $INDIR/$SYSTEM/swap.html
+	create_stat_page $SYSTEM cpu ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/cpu
+	create_stat_page $SYSTEM blockdev ${INDIR}/${SYSTEM} \
+			${OUTDIR}/${SYSTEM}/blockdev
+	create_stat_page $SYSTEM net ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/net
+	create_stat_page $SYSTEM swap ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/swap
 done
 
 # Create additional HTML pages for the database charts.
 
-dbt-$DBMS-generate-db-html "Database Test 2" $INDIR/db
-dbt-$DBMS-generate-table-html "Database Test 2" $INDIR/db/table-list.txt \
-		$OUTDIR/db/tables
-dbt-$DBMS-generate-index-html "Database Test 2" $INDIR/db/index-list.txt \
-		$OUTDIR/db/indexes
+which dbt-${DBMS}-generate-db-report > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	dbt-${DBMS}-generate-db-report -t "Database Test 2" -i ${INDIR}/db \
+			-o ${INDIR}/db/stats/index.rst
+fi
+which dbt-${DBMS}-generate-table-report > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	dbt-${DBMS}-generate-table-report -t "Database Test 2" \
+			-i ${INDIR}/db/table-list.txt -o ${OUTDIR}/db/tables
+fi
+which dbt-${DBMS}-generate-index-report > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	dbt-${DBMS}-generate-index-report -t "Database Test 2" \
+			-i ${INDIR}/db/index-list.txt -o ${OUTDIR}/db/indexes
+fi
+
+# Generate HTML and PDF files.
+
+which rst2html5.py > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	# pandoc can't properly convert multi-cell table headings from rst but
+	# Sphinx's rst2html can. Then pandoc can convert multi-cell table headings
+	# from html to pdf.
+
+	for RST in $(find $OUTDIR -name "*.rst"); do
+		NAME="${RST%.*}"
+		(cd $(dirname $RST) && \
+				rst2html5.py $(basename $RST) ${NAME}.html 2> /dev/null) &
+	done
+	wait
+
+	echo "Generated top level HTML reports:"
+	ls -1v ${OUTDIR}/*.html
+	echo ""
+
+	# A pdf could be produced other ways, but I believe pandoc produces the most
+	# minimally styled LaTeX looking document, as opposed to using rst2latex,
+	# with default settings.
+	which pandoc > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		(cd $OUTDIR && \
+				pandoc -s report.html -f html -t pdf \ -o report.pdf \
+						2> /dev/null)
+		for HTML in $(find $OUTDIR -name "*.html"); do
+			NAME="${HTML%.*}"
+			(cd $(dirname $HTML) && \
+					pandoc -s $(basename $HTML) -f html -t pdf -o ${NAME}.pdf \
+							2> /dev/null) &
+		done
+		wait
+
+		echo "Generated top level PDF reports:"
+		ls -1v ${OUTDIR}/*.pdf
+		echo ""
+	else
+		echo "pandoc required to generate pdf report"
+		exit 1
+	fi
+else
+	echo "rst2html5.py required to generate html report"
+	exit 1
+fi
