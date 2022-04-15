@@ -49,10 +49,6 @@ if [ ${PGVERSION} -gt 90099 ]; then
 	EXTRACOL=", state, state_change"
 fi
 
-# Get the OS version that the database system is running on, in case it's
-# different.
-uname -a > ${OUTPUT_DIR}/readme-dbms.txt
-
 # Get database version.
 pg_config --version >> $OUTPUT_DIR/readme-dbms.txt
 

@@ -4,7 +4,8 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2008 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2008 Open Source Development Lab, Inc.
+#               2002-2022 Mark Wong
 #
 
 while getopts "o:" opt; do
@@ -15,7 +16,7 @@ while getopts "o:" opt; do
 	esac
 done
 
-OS=`uname -s`
+echo "$(uname -o) $(uname -m) $(uname -r)" > ${OUTPUT_DIR}/uname.txt
 
 SYSCTL="/sbin/sysctl"
 if [ ! -f "${SYSCTL}" ]; then
@@ -23,6 +24,7 @@ if [ ! -f "${SYSCTL}" ]; then
 fi
 
 # I don't think capturing error messages is important here.
+OS=`uname -s`
 if [ -f ${SYSCTL} ]; then
 	if [ "x${OS}" = "xLinux" ]; then
 		${SYSCTL} -a 2> /dev/null | sort > ${OUTPUT_DIR}/proc.txt

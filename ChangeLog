@@ -4,6 +4,7 @@ vX.Y.Z
 - Fix logic issue when starting PostgreSQL database after initialization
 - Replace HTML generated with reStructuredText, which can be converted to HTML
   and PDF, or other formats.
+- Fix how OS information is saved
 
 v0.47.0
 

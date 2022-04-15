@@ -544,13 +544,14 @@ if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 	make_directories $CLIENT_HOSTNAME
 	${COMMAND} -- mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}
 fi
-if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
 	# Create direcotires on the database server if remote.
 	#
-	if [ ! $DBAAS ]; then
+	if [ $DBAAS -eq 0 ]; then
 		make_directories ${DB_HOSTNAME}
 		ssh $DB_HOSTNAME -- mkdir -p ${DB_OUTPUT_DIR}
+		ssh $DB_HOSTNAME dbt2-get-os-info -o $DB_OUTPUT_DIR
 	fi
 fi
 mkdir -p ${DB_OUTPUT_DIR}
@@ -558,7 +559,6 @@ mkdir -p ${DB_OUTPUT_DIR}
 # Create a readme file in the output directory and date it.
 date >> ${OUTPUT_DIR}/readme.txt
 echo "$COMMENT" >> ${OUTPUT_DIR}/readme.txt
-uname -a >> ${OUTPUT_DIR}/readme.txt
 echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
 
 # Output run information into the readme.txt.
@@ -570,18 +570,14 @@ echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 
 # Get any OS specific information, if this is a single tier configuration, then
 # the OS parameters will be in the database output directory.
+dbt2-get-os-info -o $DRIVER_OUTPUT_DIR
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	dbt2-get-os-info -o ${DRIVER_OUTPUT_DIR}/`hostname`/
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
-	if [ ! $DBAAS ]; then
-		${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}
-	fi
 else
 	DB_COMMAND="eval"
 fi
 # Get the OS information from the database system.
-if [ ! $DBAAS ]; then
-	${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}
+if [ $DBAAS -eq 0 ]; then
 	DB_COMMAND2="$DB_COMMAND"
 else
 	DB_COMMAND2="eval"
@@ -687,7 +683,7 @@ else
 fi
 
 #
-# Count of the number of clients run.
+# Count of the number of clients to run.
 #
 SEG=0
 PORT=30000
@@ -748,6 +744,7 @@ if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 	HOSTNAME=`$CLIENT_COMMAND hostname`
 	CARGS="--iter $ITERATIONS --sample $SAMPLE_LENGTH"
 	CARGS="$CARGS --outdir ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+	$CLIENT_COMMAND "dbt2-get-os-info -o $CLIENT_OUTPUT_DIR"
 	$CLIENT_COMMAND "dbt2-sysstats $CARGS" > \
 			${CLIENT_OUTPUT_DIR}/${HOSTNAME}/stats.txt 2>&1 &
 fi
@@ -765,7 +762,7 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 
 	# Don't collect system stats from the database system if the database is a
 	# service.
-	if [ ! $DBAAS ]; then
+	if [ $DBAAS -eq 0 ]; then
 		CARGS="--iter ${ITERATIONS} --sample ${SAMPLE_LENGTH}"
 		CARGS="$CARGS --outdir ${DB_OUTPUT_DIR}"
 		${DB_COMMAND} "dbt2-sysstats $CARGS" \
@@ -947,7 +944,7 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 
 	# There will only be a sar output file if the database is on a separate
 	# system.
-	if [ ! $DBAAS ]; then
+	if [ $DBAAS -eq 0 ]; then
 		post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
 		rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
 				${DB_OUTPUT_DIR}/

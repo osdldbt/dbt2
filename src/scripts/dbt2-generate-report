@@ -208,13 +208,6 @@ if [ $? -eq 0 ]; then
 	done
 fi
 
-README="${INDIR}/db/readme-dbms.txt"
-if [ -f "$README" ]; then
-	OS=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 1`
-	OSVER=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 3`
-	ARCH=`head -n 1 ${INDIR}/db/readme-dbms.txt | cut -d " " -f 12`
-fi
-
 REPORTFILE="${OUTDIR}/report.rst"
 cat > $REPORTFILE << __EOF__
 ======================
@@ -265,13 +258,13 @@ System Summary
 .. list-table::
 
    * - Driver System
-     - 
+     - $(cat ${INDIR}/driver/uname.txt)
      - \`CPU Charts <driver/cpu/>\`_ | \`Blockdev Charts <driver/blockdev/>\`_ | \`Network Charts <driver/net/>\`_ | \`Swap Charts <driver/swap/>\`_
    * - Client System
-     - 
+     - $(cat ${INDIR}/client/uname.txt)
      - \`CPU Charts <client/cpu/>\`__ | \`Blockdev Charts <client/blockdev/>\`__ | \`Network Charts <client/net/>\`__ | \`Swap Charts <client/swap/>\`__
    * - Database System
-     - ${OS} ${ARCH} ${OSVER}
+     - $(cat ${INDIR}/db/uname.txt)
      - \`CPU Charts <db/cpu/>\`__ | \`Blockdev Charts <db/blockdev/>\`__ | \`Network Charts <db/net/>\`__ | \`Swap Charts <db/swap/>\`__ | \`Query Plans <db/plan0.txt>\`_
 
 .. list-table::

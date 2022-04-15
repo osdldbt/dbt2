@@ -39,10 +39,6 @@ fi
 PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME} -t --no-align"
 PGVERSION=`${PSQL} -c "show server_version_num;"`
 
-# Get the OS version that the database system is running on, in case it's
-# different.
-uname -a > ${OUTPUT_DIR}/readme-dbms.txt
-
 # Get database version.
 echo $PGVERSION >> $OUTPUT_DIR/readme-dbms.txt
 
