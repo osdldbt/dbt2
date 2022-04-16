@@ -82,8 +82,8 @@ show_images()
 	DIR=$1
 	TAG=$2
 
-	CPUCHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png")`
-	for CHART in $CPUCHARTS; do
+	CHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png")`
+	for CHART in $CHARTS; do
 		echo ".. image:: ../$CHART"
 		echo "   :target: ../$CHART"
 		echo "   :width: 100%"
@@ -147,6 +147,14 @@ for SARBLOCKDEVFILE in `find $INDIR -name sar-blockdev.csv`; do
 	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME \
 			$BLKDEVICES \ > /dev/null 2>&1 \
 			|| warning "Could not create sar blockdev charts"
+done
+
+echo "Generating memory charts..."
+for SARMEMFILE in `find $INDIR -name sar-mem.csv`; do
+	DIRNAME="$(dirname $SARMEMFILE)/sar"
+	mkdir -p $DIRNAME
+	dbt-plot-sar-mem -i $SARMEMFILE -o $DIRNAME > /dev/null 2>&1 \
+			|| warning "Could not create sar mem charts from $SARMEMFILE"
 done
 
 echo "Generating processor utilization charts..."
@@ -258,14 +266,14 @@ System Summary
 .. list-table::
 
    * - Driver System
-     - $(cat ${INDIR}/driver/uname.txt)
-     - \`CPU Charts <driver/cpu/>\`_ | \`Blockdev Charts <driver/blockdev/>\`_ | \`Network Charts <driver/net/>\`_ | \`Swap Charts <driver/swap/>\`_
+     - $(cat ${INDIR}/driver/uname.txt 2> /dev/null)
+     - \`CPU Charts <driver/cpu/>\`_ | \`Memory Charts <driver/mem/>\`_ | \`Blockdev Charts <driver/blockdev/>\`_ | \`Network Charts <driver/net/>\`_ | \`Swap Charts <driver/swap/>\`_
    * - Client System
-     - $(cat ${INDIR}/client/uname.txt)
-     - \`CPU Charts <client/cpu/>\`__ | \`Blockdev Charts <client/blockdev/>\`__ | \`Network Charts <client/net/>\`__ | \`Swap Charts <client/swap/>\`__
+     - $(cat ${INDIR}/client/uname.txt 2> /dev/null)
+     - \`CPU Charts <client/cpu/>\`__ | \`Memory Charts <client/mem/>\`__ | \`Blockdev Charts <client/blockdev/>\`__ | \`Network Charts <client/net/>\`__ | \`Swap Charts <client/swap/>\`__
    * - Database System
-     - $(cat ${INDIR}/db/uname.txt)
-     - \`CPU Charts <db/cpu/>\`__ | \`Blockdev Charts <db/blockdev/>\`__ | \`Network Charts <db/net/>\`__ | \`Swap Charts <db/swap/>\`__ | \`Query Plans <db/plan0.txt>\`_
+     - $(cat ${INDIR}/db/uname.txt 2> /dev/null)
+     - \`CPU Charts <db/cpu/>\`__ | \`Memory Charts <db/mem/>\`__ | \`Blockdev Charts <db/blockdev/>\`__ | \`Network Charts <db/net/>\`__ | \`Swap Charts <db/swap/>\`__ | \`Query Plans <db/plan0.txt>\`_
 
 .. list-table::
 
@@ -286,6 +294,7 @@ __EOF__
 
 for SYSTEM in db client driver; do
 	create_stat_page $SYSTEM cpu ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/cpu
+	create_stat_page $SYSTEM mem ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/mem
 	create_stat_page $SYSTEM blockdev ${INDIR}/${SYSTEM} \
 			${OUTDIR}/${SYSTEM}/blockdev
 	create_stat_page $SYSTEM net ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/net
