@@ -125,6 +125,12 @@ if [ "x$DBNAME" = "x" ]; then
 	warning "Could not determine what the database name used from results"
 fi
 
+echo "Processing pidstat files..."
+for PIDSTATFILE in $(find $INDIR -name pidstat.txt); do
+	DIRNAME="$(dirname $PIDSTATFILE)"
+	(cd $DIRNAME && dbt-process-pidstat $PIDSTATFILE)
+done
+
 echo "Generating transaction distribution charts..."
 mkdir -p ${OUTDIR}/txn || exit 1
 dbt-plot-transaction-distribution Delivery d ${MIXLOG} ${OUTDIR}/txn 1 \
