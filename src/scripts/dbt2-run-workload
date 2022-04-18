@@ -191,8 +191,9 @@ perf_collect()
 	echo "Generating perf annotated source on '${HOST}'..."
 	$COMMAND perf annotate -l -P -i $DIR/perf.data > $DIR/perf-annotate.txt \
 			2> /dev/null
-	echo "Generating perf trace on '${HOST}'..."
+	echo "Generating perf traces on '${HOST}'..."
 	$COMMAND perf script -L -i $DIR/perf.data > $DIR/perf-trace.txt 2> /dev/null
+	$COMMAND perf script -i $DIR/perf.data > $DIR/perf.txt 2> /dev/null
 }
 
 post_process_sar()

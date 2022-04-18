@@ -169,6 +169,24 @@ show_profile_links()
 	if [ -f "$FILENAME" ]; then
 		echo -n "\`perf-annotated-source <${SYSTEM}/$(basename $FILENAME)>\`_ "
 	fi
+
+	FILENAME="${INDIR}/${SYSTEM}/perf.txt"
+	if [ -f "$FILENAME" ]; then
+		which stackcollapse-perf.pl > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			(cd $(dirname $FILENAME) && \
+					stackcollapse-perf.pl perf.txt > perf.folded 2> /dev/null)
+		fi
+		which flamegraph.pl > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+			FLAMEGRAPH="${INDIR}/${SYSTEM}/flamegraph.svg"
+			(cd $(dirname $FILENAME) && \
+				flamegraph.pl perf.folded > $FLAMEGRAPH 2> /dev/null)
+		fi
+		if [ -f "$FLAMEGRAPH" ]; then
+			echo -n "\`flame graph <${SYSTEM}/$(basename ${FLAMEGRAPH})>\`_ "
+		fi
+	fi
 }
 
 show_system_links()
