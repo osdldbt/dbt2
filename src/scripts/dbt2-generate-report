@@ -43,38 +43,79 @@ $(show_images $DIR $TAG)
 __EOF__
 }
 
-links_index_metrics()
+create_pidstat_page()
 {
-	INDEXMETRICS=`(cd ${INDIR}/db/indexes && ls *.png) \
-			| sed -e "s/index-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+	TAG=$1
+	DIR=$2
 
-	for METRIC in $INDEXMETRICS; do
-		echo -n "\`$METRIC <db/indexes/i_$METRIC/>\`__ "
-	done
+	mkdir -p $DIR
+
+	cat > ${DIR}/index.rst << __EOF__
+================================================================================
+Database Test 2 pidstat $TAG Charts
+================================================================================
+
+$(show_images_pidstat $TAG $DIR)
+__EOF__
 }
 
-links_indexes()
+create_pidstat_plots()
 {
-	for INDEX in $(cat ${INDIR}/db/index-list.txt); do
-		echo -n "\`$INDEX <db/indexes/${INDEX}/>\`_ "
-	done
+	METRIC=$1
+	COMMAND=$2
+	TAG=$3
+
+	dbt-plot-pidstat -i $PIDSTATCSV -m $METRIC -c "$COMMAND" -t $TAG
 }
 
-links_table_metrics()
+list_processes()
 {
-	TABLEMETRICS=`(cd ${INDIR}/db/tables && ls *.png) | \
-			sed -e "s/table-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+	METRICS="X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s iodelay "
+	METRICS="$METRICS cswch.s nvcswch.s threads fd.nr"
 
-	for METRIC in $TABLEMETRICS; do
-		echo -n "\`$METRIC <db/tables/t_${METRIC}/>\`_ "
-	done
-}
+	PIDSTATCSV="${INDIR}/driver/pidstat.csv"
+	if [ -f "$PIDSTATCSV" ]; then
+		COUNTDRIVER=$(grep dbt2-driver $PIDSTATCSV | wc -l)
+		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
 
-links_tables()
-{
-	for TABLE in $(cat $INDIR/db/table-list.txt); do
-		echo -n "\`$TABLE <db/tables/${TABLE}/>\`_ "
-	done
+		echo "Driver System:"
+		echo ""
+	fi
+
+	PIDSTATCSV="${INDIR}/client/pidstat.csv"
+	if [ -f "$PIDSTATCSV" ]; then
+		COUNTDRIVER=$(grep dbt2-driver $PIDSTATCSV | wc -l)
+		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
+
+		echo "Client System:"
+		echo ""
+	fi
+
+	PIDSTATCSV="${INDIR}/db/pidstat.csv"
+	if [ -f "$PIDSTATCSV" ]; then
+		COUNTDRIVER=$(grep dbt2-driver $PIDSTATCSV | wc -l)
+		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
+
+		echo "Database System:"
+		echo ""
+
+		if [ $COUNTDRIVER -gt 0 ]; then
+			TAG="driver"
+			for M in $METRICS; do
+					create_pidstat_plots $M dbt2-driver $TAG
+			done
+			create_pidstat_page $TAG ${INDIR}/db/driver
+			echo "* \`$TAG <db/${TAG}/>\`_"
+		fi
+		if [ $COUNTCLIENT -gt 0 ]; then
+			TAG="client"
+			for M in $METRICS; do
+					create_pidstat_plots $M dbt2-client $TAG
+			done
+			create_pidstat_page $TAG ${INDIR}/db/client
+			echo "* \`$TAG <db/${TAG}/>\`_"
+		fi
+	fi
 }
 
 show_images()
@@ -89,6 +130,35 @@ show_images()
 		echo "   :width: 100%"
 		echo ""
 	done
+}
+
+show_images_pidstat()
+{
+	TAG=$1
+	DIR=$2
+
+	CHARTS=$(cd ${DIR}/.. && ls -1v pidstat-${TAG}-*.png)
+	for CHART in $CHARTS; do
+		echo ".. image:: ../$CHART"
+		echo "   :target: ../$CHART"
+		echo "   :width: 100%"
+		echo ""
+	done
+}
+
+show_system_links()
+{
+	SYSTEM=$1
+
+	if [ -f "${INDIR}/${SYSTEM}/sar_raw.out" ]; then
+		echo -n "\`CPU <${SYSTEM}/cpu/>\`_ "
+		echo -n "\`Memory <${SYSTEM}/mem/>\`_ "
+		echo -n "\`Blockdev <${SYSTEM}/blockdev/>\`_ "
+		echo -n "\`Network <${SYSTEM}/net/>\`_ "
+		echo -n "\`Swap <${SYSTEM}/swap/>\`_ "
+	else
+		echo ".."
+	fi
 }
 
 while getopts "b:hi:" opt; do
@@ -222,6 +292,16 @@ if [ $? -eq 0 ]; then
 	done
 fi
 
+UNAME_DRIVER=$(cat ${INDIR}/driver/uname.txt 2> /dev/null)
+UNAME_CLIENT=$(cat ${INDIR}/client/uname.txt 2> /dev/null)
+if [ "x$UNAME_CLIENT" = "x" ]; then
+	UNAME_CLIENT="(same as driver)"
+fi
+UNAME_DB=$(cat ${INDIR}/db/uname.txt 2> /dev/null)
+if [ "x$UNAME_DB" = "x" ]; then
+	UNAME_DB="(same as driver)"
+fi
+
 REPORTFILE="${OUTDIR}/report.rst"
 cat > $REPORTFILE << __EOF__
 ======================
@@ -270,30 +350,27 @@ System Summary
 ==============
 
 .. list-table::
+   :header-rows: 1
 
+   * -
+     - Operating System Version
+     - Charts
    * - Driver System
-     - $(cat ${INDIR}/driver/uname.txt 2> /dev/null)
-     - \`CPU Charts <driver/cpu/>\`_ | \`Memory Charts <driver/mem/>\`_ | \`Blockdev Charts <driver/blockdev/>\`_ | \`Network Charts <driver/net/>\`_ | \`Swap Charts <driver/swap/>\`_
+     - $UNAME_DRIVER
+     - $(show_system_links driver)
    * - Client System
-     - $(cat ${INDIR}/client/uname.txt 2> /dev/null)
-     - \`CPU Charts <client/cpu/>\`__ | \`Memory Charts <client/mem/>\`__ | \`Blockdev Charts <client/blockdev/>\`__ | \`Network Charts <client/net/>\`__ | \`Swap Charts <client/swap/>\`__
+     - $UNAME_CLIENT
+     - $(show_system_links client)
    * - Database System
-     - $(cat ${INDIR}/db/uname.txt 2> /dev/null)
-     - \`CPU Charts <db/cpu/>\`__ | \`Memory Charts <db/mem/>\`__ | \`Blockdev Charts <db/blockdev/>\`__ | \`Network Charts <db/net/>\`__ | \`Swap Charts <db/swap/>\`__ | \`Query Plans <db/plan0.txt>\`_
+     - $UNAME_DB
+     - $(show_system_links db)
 
-.. list-table::
+Component Statistics per Process
+--------------------------------
 
-   * - \`Database Stats Charts <db/stats/>\`_
-     - 
-   * - Database Table Stats Charts:
-     - $(links_tables)
-   * - Database Index Stats Charts:
-     - $(links_indexes)
-   * - Database Table Stats by Metrics:
-     - $(links_table_metrics)
-   * - Database Index Stats by Metrics:
-     - $(links_index_metrics)
+$(list_processes)
 
+$(dbt2-${DBMS}-report -i $INDIR 2> /dev/null)
 __EOF__
 
 # Create additional HTML pages for operating system charts.

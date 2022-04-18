@@ -5,6 +5,7 @@ vX.Y.Z
 - Replace HTML generated with reStructuredText, which can be converted to HTML
   and PDF, or other formats.
 - Fix how OS information is saved
+- Add per process statistics to report
 
 v0.47.0
 

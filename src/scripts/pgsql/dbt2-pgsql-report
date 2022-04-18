@@ -1,0 +1,163 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006      Open Source Development Labs, Inc.
+#               2014      2ndQuadrant, Ltd.
+#               2006-2022 Mark Wong
+#
+
+usage()
+{
+	echo "`basename $0` is the DBT-2 PostgreSQL Report Generator"
+	echo ""
+	echo "Usage:"
+	echo "  `basename $0` [OPTIONS]"
+	echo ""
+	echo "General options:"
+	echo "  -i PATH          results directory"
+}
+
+create_stat_page()
+{
+	local TAG=$1
+
+	OUTDIR="${PIDSTATDIR}/$TAG"
+	mkdir -p $OUTDIR
+
+	cat > ${OUTDIR}/index.rst << __EOF__
+================================================================================
+Database Test 2 pidstat $TAG Charts
+================================================================================
+
+$(show_images $TAG)
+__EOF__
+}
+
+link_plan()
+{
+	if [ -f "${INDIR}/db/plan0.txt" ]; then
+		echo "* \`Query plans <db/plan0.txt>\`_"
+	fi
+}
+
+links_index_metrics()
+{
+	INDEXMETRICS=`(cd ${INDIR}/db/indexes && ls *.png) \
+			| sed -e "s/index-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+
+	for METRIC in $INDEXMETRICS; do
+		echo -n "\`$METRIC <db/indexes/i_$METRIC/>\`__ "
+	done
+}
+
+links_indexes()
+{
+	for INDEX in $(cat ${INDIR}/db/index-list.txt); do
+		echo -n "\`$INDEX <db/indexes/${INDEX}/>\`_ "
+	done
+}
+
+links_table_metrics()
+{
+	TABLEMETRICS=`(cd ${INDIR}/db/tables && ls *.png) | \
+			sed -e "s/table-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+
+	for METRIC in $TABLEMETRICS; do
+		echo -n "\`$METRIC <db/tables/t_${METRIC}/>\`_ "
+	done
+}
+
+links_tables()
+{
+	for TABLE in $(cat $INDIR/db/table-list.txt); do
+		echo -n "\`$TABLE <db/tables/${TABLE}/>\`_ "
+	done
+}
+
+list_processes()
+{
+	for T in autovacum bgwriter checkpointer logical statscollector walwriter;
+	do
+		create_stat_page $T $T
+		echo "* \`$T <db/${T}/>\`_"
+	done
+}
+
+make_plots()
+{
+	METRIC=$1
+	COMMAND=$2
+	TAG=$3
+
+	dbt-plot-pidstat -i $PIDSTATCSV -m $METRIC -c "$COMMAND" -t $TAG
+}
+
+show_images()
+{
+	TAG=$1
+	CHARTS=$(cd $PIDSTATDIR && ls -1v pidstat-${TAG}-*.png)
+	for CHART in $CHARTS; do
+		echo ".. image:: ../$CHART"
+		echo "   :target: ../$CHART"
+		echo "   :width: 100%"
+		echo ""
+	done
+}
+
+while getopts "hi:" opt; do
+	case $opt in
+	h)
+		usage
+		exit 1
+		;;
+	i)
+		INDIR="$OPTARG"
+		;;
+	\?)
+		exit 1
+		;;
+	esac
+done
+
+PIDSTATCSV="${INDIR}/db/pidstat.csv"
+PIDSTATDIR=$(dirname $PIDSTATCSV)
+
+for M in X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s iodelay \
+		cswch.s nvcswch.s threads fd.nr; do
+	make_plots $M "postgres: autovacuum launcher" autovacum
+	make_plots $M "postgres: background writer" bgwriter
+	make_plots $M "postgres: checkpointer" checkpointer
+	make_plots $M "postgres: logical replication launcher" logical
+	make_plots $M "postgres: stats collector" statscollector
+	make_plots $M "postgres: walwriter" walwriter
+done
+
+cat << __EOF__
+PostgreSQL Report
+=================
+
+$(link_plan)
+
+Database Statistics
+-------------------
+
+.. list-table::
+
+   * - \`Database Stats Charts <db/stats/>\`_
+     -
+   * - Database Table Stats Charts:
+     - $(links_tables)
+   * - Database Index Stats Charts:
+     - $(links_indexes)
+   * - Database Table Stats by Metrics:
+     - $(links_table_metrics)
+   * - Database Index Stats by Metrics:
+     - $(links_index_metrics)
+
+Per Process Statistics
+----------------------
+
+$(list_processes)
+__EOF__
