@@ -83,7 +83,7 @@ cat(sprintf("* %d total unknown errors\n", errors))
 # Calculate the ramp up time.
 
 duration <- start - mix[1,]\$ctime
-cat(sprintf("* %0.1f seconds(s) ramping up\n", duration))
+cat(sprintf("* %0.1f minutes(s) ramping up\n", duration / 60))
 
 if ($VERBOSE == 1) {
   wid_min <- min(mix\$wid, na.rm=TRUE)
