@@ -146,6 +146,31 @@ show_images_pidstat()
 	done
 }
 
+show_profile_links()
+{
+	SYSTEM=$1
+
+	FILENAME="${INDIR}/${SYSTEM}/readprofile.txt"
+	if [ -f "$FILENAME" ]; then
+		echo -n "\`readprofile <${SYSTEM}/$(basename $FILENAME)>\`_ "
+	fi
+
+	FILENAME="${INDIR}/${SYSTEM}/perf-report.txt"
+	if [ -f "$FILENAME" ]; then
+		echo -n "\`perf-report <${SYSTEM}/$(basename $FILENAME)>\`_ "
+	fi
+
+	FILENAME="${INDIR}/${SYSTEM}/perf-trace.txt"
+	if [ -f "$FILENAME" ]; then
+		echo -n "\`perf-trace <${SYSTEM}/$(basename $FILENAME)>\`_ "
+	fi
+
+	FILENAME="${INDIR}/${SYSTEM}/perf-annotate.txt"
+	if [ -f "$FILENAME" ]; then
+		echo -n "\`perf-annotated-source <${SYSTEM}/$(basename $FILENAME)>\`_ "
+	fi
+}
+
 show_system_links()
 {
 	SYSTEM=$1
@@ -355,15 +380,19 @@ System Summary
    * -
      - Operating System Version
      - Charts
+     - Profiling
    * - Driver System
      - $UNAME_DRIVER
      - $(show_system_links driver)
+     - $(show_profile_links driver)
    * - Client System
      - $UNAME_CLIENT
      - $(show_system_links client)
+     - $(show_profile_links client)
    * - Database System
      - $UNAME_DB
      - $(show_system_links db)
+     - $(show_profile_links db)
 
 Component Statistics per Process
 --------------------------------

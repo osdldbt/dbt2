@@ -167,7 +167,7 @@ perf_start()
 		echo "         /proc/sys/kernel/perf_event_paranoid to -1"
 		return 0
 	fi
-	$COMMAND perf record -o $DIR/perf.data -a -g -s sleep $DURATION
+	$COMMAND perf record -o $DIR/perf.data -a -g -s sleep 10
 }
 
 perf_collect()
@@ -186,11 +186,13 @@ perf_collect()
 		return 0
 	fi
 	echo "Generating perf report on '${HOST}'..."
-	$COMMAND perf report -i $DIR/perf.data -n > $DIR/perf-report.txt &
+	$COMMAND perf report -i $DIR/perf.data -n > $DIR/perf-report.txt \
+			2> /dev/null
 	echo "Generating perf annotated source on '${HOST}'..."
-	$COMMAND perf annotate -l -P -i $DIR/perf.data > $DIR/perf-annotate.txt &
+	$COMMAND perf annotate -l -P -i $DIR/perf.data > $DIR/perf-annotate.txt \
+			2> /dev/null
 	echo "Generating perf trace on '${HOST}'..."
-	$COMMAND perf script -L -i $DIR/perf.data > $DIR/perf-trace.txt &
+	$COMMAND perf script -L -i $DIR/perf.data > $DIR/perf-trace.txt 2> /dev/null
 }
 
 post_process_sar()
@@ -850,7 +852,10 @@ fi
 
 # Start perf data collection
 if [ ${USE_PERF} -eq 1 ]; then
-	perf_start ${OUTPUT_DIR} &
+	perf_start ${OUTPUT_DIR}/driver &
+	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		perf_start ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
+	fi
 	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		perf_start ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
@@ -878,7 +883,10 @@ fi
 
 # Collect perf data.
 if [ ${USE_PERF} -eq 1 ]; then
-	perf_collect ${OUTPUT_DIR}
+	perf_collect ${OUTPUT_DIR}/driver
+	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		perf_collect ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
+	fi
 	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		perf_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi

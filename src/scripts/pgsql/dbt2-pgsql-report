@@ -35,13 +35,6 @@ $(show_images $TAG)
 __EOF__
 }
 
-link_plan()
-{
-	if [ -f "${INDIR}/db/plan0.txt" ]; then
-		echo "* \`Query plans <db/plan0.txt>\`_"
-	fi
-}
-
 links_index_metrics()
 {
 	INDEXMETRICS=`(cd ${INDIR}/db/indexes && ls *.png) \
@@ -138,7 +131,8 @@ cat << __EOF__
 PostgreSQL Report
 =================
 
-$(link_plan)
+* \`Database Parameters <db/param.txt>\`_
+* \`Query plans <db/plan0.txt>\`_
 
 Database Statistics
 -------------------
