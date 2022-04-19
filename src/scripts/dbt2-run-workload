@@ -845,6 +845,7 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 				${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 \
 				|| exit 1 &
 	fi
+	DRIVER_PIDLIST="$DRIVER_PIDLIST $!"
 	PORT=`expr ${PORT} + 1`
 done
 
@@ -883,33 +884,6 @@ fi
 echo -n "estimated steady state time: "
 do_sleep $DURATION
 
-# Collect readprofile data.
-if [ -f "/proc/profile" ]; then
-	readprofile_collect ${DRIVER_OUTPUT_DIR}/`hostname`
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
-	fi
-fi
-
-# Collect oprofile data.
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
-	fi
-fi
-
-# Collect perf data.
-if [ ${USE_PERF} -eq 1 ]; then
-	perf_collect ${OUTPUT_DIR}/driver
-	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		perf_collect ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
-	fi
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		perf_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
-	fi
-fi
-
 echo ''
 echo "Stage 3. Processing of results..."
 
@@ -932,13 +906,32 @@ if [ $PRIVILEGED -eq 1 ]; then
 	fi
 fi
 
-# Run some post processing analyses.
-MIXAGG="${OUTPUT_DIR}/mix.log"
-# Aggregate all the mix.log file from all possible driver processes into a
-# single location to be analyzed.
-find ${DRIVER_OUTPUT_DIR} -name 'mix*.log' | xargs cat > ${MIXAGG}
-dbt2-post-process $MIXAGG > $SUMMARY
-VERBOSE=1 dbt2-post-process $MIXAGG > ${OUTPUT_DIR}/detailed-summary.rst
+# Collect readprofile data.
+if [ -f "/proc/profile" ]; then
+	readprofile_collect ${DRIVER_OUTPUT_DIR}/`hostname`
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+	fi
+fi
+
+# Collect oprofile data.
+if [ ${USE_OPROFILE} -eq 1 ]; then
+	oprofile_collect ${OUTPUT_DIR}
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+	fi
+fi
+
+# Collect perf data.
+if [ $USE_PERF -eq 1 ]; then
+	perf_collect ${OUTPUT_DIR}/driver
+	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		perf_collect ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
+	fi
+	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		perf_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+	fi
+fi
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
@@ -978,6 +971,17 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 else
 	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
 fi
+
+# Make sure all the drivers have exited, so all the mix files have flushed to
+# disk before continuing processing.  Can't count of all the sleeps to be
+# precise...
+wait $DRIVER_PIDLIST
+MIXAGG="${OUTPUT_DIR}/mix.log"
+# Aggregate all the mix.log file from all possible driver processes into a
+# single location to be processed.
+find ${DRIVER_OUTPUT_DIR} -name 'mix*.log' | xargs cat > ${MIXAGG}
+dbt2-post-process $MIXAGG > $SUMMARY
+VERBOSE=1 dbt2-post-process $MIXAGG > ${OUTPUT_DIR}/detailed-summary.rst
 
 # Change the permissions on the database error log, not readable by other
 # users by default.
