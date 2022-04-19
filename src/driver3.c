@@ -343,7 +343,7 @@ int start_driver()
 
 	loop = EV_DEFAULT;
 
-	printf("[%d] assigned part %d: warehosues %d to %d.\n", getpid(), l, mymin,
+	printf("[%d] assigned part %d: warehouses %d to %d.\n", getpid(), l, mymin,
 			mymax);
 	fflush(stdout);
 
