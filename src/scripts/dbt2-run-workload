@@ -656,70 +656,76 @@ echo ""
 # Start the client.
 #
 echo "Stage 1. Starting up client..."
-echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
-if [ ${DBMS} = "cockroach" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME} -b ${DBNAME}"
-elif [ ${DBMS} = "mysql" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
-elif [ ${DBMS} = "pgsql" ]; then
-	if [ ${USE_PGPOOL} -eq 1 ]; then
-		echo "Starting pgpool..."
-		pgpool -f ${DIR}/pgsql/pgpool.conf
-		TMP_DB_HOSTNAME="localhost"
+if [ ! "x$DRIVER3" = "x1" ]; then
+	echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
+	if [ ${DBMS} = "cockroach" ]; then
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME} -b ${DBNAME}"
+	elif [ ${DBMS} = "mysql" ]; then
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
+	elif [ ${DBMS} = "pgsql" ]; then
+		if [ ${USE_PGPOOL} -eq 1 ]; then
+			echo "Starting pgpool..."
+			pgpool -f ${DIR}/pgsql/pgpool.conf
+			TMP_DB_HOSTNAME="localhost"
+		else
+			TMP_DB_HOSTNAME=${DB_HOSTNAME}
+		fi
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME} -b ${DBNAME}"
+	elif [ ${DBMS} = "sqlite" ]; then
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
+	fi
+	CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -f -c $DBCON -s $THREAD_STARTUP_DELAY"
+	END=0
+	START=1
+
+	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
 	else
-		TMP_DB_HOSTNAME=${DB_HOSTNAME}
+		CLIENT_COMMAND="eval"
 	fi
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME} -b ${DBNAME}"
-elif [ ${DBMS} = "sqlite" ]; then
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
-fi
-CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -f -c $DBCON -s $THREAD_STARTUP_DELAY"
-END=0
-START=1
 
-if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
+	#
+	# Count of the number of clients to run.
+	#
+	SEG=0
+	PORT=30000
+	while [ ${END} -lt ${WAREHOUSES} ]; do
+		START=`expr ${END} + 1`
+		END=`expr ${START} + ${W_CHUNK}`
+		END=`expr ${END} - 1`
+		SEG=`expr ${SEG} + 1`
+
+		if [ ${END} -gt ${WAREHOUSES} ]; then
+			END=${WAREHOUSES}
+		fi
+
+		HOSTNAME=`$CLIENT_COMMAND hostname`
+		CPDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+		mkdir -p ${CPDIR}
+
+		CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
+		$CLIENT_COMMAND mkdir -p ${CDIR}
+
+		CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
+		if [ ! "x$DRIVER3" = "x1" ]; then
+			$CLIENT_COMMAND "dbt2-client ${CARGS}" > \
+					${CPDIR}/client-${SEG}.txt 2>&1 &
+		fi
+
+		PORT=`expr ${PORT} + 1`
+	done
+
+	# Sleep long enough for all the client database connections to be established.
+	CLIENT_RAMPUP_TIME=$DBCON
+	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
+	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME / 1000`
+	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME + 1`
+	do_sleep $CLIENT_RAMPUP_TIME
 else
-	CLIENT_COMMAND="eval"
+	echo "***skipping***"
 fi
-
-#
-# Count of the number of clients to run.
-#
-SEG=0
-PORT=30000
-while [ ${END} -lt ${WAREHOUSES} ]; do
-	START=`expr ${END} + 1`
-	END=`expr ${START} + ${W_CHUNK}`
-	END=`expr ${END} - 1`
-	SEG=`expr ${SEG} + 1`
-
-	if [ ${END} -gt ${WAREHOUSES} ]; then
-		END=${WAREHOUSES}
-	fi
-
-	HOSTNAME=`$CLIENT_COMMAND hostname`
-	CPDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-	mkdir -p ${CPDIR}
-
-	CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
-	$CLIENT_COMMAND mkdir -p ${CDIR}
-
-	CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
-	$CLIENT_COMMAND "dbt2-client ${CARGS}" > \
-			${CPDIR}/client-${SEG}.txt 2>&1 &
-
-	PORT=`expr ${PORT} + 1`
-done
-
-# Sleep long enough for all the client database connections to be established.
-CLIENT_RAMPUP_TIME=$DBCON
-CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
-CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME / 1000`
-CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME + 1`
-do_sleep $CLIENT_RAMPUP_TIME
 
 # Start collecting data before we start the test.
 
@@ -819,16 +825,27 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 
 	DDIR="${DRIVER_OUTPUT_DIR}/`hostname`.${SEG}"
 	mkdir -p ${DDIR}
-	DRIVER_COMMAND_ARGS="-d $CLIENT_HOSTNAME -p $PORT -l $DURATION -wmin $START"
+	DRIVER_COMMAND_ARGS="-l $DURATION -wmin $START"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -wmax $END -w $WAREHOUSES"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -sleep $THREAD_STARTUP_DELAY"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -outdir $DDIR"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -tpw $THREADS_PER_WAREHOUSE"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $NO_THINK $TERMINALS_LIMIT_ARG"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG"
+	if [ "x$DRIVER3" = "x1" ]; then
+		echo "***experimental driver 3 active***"
+		if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+			DHNARG="-b $DBNAME -d $DB_HOSTNAME"
+		fi
+		dbt2-driver3 ${DRIVER_COMMAND_ARGS} -a $DBMS -b $DBNAME $DHNARG > \
+				${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 \
+				|| exit 1 &
+	else
+		dbt2-driver -d $CLIENT_HOSTNAME -p $PORT ${DRIVER_COMMAND_ARGS} > \
+				${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 \
+				|| exit 1 &
+	fi
 	PORT=`expr ${PORT} + 1`
-	dbt2-driver ${DRIVER_COMMAND_ARGS} > \
-			${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 || exit 1&
 done
 
 echo -n "estimated rampup time: "

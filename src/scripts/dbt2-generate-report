@@ -73,9 +73,15 @@ list_processes()
 	METRICS="X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s iodelay "
 	METRICS="$METRICS cswch.s nvcswch.s threads fd.nr"
 
+	if [ "x$DRIVER3" = "x1" ]; then
+		DRIVER_NAME="dbt2-driver3"
+	else
+		DRIVER_NAME="dbt2-driver"
+	fi
+
 	PIDSTATCSV="${INDIR}/driver/pidstat.csv"
 	if [ -f "$PIDSTATCSV" ]; then
-		COUNTDRIVER=$(grep dbt2-driver $PIDSTATCSV | wc -l)
+		COUNTDRIVER=$(grep $DRIVER_NAME $PIDSTATCSV | wc -l)
 		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
 
 		echo "Driver System:"
@@ -84,7 +90,7 @@ list_processes()
 
 	PIDSTATCSV="${INDIR}/client/pidstat.csv"
 	if [ -f "$PIDSTATCSV" ]; then
-		COUNTDRIVER=$(grep dbt2-driver $PIDSTATCSV | wc -l)
+		COUNTDRIVER=$(grep $DRIVER_NAME $PIDSTATCSV | wc -l)
 		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
 
 		echo "Client System:"
@@ -93,7 +99,7 @@ list_processes()
 
 	PIDSTATCSV="${INDIR}/db/pidstat.csv"
 	if [ -f "$PIDSTATCSV" ]; then
-		COUNTDRIVER=$(grep dbt2-driver $PIDSTATCSV | wc -l)
+		COUNTDRIVER=$(grep $DRIVER_NAME $PIDSTATCSV | wc -l)
 		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
 
 		echo "Database System:"
@@ -102,7 +108,7 @@ list_processes()
 		if [ $COUNTDRIVER -gt 0 ]; then
 			TAG="driver"
 			for M in $METRICS; do
-					create_pidstat_plots $M dbt2-driver $TAG
+					create_pidstat_plots $M $DRIVER_NAME $TAG
 			done
 			create_pidstat_page $TAG ${INDIR}/db/driver
 			echo "* \`$TAG <db/${TAG}/>\`_"
@@ -423,6 +429,10 @@ __EOF__
 # Create additional HTML pages for operating system charts.
 
 for SYSTEM in db client driver; do
+	if [ ! -d "${INDIR}/${SYSTEM}" ]; then
+		continue
+	fi
+
 	create_stat_page $SYSTEM cpu ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/cpu
 	create_stat_page $SYSTEM mem ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/mem
 	create_stat_page $SYSTEM blockdev ${INDIR}/${SYSTEM} \

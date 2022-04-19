@@ -7,6 +7,7 @@ vX.Y.Z
 - Fix how OS information is saved
 - Add per process statistics to report
 - Generate flame graphs for report
+- Add undocumented support for driver3 in run-workload and reporting scripts
 
 v0.47.0
 
