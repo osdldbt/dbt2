@@ -936,7 +936,7 @@ fi
 MIXAGG="${OUTPUT_DIR}/mix.log"
 # Aggregate all the mix.log file from all possible driver processes into a
 # single location to be analyzed.
-find ${DRIVER_OUTPUT_DIR} -name mix*.log | xargs cat > ${MIXAGG}
+find ${DRIVER_OUTPUT_DIR} -name 'mix*.log' | xargs cat > ${MIXAGG}
 dbt2-post-process $MIXAGG > $SUMMARY
 VERBOSE=1 dbt2-post-process $MIXAGG > ${OUTPUT_DIR}/detailed-summary.rst
 
