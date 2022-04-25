@@ -8,6 +8,9 @@ vX.Y.Z
 - Add per process statistics to report
 - Generate flame graphs for report
 - Add undocumented support for driver3 in run-workload and reporting scripts
+- Reorganize where data is saved when using run-workload script
+- Move database system specific reporting into database specific reporting
+  script
 
 v0.47.0
 

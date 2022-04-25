@@ -11,18 +11,16 @@
 # If the SQL in funcs.c is updated, this file should be updated to match.
 #
 
-if [ "x${DBT2DBNAME}" = "x" ]; then
-	echo "DBT2DBNAME not defined."
-	exit 1
-fi
-
 explain() {
 	SQL="EXPLAIN ${@}"
 	psql ${PORTARG} -e -d ${DBT2DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
 }
 
-while getopts "l:o:" opt; do
+while getopts "d:l:o:" opt; do
 	case ${opt} in
+	d)
+		DBT2DBNAME=$OPTARG
+		;;
 	l)
 		PORT=${OPTARG}
 		;;
@@ -32,11 +30,16 @@ while getopts "l:o:" opt; do
 	esac
 done
 
+if [ "x${DBT2DBNAME}" = "x" ]; then
+	echo "ERROR: DBT2DBNAME not defined, use -d flag"
+	exit 1
+fi
+
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-if [ "${OUTPUT_FILE}" == "" ]; then
+if [ "x${OUTPUT_FILE}" = "x" ]; then
 	echo "usage: `basename $0` -o <outfile>"
 	exit 1
 fi

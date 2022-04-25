@@ -157,8 +157,9 @@ perf_start()
 
 	if [ -n "${HOST}" ]; then
 		COMMAND="ssh ${HOST}"
+		HOSTNAME=$($COMMAND hostname)
 	else
-		HOST=`hostname`
+		HOSTNAME=$(hostname)
 	fi
 
 	RC=`$COMMAND cat /proc/sys/kernel/perf_event_paranoid`
@@ -167,7 +168,11 @@ perf_start()
 		echo "         /proc/sys/kernel/perf_event_paranoid to -1"
 		return 0
 	fi
-	$COMMAND perf record -o $DIR/perf.data -a -g -s sleep 10
+	PERFDATA="${DIR}/${HOSTNAME}/perf.data"
+	$COMMAND perf record -o $PERFDATA -a -g -s sleep 10
+
+	# Default permissions varies per distro, set it readable explicitly...
+	$COMMAND chmod 644 $PERFDATA
 }
 
 perf_collect()
@@ -178,34 +183,35 @@ perf_collect()
 
 	if [ -n "${HOST}" ]; then
 		COMMAND="ssh ${HOST}"
+		HOSTNAME=$($COMMAND hostname)
 	else
-		HOST=`hostname`
+		COMMAND="eval"
+		HOSTNAME=`hostname`
 	fi
 
-	if [ ! -f "$DIR/perf.data" ]; then
-		return 0
-	fi
-	echo "Generating perf report on '${HOST}'..."
-	$COMMAND perf report -i $DIR/perf.data -n > $DIR/perf-report.txt \
-			2> /dev/null
-	echo "Generating perf annotated source on '${HOST}'..."
-	$COMMAND perf annotate -l -P -i $DIR/perf.data > $DIR/perf-annotate.txt \
-			2> /dev/null
-	echo "Generating perf traces on '${HOST}'..."
-	$COMMAND perf script -L -i $DIR/perf.data > $DIR/perf-trace.txt 2> /dev/null
-	$COMMAND perf script -i $DIR/perf.data > $DIR/perf.txt 2> /dev/null
+	THISDIR="${DIR}/${HOSTNAME}"
+	PERFDATA="${THISDIR}/perf.data"
+	echo "Generating perf report on '${HOSTNAME}'..."
+	$COMMAND "perf report -i $PERFDATA -n > ${THISDIR}/perf-report.txt 2> /dev/null"
+	echo "Generating perf annotated source on '${HOSTNAME}'..."
+	$COMMAND "perf annotate -l -P -i $PERFDATA > ${THISDIR}/perf-annotate.txt 2> /dev/null"
+	echo "Generating perf traces on '${HOSTNAME}'..."
+	$COMMAND "perf script -L -i $PERFDATA > ${THISDIR}/perf-trace.txt 2> /dev/null"
+	$COMMAND "perf script -i $PERFDATA > ${THISDIR}/perf.txt 2> /dev/null"
 }
 
 post_process_sar()
 {
 	# Sar data should be processed on the system they are collected on as sar
 	# versions can vary between systems and thus not be able to read another
-	# version's file.
+	# version's raw data file.
 	COMMAND=""
-	FILE=${1}
+	SARPATH=${1}
 	HOST=${2}
 	if [ ! "x${HOST}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		COMMAND="ssh ${HOST}"
+		HOSTNAME=$($COMMAND hostname)
+		FILE="${SARPATH}/${HOSTNAME}/sar_raw.out"
 		${COMMAND} "which sadf > /dev/null 2>&1"
 		if [ $? -eq 0 ]; then
 			SADF="sadf -d -U"
@@ -236,6 +242,7 @@ post_process_sar()
 		${COMMAND} "${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv"
 		$COMMAND "$SADF $FILE -- -n DEV > `dirname $FILE`/sar-net.csv"
 	else
+		FILE="${SARPATH}/$(hostname)/sar_raw.out"
 		which sadf > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			SADF="sadf -d -U"
@@ -554,7 +561,8 @@ if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	if [ $DBAAS -eq 0 ]; then
 		make_directories ${DB_HOSTNAME}
 		ssh $DB_HOSTNAME -- mkdir -p ${DB_OUTPUT_DIR}
-		ssh $DB_HOSTNAME dbt2-get-os-info -o $DB_OUTPUT_DIR
+		HOSTNAME=`ssh $DB_HOSTNAME hostname`
+		ssh $DB_HOSTNAME dbt2-get-os-info -o ${DB_OUTPUT_DIR}/$HOSTNAME
 	fi
 fi
 mkdir -p ${DB_OUTPUT_DIR}
@@ -573,7 +581,7 @@ echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 
 # Get any OS specific information, if this is a single tier configuration, then
 # the OS parameters will be in the database output directory.
-dbt2-get-os-info -o $DRIVER_OUTPUT_DIR
+dbt2-get-os-info -o $DRIVER_OUTPUT_DIR/$(hostname)
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	DB_COMMAND="ssh ${DB_HOSTNAME}"
 else
@@ -753,7 +761,7 @@ if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 	HOSTNAME=`$CLIENT_COMMAND hostname`
 	CARGS="--iter $ITERATIONS --sample $SAMPLE_LENGTH"
 	CARGS="$CARGS --outdir ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-	$CLIENT_COMMAND "dbt2-get-os-info -o $CLIENT_OUTPUT_DIR"
+	$CLIENT_COMMAND "dbt2-get-os-info -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
 	$CLIENT_COMMAND "dbt2-sysstats $CARGS" > \
 			${CLIENT_OUTPUT_DIR}/${HOSTNAME}/stats.txt 2>&1 &
 fi
@@ -772,8 +780,9 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	# Don't collect system stats from the database system if the database is a
 	# service.
 	if [ $DBAAS -eq 0 ]; then
+		HOSTNAME=$($DB_COMMAND hostname)
 		CARGS="--iter ${ITERATIONS} --sample ${SAMPLE_LENGTH}"
-		CARGS="$CARGS --outdir ${DB_OUTPUT_DIR}"
+		CARGS="$CARGS --outdir ${DB_OUTPUT_DIR}/${HOSTNAME}"
 		${DB_COMMAND} "dbt2-sysstats $CARGS" \
 				> ${DB_OUTPUT_DIR}/stats.txt 2>&1 &
 	fi
@@ -788,10 +797,11 @@ else
 fi
 
 echo "collecting database statistics..."
-CARGS="-D $DBNAME -o $DB_OUTPUT_DIR -i $ITERATIONS"
+HOSTNAME="$($DB_COMMAND2 hostname)"
+$DB_COMMAND2 mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}
+CARGS="-D $DBNAME -o ${DB_OUTPUT_DIR}/${HOSTNAME} -i $ITERATIONS"
 CARGS="$CARGS -s $SAMPLE_LENGTH $DB_PORT_ARG"
-${DB_COMMAND2} "dbt2-${DBMS}-db-stat $CARGS" > \
-		${DB_OUTPUT_DIR}/dbstats.txt 2>&1 &
+${DB_COMMAND2} "dbt2-${DBMS}-db-stat $CARGS > ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstats.txt 2>&1" &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -924,13 +934,17 @@ fi
 
 # Collect perf data.
 if [ $USE_PERF -eq 1 ]; then
-	perf_collect ${OUTPUT_DIR}/driver
+	perf_collect ${OUTPUT_DIR}/driver &
+	PERF_PIDLIST="$!"
 	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 		perf_collect ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
+		PERF_PIDLIST="$PERF_PIDLIST $!"
 	fi
 	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		perf_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+		perf_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
+		PERF_PIDLIST="$PERF_PIDLIST $!"
 	fi
+	wait $PERF_PIDLIST
 fi
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -938,7 +952,6 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
-	wait
 fi
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -952,24 +965,27 @@ fi
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	# If a database system is specified, rsync all the logs back to the driver
 	# system after creating the sar csv data.
-	post_process_sar ${DRIVER_OUTPUT_DIR}/`hostname`/sar_raw.out
-
+	post_process_sar $DRIVER_OUTPUT_DIR &
+	SAR_PIDLIST="$!"
 	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 		HOSTNAME=`ssh $CLIENT_HOSTNAME hostname`
-		post_process_sar ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sar_raw.out $CLIENT_HOSTNAME
+		post_process_sar $CLIENT_OUTPUT_DIR $CLIENT_HOSTNAME
 		rsync -a -e "ssh" --delete ${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/ \
-				${CLIENT_OUTPUT_DIR}/
+				${CLIENT_OUTPUT_DIR}/ &
+		SAR_PIDLIST="$SAR_PIDLIST $!"
 	fi
 
 	# There will only be a sar output file if the database is on a separate
 	# system.
 	if [ $DBAAS -eq 0 ]; then
-		post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out ${DB_HOSTNAME}
+		post_process_sar $DB_OUTPUT_DIR $DB_HOSTNAME
 		rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
-				${DB_OUTPUT_DIR}/
+				${DB_OUTPUT_DIR}/ &
+		SAR_PIDLIST="$SAR_PIDLIST $!"
 	fi
+	wait $SAR_PIDLIST
 else
-	post_process_sar ${DB_OUTPUT_DIR}/sar_raw.out
+	post_process_sar $DB_OUTPUT_DIR
 fi
 
 # Make sure all the drivers have exited, so all the mix files have flushed to
@@ -982,12 +998,6 @@ MIXAGG="${OUTPUT_DIR}/mix.log"
 find ${DRIVER_OUTPUT_DIR} -name 'mix*.log' | xargs cat > ${MIXAGG}
 dbt2-post-process $MIXAGG > $SUMMARY
 VERBOSE=1 dbt2-post-process $MIXAGG > ${OUTPUT_DIR}/detailed-summary.rst
-
-# Change the permissions on the database error log, not readable by other
-# users by default.
-if [ -f "${DB_OUTPUT_DIR}/log" ]; then
-	chmod 644 ${DB_OUTPUT_DIR}/log
-fi
 
 echo "Test completed."
 echo "Results are in: ${OUTPUT_DIR}"

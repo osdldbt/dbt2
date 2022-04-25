@@ -4,8 +4,8 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002-2006 Open Source Development Labs, Inc.
-#               2002-2021 Mark Wong
 #               2014      2ndQuadrant, Ltd.
+#               2002-2022 Mark Wong
 #
 
 while getopts "D:l:i:o:s:" opt; do
@@ -21,6 +21,7 @@ while getopts "D:l:i:o:s:" opt; do
 		;;
 	o)
 		OUTPUT_DIR=$OPTARG
+		mkdir -p
 		;;
 	s)
 		SAMPLE_LENGTH=$OPTARG
@@ -36,6 +37,12 @@ fi
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 	PORTARG2="-l ${PORT}"
+fi
+
+which psql > /dev/null 2>&1
+if [ ! $? -eq 0 ]; then
+	echo "ERROR: psql required to collect postgresql stats"
+	exit 1
 fi
 
 PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME} -t --no-align"
@@ -70,7 +77,7 @@ ${PSQL} -c "SELECT indexname "`
 		   `"ORDER BY indexname;" > ${OUTPUT_DIR}/index-list.txt
 
 # Get the plans before the test.
-dbt2-pgsql-plans ${PORTARG2} -o ${OUTPUT_DIR}/plan0.txt
+dbt2-pgsql-plans $PORTARG2 -d $DBT2DBNAME -o ${OUTPUT_DIR}/plan0.txt
 
 LOCKSTAT="SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()) AS ctime, \
 relname, pid, mode, granted \

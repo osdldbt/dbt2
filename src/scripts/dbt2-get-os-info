@@ -12,6 +12,7 @@ while getopts "o:" opt; do
 	case ${opt} in
 	o)
 		OUTPUT_DIR=${OPTARG}
+		mkdir -p $OUTPUT_DIR
 		;;
 	esac
 done

@@ -61,11 +61,43 @@ __EOF__
 
 create_pidstat_plots()
 {
-	METRIC=$1
-	COMMAND=$2
-	TAG=$3
+	MYPIDSTATCSV=$1
+	METRIC=$2
+	COMMAND=$3
+	MYTAG=$4
 
-	dbt-plot-pidstat -i $PIDSTATCSV -m $METRIC -c "$COMMAND" -t $TAG
+	dbt-plot-pidstat -i $MYPIDSTATCSV -m $METRIC -c "$COMMAND" -t $MYTAG \
+			-o $(dirname $MYPIDSTATCSV)/${MYTAG}
+}
+
+list_multiple_systems_summary()
+{
+	TITLE="$1"
+	MYTAG="$2"
+
+	echo "   * - **${TITLE}**"
+	echo "     -"
+	echo "     -"
+	echo "     -"
+
+	# The listing of system stastics is naively based on whether the uname.txt
+	# was created by the get-os-info script.
+	for UNAMEFILE in $(find ${INDIR}/$MYTAG -name uname.txt 2> /dev/null); do
+		SNAME="$(basename $(dirname $UNAMEFILE))"
+		echo "   * - $SNAME"
+		echo "     - $(cat $UNAMEFILE)"
+		echo "     - $(show_system_links ${MYTAG}/$SNAME)"
+		echo "     - $(show_profile_links ${MYTAG}/$SNAME)"
+
+		if [ -f "${INDIR}/${MYTAG}/${SNAME}/sar_raw.out" ]; then
+			THISDIR="${INDIR}/${MYTAG}/$SNAME"
+			create_stat_page $MYTAG cpu $THISDIR ${THISDIR}/cpu
+			create_stat_page $MYTAG mem $THISDIR ${THISDIR}/mem
+			create_stat_page $MYTAG blockdev $THISDIR ${THISDIR}/blockdev
+			create_stat_page $MYTAG net $THISDIR ${THISDIR}/net
+			create_stat_page $MYTAG swap $THISDIR ${THISDIR}/swap
+		fi
+	done
 }
 
 list_processes()
@@ -73,55 +105,46 @@ list_processes()
 	METRICS="X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s iodelay "
 	METRICS="$METRICS cswch.s nvcswch.s threads fd.nr"
 
-	if [ "x$DRIVER3" = "x1" ]; then
-		DRIVER_NAME="dbt2-driver3"
-	else
-		DRIVER_NAME="dbt2-driver"
-	fi
+	list_processes2 "Driver System(s):" driver
+	list_processes2 "Client System(s):" client
+	list_processes2 "Database System(s):" db
+}
 
-	PIDSTATCSV="${INDIR}/driver/pidstat.csv"
-	if [ -f "$PIDSTATCSV" ]; then
-		COUNTDRIVER=$(grep $DRIVER_NAME $PIDSTATCSV | wc -l)
-		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
+list_processes2()
+{
+	TITLE=$1
+	MYPTAG=$2
 
-		echo "Driver System:"
-		echo ""
-	fi
+	echo $TITLE
+	echo ""
+	for PIDSTATCSV in $(cd ${INDIR}/${MYPTAG} 2> /dev/null && find . -name pidstat.csv); do
+		COUNTDRIVER=$(cd ${INDIR}/${MYPTAG} && grep dbt2-driver $PIDSTATCSV | wc -l)
+		COUNTCLIENT=$(cd ${INDIR}/${MYPTAG} && grep dbt2-client $PIDSTATCSV | wc -l)
+		SNAME=$(dirname $PIDSTATCSV)
+		SNAME=$(basename $SNAME)
 
-	PIDSTATCSV="${INDIR}/client/pidstat.csv"
-	if [ -f "$PIDSTATCSV" ]; then
-		COUNTDRIVER=$(grep $DRIVER_NAME $PIDSTATCSV | wc -l)
-		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
-
-		echo "Client System:"
-		echo ""
-	fi
-
-	PIDSTATCSV="${INDIR}/db/pidstat.csv"
-	if [ -f "$PIDSTATCSV" ]; then
-		COUNTDRIVER=$(grep $DRIVER_NAME $PIDSTATCSV | wc -l)
-		COUNTCLIENT=$(grep dbt2-client $PIDSTATCSV | wc -l)
-
-		echo "Database System:"
-		echo ""
+		echo "* $SNAME"
 
 		if [ $COUNTDRIVER -gt 0 ]; then
-			TAG="driver"
+			PTAG="driver"
 			for M in $METRICS; do
-					create_pidstat_plots $M $DRIVER_NAME $TAG
+					create_pidstat_plots ${INDIR}/${MYPTAG}/$PIDSTATCSV $M \
+							dbt2-driver $PTAG
 			done
-			create_pidstat_page $TAG ${INDIR}/db/driver
-			echo "* \`$TAG <db/${TAG}/>\`_"
+			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
+			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`_"
 		fi
 		if [ $COUNTCLIENT -gt 0 ]; then
-			TAG="client"
+			PTAG="client"
 			for M in $METRICS; do
-					create_pidstat_plots $M dbt2-client $TAG
+					create_pidstat_plots ${INDIR}/${MYPTAG}/$PIDSTATCSV $M \
+							dbt2-client $PTAG
 			done
-			create_pidstat_page $TAG ${INDIR}/db/client
-			echo "* \`$TAG <db/${TAG}/>\`_"
+			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
+			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`_"
 		fi
-	fi
+		echo ""
+	done
 }
 
 show_images()
@@ -143,10 +166,10 @@ show_images_pidstat()
 	TAG=$1
 	DIR=$2
 
-	CHARTS=$(cd ${DIR}/.. && ls -1v pidstat-${TAG}-*.png)
+	CHARTS=$(cd $DIR && ls -1v pidstat-${TAG}-*.png)
 	for CHART in $CHARTS; do
-		echo ".. image:: ../$CHART"
-		echo "   :target: ../$CHART"
+		echo ".. image:: $CHART"
+		echo "   :target: $CHART"
 		echo "   :width: 100%"
 		echo ""
 	done
@@ -158,22 +181,22 @@ show_profile_links()
 
 	FILENAME="${INDIR}/${SYSTEM}/readprofile.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`readprofile <${SYSTEM}/$(basename $FILENAME)>\`_ "
+		echo -n "\`readprofile <${SYSTEM}/$(basename $FILENAME)>\`__ "
 	fi
 
 	FILENAME="${INDIR}/${SYSTEM}/perf-report.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`perf-report <${SYSTEM}/$(basename $FILENAME)>\`_ "
+		echo -n "\`perf-report <${SYSTEM}/$(basename $FILENAME)>\`__ "
 	fi
 
 	FILENAME="${INDIR}/${SYSTEM}/perf-trace.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`perf-trace <${SYSTEM}/$(basename $FILENAME)>\`_ "
+		echo -n "\`perf-trace <${SYSTEM}/$(basename $FILENAME)>\`__ "
 	fi
 
 	FILENAME="${INDIR}/${SYSTEM}/perf-annotate.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`perf-annotated-source <${SYSTEM}/$(basename $FILENAME)>\`_ "
+		echo -n "\`perf-annotated-source <${SYSTEM}/$(basename $FILENAME)>\`__ "
 	fi
 
 	FILENAME="${INDIR}/${SYSTEM}/perf.txt"
@@ -190,7 +213,7 @@ show_profile_links()
 				flamegraph.pl perf.folded > $FLAMEGRAPH 2> /dev/null)
 		fi
 		if [ -f "$FLAMEGRAPH" ]; then
-			echo -n "\`flame graph <${SYSTEM}/$(basename ${FLAMEGRAPH})>\`_ "
+			echo -n "\`flame-graph <${SYSTEM}/$(basename ${FLAMEGRAPH})>\`__ "
 		fi
 	fi
 }
@@ -200,11 +223,11 @@ show_system_links()
 	SYSTEM=$1
 
 	if [ -f "${INDIR}/${SYSTEM}/sar_raw.out" ]; then
-		echo -n "\`CPU <${SYSTEM}/cpu/>\`_ "
-		echo -n "\`Memory <${SYSTEM}/mem/>\`_ "
-		echo -n "\`Blockdev <${SYSTEM}/blockdev/>\`_ "
-		echo -n "\`Network <${SYSTEM}/net/>\`_ "
-		echo -n "\`Swap <${SYSTEM}/swap/>\`_ "
+		echo -n "\`CPU <${SYSTEM}/cpu/>\`__ "
+		echo -n "\`Memory <${SYSTEM}/mem/>\`__ "
+		echo -n "\`Blockdev <${SYSTEM}/blockdev/>\`__ "
+		echo -n "\`Network <${SYSTEM}/net/>\`__ "
+		echo -n "\`Swap <${SYSTEM}/swap/>\`__ "
 	else
 		echo ".."
 	fi
@@ -253,15 +276,15 @@ done
 echo "Generating transaction distribution charts..."
 mkdir -p ${OUTDIR}/txn || exit 1
 dbt-plot-transaction-distribution Delivery d ${MIXLOG} ${OUTDIR}/txn 1 \
-		|| warning "Could not create Delivery response time distribution char"
+		|| warning "Could not create Delivery response time distribution char" &
 dbt-plot-transaction-distribution "New Order" n ${MIXLOG} ${OUTDIR}/txn 2 \
-		|| warning "Could not create New Order response time distribution char"
+		|| warning "Could not create New Order response time distribution char" &
 dbt-plot-transaction-distribution "Order Status" o ${MIXLOG} ${OUTDIR}/txn 3 \
-		|| warning "Could not create Order Status response time distribution char"
+		|| warning "Could not create Order Status response time distribution char" &
 dbt-plot-transaction-distribution "Payments" p ${MIXLOG} ${OUTDIR}/txn 4 \
-		|| warning "Could not create Payments response time distribution char"
+		|| warning "Could not create Payments response time distribution char" &
 dbt-plot-transaction-distribution "Stock Level" s ${MIXLOG} ${OUTDIR}/txn 5 \
-		|| warning "Could not create Stock Level response time distribution char"
+		|| warning "Could not create Stock Level response time distribution char" &
 
 mkdir -p ${OUTDIR}/db/sar || exit 1
 
@@ -269,9 +292,8 @@ echo "Generating sar io charts..."
 for SARBLOCKDEVFILE in `find $INDIR -name sar-blockdev.csv`; do
 	DIRNAME="$(dirname $SARBLOCKDEVFILE)/sar"
 	mkdir -p $DIRNAME
-	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME \
-			$BLKDEVICES \ > /dev/null 2>&1 \
-			|| warning "Could not create sar blockdev charts"
+	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME $BLKDEVICES \
+			> /dev/null 2>&1 || warning "Could not create sar blockdev charts" &
 done
 
 echo "Generating memory charts..."
@@ -279,7 +301,7 @@ for SARMEMFILE in `find $INDIR -name sar-mem.csv`; do
 	DIRNAME="$(dirname $SARMEMFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-mem -i $SARMEMFILE -o $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar mem charts from $SARMEMFILE"
+			|| warning "Could not create sar mem charts from $SARMEMFILE" &
 done
 
 echo "Generating processor utilization charts..."
@@ -287,7 +309,7 @@ for SARCPUFILE in `find $INDIR -name sar-cpu.csv`; do
 	DIRNAME="$(dirname $SARCPUFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-cpu $SARCPUFILE $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar cpu charts from $SARCPUFILE"
+			|| warning "Could not create sar cpu charts from $SARCPUFILE" &
 done
 
 echo "Generating swap charts..."
@@ -295,7 +317,7 @@ for SARSWAPFILE in `find $INDIR -name sar-swap.csv`; do
 	DIRNAME="$(dirname $SARSWAPFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-swap $SARSWAPFILE $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar swap charts from $SARSWAPFILE"
+			|| warning "Could not create sar swap charts from $SARSWAPFILE" &
 done
 
 echo "Generating network charts..."
@@ -303,53 +325,14 @@ for SARNETFILE in `find $INDIR -name sar-net.csv`; do
 	DIRNAME="$(dirname $SARNETFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-net $SARNETFILE $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar net charts from $SARNETFILE"
+			|| warning "Could not create sar net charts from $SARNETFILE" &
 done
 
 echo "Generating transaction rate charts..."
 dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn \
-		|| warning "Could not create transaction rate charts"
+		|| warning "Could not create transaction rate charts" &
 
-TABLEDIR=$OUTDIR/db/tables
-INDEXDIR=$OUTDIR/db/indexes
-mkdir -p $TABLEDIR || exit 1
-mkdir -p $INDEXDIR || exit 1
-
-which dbt-${DBMS}-plot-database-stats > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	echo "Generating database statistics charts..."
-	dbt-$DBMS-plot-database-stats -i ${INDIR}/db/pg_stat_databases.csv \
-			-n $DBNAME -o $OUTDIR/db \
-			|| warning "Issue creating at least some database stats charts"
-fi
-which dbt-${DBMS}-plot-table-stats > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	echo "Generating database table statistics charts..."
-	for TABLENAME in `cat ${INDIR}/db/table-list.txt`; do
-		dbt-$DBMS-plot-table-stats -i ${INDIR}/db/pg_stat_tables.csv \
-				-n $TABLENAME -o $TABLEDIR > ${TABLEDIR}/r.log 2>&1 \
-				|| warning "Issues creating at least some charts for table $TABLENAME"
-	done
-fi
-which dbt-${DBMS}-plot-index-stats > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	echo "Generating database index statistics charts..."
-	for INDEXNAME in `cat ${INDIR}/db/index-list.txt`; do
-		dbt-$DBMS-plot-index-stats -i ${INDIR}/db/pg_stat_indexes.csv \
-				-n $INDEXNAME -o $INDEXDIR > $INDEXDIR/r.log 2>&1 \
-				|| warning "Issues creating at least some charts for index $INDEXNAME"
-	done
-fi
-
-UNAME_DRIVER=$(cat ${INDIR}/driver/uname.txt 2> /dev/null)
-UNAME_CLIENT=$(cat ${INDIR}/client/uname.txt 2> /dev/null)
-if [ "x$UNAME_CLIENT" = "x" ]; then
-	UNAME_CLIENT="(same as driver)"
-fi
-UNAME_DB=$(cat ${INDIR}/db/uname.txt 2> /dev/null)
-if [ "x$UNAME_DB" = "x" ]; then
-	UNAME_DB="(same as driver)"
-fi
+wait
 
 REPORTFILE="${OUTDIR}/report.rst"
 cat > $REPORTFILE << __EOF__
@@ -402,21 +385,12 @@ System Summary
    :header-rows: 1
 
    * -
-     - Operating System Version
+     - Operating System
      - Charts
      - Profiling
-   * - Driver System
-     - $UNAME_DRIVER
-     - $(show_system_links driver)
-     - $(show_profile_links driver)
-   * - Client System
-     - $UNAME_CLIENT
-     - $(show_system_links client)
-     - $(show_profile_links client)
-   * - Database System
-     - $UNAME_DB
-     - $(show_system_links db)
-     - $(show_profile_links db)
+$(list_multiple_systems_summary "Driver System(s)" driver)
+$(list_multiple_systems_summary "Client System(s)" client)
+$(list_multiple_systems_summary "Database System(s)" db)
 
 Component Statistics per Process
 --------------------------------
@@ -425,39 +399,6 @@ $(list_processes)
 
 $(dbt2-${DBMS}-report -i $INDIR 2> /dev/null)
 __EOF__
-
-# Create additional HTML pages for operating system charts.
-
-for SYSTEM in db client driver; do
-	if [ ! -d "${INDIR}/${SYSTEM}" ]; then
-		continue
-	fi
-
-	create_stat_page $SYSTEM cpu ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/cpu
-	create_stat_page $SYSTEM mem ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/mem
-	create_stat_page $SYSTEM blockdev ${INDIR}/${SYSTEM} \
-			${OUTDIR}/${SYSTEM}/blockdev
-	create_stat_page $SYSTEM net ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/net
-	create_stat_page $SYSTEM swap ${INDIR}/${SYSTEM} ${OUTDIR}/${SYSTEM}/swap
-done
-
-# Create additional HTML pages for the database charts.
-
-which dbt-${DBMS}-generate-db-report > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	dbt-${DBMS}-generate-db-report -t "Database Test 2" -i ${INDIR}/db \
-			-o ${INDIR}/db/stats/index.rst
-fi
-which dbt-${DBMS}-generate-table-report > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	dbt-${DBMS}-generate-table-report -t "Database Test 2" \
-			-i ${INDIR}/db/table-list.txt -o ${OUTDIR}/db/tables
-fi
-which dbt-${DBMS}-generate-index-report > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	dbt-${DBMS}-generate-index-report -t "Database Test 2" \
-			-i ${INDIR}/db/index-list.txt -o ${OUTDIR}/db/indexes
-fi
 
 # Generate HTML and PDF files.
 
