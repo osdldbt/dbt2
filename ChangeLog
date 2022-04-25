@@ -1,4 +1,4 @@
-vX.Y.Z
+v0.48.0
 
 - Clean up CPack rules
 - Fix logic issue when starting PostgreSQL database after initialization
@@ -11,6 +11,7 @@ vX.Y.Z
 - Reorganize where data is saved when using run-workload script
 - Move database system specific reporting into database specific reporting
   script
+- Rename helper Makefile to Makefile.cmake
 
 v0.47.0
 
