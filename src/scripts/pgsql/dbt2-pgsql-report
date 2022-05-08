@@ -82,6 +82,10 @@ list_processes()
 {
 	NAME=$1
 
+	if [ ! -f "$PIDSTATCSV" ]; then
+		return
+	fi
+
 	for T in autovacum bgwriter checkpointer logger logical statscollector \
 			walwriter; do
 		create_stat_page $SNAME $T
@@ -102,9 +106,9 @@ make_plots()
 
 make_list()
 {
-	# The listing of system is naively based on whether the uname.txt was
-	# created by pgsql-db-stat script.
-	for UNAMEFILE in $(find ${INDIR}/db -name uname.txt 2> /dev/null); do
+	# The reporting of database system is naively based on whether the
+	# dbstat.txt was created by run-workload script.
+	for UNAMEFILE in $(find ${INDIR}/db -name dbstats.txt 2> /dev/null); do
 		SNAME="$(basename $(dirname $UNAMEFILE))"
 
 		TABLEDIR=${INDIR}/db/${SNAME}/tables
@@ -138,17 +142,19 @@ make_list()
 		PIDSTATCSV="${INDIR}/db/${SNAME}/pidstat.csv"
 		PIDSTATDIR=$(dirname $PIDSTATCSV)
 
-		for M in X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s \
-				iodelay cswch.s nvcswch.s threads fd.nr; do
-			make_plots $M "autovacuum" autovacum &
-			make_plots $M "background writer" bgwriter &
-			make_plots $M "checkpointer" checkpointer &
-			make_plots $M "logical replication" logical &
-			make_plots $M "logger" logger &
-			make_plots $M "stats collector" statscollector &
-			make_plots $M "walwriter" walwriter &
-		done
-		wait
+		if [ -f "$PIDSTATCSV" ]; then
+			for M in X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s \
+					iodelay cswch.s nvcswch.s threads fd.nr; do
+				make_plots $M "autovacuum" autovacum &
+				make_plots $M "background writer" bgwriter &
+				make_plots $M "checkpointer" checkpointer &
+				make_plots $M "logical replication" logical &
+				make_plots $M "logger" logger &
+				make_plots $M "stats collector" statscollector &
+				make_plots $M "walwriter" walwriter &
+			done
+			wait
+		fi
 
 		# Create additional HTML pages for the database charts.
 
