@@ -7,5 +7,5 @@ RUN dnf -y install epel-release && \
 
 COPY . /usr/local/src/dbt2
 WORKDIR /usr/local/src/dbt2
-RUN make release
+RUN make -f Makefile.cmake release
 RUN (cd builds/release && make install)

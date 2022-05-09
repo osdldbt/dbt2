@@ -14,7 +14,7 @@ ARG dbms=pgsql
 # Install DBT-2 for PostgreSQL.
 WORKDIR /usr/local/src/dbt2
 ENV DBMS="$dbms"
-RUN make release
+RUN make -f Makefile.cmake release
 RUN (cd builds/release && make install)
 
 # Install DBT-2 PostgreSQL user defined C functions.

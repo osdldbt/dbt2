@@ -1,6 +1,7 @@
 vX.Y.Z
 
 - Update PostgreSQL report script
+- Update Docker helper scripts to use Makefile.cmake
 
 v0.48.0
 
