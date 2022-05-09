@@ -5,6 +5,11 @@ RUN dnf -y install epel-release && \
     dnf config-manager --set-enabled powertools && \
     dnf -y install R
 
+ARG PGVERSION
+
+ENV PATH="/usr/pgsql-${PGVERSION}/bin:$PATH"
+ENV PKG_CONFIG_PATH="/usr/pgsql-${PGVERSION}/lib/pkgconfig"
+
 COPY . /usr/local/src/dbt2
 WORKDIR /usr/local/src/dbt2
 RUN make -f Makefile.cmake release

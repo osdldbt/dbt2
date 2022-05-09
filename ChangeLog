@@ -2,6 +2,8 @@ vX.Y.Z
 
 - Update PostgreSQL report script
 - Update Docker helper scripts to use Makefile.cmake
+- Update run-workload with -F flag to control number of database connections
+  per processor for driver3
 
 v0.48.0
 

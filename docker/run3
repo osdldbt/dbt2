@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# Start the DBT-2 Driver.
+
+usage()
+{
+	echo "usage: $0 <dbms address> [WAREHOUSES [DURATION]]"
+}
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+if [ $# -lt 1 ]; then
+	usage
+	exit 1
+fi
+
+DOCKER_NAME="dbt2-driver-${WAREHOUSES}w"
+DOCKER_TAG="dbt2-driver"
+WAREHOUSES=1
+# In seconds.
+TEST_LENGTH=120
+
+HOST=$1
+
+if [ $# -ge 2 ]; then
+	WAREHOUSES=$2
+fi
+
+if [ $# -ge 3 ]; then
+	TEST_LENGTH=$3
+fi
+
+DOCKERDIR=`dirname $0`
+
+# Use the return code from `docker inspect` to determine if the docker image
+# needs to be created.
+docker inspect $DOCKER_TAG > /dev/null
+if [ $? -ne 0 ]; then
+	${DOCKERDIR}/build-driver || exit 1
+fi
+
+docker run --rm --name $DOCKER_NAME -e DRIVER3=1 -e DBT2DBNAME=dbt2 \
+		-e PGUSER=postgres -e PGDATABASE=dbt2 -e PGHOST=$HOST $DOCKER_TAG \
+		dbt2-run-workload -a pgsql -D dbt2 -d $TEST_LENGTH -w $WAREHOUSES -A \
+				-H $HOST -n -s 100 -u -y -t 1 -o /tmp/results
+if [ $? -ne 0 ]; then
+	usage
+	exit 1
+fi

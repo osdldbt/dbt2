@@ -4,7 +4,7 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2002-2006 Open Source Development Labs, Inc.
-#               2002-2021 Mark Wong
+#               2002-2022 Mark Wong
 
 trap 'echo "Test was interrupted by Control-C."; \
 	killall dbt2-client dbt2-driver sar sadc pidstat; dbt2-${DBMS}-stop-db; killall dbt2-${DBMS}-db-stat sar sadc pidstat' INT
@@ -329,10 +329,15 @@ usage()
 	echo "Generate options:"
 	echo "  -a DBMS       dbms under test (pgsql)"
 	echo "  -A            enable altered execution mode"
-	echo "  -c #          number of database connection to open"
-	echo "  -C ADDRESS    address of client system, default localhost"
+	if [ ! "x$DRIVER3" = "x1" ]; then
+		echo "  -c #          number of database connection to open"
+		echo "  -C ADDRESS    address of client system, default localhost"
+	fi
 	echo "  -d #          seconds of the test duration, after ramp up"
 	echo "  -D NAME       name of the database"
+	if [ "x$DRIVER3" = "x1" ]; then
+		echo "  -F #          forks per processor, default 1"
+	fi
 	echo "  -h            this usage message"
 	echo "  -H ADDRESS    address of database system, default localhost"
 	echo "  -l PORT       database listening port number"
@@ -385,7 +390,7 @@ THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 DBNAME=${DBT2DBNAME}
 
-while getopts "Aa:b:C:c:D:d:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
+while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
 	case $opt in
 	A)
 		ALTERED_ARG="-altered 1"
@@ -412,6 +417,9 @@ while getopts "Aa:b:C:c:D:d:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
 	d)
 		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DURATION
+		;;
+	F)
+		FPP_FLAG="-fpp $OPTARG"
 		;;
 	H)
 		DB_HOSTNAME=${OPTARG}
@@ -503,7 +511,7 @@ if [ "x${DBNAME}" = "x" ] && [ ! "x${DBMS}" = "xsqlite" ]; then
 	exit 1
 fi
 
-if [ "x${DBCON}" = "x" ]; then
+if [ "x${DBCON}" = "x" ] && [ ! "x$DRIVER3" = "x1" ]; then
 	echo "specify the number of database connections using -c #"
 	exit 1
 fi
@@ -608,7 +616,7 @@ fi
 #
 # Redisplay the test parameters.
 #
-echo "DBT-2 test for ${DBMS} started..."
+echo "DBT-2 test for ${DBMS} started at $(date)..."
 echo ""
 echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
 if [ "${DBMS}" = "cockroach" ] || [ "${DBMS}" = "pgsql" ] || \
@@ -848,7 +856,7 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 		if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 			DHNARG="-b $DBNAME -d $DB_HOSTNAME"
 		fi
-		dbt2-driver3 ${DRIVER_COMMAND_ARGS} -a $DBMS -b $DBNAME $DHNARG > \
+		dbt2-driver3 ${DRIVER_COMMAND_ARGS} -a $DBMS $DHNARG $FPP_FLAG > \
 				${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 \
 				|| exit 1 &
 	else
