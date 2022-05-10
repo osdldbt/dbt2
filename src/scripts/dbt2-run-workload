@@ -1001,12 +1001,14 @@ fi
 # disk before continuing processing.  Can't count of all the sleeps to be
 # precise...
 wait $DRIVER_PIDLIST
-MIXAGG="${OUTPUT_DIR}/mix.log"
-# Aggregate all the mix.log file from all possible driver processes into a
-# single location to be processed.
-find ${DRIVER_OUTPUT_DIR} -name 'mix*.log' | xargs cat > ${MIXAGG}
-dbt2-post-process $MIXAGG > $SUMMARY
-VERBOSE=1 dbt2-post-process $MIXAGG > ${OUTPUT_DIR}/detailed-summary.rst
+
+cat > $SUMMARY << __EOF__ &
+$(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | xargs dbt2-post-process)
+__EOF__
+cat > detailed-summary.rst << __EOF__ &
+$(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | VERBOSE=1 xargs dbt2-post-process)
+__EOF__
+wait
 
 echo "Test completed."
 echo "Results are in: ${OUTPUT_DIR}"

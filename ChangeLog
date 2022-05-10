@@ -4,6 +4,7 @@ vX.Y.Z
 - Update Docker helper scripts to use Makefile.cmake
 - Update run-workload with -F flag to control number of database connections
   per processor for driver3
+- Update post-process script to take a list of mix files to process
 
 v0.48.0
 
