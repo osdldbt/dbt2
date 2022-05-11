@@ -420,8 +420,17 @@ __EOF__
 
 # Generate HTML and PDF files.
 
+RST2HTML5=""
 which rst2html5.py > /dev/null 2>&1
 if [ $? -eq 0 ]; then
+	RST2HTML5="rst2html5.py"
+fi
+which rst2html5 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	RST2HTML5="rst2html5"
+fi
+
+if [ ! "x${RST2HTML5}" = "x" ]; then
 	# pandoc can't properly convert multi-cell table headings from rst but
 	# Sphinx's rst2html can. Then pandoc can convert multi-cell table headings
 	# from html to pdf.
@@ -429,7 +438,7 @@ if [ $? -eq 0 ]; then
 	for RST in $(find $OUTDIR -name "*.rst"); do
 		NAME="${RST%.*}"
 		(cd $(dirname $RST) && \
-				rst2html5.py $(basename $RST) ${NAME}.html 2> /dev/null) &
+				$RST2HTML5 $(basename $RST) ${NAME}.html 2> /dev/null) &
 	done
 	wait
 
@@ -443,7 +452,7 @@ if [ $? -eq 0 ]; then
 	which pandoc > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		(cd $OUTDIR && \
-				pandoc -s report.html -f html -t pdf \ -o report.pdf \
+				pandoc -s report.html -f html -t pdf -o report.pdf \
 						2> /dev/null)
 		for HTML in $(find $OUTDIR -name "*.html"); do
 			NAME="${HTML%.*}"
@@ -461,6 +470,6 @@ if [ $? -eq 0 ]; then
 		exit 1
 	fi
 else
-	echo "rst2html5.py required to generate html report"
+	echo "rst2html5 required to generate html report"
 	exit 1
 fi

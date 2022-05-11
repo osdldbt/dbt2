@@ -6,6 +6,7 @@ vX.Y.Z
   per processor for driver3
 - Update post-process script to take a list of mix files to process
 - Use dbttools generic transaction rate plotting script
+- Check for rst2html5 in additional to rst2html5.py
 
 v0.48.0
 
