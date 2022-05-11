@@ -5,6 +5,7 @@ vX.Y.Z
 - Update run-workload with -F flag to control number of database connections
   per processor for driver3
 - Update post-process script to take a list of mix files to process
+- Use dbttools generic transaction rate plotting script
 
 v0.48.0
 

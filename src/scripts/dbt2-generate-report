@@ -275,15 +275,20 @@ done
 
 echo "Generating transaction distribution charts..."
 mkdir -p ${OUTDIR}/txn || exit 1
-dbt-plot-transaction-distribution Delivery d ${MIXLOG} ${OUTDIR}/txn 1 \
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-distribution Delivery d ${OUTDIR}/txn 1 \
 		|| warning "Could not create Delivery response time distribution char" &
-dbt-plot-transaction-distribution "New Order" n ${MIXLOG} ${OUTDIR}/txn 2 \
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-distribution "New Order" n ${OUTDIR}/txn 2 \
 		|| warning "Could not create New Order response time distribution char" &
-dbt-plot-transaction-distribution "Order Status" o ${MIXLOG} ${OUTDIR}/txn 3 \
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-distribution "Order Status" o ${OUTDIR}/txn 3 \
 		|| warning "Could not create Order Status response time distribution char" &
-dbt-plot-transaction-distribution "Payments" p ${MIXLOG} ${OUTDIR}/txn 4 \
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-distribution "Payments" p ${OUTDIR}/txn 4 \
 		|| warning "Could not create Payments response time distribution char" &
-dbt-plot-transaction-distribution "Stock Level" s ${MIXLOG} ${OUTDIR}/txn 5 \
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-distribution "Stock Level" s ${OUTDIR}/txn 5 \
 		|| warning "Could not create Stock Level response time distribution char" &
 
 mkdir -p ${OUTDIR}/db/sar || exit 1
@@ -329,8 +334,21 @@ for SARNETFILE in `find $INDIR -name sar-net.csv`; do
 done
 
 echo "Generating transaction rate charts..."
-dbt2-plot-transaction-rate ${MIXLOG} ${OUTDIR}/txn \
-		|| warning "Could not create transaction rate charts" &
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-rate "District" d tpm ${OUTDIR}/txn 1 \
+		|| warning "Could not create district transaction rate charts" &
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-rate "New Order" n tpm ${OUTDIR}/txn 2 \
+		|| warning "Could not create new order transaction rate charts" &
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-rate "Order Status" o tpm ${OUTDIR}/txn 3 \
+		|| warning "Could not create order status transaction rate charts" &
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-rate "Payment" p tpm ${OUTDIR}/txn 4 \
+		|| warning "Could not create payment transaction rate charts" &
+find ${INDIR}/driver -name 'mix*.log' | \
+		xargs dbt-plot-transaction-rate "Stock Level" s tpm ${OUTDIR}/txn 5 \
+		|| warning "Could not create stock level transaction rate charts" &
 
 wait
 
@@ -354,29 +372,29 @@ Notes: $(head -n 2 ${INDIR}/readme.txt | tail -n 1)
 Transaction Charts
 ==================
 
-+------------+--------------------------------------+-----------------------------------+
-|Transaction |            Response Time             |        Time Distribution          |
-+============+======================================+===================================+
-|Delivery    |.. image:: txn/d-transaction-rate.png |.. image:: txn/td-distribution.png |
-|            |   :target: txn/d-transaction-rate.png|   :target: txn/td-distribution.png|
-|            |   :width: 100%                       |   :width: 100%                    |
-+------------+--------------------------------------+-----------------------------------+
-|New Order   |.. image:: txn/n-transaction-rate.png |.. image:: txn/tn-distribution.png |
-|            |   :target: txn/n-transaction-rate.png|   :target: txn/tn-distribution.png|
-|            |   :width: 100%                       |   :width: 100%                    |
-+------------+--------------------------------------+-----------------------------------+
-|Order Status|.. image:: txn/o-transaction-rate.png |.. image:: txn/to-distribution.png |
-|            |   :target: txn/o-transaction-rate.png|   :target: txn/to-distribution.png|
-|            |   :width: 100%                       |   :width: 100%                    |
-+------------+--------------------------------------+-----------------------------------+
-|Payment     |.. image:: txn/p-transaction-rate.png |.. image:: txn/tp-distribution.png |
-|            |   :target: txn/p-transaction-rate.png|   :target: txn/tp-distribution.png|
-|            |   :width: 100%                       |   :width: 100%                    |
-+------------+--------------------------------------+-----------------------------------+
-|Stock Level |.. image:: txn/s-transaction-rate.png |.. image:: txn/ts-distribution.png |
-|            |   :target: txn/s-transaction-rate.png|   :target: txn/ts-distribution.png|
-|            |   :width: 100%                       |   :width: 100%                    |
-+------------+--------------------------------------+-----------------------------------+
++------------+---------------------------------------+-----------------------------------+
+|Transaction |            Response Time              |        Time Distribution          |
++============+=======================================+===================================+
+|Delivery    |.. image:: txn/td-transaction-rate.png |.. image:: txn/td-distribution.png |
+|            |   :target: txn/td-transaction-rate.png|   :target: txn/td-distribution.png|
+|            |   :width: 100%                        |   :width: 100%                    |
++------------+---------------------------------------+-----------------------------------+
+|New Order   |.. image:: txn/tn-transaction-rate.png |.. image:: txn/tn-distribution.png |
+|            |   :target: txn/tn-transaction-rate.png|   :target: txn/tn-distribution.png|
+|            |   :width: 100%                        |   :width: 100%                    |
++------------+---------------------------------------+-----------------------------------+
+|Order Status|.. image:: txn/to-transaction-rate.png |.. image:: txn/to-distribution.png |
+|            |   :target: txn/to-transaction-rate.png|   :target: txn/to-distribution.png|
+|            |   :width: 100%                        |   :width: 100%                    |
++------------+---------------------------------------+-----------------------------------+
+|Payment     |.. image:: txn/tp-transaction-rate.png |.. image:: txn/tp-distribution.png |
+|            |   :target: txn/tp-transaction-rate.png|   :target: txn/tp-distribution.png|
+|            |   :width: 100%                        |   :width: 100%                    |
++------------+---------------------------------------+-----------------------------------+
+|Stock Level |.. image:: txn/ts-transaction-rate.png |.. image:: txn/ts-distribution.png |
+|            |   :target: txn/ts-transaction-rate.png|   :target: txn/ts-distribution.png|
+|            |   :width: 100%                        |   :width: 100%                    |
++------------+---------------------------------------+-----------------------------------+
 
 System Summary
 ==============
