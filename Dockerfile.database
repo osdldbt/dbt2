@@ -2,10 +2,9 @@ From dbt2-base
 
 ARG PGVERSION
 
-ENV PATH="/usr/pgsql-${PGVERSION}/bin:$PATH"
-ENV PKG_CONFIG_PATH="/usr/pgsql-${PGVERSION}/lib/pkgconfig"
+ENV PATH="/usr/lib/postgresql/${PGVERSION}/bin:$PATH"
 
-RUN dnf -y install postgresql${PGVERSION}-server
+RUN apt-get install -y postgresql-${PGVERSION}
 
 COPY . /usr/local/src/dbt2
 
@@ -27,13 +26,11 @@ USER postgres
 
 ENV DBT2DBNAME="dbt2"
 ENV DBT2PGDATA="/opt/pgdata"
-ENV PGHOST="/tmp"
 
 ARG warehouses=1
 
 WORKDIR /tmp
-RUN  if [ "x$dbms" = "xpgsql" ]; then dbt2-pgsql-build-db -w $warehouses \
-        -- -p "-c unix_socket_directories='/tmp'" && \
-    dbt2-pgsql-stop-db; fi
+RUN  if [ "x$dbms" = "xpgsql" ]; then dbt2-pgsql-build-db -w $warehouses && \
+                                      dbt2-pgsql-stop-db; fi
 RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf; fi
 RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf; fi

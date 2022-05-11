@@ -1,14 +1,15 @@
 From dbt2-base
 
-RUN dnf -y install epel-release && \
-    dnf -y install dnf-plugins-core && \
-    dnf config-manager --set-enabled powertools && \
-    dnf -y install R
+RUN apt-get install -y ghostscript \
+                       pandoc \
+                       python3-docutils \
+                       r-base \
+                       texlive-latex-base \
+                       texlive-latex-recommended
 
 ARG PGVERSION
 
-ENV PATH="/usr/pgsql-${PGVERSION}/bin:$PATH"
-ENV PKG_CONFIG_PATH="/usr/pgsql-${PGVERSION}/lib/pkgconfig"
+ENV PATH="/usr/lib/postgresql/${PGVERSION}/bin:$PATH"
 
 COPY . /usr/local/src/dbt2
 WORKDIR /usr/local/src/dbt2

@@ -1,18 +1,22 @@
-FROM rockylinux:8
+FROM debian:stable-slim
+
+RUN apt-get update
+RUN apt-get install -y build-essential \
+                       ca-certificates \
+                       cmake \
+                       curl \
+                       gnupg \
+                       libev-dev \
+                       locales \
+                       lsb-release \
+                       pkg-config
+RUN rm -rf /var/lib/apt/lists/* && \
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
 # Set up PostgreSQL community repository.
-RUN dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
-RUN dnf -qy module disable postgresql
+RUN sh -c "curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/apt.postgresql.org.gpg > /dev/null"
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+RUN apt-get update
 
 ARG PGVERSION
-
-RUN dnf -y update
-RUN dnf -y install cmake \
-                   gcc \
-                   glibc-langpack-en \
-                   libev-devel \
-                   openssl-devel \
-                   make \
-                   postgresql${PGVERSION}-devel \
-                   postgresql${PGVERSION}-libs \
-                   redhat-rpm-config
+RUN apt-get install -y postgresql-server-dev-${PGVERSION}

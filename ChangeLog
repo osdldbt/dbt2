@@ -7,6 +7,7 @@ vX.Y.Z
 - Update post-process script to take a list of mix files to process
 - Use dbttools generic transaction rate plotting script
 - Check for rst2html5 in additional to rst2html5.py
+- Switch distro used in Dockerfile from Rocky to Debian
 
 v0.48.0
 
