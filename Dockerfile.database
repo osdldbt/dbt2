@@ -1,10 +1,11 @@
 From dbt2-base
 
-ARG PGVERSION
+ARG DBVER
 
-ENV PATH="/usr/lib/postgresql/${PGVERSION}/bin:$PATH"
+ENV PATH="/usr/lib/postgresql/${DBVER}/bin:$PATH"
 
-RUN apt-get install -y postgresql-${PGVERSION}
+RUN apt-get update
+RUN apt-get install -y postgresql-${DBVER}
 
 COPY . /usr/local/src/dbt2
 

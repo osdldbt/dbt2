@@ -2,6 +2,73 @@
 
 # Build a Docker image with the DBT-2 database created.
 
+create_cockroach()
+{
+	# Based on:
+	# https://www.cockroachlabs.com/docs/stable/start-a-local-cluster-in-docker-mac.html
+	DATADIR="/home/${USER}/cockroach-data"
+	if [ -d "${DATADIR}" ]; then
+		echo "ERROR: directory already exists ${DATADIR}"
+		exit 1
+	fi
+	mkdir -p $DATADIR
+	docker run -d \
+			--name=dbt2-cockroach-1 \
+			--hostname=dbt2-cockroach-1 \
+			-p 26257:26257 -p 8080:8080  \
+			-v "${DATADIR}/roach1:/cockroach/cockroach-data"  \
+			cockroachdb/cockroach:v21.2.10 start \
+			--insecure \
+			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
+	docker run -d \
+			--name=dbt2-cockroach-2 \
+			--hostname=dbt2-cockroach-2 \
+			-v "${DATADIR}/roach2:/cockroach/cockroach-data"  \
+			cockroachdb/cockroach:v21.2.10 start \
+			--insecure \
+			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
+	docker run -d \
+			--name=dbt2-cockroach-3 \
+			--hostname=dbt2-cockroach-3 \
+			-v "${DATADIR}/roach3:/cockroach/cockroach-data"  \
+			cockroachdb/cockroach:v21.2.10 start \
+			--insecure \
+			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
+	docker exec -it  dbt2-cockroach-1 ./cockroach init --insecure
+	IPADDRESS=$(docker inspect dbt2-cockroach-1 | jq -r '.[0].NetworkSettings.IPAddress')
+	docker run --rm -e PGHOST=$IPADDRESS -e DBT2DBNAME=dbt2 dbt2-driver \
+			dbt2-cockroach-build-db -w $WAREHOUSES -l 26257
+	return $?
+}
+
+create_pgsql()
+{
+	which jq > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		PGORG="https://www.postgresql.org/versions.json"
+		DBVER=`curl -s $PGORG | jq -r 'sort | .[].major' | tail -n 1`
+	fi
+	echo "Using PostgreSQL Major Version $DBVER"
+
+	TOPDIR=`dirname $0`
+
+	# Use the return code from `docker inspect` to determine if the docker image
+	# needs to be created.
+	docker inspect dbt2-base > /dev/null
+	if [ $? -ne 0 ]; then
+		${TOPDIR}/prepare-image || exit 1
+	fi
+
+	TOPDIR="${TOPDIR}/.."
+	docker build -t dbt2-database-${DBMS}-${WAREHOUSES}w \
+			--build-arg DBVER=$DBVER \
+			--build-arg dbms=$DBMS \
+			--build-arg warehouses=$WAREHOUSES \
+			--shm-size=128m \
+			-f Dockerfile.database $TOPDIR
+	return $?
+}
+
 which docker > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	echo "docker not in path"
@@ -10,7 +77,7 @@ fi
 
 WAREHOUSES=1
 DBMS="pgsql"
-PGVERSION=13
+DBVER=13
 
 if [ $# -ge 1 ]; then
 	WAREHOUSES=$1
@@ -20,33 +87,20 @@ if [ $# -ge 2 ]; then
 	DBMS=$2
 fi
 
-which jq > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	PGORG="https://www.postgresql.org/versions.json"
-	PGVERSION=`curl -s $PGORG | jq -r 'sort | .[].major' | tail -n 1`
-fi
-echo "Using PostgreSQL Major Version $PGVERSION"
-
-TOPDIR=`dirname $0`
-
-# Use the return code from `docker inspect` to determine if the docker image
-# needs to be created.
-docker inspect dbt2-base > /dev/null
-if [ $? -ne 0 ]; then
-	${TOPDIR}/prepare-image || exit 1
+if [ "x${DBMS}" = "xcockroach" ]; then
+	create_cockroach
+elif [ "x${DBMS}" = "xpgsql" ]; then
+	create_pgsql
+else
+	echo "ERROR: unknown DBMS $DBMS"
+	exit 1
 fi
 
-TOPDIR="${TOPDIR}/.."
-docker build -t dbt2-database-${DBMS}-${WAREHOUSES}w \
-		--build-arg PGVERSION=$PGVERSION \
-		--build-arg dbms=$DBMS \
-		--build-arg warehouses=$WAREHOUSES \
-		--shm-size=128m \
-		-f Dockerfile.database $TOPDIR
 if [ $? -ne 0 ]; then
 	echo "usage: $0 [WAREHOUSES [DBMS]]"
 	echo
 	echo "DBMS options: (default: pgsql)"
+	echo "  cockroach"
 	echo "  pgsql"
 	exit 1
 fi
