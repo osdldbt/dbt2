@@ -59,7 +59,7 @@ SEED=`dbt2-rand 1 18446744073709551615 0`
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
 
-dbt2-pgsql-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
+dbt2-cockroach-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
 dbt2-cockroach-create-indexes ${PORTARG} || exit 1
 
 exit 0

@@ -1,0 +1,132 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see # the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002-2008 Open Source Development Labs, Inc.
+#               2002-2022 Mark Wong
+#
+
+if [ -z ${DBT2DBNAME} ]; then
+	echo "DBT2DBNAME not defined."
+	exit 1
+fi
+
+usage()
+{
+	echo "Usage:"
+	echo "    `basename $0` [options]"
+	echo "    `basename $0` -h"
+	echo "Options:"
+	echo "    -l <PORT>"
+	echo "        PostgreSQL port"
+	echo "    -p <PARTITION LIST>"
+	echo "        Specific parts to load e.g. \"1 2\", default: all"
+	echo "    -s <SEED>"
+	echo "        User defined functions to install, default: c"
+	echo "    -t <TOTAL PARTITIONS>"
+	echo "        Total number of data partitions, default: detected processors"
+	echo "    -w <WAREHOUSES>"
+	echo "        Number of warehouses to build. Default 1."
+}
+
+SEED=""
+WAREHOUSES=1
+while getopts "hl:p:s:t:w:" OPT; do
+	case ${OPT} in
+	h)
+		usage
+		exit 0
+		;;
+	l)
+		PORT=${OPTARG}
+		;;
+	p)
+		PART_CURRENT=$OPTARG
+		;;
+	s)
+		SEED=$OPTARG
+		;;
+	t)
+		TOTAL_PARTS=$OPTARG
+		;;
+	w)
+		WAREHOUSES=$OPTARG
+		;;
+	esac
+done
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+fi
+
+PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME}"
+
+# Generate a seed randomly if one is not provided.
+if [ "x${SEED}" = "x" ]; then
+	SEED=`dbt2-rand -1 1 15`
+fi
+
+load_table() {
+	local TABLE=$1
+	local WAREHOUSES=$2
+	local SEED=$3
+
+	# Detect the number of processors to determining how much to parallelize the
+	# data loading.  Otherwise arbitrarily use 2 processes.  The item table is
+	# always parallelizable.
+	local CPUS=2
+	if [ -f "/proc/stat" ]; then
+		CPUS=`grep cpu /proc/stat | wc -l`
+		CPUS=$(( $CPUS - 1 ))
+		if [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -eq 1 ]; then
+			# Don't parallelize the load if there is only 1 warehouse.
+			CPUS=1
+		elif [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -lt $CPUS ]; then
+			# Don't parallelize more than the number of warehouses if there are
+			# less warehouses to build than the number of processors available.
+			CPUS=$WAREHOUSES
+		else
+			echo "detected $CPUS processors for parallel loading"
+		fi
+	fi
+
+	if [ "x${TOTAL_PARTS}" = "x" ]; then
+		T=$CPUS
+	else
+		T=$TOTAL_PARTS
+	fi
+
+	if [ "x${PART_CURRENT}" = "x" ]; then
+		P=`seq 1 $CPUS`
+	else
+		P=$PART_CURRENT
+	fi
+
+	for i in $P; do
+		run_datagen $T $i $TABLE $WAREHOUSES $SEED &
+	done
+	wait
+}
+
+run_datagen()
+{
+	local TOTAL=$1
+	local PART=$2
+	local TABLE=$3
+	local WAREHOUSES=$4
+	local SEED=$5
+
+	dbt2-datagen --direct -w $WAREHOUSES --pgsql --table $TABLE --seed $SEED \
+			-P $TOTAL -p $PART
+	if [ $? -ne 0 ]; then
+		echo "ERROR: datagen couldn't load part $PART of $TOTAL with $TABLE"
+		exit 1
+	fi
+}
+
+# Load one table at a time, but each table load will be parallelized.
+for TABLE in item warehouse stock district customer history orders new_order;
+do
+	load_table $TABLE $WAREHOUSES $SEED
+done

@@ -1,3 +1,7 @@
+vX.Y.Z
+
+- Add separate CockroackDB load-db script
+
 v0.48.1
 
 - Update PostgreSQL report script
