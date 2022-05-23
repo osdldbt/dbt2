@@ -178,12 +178,11 @@ int parse_arguments(int argc, char *argv[])
 #endif /* DRIVER3 */
 #ifdef DRIVER3
 #ifdef HAVE_LIBPQ
-		} else if (strcmp(flag, "z") == 0) {
-			char postmaster_port[32];
+		} else if (strcmp(flag, "P") == 0) {
+			extern char postmaster_port[32];
 			strcpy(postmaster_port, argv[i + 1]);
 #endif /* HAVE_LIBPQ */
 #ifdef HAVE_MYSQL
-		} else if (strcmp(flag, "z") == 0) {
 			extern char dbt2_mysql_port[32];
 			strcpy(dbt2_mysql_port, argv[i + 1]);
 #endif /* HAVE_MYSQL */
@@ -373,12 +372,12 @@ void usage(char *name)
 	printf("\nlibpq (CockroachDB, PostgreSQL, YugabyteDB) options:\n");
 	printf("  -b <dbname>    database name\n");
 	printf("  -d <hostname>  database hostname\n");
-	printf("  -l #           postmaster port\n");
+	printf("  -P #           postmaster port\n");
 #endif /* HAVE_LIBPQ */
 #ifdef HAVE_MYSQL
 	printf("\nMySQL options:\n");
 	printf("  -d <db_name>   database name\n");
-	printf("  -l #           MySQL port number to\n");
+	printf("  -P #           MySQL port number to\n");
 	printf("  -h <hostname>  MySQL hostname\n");
 	printf("  -t <socket>    MySQL socket\n");
 	printf("  -u <db user>\n");

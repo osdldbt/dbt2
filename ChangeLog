@@ -1,6 +1,7 @@
 vX.Y.Z
 
 - Add separate CockroackDB load-db script
+- Fix setting the database port for PostgreSQL and MySQL in the driver3
 
 v0.48.1
 

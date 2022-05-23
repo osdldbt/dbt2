@@ -544,7 +544,11 @@ then
 fi
 
 if [ ! "x${DB_PORT}" = "x" ]; then
-	DB_PORT_ARG="-l ${DB_PORT}"
+	if [ "x$DRIVER3" = "x1" ]; then
+		DB_PORT_ARG="-P ${DB_PORT}"
+	else
+		DB_PORT_ARG="-l ${DB_PORT}"
+	fi
 fi
 
 CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
@@ -850,7 +854,7 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -outdir $DDIR"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -tpw $THREADS_PER_WAREHOUSE"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $NO_THINK $TERMINALS_LIMIT_ARG"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
 	if [ "x$DRIVER3" = "x1" ]; then
 		echo "***experimental driver 3 active***"
 		if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
