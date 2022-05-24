@@ -7,6 +7,7 @@ vX.Y.Z
   rate on how many warehouses to load before committing
 - Add separate YugabyteDB load-db script to be single stream and have an
   adjustable rate on how many warehouses to load before committing
+- Update Docker scripts to support YugabyteDB
 
 v0.48.1
 

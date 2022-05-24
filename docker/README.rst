@@ -41,3 +41,13 @@ Create a 1 warehouse database and run a test in a 2-tier configuration::
 
     docker/start-database
     docker/run3 <database address> pgsql 1
+
+YugabyteDB
+==========
+
+Create a 1 warehouse database and run a test in a 2-tier configuration::
+
+    docker/build-driver
+    docker/build-database 1 yugabyteDB
+    # run `docker inspect dbt2-yugabyteDB-1` to get the IP address
+    docker/run3 <database address> cockroach 1

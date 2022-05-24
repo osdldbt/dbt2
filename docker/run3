@@ -53,6 +53,11 @@ if [ "x${DBMS}" = "xcockroach" ]; then
 	DBUSER="root"
 elif [ "x${DBMS}" = "xpgsql" ]; then
 	DBUSER="postgres"
+elif [ "x${DBMS}" = "xyugabyte" ]; then
+	EXTRA="-l 5433"
+	DEXTRA="-e PGPORT=5433"
+	DBUSER="postgres"
+	DBMS="pgsql"
 else
 	echo "ERROR: unrecognized dbms $DBMS"
 	exit 1

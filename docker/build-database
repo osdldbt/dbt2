@@ -69,6 +69,28 @@ create_pgsql()
 	return $?
 }
 
+create_yugabyte()
+{
+	# Based on: https://docs.yugabyte.com/preview/quick-start/install/docker/
+	DATADIR="/home/${USER}/yb_data"
+	if [ -d "${DATADIR}" ]; then
+		echo "ERROR: directory already exists ${DATADIR}"
+		exit 1
+	fi
+	mkdir -p $DATADIR
+	docker run -d --name dbt2-yugabyte \
+			-p7000:7000 -p9000:9000 -p5433:5433 -p9042:9042 \
+			-v ${DATADIR}:/home/yugabyte/yb_data \
+			yugabytedb/yugabyte:latest bin/yugabyted start \
+			--base_dir=/home/yugabyte/yb_data --daemon=false
+	# We need to wait for Yugabyte to finish starting up before trying to load.
+	sleep 10
+	IPADDRESS=$(docker inspect dbt2-yugabyte | jq -r '.[0].NetworkSettings.IPAddress')
+	docker run --rm -e PGHOST=$IPADDRESS -e DBT2DBNAME=dbt2 -e PGUSER=postgres \
+			dbt2-driver dbt2-yugabyte-build-db -w $WAREHOUSES -l 5433
+	return $?
+}
+
 which docker > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	echo "docker not in path"
@@ -91,6 +113,8 @@ if [ "x${DBMS}" = "xcockroach" ]; then
 	create_cockroach
 elif [ "x${DBMS}" = "xpgsql" ]; then
 	create_pgsql
+elif [ "x${DBMS}" = "xyugabyte" ]; then
+	create_yugabyte
 else
 	echo "ERROR: unknown DBMS $DBMS"
 	exit 1
@@ -102,5 +126,6 @@ if [ $? -ne 0 ]; then
 	echo "DBMS options: (default: pgsql)"
 	echo "  cockroach"
 	echo "  pgsql"
+	echo "  yugabyte"
 	exit 1
 fi
