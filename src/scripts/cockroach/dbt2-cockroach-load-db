@@ -20,19 +20,18 @@ usage()
 	echo "Options:"
 	echo "    -l <PORT>"
 	echo "        PostgreSQL port"
-	echo "    -p <PARTITION LIST>"
-	echo "        Specific parts to load e.g. \"1 2\", default: all"
+	echo "    -r <RATE>"
+	echo "        How many warehouses to commit at a time, default: $RATE"
 	echo "    -s <SEED>"
 	echo "        User defined functions to install, default: c"
-	echo "    -t <TOTAL PARTITIONS>"
-	echo "        Total number of data partitions, default: detected processors"
 	echo "    -w <WAREHOUSES>"
 	echo "        Number of warehouses to build. Default 1."
 }
 
+RATE=100
 SEED=""
 WAREHOUSES=1
-while getopts "hl:p:s:t:w:" OPT; do
+while getopts "hl:r:s:w:" OPT; do
 	case ${OPT} in
 	h)
 		usage
@@ -41,14 +40,8 @@ while getopts "hl:p:s:t:w:" OPT; do
 	l)
 		PORT=${OPTARG}
 		;;
-	p)
-		PART_CURRENT=$OPTARG
-		;;
 	s)
 		SEED=$OPTARG
-		;;
-	t)
-		TOTAL_PARTS=$OPTARG
 		;;
 	w)
 		WAREHOUSES=$OPTARG
@@ -72,41 +65,12 @@ load_table() {
 	local WAREHOUSES=$2
 	local SEED=$3
 
-	# Detect the number of processors to determining how much to parallelize the
-	# data loading.  Otherwise arbitrarily use 2 processes.  The item table is
-	# always parallelizable.
-	local CPUS=2
-	if [ -f "/proc/stat" ]; then
-		CPUS=`grep cpu /proc/stat | wc -l`
-		CPUS=$(( $CPUS - 1 ))
-		if [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -eq 1 ]; then
-			# Don't parallelize the load if there is only 1 warehouse.
-			CPUS=1
-		elif [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -lt $CPUS ]; then
-			# Don't parallelize more than the number of warehouses if there are
-			# less warehouses to build than the number of processors available.
-			CPUS=$WAREHOUSES
-		else
-			echo "detected $CPUS processors for parallel loading"
-		fi
-	fi
-
-	if [ "x${TOTAL_PARTS}" = "x" ]; then
-		T=$CPUS
-	else
-		T=$TOTAL_PARTS
-	fi
-
-	if [ "x${PART_CURRENT}" = "x" ]; then
-		P=`seq 1 $CPUS`
-	else
-		P=$PART_CURRENT
-	fi
-
-	for i in $P; do
-		run_datagen $T $i $TABLE $WAREHOUSES $SEED &
+	# simulate ceiling function
+	T=$(( ($WAREHOUSES + $RATE - 1) / $RATE ))
+	P=`seq 1 ${T}`
+	for i in ${P}; do
+		run_datagen $T $i $TABLE $WAREHOUSES $SEED
 	done
-	wait
 }
 
 run_datagen()
@@ -124,6 +88,8 @@ run_datagen()
 		exit 1
 	fi
 }
+
+echo "loading $RATE warehouses at a time"
 
 # Load one table at a time, but each table load will be parallelized.
 for TABLE in item warehouse stock district customer history orders new_order;
