@@ -67,7 +67,7 @@ SEED=`dbt2-rand 1 18446744073709551615 0`
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
 
-dbt2-pgsql-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
+dbt2-yugabyte-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
 dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 dbt2-pgsql-load-stored-procs $PORTARG -t $UDF_TYPE || exit 1
 

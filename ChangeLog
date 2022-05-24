@@ -5,6 +5,8 @@ vX.Y.Z
 - Update Docker scripts to support CockroachDB
 - Update CockroackDB load-db script to be single stream and have an adjustable
   rate on how many warehouses to load before committing
+- Add separate YugabyteDB load-db script to be single stream and have an
+  adjustable rate on how many warehouses to load before committing
 
 v0.48.1
 
