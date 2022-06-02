@@ -4,6 +4,7 @@
 **/*.bc
 **/tags
 
+builds/
 cmake_install.cmake
 CMakeCache.txt
 docker/**
