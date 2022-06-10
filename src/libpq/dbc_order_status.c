@@ -77,30 +77,34 @@ int execute_order_status_libpq(struct db_context_t *dbc, struct order_status_t *
 			float f;
 			uint32_t i;
 		} v2, v3;
-		union
-		{
-			time_t t;
-			uint64_t i;
-		} v4;
+		uint64_t v4;
+		time_t time4;
+		uint32_t v4mantissa;
 		struct tm *tm4;
+
 		v2.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 2)));
 		v3.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 3)));
-		v4.i = ntohll(*((uint64_t *) PQgetvalue(res, i, 4))) / (uint64_t) 1000000 +
+		v4 = ntohll(*((uint64_t *) PQgetvalue(res, i, 4)));
+		
+		time4 = v4 / (uint64_t) 1000000 +
 				(uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
 						(uint64_t) SECS_PER_DAY;
+		v4mantissa = v4 - (uint64_t) (time4 -
+				(POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) * SECS_PER_DAY) *
+					(uint64_t) 1000000 ;
 
 		/* For ease of coding, assume and print timestamps in GMT. */
-		tm4 = gmtime(&v4.t);
+		tm4 = gmtime(&time4);
 
 		LOG_ERROR_MESSAGE("OS[%d] %s=%d %s=%d %s=%f %s=%f "
-				"%s=%04d-%02d-%02d %02d:%02d:%06d", i,
+				"%s=%04d-%02d-%02d %02d:%02d:%02d.%6d", i,
 				PQfname(res, 0), ntohl(*((uint32_t *) PQgetvalue(res, i, 0))),
 				PQfname(res, 1), ntohl(*((uint32_t *) PQgetvalue(res, i, 1))),
 				PQfname(res, 2), v2.f,
 				PQfname(res, 3), v3.f,
 				PQfname(res, 4),
 				tm4->tm_year + 1900, tm4->tm_mon + 1, tm4->tm_mday,
-				tm4->tm_hour, tm4->tm_min, tm4->tm_sec);
+				tm4->tm_hour, tm4->tm_min, tm4->tm_sec, v4mantissa);
 	}
 #endif /* DEBUG */
 	PQclear(res);

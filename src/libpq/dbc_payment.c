@@ -94,32 +94,38 @@ int execute_payment_libpq(struct db_context_t *dbc, struct payment_t *data)
 			float f;
 			uint32_t i;
 		}	v22;
-		union
-		{
-			time_t t;
-			uint64_t i;
-		}	v19, v25;
+		uint64_t v19, v25;
+		time_t time19, time25;
 		struct tm *tm19, *tm25;
+		uint32_t v19mantissa, v25mantissa;
 		uint16_t *num;
 
 		v22.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 22)));
-		v19.i = ntohll(*((uint64_t *) PQgetvalue(res, i, 19))) /
-				(uint64_t) 1000000 +
-				(uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-				(uint64_t) SECS_PER_DAY;
-		v25.i = ntohll(*((uint64_t *) PQgetvalue(res, i, 25))) /
-				(uint64_t) 1000000 +
-				(uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
-				(uint64_t) SECS_PER_DAY;
+		v19 = ntohll(*((uint64_t *) PQgetvalue(res, i, 19)));
+		v25 = ntohll(*((uint64_t *) PQgetvalue(res, i, 25)));
 
 		/* For ease of coding, assume and print timestamps in GMT. */
-		tm19 = gmtime(&v19.t);
-		tm25 = gmtime(&v25.t);
+
+		time19 = v19 / (uint64_t) 1000000 +
+				(uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
+				(uint64_t) SECS_PER_DAY;
+		tm19 = gmtime(&time19);
+		v19mantissa = v19 - (uint64_t) (time19 -
+				(POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) * SECS_PER_DAY) *
+				(uint64_t) 1000000;
+
+		time25 = v25 / (uint64_t) 1000000 +
+				(uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
+				(uint64_t) SECS_PER_DAY;
+		tm25 = gmtime(&time25);
+		v25mantissa = v25 - (uint64_t) (time25 -
+				(POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) * SECS_PER_DAY) *
+				(uint64_t) 1000000;
 
 		LOG_ERROR_MESSAGE("P[%d] %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s "
 				"%s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s %s=%s "
-				"%s=%s %s=%s %s=%04d-%02d-%02d %02d:%02d:%06d %s=%s %s=%f "
-				"%s=%s %s=%04d-%02d-%02d %02d:%02d:%06d", i,
+				"%s=%s %s=%s %s=%04d-%02d-%02d %02d:%02d:%02d.%06d %s=%s %s=%f "
+				"%s=%s %s=%04d-%02d-%02d %02d:%02d:%2d.%06d", i,
 				PQfname(res, 0), PQgetvalue(res, i, 0),
 				PQfname(res, 1), PQgetvalue(res, i, 1),
 				PQfname(res, 2), PQgetvalue(res, i, 2),
@@ -141,13 +147,13 @@ int execute_payment_libpq(struct db_context_t *dbc, struct payment_t *data)
 				PQfname(res, 18), PQgetvalue(res, i, 18),
 				PQfname(res, 19),
 				tm19->tm_year + 1900, tm19->tm_mon + 1, tm19->tm_mday,
-				tm19->tm_hour, tm19->tm_min, tm19->tm_sec,
+				tm19->tm_hour, tm19->tm_min, tm19->tm_sec, v19mantissa,
 				PQfname(res, 20), PQgetvalue(res, i, 20),
 				PQfname(res, 22), v22.f,
 				PQfname(res, 24), PQgetvalue(res, i, 24),
 				PQfname(res, 25),
 				tm25->tm_year + 1900, tm25->tm_mon + 1, tm25->tm_mday,
-				tm25->tm_hour, tm25->tm_min, tm25->tm_sec);
+				tm25->tm_hour, tm25->tm_min, tm25->tm_sec, v25mantissa);
 		/*
 		 * For ease of coding, don't reconstruct the numerics, just dump out
 		 * each segment.
