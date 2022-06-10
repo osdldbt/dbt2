@@ -38,11 +38,6 @@
 #define UNIX_EPOCH_JDATE 2440588 /* == date2j(1970, 1, 1) */
 #define SECS_PER_DAY 86400
 
-/* Julian-date equivalents of Day 0 in Unix and Postgres reckoning */
-#define POSTGRES_EPOCH_JDATE 2451545 /* == date2j(2000, 1, 1) */
-#define UNIX_EPOCH_JDATE 2440588 /* == date2j(1970, 1, 1) */
-#define SECS_PER_DAY 86400
-
 #define DELIVERY 0
 #define NEW_ORDER 1
 #define ORDER_STATUS 2
