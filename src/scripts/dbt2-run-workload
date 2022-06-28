@@ -1009,7 +1009,7 @@ wait $DRIVER_PIDLIST
 cat > $SUMMARY << __EOF__ &
 $(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | xargs dbt2-post-process)
 __EOF__
-cat > detailed-summary.rst << __EOF__ &
+cat >${OUTPUT_DIR}/detailed-summary.rst << __EOF__ &
 $(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | VERBOSE=1 xargs dbt2-post-process)
 __EOF__
 wait
