@@ -1002,7 +1002,7 @@ else
 fi
 
 # Make sure all the drivers have exited, so all the mix files have flushed to
-# disk before continuing processing.  Can't count of all the sleeps to be
+# disk before continuing processing.  Can't count on all of the sleeps to be
 # precise...
 wait $DRIVER_PIDLIST
 
