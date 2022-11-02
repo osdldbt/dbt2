@@ -1,6 +1,7 @@
 vX.Y.X
 
 - Fix some scripting bugs in collecting PostgreSQL database stats
+- Stop throwing errors from missing docutils or pandoc in report generation
 
 v0.48.3
 

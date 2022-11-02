@@ -419,6 +419,10 @@ $(dbt2-${DBMS}-report -i $INDIR 2> /dev/null)
 __EOF__
 
 # Generate HTML and PDF files.
+# TODO: An RST report is always generated, but automatically create HTML and
+# PDF reports if we detect docutils and pandoc.  This should be a little
+# smarter such that we should actually do some combination of generating
+# formats requested or throw codes depending on what actually failed.
 
 RST2HTML5=""
 which rst2html5.py > /dev/null 2>&1
@@ -466,10 +470,10 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 		ls -1v ${OUTDIR}/*.pdf
 		echo ""
 	else
-		echo "pandoc required to generate pdf report"
-		exit 1
+		echo "WARNING: pandoc required to generate pdf report"
+		exit 0
 	fi
 else
-	echo "rst2html5 required to generate html report"
-	exit 1
+	echo "WARNING: rst2html5 required to generate html report"
+	exit 0
 fi
