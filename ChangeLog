@@ -1,3 +1,7 @@
+vX.Y.X
+
+- Fix some scripting bugs in collecting PostgreSQL database stats
+
 v0.48.3
 
 - Create detailed-summary.rst in the results directory instead of current path

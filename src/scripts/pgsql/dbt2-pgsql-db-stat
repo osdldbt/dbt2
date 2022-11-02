@@ -21,7 +21,7 @@ while getopts "D:l:i:o:s:" opt; do
 		;;
 	o)
 		OUTPUT_DIR=$OPTARG
-		mkdir -p
+		mkdir -p $OUTPUT_DIR
 		;;
 	s)
 		SAMPLE_LENGTH=$OPTARG
@@ -57,7 +57,12 @@ if [ ${PGVERSION} -gt 90099 ]; then
 fi
 
 # Get database version.
-pg_config --version >> $OUTPUT_DIR/readme-dbms.txt
+which pg_config > /dev/null 2>&1
+if [ ! $? -eq 0 ]; then
+	${PSQL} -c "SELECT version();" >> $OUTPUT_DIR/readme-dbms.txt
+else
+	pg_config --version >> $OUTPUT_DIR/readme-dbms.txt
+fi
 
 # Get database parameters.
 ${PSQL} -c "show all"  > $OUTPUT_DIR/param.txt
