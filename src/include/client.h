@@ -20,7 +20,7 @@ extern int exiting;
 extern int force_sleep;
 extern int max_driver_connections;
 extern int port;
-extern char sname[64];
+extern char sname[SNAMELEN + 1];
 extern int sockfd;
 
 #if defined(HAVE_MYSQL) || defined(HAVE_ODBC)

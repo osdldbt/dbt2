@@ -25,7 +25,7 @@ int force_sleep = 0;
 int port = CLIENT_PORT;
 int max_driver_connections = 1024;
 int sockfd;
-char sname[64] = "";
+char sname[SNAMELEN + 1] = "";
 
 #if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
 char dbt2_user[128] = DB_USER;

@@ -31,7 +31,7 @@ int perform_integrity_check = 0;
 #ifdef DRIVER3
 extern int dbms;
 extern char dname[32];
-extern char sname[64];
+extern char sname[SNAMELEN + 1];
 #endif /* DRIVER3 */
 
 int parse_arguments(int, char **);

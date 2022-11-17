@@ -18,7 +18,7 @@
 SQLHENV henv = SQL_NULL_HENV;
 pthread_mutex_t db_source_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-SQLCHAR servername[32];
+SQLCHAR servername[SNAMELEN + 1];
 SQLCHAR username[32];
 SQLCHAR authentication[32];
 
@@ -170,7 +170,7 @@ int db_init_odbc(char *sname, char *uname, char *auth)
 	}
 
 	/* Set the database connect string, username and password. */
-	strcpy((char *) servername, sname);
+	strncpy((char *) servername, sname, sizeof(sname));
 	strcpy((char *) username, uname);
 	strcpy((char *) authentication, auth);
 	return OK;
