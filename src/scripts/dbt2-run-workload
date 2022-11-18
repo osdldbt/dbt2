@@ -745,7 +745,7 @@ if [ ! "x$DRIVER3" = "x1" ]; then
 	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME + 1`
 	do_sleep $CLIENT_RAMPUP_TIME
 else
-	echo "***skipping***"
+	echo "***not using client***"
 fi
 
 # Start collecting data before we start the test.
