@@ -4,6 +4,7 @@ vX.Y.Z
   characters
 - Change how throughput, duration, unknown errors, and ramp up time is
   displayed
+- Add scale factor and database version to report
 
 v0.48.4
 
