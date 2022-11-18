@@ -85,15 +85,15 @@ for (i in 1:5) {
 
 cat(paste("============  =====  =========  =========  ===========  ",
           "===========  =====\n\n", sep = ""))
-cat(sprintf("* %0.2f new-order transactions per minute (NOTPM)\n",
+cat(sprintf("* Throughput: %0.2f new-order transactions per minute (NOTPM)\n",
             total_n / (duration / 60)))
-cat(sprintf("* %0.1f minute duration\n", duration / 60))
-cat(sprintf("* %d total unknown errors\n", errors))
+cat(sprintf("* Duration: %0.1f minute(s) \n", duration / 60))
+cat(sprintf("* Unknown Errors: %d\n", errors))
 
 # Calculate the ramp up time.
 
 duration <- start - mix[1,]\$ctime
-cat(sprintf("* %0.1f minutes(s) ramping up\n", duration / 60))
+cat(sprintf("* Ramp Up Time: %0.1f minute(s)\n", duration / 60))
 
 if ($VERBOSE == 1) {
   wid_min <- min(mix\$wid, na.rm=TRUE)

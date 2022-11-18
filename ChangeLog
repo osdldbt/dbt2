@@ -2,6 +2,8 @@ vX.Y.Z
 
 - Increase the buffer size of sname to accommodate hostnames longer than 64
   characters
+- Change how throughput, duration, unknown errors, and ramp up time is
+  displayed
 
 v0.48.4
 
