@@ -5,6 +5,7 @@ vX.Y.Z
 - Change how throughput, duration, unknown errors, and ramp up time is
   displayed
 - Add scale factor and database version to report
+- Stop checking known hosts for ease of testing in run-workload script
 
 v0.48.4
 

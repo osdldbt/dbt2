@@ -22,7 +22,7 @@ make_directories()
 	COMMAND=""
 	HOST=${1}
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	fi
 	${COMMAND} mkdir -p ${OUTPUT_DIR}
 }
@@ -35,7 +35,7 @@ oprofile_annotate()
 	OPROFILE_DIR=${DIR}/oprofile
 	ANNOTATED_DIR=${OPROFILE_DIR}/annotated
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	else
 		HOST=`hostname`
 	fi
@@ -61,7 +61,7 @@ oprofile_collect()
 	OPROFILE_DIR=${DIR}/oprofile
 	ANNOTATED_DIR=${OPROFILE_DIR}/annotated
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	else
 		HOST=`hostname`
 	fi
@@ -99,7 +99,7 @@ oprofile_init()
 	COMMAND=""
 	HOST=${1}
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	else
 		HOST=`hostname`
 	fi
@@ -128,7 +128,7 @@ oprofile_reset()
 	COMMAND=""
 	HOST=${1}
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	else
 		HOST=`hostname`
 	fi
@@ -141,7 +141,7 @@ oprofile_stop()
 	COMMAND=""
 	HOST=${1}
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	else
 		HOST=`hostname`
 	fi
@@ -156,7 +156,7 @@ perf_start()
 	HOST=${2}
 
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 		HOSTNAME=$($COMMAND hostname)
 	else
 		HOSTNAME=$(hostname)
@@ -182,7 +182,7 @@ perf_collect()
 	HOST=${2}
 
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 		HOSTNAME=$($COMMAND hostname)
 	else
 		COMMAND="eval"
@@ -209,7 +209,7 @@ post_process_sar()
 	SARPATH=${1}
 	HOST=${2}
 	if [ ! "x${HOST}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 		HOSTNAME=$($COMMAND hostname)
 		FILE="${SARPATH}/${HOSTNAME}/sar_raw.out"
 		${COMMAND} "which sadf > /dev/null 2>&1"
@@ -282,7 +282,7 @@ readprofile_collect()
 	HOST=${2}
 	RP_DIR=${DIR}/readprofile
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	else
 		HOST=`hostname`
 	fi
@@ -306,7 +306,7 @@ readprofile_clear()
 	COMMAND=""
 	HOST=${1}
 	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+		COMMAND="$SSH ${HOST}"
 	else
 		HOST=`hostname`
 	fi
@@ -374,6 +374,8 @@ validate_parameter()
 		exit 1
 	fi
 }
+
+SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
@@ -563,7 +565,7 @@ SUMMARY="${OUTPUT_DIR}/summary.rst"
 make_directories
 mkdir -p ${DRIVER_OUTPUT_DIR}/`hostname`
 if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	HOSTNAME=`ssh $CLIENT_HOSTNAME hostname`
+	HOSTNAME=$($SSH $CLIENT_HOSTNAME hostname)
 	make_directories $CLIENT_HOSTNAME
 	${COMMAND} -- mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}
 fi
@@ -573,9 +575,9 @@ if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
 	if [ $DBAAS -eq 0 ]; then
 		make_directories ${DB_HOSTNAME}
-		ssh $DB_HOSTNAME -- mkdir -p ${DB_OUTPUT_DIR}
-		HOSTNAME=`ssh $DB_HOSTNAME hostname`
-		ssh $DB_HOSTNAME dbt2-get-os-info -o ${DB_OUTPUT_DIR}/$HOSTNAME
+		$SSH "$DB_HOSTNAME" -- mkdir -p "$DB_OUTPUT_DIR"
+		HOSTNAME=$($SSH "$DB_HOSTNAME" hostname)
+		$SSH "$DB_HOSTNAME" dbt2-get-os-info -o "${DB_OUTPUT_DIR}/$HOSTNAME"
 	fi
 fi
 mkdir -p ${DB_OUTPUT_DIR}
@@ -596,7 +598,7 @@ echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 # the OS parameters will be in the database output directory.
 dbt2-get-os-info -o $DRIVER_OUTPUT_DIR/$(hostname)
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	DB_COMMAND="ssh ${DB_HOSTNAME}"
+	DB_COMMAND="$SSH ${DB_HOSTNAME}"
 else
 	DB_COMMAND="eval"
 fi
@@ -702,7 +704,7 @@ if [ ! "x$DRIVER3" = "x1" ]; then
 	START=1
 
 	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
+		CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME --"
 	else
 		CLIENT_COMMAND="eval"
 	fi
@@ -745,7 +747,7 @@ if [ ! "x$DRIVER3" = "x1" ]; then
 	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME + 1`
 	do_sleep $CLIENT_RAMPUP_TIME
 else
-	echo "***not using client***"
+	echo "***skipping***"
 fi
 
 # Start collecting data before we start the test.
@@ -913,7 +915,7 @@ echo "Stage 3. Processing of results..."
 # Client doesn't go away by itself like the driver does, so kill it.
 echo "Killing client..."
 if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	CLIENT_COMMAND="ssh $CLIENT_HOSTNAME --"
+	CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME --"
 else
 	CLIENT_COMMAND="eval"
 fi
@@ -981,9 +983,10 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	post_process_sar $DRIVER_OUTPUT_DIR &
 	SAR_PIDLIST="$!"
 	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		HOSTNAME=`ssh $CLIENT_HOSTNAME hostname`
+		HOSTNAME=$($SSH $CLIENT_HOSTNAME hostname)
 		post_process_sar $CLIENT_OUTPUT_DIR $CLIENT_HOSTNAME
-		rsync -a -e "ssh" --delete ${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/ \
+		rsync -a -e "$SSH" --delete \
+				"${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
 				${CLIENT_OUTPUT_DIR}/ &
 		SAR_PIDLIST="$SAR_PIDLIST $!"
 	fi
@@ -992,7 +995,7 @@ if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	# system.
 	if [ $DBAAS -eq 0 ]; then
 		post_process_sar $DB_OUTPUT_DIR $DB_HOSTNAME
-		rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
+		rsync -a -e "$SSH" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
 				${DB_OUTPUT_DIR}/ &
 		SAR_PIDLIST="$SAR_PIDLIST $!"
 	fi
