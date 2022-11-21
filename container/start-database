@@ -1,0 +1,86 @@
+#!/bin/sh
+
+# Start the DBT-2 PostgreSQL database.
+
+ENGINE="podman"
+if ! which podman > /dev/null 2>&1; then
+	ENGINE="docker"
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "podman nor docker in path"
+		exit 1
+	fi
+fi
+
+if [ "$ENGINE" = "podman" ]; then
+	# Sometimes it's "podman", sometimes "cni-podman0".
+	PODMANNETWORK=$(podman network ls -q | grep podman | head -n 1)
+	echo "using podman network: $PODMANNETWORK"
+	ENGINEARGS="--network=$PODMANNETWORK"
+fi
+
+WAREHOUSES=1
+DBMS="pgsql"
+
+if [ $# -ge 1 ]; then
+	WAREHOUSES=$1
+fi
+
+if [ $# -ge 2 ]; then
+	DBMS=$2
+fi
+
+echo "using container enginer: $ENGINE"
+
+CONTAINERDIR=$(dirname "$0")
+CONTAINER_TAG="dbt2-database-${DBMS}-${WAREHOUSES}w"
+CONTAINER_NAME="dbt2-database-${DBMS}-${WAREHOUSES}w-0"
+
+# Use the return code from `$ENGINE inspect` to determine if the container
+# image needs to be created.
+$ENGINE inspect "$CONTAINER_TAG" > /dev/null
+if [ $? -ne 0 ]; then
+	"${CONTAINERDIR}/build-database" "$WAREHOUSES" "$DBMS" || exit 1
+fi
+
+if [ "x$DBMS" = "xpgsql" ]; then
+	PGDATA="/opt/pgdata"
+	$ENGINE run \
+			$ENGINEARGS \
+			-d \
+			--rm \
+			-u postgres:postgres \
+			--name "$CONTAINER_NAME" \
+			-p 5432:5432 \
+			"$CONTAINER_TAG" postgres \
+			-D "$PGDATA" \
+			-c client_encoding='UTF-8' \
+			-c listen_addresses='*' \
+			-c unix_socket_directories='/tmp'
+	RC=$?
+else
+	RC=1
+fi
+if [ $RC -ne 0 ]; then
+	echo "usage: $0 [WAREHOUSES [DBMS]]"
+	echo
+	echo "DBMS options: (default: pgsql)"
+	echo "  pgsql"
+	exit 1
+fi
+
+which jq > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	if [ "$ENGINE" = "podman" ]; then
+		IPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
+	elif [ "$ENGINE" = "docker" ]; then
+		IPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r '.[0].NetworkSettings.IPAddress')
+	fi
+	echo "IP Address: $IPADDRESS"
+	echo "${CONTAINERDIR}/start-client $IPADDRESS $DBMS"
+	if [ "x$DBMS" = "xpgsql" ]; then
+		echo "psql -h $IPADDRESS dbt2 postgres"
+	fi
+else
+	echo "Install jq for some tips the next time you run this script, or"
+	echo "read the bottom of the file: $0"
+fi

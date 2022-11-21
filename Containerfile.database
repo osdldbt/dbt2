@@ -1,21 +1,6 @@
 From dbt2-base
 
-ARG DBVER
-
-ENV PATH="/usr/lib/postgresql/${DBVER}/bin:$PATH"
-
-RUN apt-get update
-RUN apt-get install -y postgresql-${DBVER}
-
-COPY . /usr/local/src/dbt2
-
 ARG dbms=pgsql
-
-# Install DBT-2 for PostgreSQL.
-WORKDIR /usr/local/src/dbt2
-ENV DBMS="$dbms"
-RUN make -f Makefile.cmake release
-RUN (cd builds/release && make install)
 
 # Install DBT-2 PostgreSQL user defined C functions.
 WORKDIR /usr/local/src/dbt2/storedproc/pgsql/c
@@ -35,3 +20,13 @@ RUN  if [ "x$dbms" = "xpgsql" ]; then dbt2-pgsql-build-db -w $warehouses && \
                                       dbt2-pgsql-stop-db; fi
 RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf; fi
 RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf; fi
+
+RUN  if [ "x$dbms" = "xpgsql" ]; then echo "DBT2DBNAME=dbt2" >> ~/.ssh/environment; fi
+RUN  if [ "x$dbms" = "xpgsql" ]; then echo "DBT2PGDATA=/opt/pgdata" >> ~/.ssh/environment; fi
+
+RUN  if [ "x$dbms" = "xpgsql" ]; then echo "listen_addresses = '*'" >> /opt/pgdata/postgresql.auto.conf; fi
+
+USER root
+RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config
+RUN systemctl enable sshd
+CMD [ "/usr/sbin/init" ]

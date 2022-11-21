@@ -1,0 +1,30 @@
+From dbt2-base
+
+USER root
+
+RUN dnf -y install pandoc \
+                   python3-docutils \
+                   R \
+                   texlive && \
+    dnf clean all
+
+WORKDIR /tmp
+
+# Install DBT Tools
+
+RUN curl -OL https://github.com/osdldbt/dbttools/archive/refs/heads/main.tar.gz && \
+    tar xvf main.tar.gz
+WORKDIR /tmp/dbttools-main/
+RUN cmake -H. && \
+    make install && \
+    rm /tmp/main.tar.gz
+
+# Install tools for making flame graphs
+
+WORKDIR /usr/local/bin
+RUN curl -OL https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl && \
+    curl -OL https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl && \
+	chmod +x stackcollapse-perf.pl flamegraph.pl
+
+RUN systemctl enable sshd
+CMD [ "/usr/sbin/init" ]

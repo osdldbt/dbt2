@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# Build a Container image with the DBT-2 client installed from the code in the
+# local directory.
+
+ENGINE="podman"
+if ! which $ENGINE > /dev/null 2>&1; then
+	ENGINE="docker"
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "podman nor docker in path"
+		exit 1
+	fi
+fi
+echo "using container enginer: $ENGINE"
+
+if [ "$ENGINE" = "podman" ]; then
+	ENGINEARGS="--isolation=chroot"
+fi
+
+TOPDIR=`dirname $0`
+
+# Use the return code from `$ENGINE inspect` to determine if the container
+# image needs to be created.
+if ! $ENGINE inspect dbt2-base > /dev/null; then
+	"${TOPDIR}/prepare-image" || exit 1
+fi
+
+TOPDIR="${TOPDIR}/.."
+$ENGINE build \
+		$ENGINEARGS \
+		-t dbt2-client \
+		-f Containerfile.client \
+		"${TOPDIR}"

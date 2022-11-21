@@ -2,10 +2,13 @@
 
 # Open a shell on one of the DBT-2 Docker images.
 
-which docker > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-	echo "docker not in path"
-	exit 1
+ENGINE="podman"
+if ! which $ENGINE > /dev/null 2>&1; then
+	ENGINE="docker"
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "podman nor docker in path"
+		exit 1
+	fi
 fi
 
 usage()
@@ -18,7 +21,7 @@ usage()
 
 DBMS=""
 DBT2_TAG=""
-DOCKER_TAG=""
+CONTAINER_TAG=""
 SF=""
 
 if [ $# -lt 1 ] || [ $# -gt 3 ]; then
@@ -34,7 +37,7 @@ if [ $# -eq 1 ]; then
 		usage
 		exit 1
 	fi
-	DOCKER_TAG="$DBT2_TAG"
+	CONTAINER_TAG="$DBT2_TAG"
 fi
 
 DBMS="$2"
@@ -43,7 +46,7 @@ if [ $# -eq 2 ]; then
 		usage
 		exit 1
 	fi
-	DOCKER_TAG="${DBT2_TAG}-${DBMS}"
+	CONTAINER_TAG="${DBT2_TAG}-${DBMS}"
 fi
 
 SF="$3"
@@ -52,7 +55,7 @@ if [ $# -eq 3 ]; then
 		usage
 		exit 1
 	fi
-	DOCKER_TAG="${DBT2_TAG}-${DBMS}-${SF}w"
+	CONTAINER_TAG="${DBT2_TAG}-${DBMS}-${SF}w"
 fi
 
-docker run --rm -i -t ${DOCKER_TAG} /bin/bash
+$ENGINE run --rm -i -t ${CONTAINER_TAG} /bin/bash

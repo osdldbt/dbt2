@@ -6,6 +6,9 @@ vX.Y.Z
   displayed
 - Add scale factor and database version to report
 - Stop checking known hosts for ease of testing in run-workload script
+- Update container scripts to prefer podman
+- Add instructions on how to use podman to test scripts
+- Use Fedora instead of Debian in container scripts
 
 v0.48.4
 

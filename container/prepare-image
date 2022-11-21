@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Prepare a Docker image for building and running the driver, client and
+# database.
+
+ENGINE="podman"
+if ! which $ENGINE > /dev/null 2>&1; then
+	ENGINE="docker"
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "podman nor docker in path"
+		exit 1
+	fi
+fi
+
+if [ "$ENGINE" = "docker" ]; then
+	DISTRO="fedora"
+fi
+if [ "$ENGINE" = "podman" ]; then
+	ENGINEARGS="--isolation=chroot"
+	DISTRO="quay.io/fedora/fedora"
+fi
+
+if which jq > /dev/null 2>&1; then
+	PGORG="https://www.postgresql.org/versions.json"
+	DBVER=$(curl -s $PGORG | jq -r 'sort | .[] | "\(.major).\(.latestMinor)"' | tail -n 1)
+fi
+if [ "x$DBVER" = "x" ]; then
+	echo "could not auto detect latest postgres version, set DBVER environment variable"
+	exit 1
+fi
+echo "Using PostgreSQL Version $DBVER"
+
+CONTAINER_DIR="$(dirname "$0")/.."
+$ENGINE build \
+		$ENGINEARGS \
+		--build-arg DBVER="$DBVER" \
+		--build-arg DISTRO="$DISTRO" \
+		-t dbt2-base \
+		-f Containerfile \
+		"$CONTAINER_DIR"

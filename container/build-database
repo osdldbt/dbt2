@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Build a Docker image with the DBT-2 database created.
+# Build a Container image with the DBT-2 database created.
 
 create_cockroach()
 {
@@ -12,7 +12,7 @@ create_cockroach()
 		exit 1
 	fi
 	mkdir -p $DATADIR
-	docker run -d \
+	$ENGINE run -d \
 			--name=dbt2-cockroach-1 \
 			--hostname=dbt2-cockroach-1 \
 			-p 26257:26257 -p 8080:8080  \
@@ -20,52 +20,45 @@ create_cockroach()
 			cockroachdb/cockroach:v21.2.10 start \
 			--insecure \
 			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
-	docker run -d \
+	$ENGINE run -d \
 			--name=dbt2-cockroach-2 \
 			--hostname=dbt2-cockroach-2 \
 			-v "${DATADIR}/roach2:/cockroach/cockroach-data"  \
 			cockroachdb/cockroach:v21.2.10 start \
 			--insecure \
 			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
-	docker run -d \
+	$ENGINE run -d \
 			--name=dbt2-cockroach-3 \
 			--hostname=dbt2-cockroach-3 \
 			-v "${DATADIR}/roach3:/cockroach/cockroach-data"  \
 			cockroachdb/cockroach:v21.2.10 start \
 			--insecure \
 			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
-	docker exec -it  dbt2-cockroach-1 ./cockroach init --insecure
-	IPADDRESS=$(docker inspect dbt2-cockroach-1 | jq -r '.[0].NetworkSettings.IPAddress')
-	docker run --rm -e PGHOST=$IPADDRESS -e DBT2DBNAME=dbt2 dbt2-driver \
+	$ENGINE exec -it  dbt2-cockroach-1 ./cockroach init --insecure
+	IPADDRESS=$($ENGINE inspect dbt2-cockroach-1 | jq -r '.[0].NetworkSettings.IPAddress')
+	$ENGINE run --rm -e PGHOST="$IPADDRESS" -e DBT2DBNAME=dbt2 dbt2-driver \
 			dbt2-cockroach-build-db -w $WAREHOUSES -l 26257
 	return $?
 }
 
 create_pgsql()
 {
-	which jq > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
-		PGORG="https://www.postgresql.org/versions.json"
-		DBVER=`curl -s $PGORG | jq -r 'sort | .[].major' | tail -n 1`
-	fi
-	echo "Using PostgreSQL Major Version $DBVER"
-
 	TOPDIR=`dirname $0`
 
-	# Use the return code from `docker inspect` to determine if the docker image
-	# needs to be created.
-	docker inspect dbt2-base > /dev/null
+	# Use the return code from `$ENGINE inspect` to determine if the container
+	# image needs to be created.
+	$ENGINE inspect dbt2-base > /dev/null
 	if [ $? -ne 0 ]; then
 		${TOPDIR}/prepare-image || exit 1
 	fi
 
 	TOPDIR="${TOPDIR}/.."
-	docker build -t dbt2-database-${DBMS}-${WAREHOUSES}w \
-			--build-arg DBVER=$DBVER \
-			--build-arg dbms=$DBMS \
+	$ENGINE build -t "dbt2-database-${DBMS}-${WAREHOUSES}w" \
+			$ENGINEARGS \
 			--build-arg warehouses=$WAREHOUSES \
 			--shm-size=128m \
-			-f Dockerfile.database $TOPDIR
+			-f Containerfile.database \
+			"$TOPDIR"
 	return $?
 }
 
@@ -78,28 +71,36 @@ create_yugabyte()
 		exit 1
 	fi
 	mkdir -p $DATADIR
-	docker run -d --name dbt2-yugabyte \
+	$ENGINE run -d --name dbt2-yugabyte \
 			-p7000:7000 -p9000:9000 -p5433:5433 -p9042:9042 \
 			-v ${DATADIR}:/home/yugabyte/yb_data \
 			yugabytedb/yugabyte:latest bin/yugabyted start \
 			--base_dir=/home/yugabyte/yb_data --daemon=false
 	# We need to wait for Yugabyte to finish starting up before trying to load.
 	sleep 10
-	IPADDRESS=$(docker inspect dbt2-yugabyte | jq -r '.[0].NetworkSettings.IPAddress')
-	docker run --rm -e PGHOST=$IPADDRESS -e DBT2DBNAME=dbt2 -e PGUSER=postgres \
+	IPADDRESS=$($ENGINE inspect dbt2-yugabyte | jq -r '.[0].NetworkSettings.IPAddress')
+	$ENGINE run --rm -e PGHOST="$IPADDRESS" -e DBT2DBNAME=dbt2 -e PGUSER=postgres \
 			dbt2-driver dbt2-yugabyte-build-db -w $WAREHOUSES -l 5433
 	return $?
 }
 
-which docker > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-	echo "docker not in path"
-	exit 1
+ENGINE="podman"
+if ! which $ENGINE > /dev/null 2>&1; then
+	ENGINE="docker"
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "podman nor docker in path"
+		exit 1
+	fi
+fi
+
+echo "using container enginer: $ENGINE"
+
+if [ "$ENGINE" = "podman" ]; then
+	ENGINEARGS="--isolation=chroot"
 fi
 
 WAREHOUSES=1
 DBMS="pgsql"
-DBVER=13
 
 if [ $# -ge 1 ]; then
 	WAREHOUSES=$1
