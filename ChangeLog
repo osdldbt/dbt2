@@ -1,4 +1,4 @@
-vX.Y.Z
+v0.48.5
 
 - Increase the buffer size of sname to accommodate hostnames longer than 64
   characters
