@@ -384,6 +384,7 @@ WORKING_DIR=""
 
 DB_USER=${DBUSER}
 DBAAS=0
+FPP=1
 PRIVILEGED=1
 THREAD_STARTUP_DELAY=1000 # milliseconds
 USE_OPROFILE=0
@@ -421,7 +422,8 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
 		validate_parameter $opt $OPTARG $DURATION
 		;;
 	F)
-		FPP_FLAG="-fpp $OPTARG"
+		FPP="$OPTARG"
+		FPP_FLAG="-fpp $FPP"
 		;;
 	H)
 		DB_HOSTNAME=${OPTARG}
@@ -763,6 +765,9 @@ if [ ! "x$TERMINALS_LIMIT" = "x" ]; then
 	else
 		DRIVER_RAMPUP_TIME=$OPTION2
 	fi
+fi
+if [ "x$DRIVER3" = "x1" ]; then
+	DRIVER_RAMPUP_TIME=$(( $(nproc) * $FPP ))
 fi
 DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
 DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME / 1000`

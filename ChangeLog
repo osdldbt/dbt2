@@ -9,6 +9,7 @@ vX.Y.Z
 - Update container scripts to prefer podman
 - Add instructions on how to use podman to test scripts
 - Use Fedora instead of Debian in container scripts
+- Fix calculation of driver rampup time when using driver3
 
 v0.48.4
 
