@@ -16,7 +16,7 @@ if [ "$ENGINE" = "docker" ]; then
 	DISTRO="fedora"
 fi
 if [ "$ENGINE" = "podman" ]; then
-	ENGINEARGS="--isolation=chroot"
+	ENGINEARGS="--isolation=chroot --ignorefile .dockerfile"
 	DISTRO="quay.io/fedora/fedora"
 fi
 

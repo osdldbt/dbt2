@@ -2,14 +2,15 @@
 **/*.sw?
 **/*.so
 **/*.bc
-**/tags
 
 builds/
 cmake_install.cmake
 CMakeCache.txt
-docker/**
-Dockerfile
+container/**
+Containerfile*
 .dockerignore
 .git
 .gitignore
+.hgignore
 install_manifest.txt
+.vscode

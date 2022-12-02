@@ -2,6 +2,7 @@ vX.Y.Z
 
 - Fix calculation of ramp up time when processing multiple mix files
 - Fix driver3 ramp up and stop time calculations
+- Fix use of ignore file for container use
 
 v0.48.5
 

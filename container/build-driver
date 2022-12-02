@@ -14,7 +14,7 @@ fi
 echo "using container enginer: $ENGINE"
 
 if [ "$ENGINE" = "podman" ]; then
-	ENGINEARGS="--isolation=chroot"
+	ENGINEARGS="--isolation=chroot --ignorefile .dockerfile"
 fi
 
 TOPDIR=`dirname $0`
