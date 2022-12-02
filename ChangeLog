@@ -1,6 +1,7 @@
 vX.Y.Z
 
 - Fix calculation of ramp up time when processing multiple mix files
+- Fix driver3 ramp up and stop time calculations
 
 v0.48.5
 

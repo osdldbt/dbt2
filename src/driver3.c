@@ -264,7 +264,7 @@ int start_driver()
 
 	/* Caulculate when the test should stop. */
 	start_time = (int) ((double) client_conn_sleep / 1000.0 *
-			(double) terminals_per_warehouse * (double) number_of_warehouses);
+			(double) (max_fork - 1));
 	stop_time = time(NULL) + duration + start_time;
 	printf("driver is starting to ramp up at time %d\n", (int) time(NULL));
 	printf("driver will ramp up in %d seconds\n", start_time);
@@ -308,21 +308,18 @@ int start_driver()
 		} else {
 			/* The time to sleep between forking next process. */
 			struct timespec ts0, rem0;
-			ts0.tv_sec = ts.tv_sec * (mymax - mymin + 1) *
-					terminals_per_warehouse;
-			ts0.tv_nsec = ts.tv_nsec * (long) (mymax - mymin + 1) *
-					(long) terminals_per_warehouse;
+			ts0.tv_sec = ts.tv_sec;
+			ts0.tv_nsec = ts.tv_nsec;
 
 			while (nanosleep(&ts0, &rem0) == -1) {
 				if (errno == EINTR) {
 					memcpy(&ts, &rem, sizeof(struct timespec));
 				} else {
 					LOG_ERROR_MESSAGE(
-							"sleep time invalid %d s %ls ns",
+							"sleep time invalid %ld s %ld ns",
 							ts.tv_sec, ts.tv_nsec);
 				}
 			}
-			continue;
 		}
 	}
 
@@ -369,7 +366,7 @@ int start_driver()
 	k = 0;
 	for (j = 0; j < terminals_per_warehouse; j++) {
 		for (i = mymin; i < mymax + 1; i += spread) {
-			/* Set this terminals's home warehouse and district .*/
+			/* Set this terminal's home warehouse and district .*/
 			rte[k].w_id = i;
 			rte[k].d_id = j + 1;
 
@@ -381,16 +378,6 @@ int start_driver()
 			ev_timer_start(loop, (struct ev_timer *) &rte[k].tt);
 
 			++k;
-
-			while (nanosleep(&ts, &rem) == -1) {
-				if (errno == EINTR) {
-					memcpy(&ts, &rem, sizeof(struct timespec));
-				} else {
-					LOG_ERROR_MESSAGE(
-							"sleep time invalid %d s %ls ns",
-							ts.tv_sec, ts.tv_nsec);
-				}
-			}
 		}
 	}
 

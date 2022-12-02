@@ -767,7 +767,7 @@ if [ ! "x$TERMINALS_LIMIT" = "x" ]; then
 	fi
 fi
 if [ "x$DRIVER3" = "x1" ]; then
-	DRIVER_RAMPUP_TIME=$(( $(nproc) * $FPP ))
+	DRIVER_RAMPUP_TIME=$(( ($(nproc) * $FPP) - 1 ))
 fi
 DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
 DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME / 1000`
