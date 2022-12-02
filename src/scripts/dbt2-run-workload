@@ -917,15 +917,16 @@ do_sleep $DURATION
 echo ''
 echo "Stage 3. Processing of results..."
 
-# Client doesn't go away by itself like the driver does, so kill it.
-echo "Killing client..."
-if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME --"
-else
-	CLIENT_COMMAND="eval"
+if [ ! "x$DRIVER3" = "x1" ]; then
+	# Client doesn't go away by itself like the driver does, so kill it.
+	echo "Killing client..."
+	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
+		CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME --"
+	else
+		CLIENT_COMMAND="eval"
+	fi
+	$CLIENT_COMMAND "killall -q dbt2-client" > /dev/null 2>&1
 fi
-killall -q dbt2-driver > /dev/null 2>&1
-$CLIENT_COMMAND "killall -q dbt2-client" > /dev/null 2>&1
 
 if [ $PRIVILEGED -eq 1 ]; then
 	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
