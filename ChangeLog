@@ -1,3 +1,7 @@
+vX.Y.X
+
+- Fix white space trimming of scale factor in report generator
+
 v0.48.6
 
 - Fix calculation of ramp up time when processing multiple mix files

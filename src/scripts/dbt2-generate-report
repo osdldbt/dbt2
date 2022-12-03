@@ -364,7 +364,7 @@ Summary
 =======
 
 * Date: $(head -n 1 "${INDIR}/readme.txt")
-* Scale Factor: $(grep "Database Scale Factor:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | awk)
+* Scale Factor: $(grep "Database Scale Factor:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | xargs)
 * DBMS: $(head -n 1 "$(find "${INDIR}" -name readme-dbms.txt)")
 
 $(cat $SUMMARY)
