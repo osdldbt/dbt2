@@ -93,7 +93,7 @@ if ! which $ENGINE > /dev/null 2>&1; then
 	fi
 fi
 
-echo "using container enginer: $ENGINE"
+echo "using container engine: $ENGINE"
 
 if [ "$ENGINE" = "podman" ]; then
 	ENGINEARGS="--isolation=chroot --ignorefile .dockerignore"

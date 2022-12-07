@@ -29,7 +29,7 @@ if [ $# -ge 2 ]; then
 	DBMS=$2
 fi
 
-echo "using container enginer: $ENGINE"
+echo "using container engine: $ENGINE"
 
 CONTAINERDIR=$(dirname "$0")
 CONTAINER_TAG="dbt2-database-${DBMS}-${WAREHOUSES}w"
