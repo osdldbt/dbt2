@@ -1,3 +1,7 @@
+vX.Y.X
+
+- Fix use of ignore file for podman use
+
 v0.48.7
 
 - Fix white space trimming of scale factor in report generator
