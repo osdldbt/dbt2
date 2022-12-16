@@ -6,38 +6,64 @@ create_cockroach()
 {
 	# Based on:
 	# https://www.cockroachlabs.com/docs/stable/start-a-local-cluster-in-docker-mac.html
-	DATADIR="/home/${USER}/cockroach-data"
+	DATADIR="$(readlink -f "$(dirname "$0")")/cockroach-data"
 	if [ -d "${DATADIR}" ]; then
 		echo "ERROR: directory already exists ${DATADIR}"
 		exit 1
 	fi
-	mkdir -p $DATADIR
-	$ENGINE run -d \
-			--name=dbt2-cockroach-1 \
+	mkdir -p "$DATADIR/roach1"
+	mkdir -p "$DATADIR/roach2"
+	mkdir -p "$DATADIR/roach3"
+
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			-d \
 			--hostname=dbt2-cockroach-1 \
-			-p 26257:26257 -p 8080:8080  \
+			--name=dbt2-cockroach-1 \
 			-v "${DATADIR}/roach1:/cockroach/cockroach-data"  \
 			cockroachdb/cockroach:v21.2.10 start \
-			--insecure \
-			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
-	$ENGINE run -d \
-			--name=dbt2-cockroach-2 \
+					--insecure \
+					--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
+
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			-d \
 			--hostname=dbt2-cockroach-2 \
+			--name=dbt2-cockroach-2 \
 			-v "${DATADIR}/roach2:/cockroach/cockroach-data"  \
 			cockroachdb/cockroach:v21.2.10 start \
-			--insecure \
-			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
-	$ENGINE run -d \
-			--name=dbt2-cockroach-3 \
+					--insecure \
+					--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
+
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			-d \
 			--hostname=dbt2-cockroach-3 \
+			--name=dbt2-cockroach-3 \
 			-v "${DATADIR}/roach3:/cockroach/cockroach-data"  \
 			cockroachdb/cockroach:v21.2.10 start \
-			--insecure \
-			--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
-	$ENGINE exec -it  dbt2-cockroach-1 ./cockroach init --insecure
-	IPADDRESS=$($ENGINE inspect dbt2-cockroach-1 | jq -r '.[0].NetworkSettings.IPAddress')
-	$ENGINE run --rm -e PGHOST="$IPADDRESS" -e DBT2DBNAME=dbt2 dbt2-driver \
-			dbt2-cockroach-build-db -w $WAREHOUSES -l 26257
+					--insecure \
+					--join=dbt2-cockroach-1,dbt2-cockroach-2,dbt2-cockroach-3
+
+	# We need to wait for CockroachDB to finish starting up before trying to
+	# load.
+	sleep 10
+
+	eval "$ENGINE" exec -it  dbt2-cockroach-1 ./cockroach init --insecure
+
+	if [ "$ENGINE" = "podman" ]; then
+		IPADDRESS=$($ENGINE inspect dbt2-cockroach-1 | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
+	elif [ "$ENGINE" = "docker" ]; then
+		IPADDRESS=$($ENGINE inspect dbt2-cockroach-1 | jq -r '.[0].NetworkSettings.IPAddress')
+	fi
+
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			--env "PGHOST=$IPADDRESS" \
+			--env DBT2DBNAME=dbt2 \
+			--rm \
+			dbt2-driver \
+			dbt2-cockroach-build-db -w "$WAREHOUSES" -l 26257
 	return $?
 }
 
@@ -54,7 +80,6 @@ create_pgsql()
 
 	TOPDIR="${TOPDIR}/.."
 	$ENGINE build -t "dbt2-database-${DBMS}-${WAREHOUSES}w" \
-			$ENGINEARGS \
 			--build-arg warehouses=$WAREHOUSES \
 			--shm-size=128m \
 			-f Containerfile.database \
@@ -64,35 +89,59 @@ create_pgsql()
 
 create_yugabyte()
 {
+	CONTAINER_NAME="dbt2-database-yugabyte-1w-0"
 	# Based on: https://docs.yugabyte.com/preview/quick-start/install/docker/
-	DATADIR="/home/${USER}/yb_data"
+	DATADIR="$(readlink -f "$(dirname "$0")")/yb_data"
 	if [ -d "${DATADIR}" ]; then
 		echo "ERROR: directory already exists ${DATADIR}"
 		exit 1
 	fi
 	mkdir -p $DATADIR
-	$ENGINE run -d --name dbt2-yugabyte \
-			-p7000:7000 -p9000:9000 -p5433:5433 -p9042:9042 \
-			-v ${DATADIR}:/home/yugabyte/yb_data \
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			-d \
+			--name $CONTAINER_NAME \
+			-v "${DATADIR}:/home/yugabyte/yb_data" \
 			yugabytedb/yugabyte:latest bin/yugabyted start \
-			--base_dir=/home/yugabyte/yb_data --daemon=false
+					--base_dir=/home/yugabyte/yb_data --daemon=false
+
 	# We need to wait for Yugabyte to finish starting up before trying to load.
 	sleep 10
-	IPADDRESS=$($ENGINE inspect dbt2-yugabyte | jq -r '.[0].NetworkSettings.IPAddress')
-	$ENGINE run --rm -e PGHOST="$IPADDRESS" -e DBT2DBNAME=dbt2 -e PGUSER=postgres \
-			dbt2-driver dbt2-yugabyte-build-db -w $WAREHOUSES -l 5433
+
+	if [ "$ENGINE" = "podman" ]; then
+		IPADDRESS=$($ENGINE inspect $CONTAINER_NAME | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
+	elif [ "$ENGINE" = "docker" ]; then
+		IPADDRESS=$($ENGINE inspect $CONTAINER_NAME | jq -r '.[0].NetworkSettings.IPAddress')
+	fi
+
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			-it \
+			--rm \
+			--env PGHOST="$IPADDRESS" \
+			--env DBT2DBNAME=dbt2 \
+			--env PGUSER=postgres \
+			dbt2-driver \
+			dbt2-yugabyte-build-db -w "$WAREHOUSES" -l 5433
 	return $?
 }
 
-ENGINE="podman"
-if ! which $ENGINE > /dev/null 2>&1; then
-	ENGINE="docker"
+# Use the specified engine from the environment, or try podman then docker.
+if [ "$ENGINE" = "" ]; then
+	ENGINE="podman"
 	if ! which $ENGINE > /dev/null 2>&1; then
-		echo "podman nor docker in path"
-		exit 1
+		ENGINE="docker"
+		if ! which $ENGINE > /dev/null 2>&1; then
+			echo "podman nor docker in path"
+			exit 1
+		fi
+	fi
+else
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "specified engine $ENGINE not in path"
+		exit
 	fi
 fi
-
 echo "using container engine: $ENGINE"
 
 if [ "$ENGINE" = "podman" ]; then
@@ -108,6 +157,13 @@ fi
 
 if [ $# -ge 2 ]; then
 	DBMS=$2
+fi
+
+if [ "$ENGINE" = "podman" ]; then
+	# Sometimes it's "podman", sometimes "cni-podman0".
+	PODMANNETWORK=$(podman network ls -q | grep podman | head -n 1)
+	echo "using podman network: $PODMANNETWORK"
+	ENGINEARGS="--network=$PODMANNETWORK"
 fi
 
 if [ "x${DBMS}" = "xcockroach" ]; then

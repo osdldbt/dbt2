@@ -15,16 +15,20 @@ ENV DBT2PGDATA="/opt/pgdata"
 
 ARG warehouses=1
 
-WORKDIR /tmp
-RUN  if [ "x$dbms" = "xpgsql" ]; then dbt2-pgsql-build-db -w $warehouses && \
-                                      dbt2-pgsql-stop-db; fi
-RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf; fi
-RUN  if [ "x$dbms" = "xpgsql" ]; then echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf; fi
+# Make sure we are in a directory we can write to.
+WORKDIR /home/postgres
 
-RUN  if [ "x$dbms" = "xpgsql" ]; then echo "DBT2DBNAME=dbt2" >> ~/.ssh/environment; fi
-RUN  if [ "x$dbms" = "xpgsql" ]; then echo "DBT2PGDATA=/opt/pgdata" >> ~/.ssh/environment; fi
-
-RUN  if [ "x$dbms" = "xpgsql" ]; then echo "listen_addresses = '*'" >> /opt/pgdata/postgresql.auto.conf; fi
+RUN if [ "x$dbms" = "xpgsql" ]; then \
+            dbt2-pgsql-build-db -p "-N 500" -w $warehouses && \
+            dbt2-pgsql-stop-db && \
+            echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf && \
+            echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf && \
+            echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf && \
+            echo "DBT2DBNAME=dbt2" >> ~/.ssh/environment && \
+            echo "DBT2PGDATA=/opt/pgdata" >> ~/.ssh/environment && \
+            echo "listen_addresses = '*'" >> /opt/pgdata/postgresql.auto.conf && \
+            echo "max_connections = '500'" >> /opt/pgdata/postgresql.auto.conf; \
+    fi
 
 USER root
 RUN echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config

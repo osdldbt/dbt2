@@ -7,14 +7,23 @@ usage()
 	echo "usage: $0 <client address> [WAREHOUSES [DURATION [WAREHOUSE_MIN [WAREHOUSE_MAX]]]]"
 }
 
-ENGINE="podman"
-if ! which $ENGINE > /dev/null 2>&1; then
-	ENGINE="docker"
+# Use the specified engine from the environment, or try podman then docker.
+if [ "$ENGINE" = "" ]; then
+	ENGINE="podman"
 	if ! which $ENGINE > /dev/null 2>&1; then
-		echo "podman nor docker in path"
-		exit 1
+		ENGINE="docker"
+		if ! which $ENGINE > /dev/null 2>&1; then
+			echo "podman nor docker in path"
+			exit 1
+		fi
+	fi
+else
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "specified engine $ENGINE not in path"
+		exit
 	fi
 fi
+echo "using container engine: $ENGINE"
 
 if [ "$ENGINE" = "podman" ]; then
 	# Sometimes it's "podman", sometimes "cni-podman0".

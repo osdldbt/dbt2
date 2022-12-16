@@ -1,0 +1,169 @@
+#!/bin/sh
+
+stop_containers()
+{
+	eval "$ENGINE" stop dbt2-driver-0
+	if [ "$TIERS" = "3" ]; then
+		eval "$ENGINE" stop dbt2-client-0
+	fi
+	eval "$ENGINE" stop "$CONTAINER_NAME"
+}
+
+DBMS="pgsql"
+WAREHOUSES=1
+
+if [ $# -ge 1 ]; then
+	WAREHOUSES=$1
+fi
+
+if [ $# -ge 2 ]; then
+	DBMS=$2
+fi
+
+if [ "$TIERS" = "" ]; then
+	TIERS=3
+fi
+
+if [ "$TIERS" = "2" ]; then
+	RUNARGS="$RUNARGS --env DRIVER3=1"
+fi
+
+CONTAINER_DIR="$(readlink -f "$(dirname "$0")")"
+RESULTSNAME="${DBMS}-${WAREHOUSES}w-${TIERS}tier"
+mkdir -p "${CONTAINER_DIR}/results/"
+LOCALDIR="${CONTAINER_DIR}/results/${RESULTSNAME}"
+
+if [ -d "${LOCALDIR}" ]; then
+	echo "ERROR: save or remove ${LOCALDIR} before running again"
+	exit 1
+fi
+
+if ! which jq > /dev/null 2>&1; then
+	echo "ERROR: jq required but not found in path"
+	exit 1
+fi
+
+# Use the specified engine from the environment, or try podman then docker.
+if [ "$ENGINE" = "" ]; then
+	ENGINE="podman"
+	if ! which $ENGINE > /dev/null 2>&1; then
+		ENGINE="docker"
+		if ! which $ENGINE > /dev/null 2>&1; then
+			echo "podman nor docker in path"
+			exit 1
+		fi
+	fi
+else
+	if ! which "$ENGINE" > /dev/null 2>&1; then
+		echo "specified engine $ENGINE not in path"
+		exit
+	fi
+fi
+echo "using container engine: $ENGINE"
+
+if [ "$ENGINE" = "podman" ]; then
+	# Sometimes it's "podman", sometimes "cni-podman0".
+	PODMANNETWORK=$(podman network ls -q | grep podman | head -n 1)
+	echo "using podman network: $PODMANNETWORK"
+	ENGINEARGS="--network=$PODMANNETWORK --cap-add SYS_ADMIN"
+fi
+
+CONTAINER_TAG="dbt2-database-${DBMS}-${WAREHOUSES}w"
+CONTAINER_NAME="dbt2-database-${DBMS}-${WAREHOUSES}w-0"
+
+trap stop_containers INT TERM
+
+if [ "$DBMS" = "yugabyte" ]; then
+	eval "$ENGINE" start "$CONTAINER_NAME"
+else
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			-d \
+			--rm \
+			--name "$CONTAINER_NAME" \
+			"$CONTAINER_TAG"
+fi
+
+if [ "$TIERS" = "3" ]; then
+	eval "$ENGINE" run \
+			"$ENGINEARGS" \
+			-d \
+			--rm \
+			--name "dbt2-client-0" \
+			"dbt2-client"
+fi
+
+eval "$ENGINE" run \
+		"$ENGINEARGS" \
+		-d \
+		--rm \
+		--name "dbt2-driver-0" \
+		"dbt2-driver"
+
+if [ "$ENGINE" = "podman" ]; then
+	DBIPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
+	if [ "$TIERS" = "3" ]; then
+		CLIPADDRESS=$($ENGINE inspect dbt2-client-0 | jq -r ".[0].NetworkSettings.Networks[\"$PODMANNETWORK\"].IPAddress")
+	fi
+elif [ "$ENGINE" = "docker" ]; then
+	DBIPADDRESS=$($ENGINE inspect "$CONTAINER_NAME" | jq -r '.[0].NetworkSettings.IPAddress')
+	if [ "$TIERS" = "3" ]; then
+		CLIPADDRESS=$($ENGINE inspect dbt2-client-0 | jq -r '.[0].NetworkSettings.IPAddress')
+	fi
+fi
+
+if [ "$TIERS" = "3" ]; then
+	EXTRAARGS="$EXTRAARGS -C $CLIPADDRESS"
+fi
+
+echo "Database IP Address: $DBIPADDRESS"
+if [ "$TIERS" = "3" ]; then
+	echo "Client IP Address: $CLIPADDRESS"
+fi
+
+if [ "$DBMS" = "cockroach" ]; then
+	OSUSER="root"
+elif [ "$DBMS" = "pgsql" ] || [ "$DBMS" = "yugabyte" ]; then
+	OSUSER="postgres"
+fi
+
+echo "arbitrarily waiting 10 seconds to ensure containers finish starting..."
+sleep 10
+
+RESULTSDIR="/home/${OSUSER}/${RESULTSNAME}"
+
+if [ "$DBMS" = "cockroach" ]; then
+	DBMS="pgsql"
+	EXTRAARGS="$EXTRAARGS -l 26257"
+	RUNARGS="$RUNARGS --env PGHOST=$DBIPADDRESS --env PGPORT=26257"
+elif [ "$DBMS" = "yugabyte" ]; then
+	DBMS="pgsql"
+	EXTRAARGS="$EXTRAARGS -l 5433"
+	RUNARGS="$RUNARGS --env PGHOST=$DBIPADDRESS --env PGPORT=5433"
+fi
+
+eval "$ENGINE" exec \
+		-it \
+		"$RUNARGS" \
+		-u "$OSUSER" \
+		dbt2-driver-0 \
+		dbt2-run-workload \
+				"$EXTRAARGS" \
+				-a "$DBMS" \
+				-c 10 \
+				-d 120 \
+				-D dbt2 \
+				-H "$DBIPADDRESS" \
+				-o "$RESULTSDIR" \
+				-s 100 \
+				-w "$WAREHOUSES"
+
+eval "$ENGINE" exec \
+		-it \
+		-u "$OSUSER" \
+		dbt2-driver-0 \
+		dbt2-generate-report -i "$RESULTSDIR"
+
+eval "$ENGINE" cp "dbt2-driver-0:$RESULTSDIR" "${LOCALDIR}"
+
+stop_containers

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+WAREHOUSES=1
+DBMS="pgsql"
+
+if [ $# -ge 1 ]; then
+	WAREHOUSES=$1
+fi
+
+if [ $# -ge 2 ]; then
+	DBMS=$2
+fi
+
+CONTAINER_DIR="$(dirname "$0")"
+
+eval "$CONTAINER_DIR/prepare-image"
+eval "$CONTAINER_DIR/build-database" "$WAREHOUSES" "$DBMS" &
+eval "$CONTAINER_DIR/build-client" &
+eval "$CONTAINER_DIR/build-driver" &
+wait

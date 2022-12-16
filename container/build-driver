@@ -3,12 +3,20 @@
 # Build a Container image with the DBT-2 client installed from the code in the
 # local directory.
 
-ENGINE="podman"
-if ! which $ENGINE > /dev/null 2>&1; then
-	ENGINE="docker"
+# Use the specified engine from the environment, or try podman then docker.
+if [ "$ENGINE" = "" ]; then
+	ENGINE="podman"
 	if ! which $ENGINE > /dev/null 2>&1; then
-		echo "podman nor docker in path"
-		exit 1
+		ENGINE="docker"
+		if ! which $ENGINE > /dev/null 2>&1; then
+			echo "podman nor docker in path"
+			exit 1
+		fi
+	fi
+else
+	if ! which $ENGINE > /dev/null 2>&1; then
+		echo "specified engine $ENGINE not in path"
+		exit
 	fi
 fi
 echo "using container engine: $ENGINE"

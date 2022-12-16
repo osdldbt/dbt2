@@ -1,6 +1,7 @@
 vX.Y.X
 
 - Fix use of ignore file for podman use
+- Allow user to specify container engine
 
 v0.48.7
 

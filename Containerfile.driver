@@ -2,29 +2,32 @@ From dbt2-base
 
 USER root
 
-RUN dnf -y install pandoc \
-                   python3-docutils \
-                   R \
-                   texlive && \
-    dnf clean all
+RUN dnf -qy install pandoc \
+                    python3-docutils \
+                    R \
+                    texlive && \
+    dnf -q clean all
 
 WORKDIR /tmp
 
 # Install DBT Tools
 
-RUN curl -OL https://github.com/osdldbt/dbttools/archive/refs/heads/main.tar.gz && \
-    tar xvf main.tar.gz
+RUN curl -o /tmp/main.tar.gz \
+         -sOL https://github.com/osdldbt/dbttools/archive/refs/heads/main.tar.gz && \
+    tar -C /tmp/ -xf /tmp/main.tar.gz
 WORKDIR /tmp/dbttools-main/
 RUN cmake -H. && \
-    make install && \
-    rm /tmp/main.tar.gz
+    make -s install && \
+    rm -f /tmp/main.tar.gz
 
 # Install tools for making flame graphs
 
 WORKDIR /usr/local/bin
-RUN curl -OL https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl && \
-    curl -OL https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl && \
-	chmod +x stackcollapse-perf.pl flamegraph.pl
+RUN curl -o /usr/local/bin/stackcollapse-perf.pl \
+         -sOL https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl && \
+    curl -o /usr/local/bin/flamegraph.pl \
+         -sOL https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl && \
+	chmod +x /usr/local/bin/stackcollapse-perf.pl /usr/local/bin/flamegraph.pl
 
 RUN systemctl enable sshd
 CMD [ "/usr/sbin/init" ]
