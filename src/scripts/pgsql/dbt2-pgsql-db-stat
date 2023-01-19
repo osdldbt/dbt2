@@ -5,7 +5,7 @@
 #
 # Copyright (C) 2002-2006 Open Source Development Labs, Inc.
 #               2014      2ndQuadrant, Ltd.
-#               2002-2022 Mark Wong
+#               2002-2023 Mark Wong
 #
 
 while getopts "D:l:i:o:s:" opt; do
@@ -116,6 +116,7 @@ FROM pg_stat_all_indexes a, pg_statio_all_indexes b \
 WHERE a.indexrelid = b.indexrelid"
 
 COUNTER=0
+TOTALTIME=$(( ITERATIONS * SAMPLE_LENGTH ))
 
 # Take the initial data points with headers so that data is identifiable later.
 ${PSQL} -c "COPY (${LOCKSTAT}) TO STDOUT (FORMAT CSV, HEADER);" \
@@ -133,6 +134,7 @@ ${PSQL} -c "COPY (${STATTABLE}) TO STDOUT (FORMAT CSV, HEADER);" \
 ${PSQL} -c "COPY (${STATINDEX}) TO STDOUT (FORMAT CSV, HEADER);" \
 		> $OUTPUT_DIR/pg_stat_indexes.csv &
 
+STARTTIME=$(date +%s)
 while [ $COUNTER -lt $ITERATIONS ]; do
 	COUNTER=$(( $COUNTER+1 ))
 	sleep $SAMPLE_LENGTH
@@ -151,4 +153,8 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 
 	${PSQL} -c "COPY (${STATINDEX}) TO STDOUT (FORMAT CSV);" \
 			>> $OUTPUT_DIR/pg_stat_indexes.csv &
+
+	if [ $(( $(date +%s) - STARTTIME )) -gt $TOTALTIME ]; then
+		break
+	fi
 done
