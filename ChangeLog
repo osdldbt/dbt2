@@ -2,6 +2,8 @@ vX.Y.X
 
 - Fix use of ignore file for podman use
 - Allow user to specify container engine
+- Add some C directives to support building on older C tool chains, in
+  particular CentOS 7
 
 v0.48.7
 

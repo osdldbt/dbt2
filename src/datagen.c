@@ -3,10 +3,13 @@
  * Please see the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002 Open Source Development Labs, Inc.
- *               2002-2021 Mark Wong
+ *               2002-2023 Mark Wong
  *
  * Based on TPC-C Standard Specification Revision 5.0.
  */
+
+#define _POSIX_C_SOURCE 200112L
+#define _BSD_SOURCE
 
 #include "common.h"
 

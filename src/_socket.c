@@ -2,11 +2,14 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Mark Wong & Jenny Zhang &
- *                    Open Source Development Labs, Inc.
+ * Copyright (C) 2002      Jenny Zhang
+ * Copyright (C) 2002      Open Source Development Labs, Inc.
+ * Copyright (C) 2002-2023 Mark Wong
  *
  * 20 March 2002
  */
+
+#define _POSIX_C_SOURCE 200112L
 
 #include <stdio.h>
 #include <string.h>

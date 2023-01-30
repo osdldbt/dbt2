@@ -3,10 +3,12 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002      Open Source Development Labs, Inc.
- *               2002-2022 Mark Wong
+ *               2002-2023 Mark Wong
  *
  * 7 August 2002
  */
+
+#define _POSIX_C_SOURCE 199309L
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
