@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=dbt2
+Exec=dbt2
+Icon=dbt2
+Type=Application
+Categories=Development;Database
+Terminal=true

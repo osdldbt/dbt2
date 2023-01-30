@@ -4,6 +4,8 @@ vX.Y.X
 - Allow user to specify container engine
 - Add some C directives to support building on older C tool chains, in
   particular CentOS 7
+- Add AppImage files for creating standalone single binary with limited
+  functionality, see appimage/README-APPIMAGE.rst for details
 
 v0.48.7
 

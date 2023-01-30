@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>dbt2</id>
+	<metadata_license>Artistic-2.0</metadata_license>
+	<project_license>Artistic-2.0</project_license>
+	<name>DBT-2</name>
+	<summary>
+        Database Test 2 TPC Benchmark (TM) C Fair Use Implementation
+    </summary>
+	<description>
+		<p>
+			Database Test 2 (DBT-2) is a TPC Benchmark (TM) C (TPC-C) Fair Use
+            Implementation.  This AppImage may have limitations based on which
+			database management system is being tested.  See documentation for
+			more details.
+        </p>
+	</description>
+	<launchable type="desktop-id">dbt2.desktop</launchable>
+	<url type="homepage">https://github.com/osdldbt/dbt2</url>
+	<screenshots>
+		<screenshot type="default">
+			<image>
+                https://osdldbt.github.io/dbt-reports/dbt2/3-tier/txn/n-transaction-rate.png
+            </image>
+		</screenshot>
+	</screenshots>
+	<provides>
+		<id>dbt2.desktop</id>
+	</provides>
+</component>
