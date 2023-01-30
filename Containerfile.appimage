@@ -1,0 +1,64 @@
+# Build an environment for creating an AppImage.
+
+# Use a distro with an old libc to maximize support on as many linux distros as
+# possible.
+FROM centos:7
+
+RUN yum -qy update && \
+    yum -qy install bison \
+                   bzip2 \
+                   cmake \
+                   file \
+                   flex \
+                   gcc \
+                   libev-devel \
+                   make \
+                   openssl-devel \
+                   patch \
+                   sqlite-devel \
+                   xz && \
+    yum -qy clean all
+
+RUN mkdir -p /usr/local/AppDir
+
+# PostgreSQL 11 is the first release creating the pg_type_d.h include file for
+# CockroachDB binary support.
+
+ARG PGVER="11.18"
+RUN curl -o /tmp/postgresql-${PGVER}.tar.bz2 \
+         -sOL https://ftp.postgresql.org/pub/source/v${PGVER}/postgresql-${PGVER}.tar.bz2 && \
+    tar -C /usr/local/src -xf /tmp/postgresql-${PGVER}.tar.bz2
+WORKDIR /usr/local/src/postgresql-${PGVER}
+# I think it's simplier to install into the system's default paths and into a
+# "clean" location for ease of building other software and generating the
+# AppImage, resp.
+RUN ./configure --silent --without-ldap --without-readline --without-zlib \
+    --without-gssapi --with-openssl --prefix=/usr && \
+    make -s -j $(nproc) install && \
+    ./configure --silent --without-ldap --without-readline --without-zlib \
+    --without-gssapi --with-openssl --prefix=/usr/local/AppDir/usr && \
+    make -s -j $(nproc) install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/psql && \
+    ldconfig
+
+# Install DBT Tools
+
+ARG DBTTOOLSVER="0.3.2"
+RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz \
+         -sOL https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz
+WORKDIR /usr/local/src/dbttools-${DBTTOOLSVER}
+RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
+    (cd builds/release && make -s install DESTDIR=/usr/local/AppDir) && \
+    rm -f /tmp/v${DBTTOOLSVER}.tar.gz
+
+WORKDIR /usr/local
+RUN curl -sOL https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage && \
+    chmod +x appimagetool-x86_64.AppImage && \
+    ./appimagetool-x86_64.AppImage --appimage-extract && \
+    chmod 0755 squashfs-root && \
+    chmod 0755 squashfs-root/usr && \
+    chmod 0755 squashfs-root/usr/bin && \
+    chmod 0755 squashfs-root/usr/lib && \
+    chmod 0755 squashfs-root/usr/lib/appimagekit && \
+    chmod 0755 squashfs-root/usr/share

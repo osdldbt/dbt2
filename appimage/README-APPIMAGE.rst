@@ -17,3 +17,6 @@ The logo used is the number "2" from the Freeware Metal On Metal Font.
 
 See separate README-APPIMAGE-* files for specific limitations when using the
 building and using the AppImage with a specific database management system.
+
+See the README.rst in the container/ directory for an example of creating an
+AppImage with a Podman container.

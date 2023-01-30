@@ -1,0 +1,32 @@
+Index: dbt2/src/CMakeLists.txt
+===================================================================
+--- dbt2.orig/src/CMakeLists.txt
++++ dbt2/src/CMakeLists.txt
+@@ -82,7 +82,6 @@ if (LIBPQ_FOUND)
+             libpq/dbc_payment.c
+             libpq/dbc_stock_level.c
+     )
+-    if ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
+         set (DB_SOURCE
+                 ${DB_SOURCE}
+                 cockroach/dbc_common.c
+@@ -93,7 +92,6 @@ if (LIBPQ_FOUND)
+                 cockroach/dbc_payment.c
+                 cockroach/dbc_stock_level.c
+         )
+-    endif ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
+     execute_process (COMMAND pg_config --includedir-server
+             OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
+             OUTPUT_STRIP_TRAILING_WHITESPACE)
+Index: dbt2/src/scripts/CMakeLists.txt
+===================================================================
+--- dbt2.orig/src/scripts/CMakeLists.txt
++++ dbt2/src/scripts/CMakeLists.txt
+@@ -1,7 +1,5 @@
+ if (LIBPQ_FOUND)
+-    if ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
+ 	    add_subdirectory (cockroach)
+-    endif ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
+ 	add_subdirectory (pgsql)
+ 	add_subdirectory (yugabyte)
+ endif (LIBPQ_FOUND)

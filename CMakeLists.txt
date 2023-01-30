@@ -72,3 +72,52 @@ set (CPACK_SOURCE_IGNORE_FILES
 )
 
 include (CPack)
+
+set (DRIVER3 ${PROJECT_NAME}-driver3)
+set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
+
+add_custom_target(appimage-podman
+    COMMAND cp -aLr /usr/local/AppDir .
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/AppRun AppDir
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.desktop AppDir
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.png AppDir
+    COMMAND mkdir -p AppDir/usr/share/metainfo
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.appdata.xml
+            AppDir/usr/share/metainfo
+    COMMAND mkdir -p AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libcrypto.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libev.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libgssapi_krb5.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libpq.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libssl.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libk5crypto.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libkeyutils.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libkrb5.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libkrb5support.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libpcre.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libselinux.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
+            --comp=xz AppDir
+)

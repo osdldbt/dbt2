@@ -6,6 +6,7 @@ vX.Y.X
   particular CentOS 7
 - Add AppImage files for creating standalone single binary with limited
   functionality, see appimage/README-APPIMAGE.rst for details
+- Add Podman files for creating an AppImage
 
 v0.48.7
 
