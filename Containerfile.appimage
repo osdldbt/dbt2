@@ -21,6 +21,16 @@ RUN yum -qy update && \
 
 RUN mkdir -p /usr/local/AppDir
 
+ARG JULIAVER="1.8.5"
+ENV JULIA_DEPOT_PATH=/usr/local/AppDir/opt/julia
+RUN curl -o /tmp/julia-${JULIAVER}-linux-x86_64.tar.gz \
+         -sOL https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-${JULIAVER}-linux-x86_64.tar.gz && \
+    tar -C /tmp -xf /tmp/julia-${JULIAVER}-linux-x86_64.tar.gz && \
+    mv /tmp/julia-${JULIAVER} /usr/local/AppDir/usr && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/julia && \
+    /usr/local/AppDir/usr/bin/julia --quiet -C generic \
+            -e 'import Pkg; Pkg.add("CSV"); Pkg.add("DataFrames");'
+
 # PostgreSQL 11 is the first release creating the pg_type_d.h include file for
 # CockroachDB binary support.
 

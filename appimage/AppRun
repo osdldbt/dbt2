@@ -24,6 +24,9 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
+# We need a writable location before the read-only location in the AppImage.
+# ${HOME}/.julia is the default location.
+export JULIA_DEPOT_PATH="${HOME}/.julia:${APPDIR}/opt/julia"
 export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 export PATH="${APPDIR}/usr/bin:${PATH}"
 

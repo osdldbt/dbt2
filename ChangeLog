@@ -23,6 +23,7 @@ vX.Y.X
 - Add tests to verify datagen partitioning correctness
 - Add test to check output of post-process
 - Port post-process script from R to Julia
+- Distribute Julia and package post-process package dependencies in AppImage
 
 v0.48.7
 

@@ -8,9 +8,11 @@ described here.  Note that these scripts prefer Podman over Docker but you can
 specify the engine by setting the `ENGINE` environment variable to `podman` or
 `docker`, resp.
 
-* `appimage-build` - Build the DBT-2 lite AppImage
+* `appimage-build` - Build the DBT-2 lite AppImage.
 * `appimage-prepare` - Build a container image to be used for creating an
-                       AppImage
+                       AppImage.
+* `appimage-julia-pkg-license-review` - Start up the appimage container and
+                                        review Julia package licenses.
 * `build-all` - Run all of the build scripts to prepare all container images.
 * `build-client` - Build a container image for the client transaction manager.
 * `build-database` - Build a container image with a 1 warehouse database.
