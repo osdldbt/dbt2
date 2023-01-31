@@ -22,6 +22,7 @@ vX.Y.X
 - Fix datagen partitioning logic
 - Add tests to verify datagen partitioning correctness
 - Add test to check output of post-process
+- Port post-process script from R to Julia
 
 v0.48.7
 

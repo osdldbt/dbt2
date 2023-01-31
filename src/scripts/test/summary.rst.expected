@@ -11,6 +11,6 @@ Order Status  14.29      1.000      1.000            1            0   0.00
 ============  =====  =========  =========  ===========  ===========  =====
 
 * Throughput: 0.30 new-order transactions per minute (NOTPM)
-* Duration: 10.0 minute(s) 
+* Duration: 10.0 minute(s)
 * Unknown Errors: 0
 * Ramp Up Time: 10.0 minute(s)
