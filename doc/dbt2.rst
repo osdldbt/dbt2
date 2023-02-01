@@ -43,6 +43,7 @@ Database Management System Notes
 .. include:: cockroachdb.rst
 .. include:: mysql.rst
 .. include:: postgresql.rst
+.. include:: sapdb.rst
 .. include:: sqlite.rst
 .. include:: yugabytedb.rst
 

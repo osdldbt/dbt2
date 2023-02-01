@@ -1,36 +1,142 @@
 PostgreSQL
 ==========
 
+Setup
+-----
+
+The DBT-2 test kit has been ported to work with PostgreSQL starting with
+version 7.3.  It has be updated to work with later version and backwards
+compatibility may vary.  Source code for PostgreSQL can be obtained from their
+website at: https://www.postgresql.org/
+
+To install PostgreSQL from source::
+
+    ./configure --prefix=<installation dir>
+    make
+    make install
+
+Prior to PostgreSQL 8.0 this additional make command is required to ensure the
+server include files get installed::
+
+    make install-all-headers
+
+After installing PostgreSQL, the DBT-2 C stored functions need to be compiled
+and installed, if they are to be used instead of pl/pgsql stored functions or
+other client side transaction logic::
+
+    cd storedproc/pgsql/c
+    make
+    make install
+
+The 'make install' command will need to be run by the owner of the
+database installation.
+
+When testing PostgreSQL in a multi-tier system configuration, verify that the
+database has been configuration to accept TCP/IP connections.  For example, the
+`listen_addresses` parameter must be set to listen for connections on the
+appropriate interfaces.  Remote connections must also be allowed in the
+`pg_hba.conf` file.  The simplest (and insecure) way would be to trust all
+connections on all interfaces.
+
+Also prior to PostgreSQL 8.0, `pg_autovacuum` should be installed.  If
+installing from source, it is located in the `contrib/pg_autovacuum` directory.
+
+The following subsections have additional PostgreSQL version specific notes.
+
+v7.3
+~~~~
+
+With PostgreSQL 7.3, it needs to be built with a change in `pg_config.h.in`
+where `INDEX_MAX_KEYS` must be set to 64.  Be sure to make this change before
+running the configure script for PostgreSQL.
+
+v7.4
+~~~~
+
+With PostgreSQL 7.4, it needs to be built with a change in
+`src/include/pg_config_manual.h` where `INDEX_MAX_KEYS` must be set to 64.
+
+Edit the parameter in `postgresql.conf` that says `tcpip_socket = false`,
+uncomment, set to `true`, and restart the daemon.
+
+v8.0
+~~~~
+
+For PostgreSQL 8.0 and later, run `configure` with the `--enable-thread-safety`
+to avoid `SIGPIPE` handling for the multi-thread DBT-2 client program.  This is
+a significant performance benefit.
+
 A really quick howto
 --------------------
 
-Edit examples/dbt2_profile and follow the notes for the DBT2PGDATA
-and DBDATA directory.  DBT2PGDATA is where the database directory will
-be created and DBDATA is where the database table data will be
-generated.
+Edit `examples/dbt2_profile` and follow the notes for the `DBT2PGDATA`
+directory.  `DBT2PGDATA` is where the database directory will be created.
 
-Create a 1 warehouse database by running bin/pgsql/dbt2-pgsql-build-db
-and put the data files in '/tmp/data'::
+Create a 1 warehouse database by running `dbt2-pgsql-build-db`::
 
     dbt2-pgsql-build-db -w 1
 
-Run a 5 minute (300 second) test by running dbt2-run-workload::
+Run a 5 minute (300 second) test by running `dbt2-run-workload`::
 
     dbt2-run-workload -a pgsql -d 300 -w 1 -o /tmp/result -c 10
 
+Building the Database
+---------------------
+
+These scripts will generate data in parallel based on the number of processors
+detected on the system, and will stream the data into the database.  The
+scripts currently do not let you control the degree of parallelism, or whether
+the data should be created as files first, but this can be run manually.
+
+The following command will create a 1 warehouse database in the `DBT2PGDATA`
+location specified in the user's environment::
+
+    dbt2-pgsql-build-db -w 1
+
+By default the table data is streamed into the database as opposed to loading
+it from files.  See the usage help for additional options::
+
+    dbt2-pgsql-build-db -h
+
+Environment Configuration
+-------------------------
+
+The DBT-2 scripts required environment variables to be set in order to work
+properly (e.g. `examples/dbt2_profile`) in order for the scripts to work
+properly.  For example::
+
+    DBT2PORT=5432; export DBT2PORT
+    DBT2DBNAME=dbt2; export DBT2DBNAME
+    DBT2PGDATA=/tmp/pgdata; export DBT2PGDATA
+
+An optional environment variable can be set to specify a different location for
+the transaction logs (i.e. `pg_xlog`)::
+
+    DBT2XLOGDIR=/tmp/pgxlogdbt2; export DBT2XLOGDIR
+
+The environment variables must be defined in `~/.ssh/environment` file on each
+system for multi-tier environment for `ssh`.  Make sure `PATH` is set to cover
+the location where the DBT-2 executables and PostgreSQL binaries are installed.
+For example::
+
+    DBT2PORT=5432
+    DBT2DBNAME=dbt2
+    DBT2PGDATA=/tmp/pgdata
+    PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin
+
 Tablespace Notes
-~~~~~~~~~~~~~~~~
+----------------
 
 The scripts assumes a specific tablespace layout.
 
-The ${DBT2TSDIR} variable in dbt2_profile defines the directory where all
+The `${DBT2TSDIR}` variable in `dbt2_profile` defines the directory where all
 tablespace devices will be mounted.  Directories or symlinks can be substituted
 for what is assumed to be a mount point from this point forward.
 
-In create_tables.sh is where the tablespaces are created.
+`dbt2-pgsql-create-tables` is where the tablespaces are created.
 
 The mount points that need to be created, and must be owned by the user running
-the scripts are::
+the scripts, at::
 
     ${DBT2TSDIR}/warehouse
     ${DBT2TSDIR}/district
@@ -51,63 +157,3 @@ the scripts are::
     ${DBT2TSDIR}/pk_orders
     ${DBT2TSDIR}/pk_stock
     ${DBT2TSDIR}/pk_warehouse
-
-A (slightly less) quick howto run the test (Thanks Min!)
---------------------------------------------------------
-
-* small db 2 warehouse;
-* big db 20 warehouse,
-* tiny db 500 warehouse (scaling other factors)
-
-generated from: (tpcc only allow scaling warehouse)::
-
-    mkdir DB.small
-    dbt2-datagen --pgsql -w 2 -d DB.small -c 300 -i 10000 -o 300 -n 90
-    mkdir DB.big
-    dbt2-datagen --pgsql -w 20 -d DB.big -c 300 -i 10000 -o 300 -n 90
-    
-    # scaling the other factor
-    mkdir DB.tiny
-    dbt2-datagen --pgsql -w 500 -d DB.tiny -c 3 -i 10 -o 3 -n 9
-
-You can get number of warehouse from psql: `select count(*) from warehouse;`
-
-Then load database data using load_db.sh, make sure DBDATA variable
-is pointing to the correct directory you just generated above.
-
-Then run `dbt2-client` program manually,
-you can monitor the query queue length by type "status" command::
-
-    cd <dbt2_home>/bin/pgsql
-    dbt2-client -d localhost -c 2 -l 5432 -o ../output/0
-
-Then run `dbt2-driver` program manually,
-you can control tpw (terminal per warehouse) and think time etc.::
-
-    dbt2-src/driver -d localhost -l 360 -wmin 1 -wmax 20 -w 20 \
-      -c 3 -i 10 -o 3 -n 9 \
-      -ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 \
-      -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0 -tpw 80 -outdir ../output/0
-
-Finally, look in `../output/0 directory` for the possible error output
-
-tuning
-~~~~~~
-
-1. If you have fsync on then the daemon will be waiting for disk I/O
-   for writing log (WAL)
-2. For 1 warehouse, increase currency hurt per cpu utilization.
-
-   * 1 daemon 1 terminal: 12% in 8 way system
-   * 2 daemon 2 terminal: 9.2%
-   * 3 daemon 3 terminal: 6.7%
-   * 4 daemon 4 terminal: 5.5%
-
-Note the tpc-c model:
-
-* company scales with number of warehouses
-* each warehouse supports 10 districts
-* each district serves 3000 customers
-* each warehouse maintains stock level of 100,000 items
-* require ~10% orders are fulfilled from other warehouses due to not have
-  all items in the company's catalog

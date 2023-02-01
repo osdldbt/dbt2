@@ -13,6 +13,8 @@ vX.Y.X
 - Convert DBMS and OS READMEs to reStructuredText and incorporate them into the
   the doc/ directory
 - Convert INSTALL to reStructuredText with updated instructions
+- Reorganized PostgreSQL, SAP DB, and SQLite specific details from the user's
+  guide into their respective section
 
 v0.48.7
 
