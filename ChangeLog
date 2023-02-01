@@ -12,6 +12,7 @@ vX.Y.X
   ChangeLog
 - Convert DBMS and OS READMEs to reStructuredText and incorporate them into the
   the doc/ directory
+- Convert INSTALL to reStructuredText with updated instructions
 
 v0.48.7
 
