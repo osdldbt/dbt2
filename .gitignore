@@ -16,6 +16,7 @@ CMakeFiles
 cmake_install.cmake
 install_manifest.txt
 Makefile
+!doc/Makefile
 
 # cpack
 _CPack_Packages/
@@ -31,6 +32,5 @@ error.log
 mix.log
 
 
-doc/dbt2-architecture.html
-doc/dbt2-tpc.html
-doc/dbt2-user-guide.html
+doc/html
+doc/pdf

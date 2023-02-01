@@ -7,6 +7,7 @@ vX.Y.X
 - Add AppImage files for creating standalone single binary with limited
   functionality, see appimage/README-APPIMAGE.rst for details
 - Add Podman files for creating an AppImage
+- Convert doc/ files to reStructuredText
 
 v0.48.7
 

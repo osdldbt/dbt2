@@ -1,35 +1,9 @@
-Open Source Development Labs Database Test 2 Architecture
-=========================================================
-
-Version 0.15
-
-Open Source Development Labs, Inc.
-12725 SW Millikan Way, Suite 400
-Beaverton, OR 97005
-Phone: (503) 626-2455
-Fax: (503) 626-2436
-Email: info@osdl.org
-
-Copyright (c) 2002 by The Open Source Development Laboratory, Inc. This
-material may be distributed only subject to the terms and conditions set forth
-in the Open Publication License, v1.0 or later (the latest version is currently
-available at http://www.opencontent.org/openpub/). Distribution of
-substantively modified versions of this document is prohibited without the
-explicit permission of the copyright holder.
-
-Other company, product or service names may be trademarks or service marks of
-others.
-
-Contributors to this white paper include:
-
-* Mark Wong (OSDL)
-* Jenny Zhang (OSDL)
-* Craig Thomas (OSDL)
-* Bryan Olmstead (OSDL)
-* Cliff White (OSDL)
+------------
+Architecture
+------------
 
 Introduction
-------------
+============
 
 The OSDL Database Test 2 (DBT-2) workload test kit provides an on-line
 transaction processing (OLTP) workload using an open source database and a
@@ -41,7 +15,7 @@ by the Transaction Processing Performance Council (TPC).  The TPC Benchmark C
 (TPC-C) is briefly described before the DBT-2 test kit is discussed.
 
 TPC-C
-~~~~~
+-----
 
 The TPC-C represents the database activities of any industry that manages,
 sells, and distributes a product or service, such as car rental agencies,
@@ -63,7 +37,7 @@ orders must be supplied by another warehouse (i.e. 10% of all orders are not
 in stock at the warehouse where the order is entered).
 
 Another heavily weighted transaction is the recording of payments from
-customers.  Delilvering orders, stock level checks, and inquiring about the
+customers.  Delivering orders, stock level checks, and inquiring about the
 status of certain orders are less frequently executed transactions.
 
 The level of throughput is a result of the activity of the users executing
@@ -87,7 +61,7 @@ Further information on the TPC-C can be found on the web at:
 http://www.tpc.org/tpcc/.
 
 DBT-2
-~~~~~
+-----
 
 DBT-2 is a derivative of the TPC-C designed to produce a real-world
 on-line OLTP workload, similar to the TPC-C, to stress the Linux operation
@@ -109,7 +83,7 @@ measurements in any way since the DBT-2 workload does not constitute a
 compliant TPC-C benchmark.
 
 Improper Comparisons
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 If you discover any usage of DBT-2 in drawing conclusions about TPC-C
 performance, this inappropriate usage should be reported to both the TPC and
@@ -119,17 +93,19 @@ to the OSDL:
 * OSDL - wookie@osdl.org
 
 Design
-------
+======
 
 This kit is composed of three main components, as illustrated in Figure 1: a
 database, remote terminal emulators, and clients.  There can be multiple
 terminals that connect to multiple terminal concentrators, which connect to a
 single database.  Each component is described in the following sub-sections.
 
-image:component.png[Component Diagram]
+.. image:: component.png
+   :width: 600
+   :alt: Component Diagram
 
 Database
-~~~~~~~~
+--------
 
 The database consists of nine tables with stored procedures, currently only
 for SAP DB, to support five transactions.  While this test kit was developed
@@ -144,7 +120,7 @@ scaled as defined by the user.  The five transactions supported are:
 New-Order, Payment, Order-Status, Delivery, and Stock-Level.
 
 New-Order Transaction
-^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~
 
 The New-Order transaction is a mid-weight, read-write single database
 transaction designed to reflect on-line database activity typically found in
@@ -153,7 +129,7 @@ selections, six to sixteen row selections with updates, and seven to
 seventeen row insertions, and is executed 45% of the time.
 
 Payment Transaction
-^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~
 
 The Payment transaction is a light-weight, read-write database transaction
 that updates a customer's balance and reflects payment on a district's and
@@ -162,7 +138,7 @@ selections, six row selections with updates, and two row insertions, and is
 executed 43% of the time.
 
 Order-Status Transaction
-^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Order-Status transaction is a mid-weight read-only data transation that
 queries the status of a customer's most recent order.  The transaction
@@ -170,14 +146,14 @@ performs two row selections and nine to nineteen row selections with updates,
 and is executed 4% of the time.
 
 Delivery Transaction
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 The Delivery transaction is a database transaction that processes up to ten
 new orders.  The transaction performs two row selections, six to sixteen row
 selections with updates, and one row delection, and is executed 4% of the time.
 
 Stock-Level Transaction
-^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~
 
 The Stock-Level transaction is a heavy read-only database transaction that
 determines the number of recently sold items that have a stock level below a
@@ -185,7 +161,7 @@ specific threshold.  The transaction performs up to 900 row selections and is
 executed 4% of the time.
 
 Remote Terminal Emulators
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 A remote terminal emulator (RTE) simulates the activities of a person at a
 terminal console executing one of the five transactions supported by the
@@ -201,12 +177,10 @@ terminal records every interaction attempted and the response time from the
 point where the request is sent to when the reponse has been received.
 
 Clients
-~~~~~~~
+-------
 
 The clients are terminal concentrators that allows more than one terminal to
 share a connection to the database system.  The client program starts up a
 listener to handle terminal requests and a pool of threads to process
 transaction requests.  A new thread is created for each terminal connecting
 to the client to.
-
-\end{document}
