@@ -31,6 +31,12 @@ Databases management systems that have worked in the past but are not current:
 Setup
 =====
 
+Linux Distribution Packages
+---------------------------
+
+There may be packaging available for your Linux distribution.  See this project
+for more details: https://github.com/osdldbt/dbt2-packaging
+
 DBT-2 Test Kit Source
 ---------------------
 
