@@ -1,0 +1,45 @@
+---------------
+Developer Guide
+---------------
+
+This document is for detailing any related to the development of this test kit.
+
+AppImage
+========
+
+AppImages are only for Linux based systems:
+
+    https://appimage.org/
+
+The AppImageKit AppImage can be downloaded from:
+
+    https://github.com/AppImage/AppImageKit/releases
+
+It is recommended to build AppImages on older distributions:
+
+    https://docs.appimage.org/introduction/concepts.html#build-on-old-systems-run-on-newer-systems
+
+At the time of this document, CentOS 7 is the one of the oldest supported Linux
+distributions with the oldest libc version.
+
+The logo used is the number "2" from the Freeware Metal On Metal Font.
+
+See the `README.rst` in the `container/` directory for an example of creating
+an AppImage with a Podman container.
+
+Building the AppImage
+---------------------
+
+Use a custom configured PostgreSQL build with minimal options enabled to reduce
+library dependency support.  Part of this reason is to make it easier to
+include libraries with compatible licences.  At least version PostgreSQL 11
+should be used for the `pg_type_d.h` header file.
+
+At the time of this document, PostgreSQL 11 was configured with the following
+options::
+
+    ./configure --without-ldap --without-readline --without-zlib \
+          --without-gssapi --with-openssl
+
+Don't forget that both `PATH` and `LD_LIBRARY_PATH` may need to be set
+appropriately depending on where the custom build of PostgreSQL is installed.

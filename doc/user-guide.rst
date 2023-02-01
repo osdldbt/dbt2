@@ -31,6 +31,18 @@ Databases management systems that have worked in the past but are not current:
 Setup
 =====
 
+Linux AppImage
+--------------
+
+A Linux AppImage is available.  See **Database Management System Notes** for
+specific usage and for any database management system specific limitations.
+The DBT-2 AppImage may not always be as capable as installing the kit from
+source or from other pre-packaged distributions.
+
+For ease of use, we recommend renaming the DBT-2 AppImage binary to `dbt2`, if
+it hasn't already be done.  Examples in the documentation will assume it has
+been renamed to `dbt2`.
+
 Linux Distribution Packages
 ---------------------------
 

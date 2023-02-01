@@ -60,3 +60,5 @@ Connection Pooler Notes
 -----------------------
 
 .. include:: pgpool.rst
+
+.. include:: dev-guide.rst

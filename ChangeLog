@@ -5,7 +5,7 @@ vX.Y.X
 - Add some C directives to support building on older C tool chains, in
   particular CentOS 7
 - Add AppImage files for creating standalone single binary with limited
-  functionality, see appimage/README-APPIMAGE.rst for details
+  functionality
 - Add Podman files for creating an AppImage
 - Convert doc/ files to reStructuredText
 - Reconstruct Changelog of information prior to v0.8 and remove old saved CVS
