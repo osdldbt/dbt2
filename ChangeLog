@@ -8,6 +8,8 @@ vX.Y.X
   functionality, see appimage/README-APPIMAGE.rst for details
 - Add Podman files for creating an AppImage
 - Convert doc/ files to reStructuredText
+- Reconstruct Changelog of information prior to v0.8 and remove old saved CVS
+  ChangeLog
 
 v0.48.7
 
@@ -386,3 +388,92 @@ v0.8
 
 - Fixed the client and driver to work in a multi-tier environment with
   PostgreSQL.
+
+v0.7
+
+- Add PostgreSQL support
+- Add PostgreSQL setup README
+- Update configure rules to select database connectivity library
+- Refactor commit/rollback logic in client code
+- PostgreSQL pl/pgsql stored functions updated to return record sets
+
+v0.6
+
+- Refactor support for large file support on linux
+- Fix bug with order_line data generation
+- Fix bugs with altered execution mode
+- Enable support on FreeBSD
+- Update documentation
+- Use thread-safe localtime
+- Fix bug in get_random()
+- Log each transaction's rate and unknown errors
+- Refactor summary report; do not display transactions per seconds in addition
+  to minutes
+- Refactor datagen command line parsing to use getopt
+
+v0.5
+
+- Fix keying and thinking time override handling
+- Add ability to update SQPDB table statistics
+- Handle SAPDB SQL error codes
+- Refactor transaction send/receive code
+- Add debug code to track thread states
+- Remove stock table cardinality override
+- Add script to capture SAPDB execution plans
+- Refactor SAPDB index names
+- Support setting output directory for datagen
+- Allow terminals per warehouse to be overridden
+- Refactor SAPDB stored procedures
+- Fix SAPDB create index script
+- Fix bug in SAPDB stock level transaction
+- Add scripts to collect SAPDB statistics
+- Use primary keys, as opposed to regular basic indexes
+- Hard code large file support on linux
+- Support unixODBC
+- Add script to capture system stats
+- Add scripts for managing SAPDB
+- Create a standalone, combined 1-tier client/driver binary
+- Update SAPDB restore scripts
+- Add altered execution mode
+- Update indexes in SAPDB tables
+- Fix bug in SAPDB delivery transaction
+- Add ISOLATION levels to SAPDB transactions
+- Now logging transaction error counts
+- Now tracking rollbacks
+- Run altered mode by default
+- Update SAPDB transaction code to spec
+- Fix new order transaction calculations
+- Add script to post process sar for gnuplot
+- Refactor script names
+- Calculate rollbacks per transaction
+- Create user's guide
+- Allow seed to be overridden at command line
+- Fix bug with generated warehouse references to warehouses other than assigned
+  warehouse
+
+  v0.4
+
+- First working functionally complete kit
+- Fix SAPDB customer table definition
+- Allow keying and thinking time overrides
+- Allow warehouse range to be specified in driver
+
+v0.3
+
+- Implement transaction mix, keying time and thinking time logic
+- Refactor code used for debugging transaction data
+- Fix SAPDB table definitions to use correct data sizes
+- Refactor use of global variables
+- Refactor Makefiles
+
+v0.2
+
+- Create a transaction test program
+- Add transaction queue framework
+
+v0.1
+
+- Initial version of data generator, SAPDB transaction logic, client, and
+  scripts
+- Fix bug in accepting tcp/ip connections
+- Handle dropped tcp/ip connection in the client
