@@ -1,5 +1,8 @@
+PostgreSQL
+==========
+
 A really quick howto
-====================
+--------------------
 
 Edit examples/dbt2_profile and follow the notes for the DBT2PGDATA
 and DBDATA directory.  DBT2PGDATA is where the database directory will
@@ -16,7 +19,7 @@ Run a 5 minute (300 second) test by running dbt2-run-workload::
     dbt2-run-workload -a pgsql -d 300 -w 1 -o /tmp/result -c 10
 
 Tablespace Notes
-----------------
+~~~~~~~~~~~~~~~~
 
 The scripts assumes a specific tablespace layout.
 
@@ -50,7 +53,7 @@ the scripts are::
     ${DBT2TSDIR}/pk_warehouse
 
 A (slightly less) quick howto run the test (Thanks Min!)
-========================================================
+--------------------------------------------------------
 
 * small db 2 warehouse;
 * big db 20 warehouse,
@@ -89,7 +92,7 @@ you can control tpw (terminal per warehouse) and think time etc.::
 Finally, look in `../output/0 directory` for the possible error output
 
 tuning
-------
+~~~~~~
 
 1. If you have fsync on then the daemon will be waiting for disk I/O
    for writing log (WAL)

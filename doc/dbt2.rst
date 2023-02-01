@@ -35,3 +35,27 @@ Contributors to this white paper include:
 .. include:: tpc.rst
 .. include:: architecture.rst
 .. include:: user-guide.rst
+
+--------------------------------
+Database Management System Notes
+--------------------------------
+
+.. include:: cockroachdb.rst
+.. include:: mysql.rst
+.. include:: postgresql.rst
+.. include:: sqlite.rst
+.. include:: yugabytedb.rst
+
+----------------------
+Operating System Notes
+----------------------
+
+.. include:: linux.rst
+.. include:: rhel.rst
+.. include:: solaris.rst
+
+-----------------------
+Connection Pooler Notes
+-----------------------
+
+.. include:: pgpool.rst

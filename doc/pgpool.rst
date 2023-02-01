@@ -1,3 +1,6 @@
+pgpool
+======
+
 "pgpool is a connection pool server for PostgreSQL. pgpool runs between
 PostgreSQL's clients(front ends) and servers(back ends). A PostgreSQL client
 can connect to pgpool as if it were a standard PostgreSQL server."

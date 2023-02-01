@@ -10,6 +10,8 @@ vX.Y.X
 - Convert doc/ files to reStructuredText
 - Reconstruct Changelog of information prior to v0.8 and remove old saved CVS
   ChangeLog
+- Convert DBMS and OS READMEs to reStructuredText and incorporate them into the
+  the doc/ directory
 
 v0.48.7
 
