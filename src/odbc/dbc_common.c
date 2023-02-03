@@ -3,7 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2002 Jenny Zhang & Open Source Development Labs, Inc.
- *               2002-2022 Mark Wong & Jenny Zhang &
+ *               2002-2023 Mark Wong
  *
  * 11 June 2002
  */
@@ -170,7 +170,7 @@ int db_init_odbc(char *sname, char *uname, char *auth)
 	}
 
 	/* Set the database connect string, username and password. */
-	strncpy((char *) servername, sname, sizeof(sname));
+	strncpy((char *) servername, sname, SNAMELEN);
 	strcpy((char *) username, uname);
 	strcpy((char *) authentication, auth);
 	return OK;
