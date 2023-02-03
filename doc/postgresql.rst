@@ -83,20 +83,37 @@ Run a 5 minute (300 second) test by running `dbt2-run-workload`::
 Building the Database
 ---------------------
 
-These scripts will generate data in parallel based on the number of processors
-detected on the system, and will stream the data into the database.  The
-scripts currently do not let you control the degree of parallelism, or whether
-the data should be created as files first, but this can be run manually.
+The `dbt2-pgsql-build-db` script is designed to handle the following steps:
 
-The following command will create a 1 warehouse database in the `DBT2PGDATA`
-location specified in the user's environment::
+1. create the database
+2. create the tables
+3. generate and load the tables
+4. create the indexes
+5. vacuum the database
+
+The `dbt2-pgsql-build-db` script is also designed to generate data in parallel
+based on the number of processors detected on the system, and will stream the
+data into the database.  The script currently do not let you control the degree
+of parallelism, or whether the data should be created as files first, but these
+can be controlled manually by running the `dbt2-datagen` binary directly.
+
+The other significant choices available are:
+
+* `-r` drop the existing database first
+* `-s <c | plpgsql>` use C or pl/pgsql stored functions, where C is the default
+* `-t` use tablespaces for tables and indexes
+* `-u` the executing user is not privileged to restart the database, nor drop
+  or create a database
+
+See the usage output with the `-h` for the complete list of options.
+
+The following command will create a 1 warehouse database::
 
     dbt2-pgsql-build-db -w 1
 
-By default the table data is streamed into the database as opposed to loading
-it from files.  See the usage help for additional options::
+The following is the equivalent when using the AppImage::
 
-    dbt2-pgsql-build-db -h
+    dbt2 pgsql-build-db -w 1
 
 Environment Configuration
 -------------------------
