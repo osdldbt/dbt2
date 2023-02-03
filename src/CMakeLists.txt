@@ -81,14 +81,19 @@ if (LIBPQ_FOUND)
             libpq/dbc_order_status.c
             libpq/dbc_payment.c
             libpq/dbc_stock_level.c
-            cockroach/dbc_common.c
-            cockroach/dbc_delivery.c
-            cockroach/dbc_integrity.c
-            cockroach/dbc_new_order.c
-            cockroach/dbc_order_status.c
-            cockroach/dbc_payment.c
-            cockroach/dbc_stock_level.c
     )
+    if ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
+        set (DB_SOURCE
+                ${DB_SOURCE}
+                cockroach/dbc_common.c
+                cockroach/dbc_delivery.c
+                cockroach/dbc_integrity.c
+                cockroach/dbc_new_order.c
+                cockroach/dbc_order_status.c
+                cockroach/dbc_payment.c
+                cockroach/dbc_stock_level.c
+        )
+    endif ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
     execute_process (COMMAND pg_config --includedir-server
             OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
             OUTPUT_STRIP_TRAILING_WHITESPACE)

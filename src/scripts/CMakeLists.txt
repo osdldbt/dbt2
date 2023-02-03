@@ -1,5 +1,7 @@
 if (LIBPQ_FOUND)
-	add_subdirectory (cockroach)
+    if ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
+	    add_subdirectory (cockroach)
+    endif ("${LIBPQ_VERSION}" VERSION_GREATER_EQUAL "11.0")
 	add_subdirectory (pgsql)
 	add_subdirectory (yugabyte)
 endif (LIBPQ_FOUND)

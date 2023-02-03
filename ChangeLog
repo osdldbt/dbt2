@@ -17,6 +17,8 @@ vX.Y.X
   guide into their respective section
 - Update the user guide
 - Update PostgreSQL documentation
+- Build CockroachDB support only if PostgreSQL 11+ is available since
+  pg_type_c.h is required for binary mode support
 
 v0.48.7
 
