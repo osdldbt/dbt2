@@ -8,12 +8,13 @@
  *               2002-2022 Mark Wong
  *
  */
+
+#define _POSIX_C_SOURCE 200809L
        
 #include "common.h"
 #include "logging.h"
 #include "db.h"
 #include <stdio.h>
-#define _GNU_SOURCE
 #include <string.h>
 
 #include "nonsp_delivery.h"
