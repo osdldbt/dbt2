@@ -9,7 +9,7 @@
  */
 
 #define _POSIX_C_SOURCE 200112L
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #include "common.h"
 
