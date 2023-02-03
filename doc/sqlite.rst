@@ -1,12 +1,6 @@
 SQLite
 ======
 
-To build the kit::
-
-    make release
-    cd builds/release
-    make install
-
 To create a database::
 
     dbt2-sqlite-build-db -g -w 1 -d /tmp/dbt2-w1 -f /tmp/dbt2data

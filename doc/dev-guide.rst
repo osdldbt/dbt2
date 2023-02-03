@@ -4,6 +4,29 @@ Developer Guide
 
 This document is for detailing any related to the development of this test kit.
 
+Building the Kit
+================
+
+CMake is build system used for this kit.  A `Makefile.cmake` is provided to
+automate some of the tasks.
+
+Building for debugging::
+
+    make -f Makefile.cmake debug
+
+Building for release::
+
+    make -f Makefile.cmake release
+
+Building source packages::
+
+    make -f Makefile.cmake package
+
+See the **AppImage** section for details on building an AppImage.  There are
+additional requirements for the `appimage` target in the `Makefile.cmake`.
+Alternatively, the kit provides scripts to create a container that can create
+an AppImage.
+
 AppImage
 ========
 
