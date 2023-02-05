@@ -24,3 +24,5 @@ install (
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-sysstats
 	DESTINATION "bin"
 )
+
+add_subdirectory (test)

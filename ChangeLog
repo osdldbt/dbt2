@@ -21,6 +21,7 @@ vX.Y.X
   pg_type_c.h is required for binary mode support
 - Fix datagen partitioning logic
 - Add tests to verify datagen partitioning correctness
+- Add test to check output of post-process
 
 v0.48.7
 

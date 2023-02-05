@@ -40,6 +40,12 @@ than if the data was not partitioned.  There are some data that is generated
 with the time stamp of when the data is created, so those columns are ignored
 when comparing data since they are not likely to be the same time stamps.
 
+post-process
+------------
+
+A test is provided to make sure that the post-process output continue to work
+with multiple mix files.
+
 AppImage
 ========
 
