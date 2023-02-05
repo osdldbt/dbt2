@@ -27,6 +27,19 @@ additional requirements for the `appimage` target in the `Makefile.cmake`.
 Alternatively, the kit provides scripts to create a container that can create
 an AppImage.
 
+Testing the Kit
+===============
+
+The CMake testing infrastructure is used with shUnit2 to provide some testing.
+
+datagen
+-------
+
+Tests are provided to verify that partitioning does not generate different data
+than if the data was not partitioned.  There are some data that is generated
+with the time stamp of when the data is created, so those columns are ignored
+when comparing data since they are not likely to be the same time stamps.
+
 AppImage
 ========
 

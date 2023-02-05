@@ -50,7 +50,6 @@ void gen_customers();
 void gen_districts();
 void gen_history();
 void gen_items();
-void gen_new_order();
 void gen_orders();
 void gen_stock();
 void gen_warehouses();
@@ -167,8 +166,8 @@ void gen_customers()
 
 	if (part > 1)
 		pcg64f_advance_r(&rng,
-				(part - 1) * (DISTRICT_CARDINALITY *
-						(customers * 10 + 2 * (customers - 1000))));
+				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
+				* (customers * 10 + 2 * (customers - 1000)));
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -381,7 +380,9 @@ void gen_districts()
 	}
 
 	if (part > 1)
-		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * 7);
+		pcg64f_advance_r(&rng,
+				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
+				* 7);
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -534,7 +535,9 @@ void gen_history()
 	}
 
 	if (part > 1)
-		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * customers);
+		pcg64f_advance_r(&rng,
+				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
+				* customers);
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -957,7 +960,9 @@ void gen_orders()
 	}
 
 	if (part > 1)
-		pcg64f_advance_r(&rng, (part - 1) * DISTRICT_CARDINALITY * ((customers - 1) + 2101 + orders));
+		pcg64f_advance_r(&rng,
+				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
+				* ((customers - 1) + 2101 + orders));
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -1218,7 +1223,8 @@ void gen_stock()
 	}
 
 	if (part > 1)
-		pcg64f_advance_r(&rng, (part - 1) * items * 13);
+		pcg64f_advance_r(&rng,
+				(part - 1) * (warehouses / partitions) * items * 13);
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < items; j++) {
@@ -1414,7 +1420,7 @@ void gen_warehouses()
 	}
 
 	if (part > 1)
-		pcg64f_advance_r(&rng, (part - 1) * 7);
+		pcg64f_advance_r(&rng, (part - 1) * (warehouses / partitions) * 7);
 
 	for (i = start; i < end; i++) {
 		/* w_id */
@@ -1656,6 +1662,8 @@ int main(int argc, char *argv[])
 		entropy_getbytes((void *) &seed, sizeof(seed));
 	}
 	printf("seed = %llu\n", seed);
+	printf("total partitions = %d\n", partitions);
+	printf("part = %d\n", part);
 
 	printf("warehouses = %d\n", warehouses);
 	printf("districts = %d\n", DISTRICT_CARDINALITY);

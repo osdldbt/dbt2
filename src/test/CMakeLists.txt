@@ -1,0 +1,14 @@
+add_test(NAME datagen_customer
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_customer.sh)
+add_test(NAME datagen_district
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_district.sh)
+add_test(NAME datagen_history
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_history.sh)
+add_test(NAME datagen_item
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_item.sh)
+add_test(NAME datagen_order_order_line
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_order_order_line.sh)
+add_test(NAME datagen_stock
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_item.sh)
+add_test(NAME datagen_warehouse
+         COMMAND ${CMAKE_SOURCE_DIR}/src/test/t_datagen_warehouse.sh)

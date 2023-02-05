@@ -329,6 +329,7 @@ usage()
 	echo "Generate options:"
 	echo "  -a DBMS       dbms under test (pgsql)"
 	echo "  -A            enable altered execution mode"
+	echo "  -b #          Number of warehouses per process, default all specified by -w"
 	if [ ! "x$DRIVER3" = "x1" ]; then
 		echo "  -c #          number of database connection to open"
 		echo "  -C ADDRESS    address of client system, default localhost"

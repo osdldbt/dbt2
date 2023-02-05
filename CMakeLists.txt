@@ -8,6 +8,8 @@ set (PROJECT_VERSION_PATCH 7)
 set (PROJECT_VERSION
      ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
 
+enable_testing()
+
 include (CheckLibraryExists)
 
 add_subdirectory (src)

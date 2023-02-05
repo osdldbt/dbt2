@@ -1,7 +1,7 @@
 .PHONY: appimage clean debug package release test
 
 default:
-	@echo "targets: appimage (Linux only), clean, debug, package, release"
+	@echo "targets: appimage (Linux only), clean, debug, package, release, test"
 
 UNAME_S := $(shell uname -s)
 
@@ -34,3 +34,6 @@ package:
 release:
 	cmake -H. -Bbuilds/release
 	cd builds/release && make
+
+test: debug
+	cd builds/debug && make test
