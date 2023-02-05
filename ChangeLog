@@ -120,7 +120,7 @@ v0.46.0
 - Refactor client code for libpq to automatically build support if libraries
   exist
 - Remove support for Drizzle; discontinued since 2016
-- Allow specifying partitioning options in PostgreSQL data load script 
+- Allow specifying partitioning options in PostgreSQL data load script
 - Refactor client code for sqlite3 to automatically build support if libraries
   exist
 - Refactor client code for MySQL to automatically build support if libraries
@@ -154,7 +154,7 @@ v0.43.0
 
 - Adopt Artistic License 2.0
 - Fix run-workload script to work on single tier configuration, bugs
-  introduced v0.42 
+  introduced v0.42
 - Driver now logs w_id and d_id per transaction
 - Fix segmentation fault when limiting the total number of driver threads
 - Increase buffer size for the database hostname in the client to 64 bytes
