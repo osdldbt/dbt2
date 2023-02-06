@@ -16,6 +16,7 @@ endif (MYSQLCLIENT_FOUND)
 
 install (
 	PROGRAMS
+    ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-easy
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process

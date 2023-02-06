@@ -1,0 +1,16 @@
+#!/bin/sh
+
+dbt2-driver3 \
+		-altered 1 \
+		-ktd 0 \
+		-ktn 0 \
+		-kto 0 \
+		-ktp 0 \
+		-kts 0 \
+		-sleep 100 \
+		-ttd 0 \
+		-ttn 0 \
+		-tto 0 \
+		-ttp 0 \
+		-tts 0 \
+		"$@"

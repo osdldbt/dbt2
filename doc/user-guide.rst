@@ -185,6 +185,40 @@ Using `dbt2-client` in conjunction with `dbt2-driver` is considered the most
 traditional way to run the test.  `dbt2-driver3` was developed as a more
 efficient and easier to use program to drive the workload.
 
+The "Easy" Way
+--------------
+
+There are many ways that this kit can be used.  What *easy* means here is that
+many of the decisions are made for you:
+
+1. Use the DBT-2 AppImage because it is packaged with database management
+   system client libraries and post processing analytical packages, thus
+   minimizing system software setup.
+2. Use a system where the database is already running and you have privileges
+   to created a database, because these steps don't help with database
+   installation or configuration.
+3. Use the event-driven multi-process driver, which opens 1 database connection
+   per processor on the system by default and minimizes the number of tiers
+   used for testing.
+4. Do not use any keying or thinking time, thus letting the system be driven as
+   hard as possible depending on the number of available processors on the
+   system.
+
+The number of warehouses and the length of the test can still be specified.
+
+The examples in this section assume that the DBT-2 AppImage has been renamed to
+`dbt2` and is in the user's `PATH`.
+
+PostgreSQL
+~~~~~~~~~~
+
+Run the following commands to build a 1 warehouse database with pl/pgsql stored
+functions, run a 2 minute (120 second) test, and process the results::
+
+    DBT2DBNAME="dbt2" dbt2 pgsql-build-db -u -s plpgsql -w 1
+    dbt2 easy -a pgsql -d db.hostname -b dbt2 -l 120 -outdir /tmp/results -w 1
+    dbt2 post-process /tmp/results/mix-*.log
+
 Manual Test Execution
 ---------------------
 

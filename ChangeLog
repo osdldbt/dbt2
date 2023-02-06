@@ -26,6 +26,8 @@ vX.Y.X
 - Distribute Julia and package post-process package dependencies in AppImage
 - Driver automatically sets wmin and wmax to 1 and max warehouses, resp, if not
   specified on the command line
+- Add "easy" script for simple testing with driver3 that runs without keying or
+  thinking time.
 
 v0.48.7
 
