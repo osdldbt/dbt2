@@ -271,7 +271,8 @@ int start_driver()
 	printf("will stop test at time %d\n\n", stop_time);
 
 	printf("%d out of %d processors available\n", nprocs, get_nprocs_conf());
-	printf("starting %d driver process(es)\n", max_fork);
+	printf("starting %d driver process(es) "
+			"(1 database connection per process)\n", max_fork);
 	printf("each fork will cover %f warehouse(s)\n\n", partition_size);
 	fflush(stdout);
 
