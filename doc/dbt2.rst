@@ -52,7 +52,6 @@ Operating System Notes
 ----------------------
 
 .. include:: linux.rst
-.. include:: rhel.rst
 .. include:: solaris.rst
 
 -----------------------
