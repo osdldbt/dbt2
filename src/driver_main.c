@@ -58,6 +58,11 @@ int main(int argc, char *argv[])
 	free(output_path);
 #endif /* DRIVER1 */
 
+	if (w_id_min == 0)
+		w_id_min = 1;
+	if (w_id_max == 0)
+		w_id_max = table_cardinality.warehouses;
+
 	/* Sanity check on the parameters. */
 	if (w_id_min > w_id_max) {
 		printf("wmin cannot be larger than wmax\n");

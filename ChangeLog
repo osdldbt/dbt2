@@ -24,6 +24,8 @@ vX.Y.X
 - Add test to check output of post-process
 - Port post-process script from R to Julia
 - Distribute Julia and package post-process package dependencies in AppImage
+- Driver automatically sets wmin and wmax to 1 and max warehouses, resp, if not
+  specified on the command line
 
 v0.48.7
 
