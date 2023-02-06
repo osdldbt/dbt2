@@ -26,6 +26,9 @@ CPackSourceConfig.cmake
 *.gz
 *.bz2
 
+# quilt
+.pc/
+
 dbt2_client.pid
 dbt2.log
 error.log
