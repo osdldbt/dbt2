@@ -12,14 +12,17 @@ RUN yum -qy update && \
                    flex \
                    gcc \
                    libev-devel \
+                   libffi-devel \
                    make \
-                   openssl-devel \
                    patch \
+                   perl \
                    sqlite-devel \
-                   xz && \
+                   xz \
+                   zlib-devel && \
     yum -qy clean all
 
 RUN mkdir -p /usr/local/AppDir
+ENV LD_LIBRARY_PATH="/usr/local/lib64"
 
 ARG JULIAVER="1.8.5"
 ENV JULIA_DEPOT_PATH=/usr/local/AppDir/opt/julia
@@ -30,6 +33,27 @@ RUN curl -o /tmp/julia-${JULIAVER}-linux-x86_64.tar.gz \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/julia && \
     /usr/local/AppDir/usr/bin/julia --quiet -C generic \
             -e 'import Pkg; Pkg.add("CSV"); Pkg.add("DataFrames");'
+
+ARG OPENSSLVER="1.1.1s"
+RUN curl -o /tmp/openssl-${OPENSSLVER}.tar.gz \
+         -sOL https://www.openssl.org/source/openssl-${OPENSSLVER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/openssl-${OPENSSLVER}.tar.gz
+WORKDIR /usr/local/src/openssl-${OPENSSLVER}
+RUN ./config -fPIC shared && \
+    make -s -j$(nproc) && \
+    make -s install
+
+ARG PYTHONVER="3.11.1"
+RUN curl -o /tmp/Python-${PYTHONVER}.tgz \
+         -sOL https://www.python.org/ftp/python/${PYTHONVER}/Python-${PYTHONVER}.tgz && \
+    tar -C /usr/local/src -xf /tmp/Python-${PYTHONVER}.tgz
+WORKDIR /usr/local/src/Python-${PYTHONVER}
+RUN ./configure --silent --prefix=/usr/local/AppDir/usr \
+                --with-openssl-rpath=/usr/local/lib64 && \
+    make -s -j$(nproc) && \
+    make -s install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/python3.11 && \
+    /usr/local/AppDir/usr/bin/pip3 install docutils
 
 # PostgreSQL 11 is the first release creating the pg_type_d.h include file for
 # CockroachDB binary support.

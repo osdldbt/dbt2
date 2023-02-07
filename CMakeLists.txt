@@ -94,31 +94,13 @@ add_custom_target(appimage-podman
             `ldd src/${DRIVER3} | grep libev.so | cut -d \" \" -f 3`
             AppDir/usr/lib
     COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libgssapi_krb5.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
             `ldd src/${DRIVER3} | grep libpq.so | cut -d \" \" -f 3`
             AppDir/usr/lib
     COMMAND cp -aL
+            `ldd src/${DRIVER3} | grep libnsl.so | cut -d \" \" -f 3`
+            AppDir/usr/lib
+    COMMAND cp -aL
             `ldd src/${DRIVER3} | grep libssl.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libk5crypto.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libkeyutils.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libkrb5.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libkrb5support.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libpcre.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libselinux.so | cut -d \" \" -f 3`
             AppDir/usr/lib
     COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
             --comp=xz AppDir
