@@ -16,7 +16,7 @@ if [ "$ENGINE" = "" ]; then
 else
 	if ! which $ENGINE > /dev/null 2>&1; then
 		echo "specified engine $ENGINE not in path"
-		exit
+		exit 1
 	fi
 fi
 echo "using container engine: $ENGINE"
