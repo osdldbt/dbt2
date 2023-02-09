@@ -1,4 +1,4 @@
-vX.Y.X
+vX.Y.X (YYYY-MM-DD)
 
 - Fix use of ignore file for podman use
 - Allow user to specify container engine
@@ -28,18 +28,19 @@ vX.Y.X
   specified on the command line
 - Add "easy" script for simple testing with driver3 that runs without keying or
   thinking time.
+- Add dates to ChangeLog
 
-v0.48.7
+v0.48.7 (2022-12-02)
 
 - Fix white space trimming of scale factor in report generator
 
-v0.48.6
+v0.48.6 (2022-12-01)
 
 - Fix calculation of ramp up time when processing multiple mix files
 - Fix driver3 ramp up and stop time calculations
 - Fix use of ignore file for container use
 
-v0.48.5
+v0.48.5 (2022-11-28)
 
 - Increase the buffer size of sname to accommodate hostnames longer than 64
   characters
@@ -52,16 +53,16 @@ v0.48.5
 - Use Fedora instead of Debian in container scripts
 - Fix calculation of driver rampup time when using driver3
 
-v0.48.4
+v0.48.4 (2022-11-02)
 
 - Fix some scripting bugs in collecting PostgreSQL database stats
 - Stop throwing errors from missing docutils or pandoc in report generation
 
-v0.48.3
+v0.48.3 (2022-06-28)
 
 - Create detailed-summary.rst in the results directory instead of current path
 
-v0.48.2
+v0.48.2 (2022-06-10)
 
 - Add separate CockroackDB load-db script
 - Fix setting the database port for PostgreSQL and MySQL in the driver3
@@ -73,7 +74,7 @@ v0.48.2
 - Update Docker scripts to support YugabyteDB
 - Fix libpq debug printing of time stamps
 
-v0.48.1
+v0.48.1 (2022-05-10)
 
 - Update PostgreSQL report script
 - Update Docker helper scripts to use Makefile.cmake
@@ -84,7 +85,7 @@ v0.48.1
 - Check for rst2html5 in additional to rst2html5.py
 - Switch distro used in Dockerfile from Rocky to Debian
 
-v0.48.0
+v0.48.0 (2022-04-25)
 
 - Clean up CPack rules
 - Fix logic issue when starting PostgreSQL database after initialization
@@ -99,7 +100,7 @@ v0.48.0
   script
 - Rename helper Makefile to Makefile.cmake
 
-v0.47.0
+v0.47.0 (2022-03-30)
 
 - Add experimental multi-process driver2 that uses event callbacks (libev)
 - Add new standalone driver (driver3) combining event callbacks with
@@ -108,12 +109,12 @@ v0.47.0
 - Parallelize PostgreSQL vacuuming when building the database
 - pgsql: Disable autovacuum on a table while it is being loaded
 
-v0.46.2
+v0.46.2 (2022-03-29)
 
 - Fix post-process script to ignore transaction errors in statistical
   calculations
 
-v0.46.1
+v0.46.1 (2022-03-24)
 
 - Fix data generator quoting bug introduced in v0.46.0
 - Clean up client usage message with additions in v0.46.0
@@ -122,7 +123,7 @@ v0.46.1
 - Clean up datagen usage message
 - Fix post-process script to correctly handle merged mix logs
 
-v0.46.0
+v0.46.0 (2022-03-07)
 
 - Refactor client code for libpq to automatically build support if libraries
   exist
@@ -138,17 +139,17 @@ v0.46.0
 - Use function pointers for managing output of timestamps in datagen
 - Replace macros with functions in datagen
 
-v0.45.1
+v0.45.1 (2022-03-02)
 
 - Rename PostgreSQL dbt2 extension's SQL file
 
-v0.45.0
+v0.45.0 (2022-03-01)
 
 - Fix memory clobbering bug introduced when using libpq functions in binary
   mode
 - Increase size of additional data structures for UTF-8
 
-v0.44.0
+v0.44.0 (2022-02-21)
 
 - Made some changes to Docker scripts to help customize PostgreSQL version used
 - Add scripts to build a database on CockroachDB
@@ -157,7 +158,7 @@ v0.44.0
 - Add scripts to build a database on YugabyteDB
 - Update libpq client code to transmit and receive data in binary mode.
 
-v0.43.0
+v0.43.0 (2022-02-07)
 
 - Adopt Artistic License 2.0
 - Fix run-workload script to work on single tier configuration, bugs
@@ -170,7 +171,7 @@ v0.43.0
 - Update Dockerfile to use Rocky Linux instead of CentOS
 - Fix driver execution when limited to a single terminal
 
-v0.42
+v0.42 (2021-10-26)
 
 - Add Docker files and scripts to test building and evaluate a PostgreSQL
   database.
@@ -184,7 +185,7 @@ v0.42
 - Support basic 3-tier execution with run-workload script
 - Refactored altered mode driver execution with finer grained controls
 
-v0.41
+v0.41 (2010-12-01)
 
 - Renamed the 'scripts' directory to 'bin'.
 - Added SQLite support.
@@ -198,7 +199,7 @@ v0.41
 - Run scripts capable of running multiple instances of clients and drivers.
 - Direct load data for Postgres.
 
-v0.40
+v0.40 (2006-11-27)
 
 - Various fixes with all the scripts.
 - Ability to run in a two-tier environment.
@@ -207,53 +208,53 @@ v0.40
 - Added support for pgpool.
 - Fixed memory violation with datagen.
 
-v0.39
+v0.39 (2006-10-03)
 
 - Merged run_mysql.sh script into run_workload.sh script.
 - Various fixes with all scripts.
 - Fixed up autoconf scripts.  Now database libraries aren't linked to datagen.
 
-v0.38
+v0.38 (2006-09-29)
 
 - Various fixes with all scripts.
 - Improved configure.ac to use pg_config for PostgreSQL.
 - Updated PostgreSQL scripts to work with PostgreSQL 8.1 and newer.
 - Updated PostgreSQL stored functions for 8.1 and newer.
 
-v0.37
+v0.37 (2005-11-02)
 
 - Removed use of the $SHELL environment variable so the kit is more portable.
 
-v0.36
+v0.36 (2005-10-20)
 
 - Added a check for ulimit -n.
 - Fixed the response time calculations to be after all threads have started.
 
-v0.35
+v0.35 (2005-10-10)
 
 - Critial fix for the data generator.
 - Critial fix for the Payment transaction when using MySQL.
 - Changed the database integrity check into a command line option.
 
-v0.34
+v0.34 (2005-09-27)
 
 - Calculate 90th percentile reponse times in scripts/mix_analyzer.pl.
 - Fix up in run_mysql.sh.in.
 
-v0.33
+v0.33 (2005-08-31)
 
 - Script improvements.
 - Fixed the Makefile for funcs.so.
 - Collect callgraph data with oprofile.  Only really works for ia32 and ARM
   due to oprofile support.
 
-v0.32
+v0.32 (2005-08-11)
 
 - Updated the autoconf scripts to not fail if pg_autovacuum is not found.
   With 8.1 coming up, it is part of the backend now.
 - Fixed scripts/pgsql/analyze_stats.pl to work correctly.
 
-v0.31
+v0.31 (2005-07-25)
 
 - Modified the table creation and index creation scripts so that the primary
   keys are created as part of the index builds.
@@ -263,12 +264,12 @@ v0.31
 - Fixed a bug in src/libpq/dbc_payment.c where the wrong parameter was being
   passed.
 
-v0.30
+v0.30 (2005-06-21)
 
 - Added x- and y-axis lines for the PostgreSQL database charts.
 - Fixed the autoconf files to include files for MySQL with no stored procedures.
 
-v0.29
+v0.29 (2005-06-17)
 
 - Removed default configure to PostgreSQL in configure.ac.  It will prompt for
   the database to be specified if none is given.
@@ -277,24 +278,24 @@ v0.29
 - Fixed mix_analyzer.pl to stop counting failed transactions as successful
   transactions.
 
-v0.28
+v0.28 (2005-05-31)
 
 - Improved configure.ac to check for headers for PostgreSQL.
 - Fixed Makefile.am to include the README-* files in a 'make dist'.
 
-v0.27
+v0.27 (2005-05-24)
 
 - Fixed Makefiles for 'make dist'.
 - Modified scripts for PostgreSQL so that tablespaces can be used.
   README-POSTGRESQL has been updated with notes on how to use tablespaces.
 
-v0.26
+v0.26 (2005-05-18)
 
 - Improved configure.in to set executable permission onfiles it generated.
 - More fixes related to setting the stack size in the C programs.
 - Added headers to files where previously missing.
 
-v0.25
+v0.25 (2005-03-01)
 
 - PostgreSQL requires pg_autovacuum now, but you could edit the kit so it can
   still run without it.
@@ -308,55 +309,56 @@ v0.25
 - gen_html.sh is now used automatically to generate results in HTML.
 - Other misc. script fixes and enhancements for PostgreSQL.
 
-v0.24
+v0.24 (2004-12-02)
 
 - Changed the format of the vmstat data files that are graphed.
 - Fix for results.c for some 64 bit platform.
 
-v0.23
+v0.23 (2004-06-25)
 
 - MySQL support.
 - Minor bug fix with generating data for the payment transaction.
 
-v0.22
+v0.22 (2004-03-24)
 
 - Build environment updates
 
-v0.21.1
+v0.21.1 (2004-02-04)
 
 - User Guide updates.
 
-v0.21
+v0.21 (2003-11-18)
 
 - Fixed a bug in in _accept().
 - Updated the user's guide.
 - Changed the column data types in various tables for performance.
 
-v0.20
+v0.20 (2003-09-26)
 
 - Fixed a bug in the New-Order transaction that was introduced into v0.19
   by accident.
 
-v0.19
+v0.19 (2003-09-25)
 
 - Fixed a query in the New-Order transaction to reduce the number of rollbacks.
-v0.18
+
+v0.18 (2003-09-05)
 
 - Fixed a bug in the driver regarding the assignment of warehouse id's to each
   thread.
 
-v0.17
+v0.17 (2003-09-04)
 
 - Fixed a bug in the New-Order transaction in the PostgreSQL C function.
 - More work on the run_workload.sh script.
 
-v0.16
+v0.16 (2003-08-19)
 
 - Replaced the OpenOffice text documents with LaTeX versions.
 - Fixed the rollback logic for the New-Order transaction with SAP DB.
 - Added backup and restore scripts for PostgreSQL.
 
-v0.15
+v0.15 (2003-08-08)
 
 - Fixed the rollback logic in the New-Order transaction.
 - Added more status output in the client.
@@ -365,11 +367,11 @@ v0.15
 - Really fixed the stored procedures for SAP DB 7.3.0.25 this time.
 - Fixed logic in New-Order that screwed up the stock table.
 
-v0.14
+v0.14 (2003-08-08)
 
 - Removed nonblocking socket code.
 
-v0.13
+v0.13 (2003-08-06)
 
 - Fixed the default stored procedures to work with 7.3.0.25.
 - Undid code to use nonblocking sockets, I just don't know how to do it right.
@@ -378,7 +380,7 @@ v0.13
   a multi-tier environment.
 - Added more status output in the client.
 
-v0.12
+v0.12 (2003-08-05)
 
 - Started using nonblocking sockets for communication with the client.
 - Added some more status information to the client.
@@ -386,28 +388,29 @@ v0.12
   a multi-tier environment.  Maybe cause problems when attempting to drive
   many many users.
 
-v0.11
+v0.11 (2003-08-04)
+
 - Fixed db_setup.sh.in for SAP DB to generate the correct data.
 - Fixed the tools directory Makefile.in for SAP DB.
 
-v0.10
+v0.10 (2003-08-01)
 
 - Changed default altered mode to 0.
 - Cleaned out lingering CVS directories.
 
-v0.9
+v0.9 (2003-08-01)
 
 - Fixed funcs.c (the stored functions) to correctly escape a couple more
   characters.
 - Fixed the random seeding of threads.
 - Fixed passing of transaction status in the multi-tier environment.
 
-v0.8
+v0.8 (2003-07-31)
 
 - Fixed the client and driver to work in a multi-tier environment with
   PostgreSQL.
 
-v0.7
+v0.7 (2003-06-19)
 
 - Add PostgreSQL support
 - Add PostgreSQL setup README
@@ -415,7 +418,7 @@ v0.7
 - Refactor commit/rollback logic in client code
 - PostgreSQL pl/pgsql stored functions updated to return record sets
 
-v0.6
+v0.6 (2003-04-30)
 
 - Refactor support for large file support on linux
 - Fix bug with order_line data generation
@@ -429,7 +432,7 @@ v0.6
   to minutes
 - Refactor datagen command line parsing to use getopt
 
-v0.5
+v0.5 (2003-02-28)
 
 - Fix keying and thinking time override handling
 - Add ability to update SQPDB table statistics
@@ -469,14 +472,14 @@ v0.5
 - Fix bug with generated warehouse references to warehouses other than assigned
   warehouse
 
-  v0.4
+  v0.4 (2002-08-21)
 
 - First working functionally complete kit
 - Fix SAPDB customer table definition
 - Allow keying and thinking time overrides
 - Allow warehouse range to be specified in driver
 
-v0.3
+v0.3 (2002-08-15)
 
 - Implement transaction mix, keying time and thinking time logic
 - Refactor code used for debugging transaction data
@@ -484,12 +487,12 @@ v0.3
 - Refactor use of global variables
 - Refactor Makefiles
 
-v0.2
+v0.2 (2002-08-06)
 
 - Create a transaction test program
 - Add transaction queue framework
 
-v0.1
+v0.1 (2002-07-23 )
 
 - Initial version of data generator, SAPDB transaction logic, client, and
   scripts
