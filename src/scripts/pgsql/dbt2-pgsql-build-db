@@ -34,7 +34,7 @@ usage()
 
 WAREHOUSES=1
 GENERATE_DATAFILE=0
-PRIVILEGED=1
+PRIVILEGED=0
 REBUILD_DB=0
 UDF_TYPE="plpgsql"
 VACUUM_FULL=0
@@ -61,7 +61,7 @@ while getopts "hl:p:rs:tuw:f" OPT; do
 		TABLESPACES_FLAG="-t"
 		;;
 	u)
-		PRIVILEGED=0
+		PRIVILEGED=1
 		;;
 	w)
 		WAREHOUSES=${OPTARG}

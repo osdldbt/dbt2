@@ -194,9 +194,9 @@ many of the decisions are made for you:
 1. Use the DBT-2 AppImage because it is packaged with database management
    system client libraries and post processing analytical packages, thus
    minimizing system software setup.
-2. Use a system where the database is already running and you have privileges
-   to created a database, because these steps don't help with database
-   installation or configuration.
+2. Use a system where the database is already running and you already created
+   a database, because these steps don't help with database installation or
+   configuration.
 3. Use the event-driven multi-process driver, which opens 1 database connection
    per processor on the system by default and minimizes the number of tiers
    used for testing.
@@ -215,7 +215,7 @@ PostgreSQL
 Run the following commands to build a 1 warehouse database with pl/pgsql stored
 functions, run a 2 minute (120 second) test, and process the results::
 
-    DBT2DBNAME="dbt2" dbt2 pgsql-build-db -u -w 1
+    DBT2DBNAME="dbt2" dbt2 pgsql-build-db -w 1
     dbt2 easy -a pgsql -d db.hostname -b dbt2 -l 120 -outdir /tmp/results -w 1
     dbt2 post-process /tmp/results/mix-*.log
 

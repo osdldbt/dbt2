@@ -386,7 +386,7 @@ WORKING_DIR=""
 DB_USER=${DBUSER}
 DBAAS=0
 FPP=1
-PRIVILEGED=1
+PRIVILEGED=0
 THREAD_STARTUP_DELAY=1000 # milliseconds
 USE_OPROFILE=0
 USE_PERF=0
@@ -470,7 +470,7 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
 		validate_parameter $opt $OPTARG $THREADS_PER_WAREHOUSE
 		;;
 	u)
-		PRIVILEGED=0
+		PRIVILEGED=1
 		;;
 	U)
 		DB_USER=${OPTARG}

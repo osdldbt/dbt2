@@ -32,6 +32,9 @@ vX.Y.X (YYYY-MM-DD)
 - Make plpgsql stored functions the default for PostgreSQL for ease of use, as
   opposed to performance reasons, but same extra steps as before can still be
   used to load C stored functions
+- Reverse use of unprivileged -u flag to specified whether user has privileges
+  for ease of use; e.g. by assuming that it is easier to not restart the
+  database system unless the user knows they have privileges to do so
 
 v0.48.7 (2022-12-02)
 

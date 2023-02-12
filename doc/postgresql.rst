@@ -103,8 +103,8 @@ The other significant choices available are:
 * `-s <c | plpgsql>` use C or pl/pgsql stored functions, where plpgsql is the
   default
 * `-t` use tablespaces for tables and indexes
-* `-u` the executing user is not privileged to restart the database, nor drop
-  or create a database
+* `-u` the executing user has privileges to restart the database system, and
+  drop and create a database
 
 See the usage output with the `-h` for the complete list of options.
 
@@ -201,7 +201,7 @@ Create a 1 warehouse database (note that the database name is exported into
 the `DBT2NAME` environment) variable::
 
     export DBT2NAME="dbt2"
-    dbt2 pgsql-build-db -u -w 1
+    dbt2 pgsql-build-db -w 1
 
 Run a 2 minute test::
 
