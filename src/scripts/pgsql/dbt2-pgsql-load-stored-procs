@@ -19,6 +19,7 @@ usage()
 	echo "    plpgsql - pl/pgsql stored functions"
 }
 
+TYPE="plpgsql"
 while getopts "l:t:" OPT; do
 	case ${OPT} in
 	l)

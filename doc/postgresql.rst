@@ -100,7 +100,8 @@ can be controlled manually by running the `dbt2-datagen` binary directly.
 The other significant choices available are:
 
 * `-r` drop the existing database first
-* `-s <c | plpgsql>` use C or pl/pgsql stored functions, where C is the default
+* `-s <c | plpgsql>` use C or pl/pgsql stored functions, where plpgsql is the
+  default
 * `-t` use tablespaces for tables and indexes
 * `-u` the executing user is not privileged to restart the database, nor drop
   or create a database
@@ -200,7 +201,7 @@ Create a 1 warehouse database (note that the database name is exported into
 the `DBT2NAME` environment) variable::
 
     export DBT2NAME="dbt2"
-    dbt2 pgsql-build-db -s plpgsql -u -w 1
+    dbt2 pgsql-build-db -u -w 1
 
 Run a 2 minute test::
 

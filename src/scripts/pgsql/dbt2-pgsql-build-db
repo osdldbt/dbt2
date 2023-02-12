@@ -21,7 +21,7 @@ usage()
 	echo "    -r"
 	echo "        Drop existing database before building a new database"
 	echo "    -s <c | plpgsql>"
-	echo "        User defined functions to install, default: c"
+	echo "        User defined functions to install, default: plpgsql"
 	echo "    -t"
 	echo "        Use tablespaces."
 	echo "    -u"
@@ -36,7 +36,7 @@ WAREHOUSES=1
 GENERATE_DATAFILE=0
 PRIVILEGED=1
 REBUILD_DB=0
-UDF_TYPE="c"
+UDF_TYPE="plpgsql"
 VACUUM_FULL=0
 
 while getopts "hl:p:rs:tuw:f" OPT; do

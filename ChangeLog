@@ -29,6 +29,9 @@ vX.Y.X (YYYY-MM-DD)
 - Add "easy" script for simple testing with driver3 that runs without keying or
   thinking time.
 - Add dates to ChangeLog
+- Make plpgsql stored functions the default for PostgreSQL for ease of use, as
+  opposed to performance reasons, but same extra steps as before can still be
+  used to load C stored functions
 
 v0.48.7 (2022-12-02)
 

@@ -215,7 +215,7 @@ PostgreSQL
 Run the following commands to build a 1 warehouse database with pl/pgsql stored
 functions, run a 2 minute (120 second) test, and process the results::
 
-    DBT2DBNAME="dbt2" dbt2 pgsql-build-db -u -s plpgsql -w 1
+    DBT2DBNAME="dbt2" dbt2 pgsql-build-db -u -w 1
     dbt2 easy -a pgsql -d db.hostname -b dbt2 -l 120 -outdir /tmp/results -w 1
     dbt2 post-process /tmp/results/mix-*.log
 
