@@ -1,4 +1,4 @@
-vX.Y.X (YYYY-MM-DD)
+v0.49.0 (2023-02-09)
 
 - Fix use of ignore file for podman use
 - Allow user to specify container engine
