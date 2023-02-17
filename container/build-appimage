@@ -19,7 +19,7 @@ patch -p1 < patches/bsd_vs_default.patch
 patch -p1 < patches/cmake.patch
 podman run \
 		--rm \
-		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw" \
+		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw,Z" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /usr/local/src/dbt2 \
 		$CONTAINER_TAG \
@@ -31,7 +31,7 @@ patch -R -p1 < patches/bsd_vs_default.patch
 # the user running this.
 podman run \
 		--rm \
-		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw" \
+		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw,Z" \
 		-w /usr/local/src/dbt2 \
 		-u root \
 		$CONTAINER_TAG \

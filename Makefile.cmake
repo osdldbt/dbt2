@@ -3,8 +3,6 @@
 default:
 	@echo "targets: appimage (Linux only), clean, debug, package, release, test"
 
-UNAME_S := $(shell uname -s)
-
 appimage:
 	cmake -H. -Bbuilds/appimage -DCMAKE_INSTALL_PREFIX=/usr
 	cd builds/appimage && make -s
@@ -17,6 +15,7 @@ appimage:
 	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-rand
 	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-transaction-test
 	cd builds/appimage && make -s install DESTDIR=AppDir
+	export ARCH=$(shell uname -m)
 	cd builds/appimage && make -s appimage-podman
 
 clean:

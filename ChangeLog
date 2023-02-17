@@ -3,6 +3,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Update pgsql-build-db to take database name as a command line argument
 - Update to post-process script to install Julia packages only after verifying
   the Julia version of the script exists
+- Add Z flag for mounting source directory when building the AppImage with
+  container/build-appimage for shared volume labeling
 
 v0.49.0 (2023-02-09)
 
