@@ -11,8 +11,9 @@
 usage()
 {
 	echo "Usage:"
-	echo "    dbt2-pgsql-build-db [options]"
+	echo "    dbt2-pgsql-build-db [OPTION]... [DBNAME]"
 	echo "    dbt2-pgsql-build-db -h"
+	echo ""
 	echo "Options:"
 	echo "    -l <port>"
 	echo "        PostgreSQL port"
@@ -71,6 +72,11 @@ while getopts "hl:p:rs:tuw:f" OPT; do
 		;;
 	esac
 done
+
+shift "$(( OPTIND - 1 ))"
+if [ ! "$1" = "" ]; then
+	export DBT2DBNAME="$1"
+fi
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-l ${PORT}"

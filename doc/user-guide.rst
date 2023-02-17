@@ -206,17 +206,24 @@ many of the decisions are made for you:
 
 The number of warehouses and the length of the test can still be specified.
 
+The **Database Management System Notes** section may have additional database
+management system specific notes.
+
 The examples in this section assume that the DBT-2 AppImage has been renamed to
 `dbt2` and is in the user's `PATH`.
 
 PostgreSQL
 ~~~~~~~~~~
 
-Run the following commands to build a 1 warehouse database with pl/pgsql stored
-functions, run a 2 minute (120 second) test, and process the results::
+This example will connect to PostgreSQL based on what is in the user's
+environment, as one would normally expect with core PostgreSQL utilities, but
+additional arguments can be used to change the connection information.
 
-    DBT2DBNAME="dbt2" dbt2 pgsql-build-db -w 1
-    dbt2 easy -a pgsql -d db.hostname -b dbt2 -l 120 -outdir /tmp/results -w 1
+Run the following commands to build a 1 warehouse database with pl/pgsql stored
+functions, run a 2 minute (120 second) test, and calculate the throughput::
+
+    dbt2 pgsql-build-db -w 1 dbt2
+    dbt2 easy -a pgsql -b dbt2 -l 120 -outdir /tmp/results -w 1
     dbt2 post-process /tmp/results/mix-*.log
 
 Manual Test Execution

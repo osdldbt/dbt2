@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Update pgsql-build-db to take database name as a command line argument
+
 v0.49.0 (2023-02-09)
 
 - Fix use of ignore file for podman use
