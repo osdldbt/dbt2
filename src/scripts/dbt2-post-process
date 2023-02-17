@@ -26,6 +26,18 @@ fi
 
 if [ "$DBT2LANG" = "julia" ]; then
 	PPEXT="jl"
+elif [ "$DBT2LANG" = "R" ]; then
+	PPEXT="r"
+fi
+
+PPSCRIPT="dbt2-post-process.${PPEXT}"
+
+if ! which "$PPSCRIPT" > /dev/null 2>&1; then
+		echo "ERROR: $PPSCRIPT not found in PATH"
+		exit 1
+fi
+
+if [ "$DBT2LANG" = "julia" ]; then
 
 	# Set up the depot in temp to not interfere with whatever packages that
 	# already exist.
@@ -38,24 +50,13 @@ if [ "$DBT2LANG" = "julia" ]; then
 
 	# Make sure package dependencies are installed.
 
-	COUNT=$(julia --quiet -e 'import Pkg; Pkg.status("CSV")' | wc -l)
-	if [ "$COUNT" -ne 2 ]; then
-		julia --quiet -e 'import Pkg; Pkg.add("CSV")' > /dev/null 2>&1
-	fi
-
-	COUNT=$(julia --quiet -e 'import Pkg; Pkg.status("DataFrames")' | wc -l)
-	if [ "$COUNT" -ne 2 ]; then
-		julia --quiet -e 'import Pkg; Pkg.add("DataFrames")' > /dev/null 2>&1
-	fi
-elif [ "$DBT2LANG" = "R" ]; then
-	PPEXT="r"
-fi
-
-PPSCRIPT="dbt2-post-process.${PPEXT}"
-
-if ! which "$PPSCRIPT" > /dev/null 2>&1; then
-		echo "ERROR: $PPSCRIPT not found in PATH"
-		exit 1
+	PACKAGES="CSV DataFrames"
+	for PACKAGE in $PACKAGES; do
+		COUNT=$(julia -q -e "import Pkg; Pkg.status(\"${PACKAGE}\")" | wc -l)
+		if [ "$COUNT" -ne 2 ]; then
+			julia -q -e "import Pkg; Pkg.add(\"${PACKAGE}\")" > /dev/null 2>&1
+		fi
+	done
 fi
 
 "$PPSCRIPT" "$@"

@@ -1,6 +1,8 @@
 vX.Y.Z (YYYY-MM-DD)
 
 - Update pgsql-build-db to take database name as a command line argument
+- Update to post-process script to install Julia packages only after verifying
+  the Julia version of the script exists
 
 v0.49.0 (2023-02-09)
 
