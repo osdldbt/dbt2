@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Stop forking plot generation when generating reports since this may cause the
+  system to run out of memory
+
 v0.49.1 (2023-02-17)
 
 - Update pgsql-build-db to take database name as a command line argument

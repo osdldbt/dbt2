@@ -270,26 +270,26 @@ fi
 echo "Processing pidstat files..."
 for PIDSTATFILE in $(find $INDIR -name pidstat.txt); do
 	DIRNAME="$(dirname $PIDSTATFILE)"
-	(cd $DIRNAME && dbt-process-pidstat $PIDSTATFILE) &
+	(cd "$DIRNAME" && dbt-process-pidstat "$PIDSTATFILE")
 done
 
 echo "Generating transaction distribution charts..."
 mkdir -p ${OUTDIR}/txn || exit 1
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-distribution Delivery d ${OUTDIR}/txn 1 \
-		|| warning "Could not create Delivery response time distribution char" &
+		|| warning "Could not create Delivery response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-distribution "New Order" n ${OUTDIR}/txn 2 \
-		|| warning "Could not create New Order response time distribution char" &
+		|| warning "Could not create New Order response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-distribution "Order Status" o ${OUTDIR}/txn 3 \
-		|| warning "Could not create Order Status response time distribution char" &
+		|| warning "Could not create Order Status response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-distribution "Payments" p ${OUTDIR}/txn 4 \
-		|| warning "Could not create Payments response time distribution char" &
+		|| warning "Could not create Payments response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-distribution "Stock Level" s ${OUTDIR}/txn 5 \
-		|| warning "Could not create Stock Level response time distribution char" &
+		|| warning "Could not create Stock Level response time distribution char"
 
 mkdir -p ${OUTDIR}/db/sar || exit 1
 
@@ -298,7 +298,7 @@ for SARBLOCKDEVFILE in `find $INDIR -name sar-blockdev.csv`; do
 	DIRNAME="$(dirname $SARBLOCKDEVFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME $BLKDEVICES \
-			> /dev/null 2>&1 || warning "Could not create sar blockdev charts" &
+			> /dev/null 2>&1 || warning "Could not create sar blockdev charts"
 done
 
 echo "Generating memory charts..."
@@ -306,7 +306,7 @@ for SARMEMFILE in `find $INDIR -name sar-mem.csv`; do
 	DIRNAME="$(dirname $SARMEMFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-mem -i $SARMEMFILE -o $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar mem charts from $SARMEMFILE" &
+			|| warning "Could not create sar mem charts from $SARMEMFILE"
 done
 
 echo "Generating processor utilization charts..."
@@ -314,7 +314,7 @@ for SARCPUFILE in `find $INDIR -name sar-cpu.csv`; do
 	DIRNAME="$(dirname $SARCPUFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-cpu $SARCPUFILE $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar cpu charts from $SARCPUFILE" &
+			|| warning "Could not create sar cpu charts from $SARCPUFILE"
 done
 
 echo "Generating swap charts..."
@@ -322,7 +322,7 @@ for SARSWAPFILE in `find $INDIR -name sar-swap.csv`; do
 	DIRNAME="$(dirname $SARSWAPFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-swap $SARSWAPFILE $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar swap charts from $SARSWAPFILE" &
+			|| warning "Could not create sar swap charts from $SARSWAPFILE"
 done
 
 echo "Generating network charts..."
@@ -330,27 +330,25 @@ for SARNETFILE in `find $INDIR -name sar-net.csv`; do
 	DIRNAME="$(dirname $SARNETFILE)/sar"
 	mkdir -p $DIRNAME
 	dbt-plot-sar-net $SARNETFILE $DIRNAME > /dev/null 2>&1 \
-			|| warning "Could not create sar net charts from $SARNETFILE" &
+			|| warning "Could not create sar net charts from $SARNETFILE"
 done
 
 echo "Generating transaction rate charts..."
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-rate "District" d tpm ${OUTDIR}/txn 1 \
-		|| warning "Could not create district transaction rate charts" &
+		|| warning "Could not create district transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-rate "New Order" n tpm ${OUTDIR}/txn 2 \
-		|| warning "Could not create new order transaction rate charts" &
+		|| warning "Could not create new order transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-rate "Order Status" o tpm ${OUTDIR}/txn 3 \
-		|| warning "Could not create order status transaction rate charts" &
+		|| warning "Could not create order status transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-rate "Payment" p tpm ${OUTDIR}/txn 4 \
-		|| warning "Could not create payment transaction rate charts" &
+		|| warning "Could not create payment transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot-transaction-rate "Stock Level" s tpm ${OUTDIR}/txn 5 \
-		|| warning "Could not create stock level transaction rate charts" &
-
-wait
+		|| warning "Could not create stock level transaction rate charts"
 
 REPORTFILE="${OUTDIR}/report.rst"
 cat > $REPORTFILE << __EOF__
@@ -444,9 +442,8 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 	for RST in $(find $OUTDIR -name "*.rst"); do
 		NAME="${RST%.*}"
 		(cd $(dirname $RST) && \
-				$RST2HTML5 $(basename $RST) ${NAME}.html 2> /dev/null) &
+				$RST2HTML5 $(basename $RST) ${NAME}.html 2> /dev/null)
 	done
-	wait
 
 	echo "Generated top level HTML reports:"
 	ls -1v ${OUTDIR}/*.html
@@ -464,9 +461,8 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 			NAME="${HTML%.*}"
 			(cd $(dirname $HTML) && \
 					pandoc -s $(basename $HTML) -f html -t pdf -o ${NAME}.pdf \
-							2> /dev/null) &
+							2> /dev/null)
 		done
-		wait
 
 		echo "Generated top level PDF reports:"
 		ls -1v ${OUTDIR}/*.pdf

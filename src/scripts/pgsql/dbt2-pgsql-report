@@ -120,14 +120,14 @@ make_list()
 		if [ $? -eq 0 ]; then
 			dbt-pgsql-plot-database-stats \
 					-i ${INDIR}/db/${SNAME}/pg_stat_databases.csv \
-					-n $DBNAME -o ${INDIR}/db/${SNAME}/stats 2> /dev/null &
+					-n $DBNAME -o ${INDIR}/db/${SNAME}/stats 2> /dev/null
 		fi
 		which dbt-pgsql-plot-table-stats > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			for TABLENAME in `cat ${INDIR}/db/${SNAME}/table-list.txt`; do
 				dbt-pgsql-plot-table-stats \
 						-i ${INDIR}/db/${SNAME}/pg_stat_tables.csv \
-						-n $TABLENAME -o $TABLEDIR > ${TABLEDIR}/r.log 2>&1 &
+						-n $TABLENAME -o $TABLEDIR > ${TABLEDIR}/r.log 2>&1
 			done
 		fi
 		which dbt-pgsql-plot-index-stats > /dev/null 2>&1
@@ -135,7 +135,7 @@ make_list()
 			for INDEXNAME in `cat ${INDIR}/db/${SNAME}/index-list.txt`; do
 				dbt-pgsql-plot-index-stats \
 						-i ${INDIR}/db/${SNAME}/pg_stat_indexes.csv \
-						-n $INDEXNAME -o $INDEXDIR > $INDEXDIR/r.log 2>&1 &
+						-n $INDEXNAME -o $INDEXDIR > $INDEXDIR/r.log 2>&1
 			done
 		fi
 
@@ -145,13 +145,13 @@ make_list()
 		if [ -f "$PIDSTATCSV" ]; then
 			for M in X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s \
 					iodelay cswch.s nvcswch.s threads fd.nr; do
-				make_plots $M "autovacuum" autovacum &
-				make_plots $M "background writer" bgwriter &
-				make_plots $M "checkpointer" checkpointer &
-				make_plots $M "logical replication" logical &
-				make_plots $M "logger" logger &
-				make_plots $M "stats collector" statscollector &
-				make_plots $M "walwriter" walwriter &
+				make_plots $M "autovacuum" autovacum
+				make_plots $M "background writer" bgwriter
+				make_plots $M "checkpointer" checkpointer
+				make_plots $M "logical replication" logical
+				make_plots $M "logger" logger
+				make_plots $M "stats collector" statscollector
+				make_plots $M "walwriter" walwriter
 			done
 			wait
 		fi
@@ -161,19 +161,19 @@ make_list()
 		which dbt-pgsql-generate-db-report > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			dbt-pgsql-generate-db-report -t "Database Test 2" \
-					-i ${INDIR}/db/${SNAME}/stats &
+					-i ${INDIR}/db/${SNAME}/stats
 		fi
 		which dbt-pgsql-generate-table-report > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			dbt-pgsql-generate-table-report -t "Database Test 2" \
 					-i ${INDIR}/db/${SNAME}/table-list.txt \
-					-o ${INDIR}/db/${SNAME}/tables &
+					-o ${INDIR}/db/${SNAME}/tables
 		fi
 		which dbt-pgsql-generate-index-report > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			dbt-pgsql-generate-index-report -t "Database Test 2" \
 					-i ${INDIR}/db/${SNAME}/index-list.txt \
-					-o ${INDIR}/db/${SNAME}/indexes &
+					-o ${INDIR}/db/${SNAME}/indexes
 		fi
 		wait
 
