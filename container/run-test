@@ -149,6 +149,7 @@ eval "$ENGINE" exec \
 		dbt2-driver-0 \
 		dbt2-run-workload \
 				"$EXTRAARGS" \
+				-u \
 				-a "$DBMS" \
 				-c 10 \
 				-d 120 \

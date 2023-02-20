@@ -19,8 +19,6 @@ usage()
 	echo "        Drop existing database before building a new database"
 	echo "    -s <plpgsql>"
 	echo "        User defined functions to install, default: plpgsql"
-	echo "    -u"
-	echo "        Run as an unprivileged PostgreSQL user."
 	echo "    -w <scale factor>"
 	echo "        Number of warehouses to build. Default 1."
 }

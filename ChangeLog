@@ -2,6 +2,7 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Stop forking plot generation when generating reports since this may cause the
   system to run out of memory
+- Update container scripts to use -u flag, per changed in v0.49.0
 
 v0.49.1 (2023-02-17)
 

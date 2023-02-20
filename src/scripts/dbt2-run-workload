@@ -349,7 +349,7 @@ usage()
 	echo "  -r            enable perf data collection"
 	echo "  -s #          millisecond delay between thread creation"
 	echo "  -t #          number of districts per warehouse, default 10"
-	echo "  -u            run test as an unprivileged user"
+	echo "  -u            run test as a privileged user"
 	echo "  -w #          number of warehouses to use in the database"
 	echo "  -y            database server is a service"
 	echo "  -z COMMENT    comments to save for the test"

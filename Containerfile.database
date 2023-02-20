@@ -19,7 +19,7 @@ ARG warehouses=1
 WORKDIR /home/postgres
 
 RUN if [ "x$dbms" = "xpgsql" ]; then \
-            dbt2-pgsql-build-db -p "-N 500" -w $warehouses && \
+            dbt2-pgsql-build-db -u -p "-N 500" -s c -w $warehouses && \
             dbt2-pgsql-stop-db && \
             echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf && \
             echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf && \
