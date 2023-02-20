@@ -10,6 +10,7 @@ container/**
 Containerfile*
 .dockerignore
 .git
+.github
 .gitignore
 .hgignore
 install_manifest.txt
