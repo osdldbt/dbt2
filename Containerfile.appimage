@@ -4,6 +4,8 @@
 # possible.
 FROM centos:7
 
+ENV ARCH=x86_64
+
 RUN yum -qy update && \
     yum -qy install bison \
                    bzip2 \
@@ -26,13 +28,13 @@ ENV LD_LIBRARY_PATH="/usr/local/lib64"
 
 ARG JULIAVER="1.8.5"
 ENV JULIA_DEPOT_PATH=/usr/local/AppDir/opt/julia
-RUN curl -o /tmp/julia-${JULIAVER}-linux-x86_64.tar.gz \
-         -sOL https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-${JULIAVER}-linux-x86_64.tar.gz && \
-    tar -C /tmp -xf /tmp/julia-${JULIAVER}-linux-x86_64.tar.gz && \
+RUN curl -o /tmp/julia-${JULIAVER}-linux-${ARCH}.tar.gz \
+         -sOL https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-${JULIAVER}-linux-${ARCH}.tar.gz && \
+    tar -C /tmp -xf /tmp/julia-${JULIAVER}-linux-${ARCH}.tar.gz && \
     mv /tmp/julia-${JULIAVER} /usr/local/AppDir/usr && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/julia && \
     /usr/local/AppDir/usr/bin/julia --quiet -C generic \
-            -e 'import Pkg; Pkg.add("CSV"); Pkg.add("DataFrames");'
+            -e 'import Pkg; Pkg.add("CSV"); Pkg.add("DataFrames"); Pkg.add("VegaLite");'
 
 ARG OPENSSLVER="1.1.1s"
 RUN curl -o /tmp/openssl-${OPENSSLVER}.tar.gz \
@@ -87,9 +89,9 @@ RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
     rm -f /tmp/v${DBTTOOLSVER}.tar.gz
 
 WORKDIR /usr/local
-RUN curl -sOL https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage && \
-    chmod +x appimagetool-x86_64.AppImage && \
-    ./appimagetool-x86_64.AppImage --appimage-extract && \
+RUN curl -sOL https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-${ARCH}.AppImage && \
+    chmod +x appimagetool-${ARCH}.AppImage && \
+    ./appimagetool-${ARCH}.AppImage --appimage-extract && \
     chmod 0755 squashfs-root && \
     chmod 0755 squashfs-root/usr && \
     chmod 0755 squashfs-root/usr/bin && \

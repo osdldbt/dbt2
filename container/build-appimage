@@ -14,6 +14,10 @@ if ! podman inspect $CONTAINER_TAG > /dev/null 2>&1; then
 	"${CONTAINER_DIR}/prepare-appimage" || exit 1
 fi
 
+if [ "$ARCH" = "" ]; then
+	ARCH="x86_64"
+fi
+
 # Apply patches for successful builds on the old CentOS 7 container image
 patch -p1 < patches/bsd_vs_default.patch
 patch -p1 < patches/cmake.patch
@@ -21,6 +25,7 @@ podman run \
 		--rm \
 		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw,Z" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
+		--env ARCH="$ARCH" \
 		-w /usr/local/src/dbt2 \
 		$CONTAINER_TAG \
 		make -f Makefile.cmake appimage

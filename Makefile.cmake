@@ -15,7 +15,6 @@ appimage:
 	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-rand
 	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-transaction-test
 	cd builds/appimage && make -s install DESTDIR=AppDir
-	export ARCH=$(shell uname -m)
 	cd builds/appimage && make -s appimage-podman
 
 clean:
