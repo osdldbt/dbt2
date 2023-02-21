@@ -4,6 +4,8 @@ vX.Y.Z (YYYY-MM-DD)
   system to run out of memory
 - Update container scripts to use -u flag, per changed in v0.49.0
 - Set ARCH to x86_64, if not otherwise specified, for creating AppImage
+- Fix generate-report bug where pidstat.txt was not being processed to create
+  pidstat.csv files
 
 v0.49.1 (2023-02-17)
 
