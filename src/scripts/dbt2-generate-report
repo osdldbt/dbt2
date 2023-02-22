@@ -117,9 +117,12 @@ list_processes2()
 
 	echo $TITLE
 	echo ""
-	for PIDSTATCSV in $(cd ${INDIR}/${MYPTAG} 2> /dev/null && find . -name pidstat.csv); do
-		COUNTDRIVER=$(cd ${INDIR}/${MYPTAG} && grep dbt2-driver $PIDSTATCSV | wc -l)
-		COUNTCLIENT=$(cd ${INDIR}/${MYPTAG} && grep dbt2-client $PIDSTATCSV | wc -l)
+	find "${INDIR}/${MYPTAG}" -name pidstat.csv | while IFS= read -r PIDSTATCSV
+    do
+		# Try not to count execution of the driver/client binaries on remote
+		# systems.
+		COUNTDRIVER=$(grep dbt2-driver "$PIDSTATCSV" | grep -c -v ssh)
+		COUNTCLIENT=$(grep dbt2-client "$PIDSTATCSV" | grep -c -v ssh)
 		SNAME=$(dirname $PIDSTATCSV)
 		SNAME=$(basename $SNAME)
 
@@ -128,20 +131,18 @@ list_processes2()
 		if [ $COUNTDRIVER -gt 0 ]; then
 			PTAG="driver"
 			for M in $METRICS; do
-					create_pidstat_plots ${INDIR}/${MYPTAG}/$PIDSTATCSV $M \
-							dbt2-driver $PTAG
+				create_pidstat_plots "$PIDSTATCSV" "$M" dbt2-driver $PTAG
 			done
 			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
-			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`_"
+			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
 		fi
 		if [ $COUNTCLIENT -gt 0 ]; then
 			PTAG="client"
 			for M in $METRICS; do
-					create_pidstat_plots ${INDIR}/${MYPTAG}/$PIDSTATCSV $M \
-							dbt2-client $PTAG
+				create_pidstat_plots "$PIDSTATCSV" "$M" dbt2-client $PTAG
 			done
 			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
-			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`_"
+			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
 		fi
 		echo ""
 	done

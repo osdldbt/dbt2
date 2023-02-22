@@ -8,6 +8,7 @@ vX.Y.Z (YYYY-MM-DD)
   pidstat.csv files
 - Fix generate-report HTML and PDF generation logic where .rst and .html files
   were not being processed correctly
+- Fix generate-report handling of identifying driver and client processes
 
 v0.49.1 (2023-02-17)
 
