@@ -440,13 +440,14 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 	# from html to pdf.
 
 	for RST in $(find $OUTDIR -name "*.rst"); do
-		NAME="${RST%.*}"
-		(cd $(dirname $RST) && \
-				$RST2HTML5 $(basename $RST) ${NAME}.html 2> /dev/null)
+		RSTDIR=$(dirname "$RST")
+		RSTNAME=$(basename "$RST")
+		NAME="${RSTNAME%.*}"
+		"$RST2HTML5" "$RST" "${RSTDIR}/${NAME}.html" 2> /dev/null
 	done
 
 	echo "Generated top level HTML reports:"
-	ls -1v ${OUTDIR}/*.html
+	find "${OUTDIR}" -maxdepth 1 -name '*.html'
 	echo ""
 
 	# A pdf could be produced other ways, but I believe pandoc produces the most
@@ -458,14 +459,15 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 				pandoc -s report.html -f html -t pdf -o report.pdf \
 						2> /dev/null)
 		for HTML in $(find $OUTDIR -name "*.html"); do
-			NAME="${HTML%.*}"
-			(cd $(dirname $HTML) && \
-					pandoc -s $(basename $HTML) -f html -t pdf -o ${NAME}.pdf \
-							2> /dev/null)
+			HTMLDIR=$(dirname "$HTML")
+			HTMLNAME=$(basename "$HTML")
+			NAME="${HTMLNAME%.*}"
+			pandoc -s "$HTML" -f html -t pdf \
+					-o "${HTMLDIR}/${NAME}.pdf" 2> /dev/null
 		done
 
 		echo "Generated top level PDF reports:"
-		ls -1v ${OUTDIR}/*.pdf
+		find "${OUTDIR}" -maxdepth 1 -name '*.pdf'
 		echo ""
 	else
 		echo "WARNING: pandoc required to generate pdf report"

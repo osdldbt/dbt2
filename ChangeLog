@@ -6,6 +6,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Set ARCH to x86_64, if not otherwise specified, for creating AppImage
 - Fix generate-report bug where pidstat.txt was not being processed to create
   pidstat.csv files
+- Fix generate-report HTML and PDF generation logic where .rst and .html files
+  were not being processed correctly
 
 v0.49.1 (2023-02-17)
 
