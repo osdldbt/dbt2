@@ -55,7 +55,8 @@ RUN ./configure --silent --prefix=/usr/local/AppDir/usr \
     make -s -j$(nproc) && \
     make -s install && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/python3.11 && \
-    /usr/local/AppDir/usr/bin/pip3 install docutils
+    /usr/local/AppDir/usr/bin/pip3 install docutils && \
+    sed -i '1s/^.*$/#!\/usr\/bin\/env python3/' /usr/local/AppDir/usr/bin/rst2html5.py
 
 # PostgreSQL 11 is the first release creating the pg_type_d.h include file for
 # CockroachDB binary support.
