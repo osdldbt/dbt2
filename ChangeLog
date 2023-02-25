@@ -10,6 +10,10 @@ vX.Y.Z (YYYY-MM-DD)
   were not being processed correctly
 - Fix generate-report handling of identifying driver and client processes
 - Rewrite rst2html5.py's #! back to /usr/bin/env python3 for the AppImage
+- Post processing (post-process) in R now reports p-value for visual
+  inspection of goodness of warehouse distribution, as well as district
+  distribution per warehouse, as opposed to displaying the raw counts; also
+  added to Julia version
 
 v0.49.1 (2023-02-17)
 

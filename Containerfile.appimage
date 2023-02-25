@@ -34,7 +34,7 @@ RUN curl -o /tmp/julia-${JULIAVER}-linux-${ARCH}.tar.gz \
     mv /tmp/julia-${JULIAVER} /usr/local/AppDir/usr && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/julia && \
     /usr/local/AppDir/usr/bin/julia --quiet -C generic \
-            -e 'import Pkg; Pkg.add("CSV"); Pkg.add("DataFrames"); Pkg.add("VegaLite");'
+            -e 'import Pkg; Pkg.add("CSV"); Pkg.add("DataFrames"); Pkg.add("Distributions"); Pkg.add("VegaLite");'
 
 ARG OPENSSLVER="1.1.1s"
 RUN curl -o /tmp/openssl-${OPENSSLVER}.tar.gz \

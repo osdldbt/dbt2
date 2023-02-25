@@ -50,7 +50,7 @@ if [ "$DBT2LANG" = "julia" ]; then
 
 	# Make sure package dependencies are installed.
 
-	PACKAGES="CSV DataFrames"
+	PACKAGES="CSV DataFrames Distributions"
 	for PACKAGE in $PACKAGES; do
 		COUNT=$(julia -q -e "import Pkg; Pkg.status(\"${PACKAGE}\")" | wc -l)
 		if [ "$COUNT" -ne 2 ]; then

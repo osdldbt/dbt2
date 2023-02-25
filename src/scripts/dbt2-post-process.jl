@@ -13,14 +13,20 @@ if [ $# -lt 1 ]; then
     echo "$(basename "$0") is the DBT-2 mix log analyzer"
     echo ""
     echo "Usage:"
-    echo "  $(basename "$0") mix.log [mix-1.log [...]]"
+    echo "  $(basename "$0") VERBOSE mix.log [mix-1.log [...]]"
     echo
 fi
-exec julia --color=no --startup-file=no "$0" "$@"
+
+if [ ! "$VERBOSE" = "1" ]; then
+	VERBOSE=0
+fi
+
+exec julia --color=no --startup-file=no "$0" $VERBOSE "$@"
 =#
 
 using CSV
 using DataFrames
+using Distributions
 using Printf
 using Statistics
 
@@ -31,6 +37,42 @@ const TransactionNames = Dict(
     "p" => "Payment",
     "s" => "Stock Level"
 )
+
+function display_did_p(df, wdf, stats)
+    min = minimum(wdf.wid)
+    max = maximum(wdf.wid)
+
+    pdf_wid_did = pivot_by_wid_did(df, stats)
+    # FIXME: Should determine district ranged based on test parameters as
+    #        opposed to hard coding the default10.
+    for wid = min:max
+        E = wdf[wdf.wid .== wid, :].nrow[1] / 10.0
+        chi_square = 0
+        for did = 1:10
+            O = pdf_wid_did[(pdf_wid_did.wid .== wid) .&
+                            (pdf_wid_did.did .== did), :].nrow[1]
+            chi_square += (O - E)^2
+        end
+        chi_square /= E
+        p = 1 - cdf(Chisq(9), chi_square)
+        @printf("* Warehouse %d District chi-square p-value: %f\n", wid, p)
+    end
+end
+
+function display_wid_p(wdf, stats)
+    min = minimum(wdf.wid)
+    max = maximum(wdf.wid)
+    total = sum(wdf.nrow)
+    E = total / (max - min + 1)
+    chi_square = 0
+    for wid = min:max
+        O = wdf[wdf.wid .== wid, :].nrow[1]
+        chi_square += (O - E)^2
+    end
+    chi_square /= E
+    p = 1 - cdf(Chisq(max - min), chi_square)
+    @printf("* Warehouse (%d-%d) chi-square p-value: %f\n", min, min, p)
+end
 
 function displayreport(summary_txn, summary_txn_code, stats)
     TotalTransactions = sum(summary_txn.nrow)
@@ -114,6 +156,22 @@ function pivot_by_txn_code(df, stats)
     return summary
 end
 
+function pivot_by_wid(df, stats)
+    gdf = groupby(filter(row -> row["ctime"] > stats["StartTime"] &&
+                         row["ctime"] < stats["TerminatedTime"], df),
+                  [:wid]; skipmissing=true)
+    summary = combine(gdf, nrow)
+    return summary
+end
+
+function pivot_by_wid_did(df, stats)
+    gdf = groupby(filter(row -> row["ctime"] > stats["StartTime"] &&
+                         row["ctime"] < stats["TerminatedTime"], df),
+                  [:wid, :did]; skipmissing=true)
+    summary = combine(gdf, nrow)
+    return summary
+end
+
 function prep(df)
     stats = Dict()
 
@@ -131,11 +189,16 @@ function prep(df)
 end
 
 function main()
-    df = load(ARGS)
+    df = load(ARGS[2:end])
     stats = prep(df)
     pdf_txn = pivot_by_txn(df, stats)
     pdf_txn_code = pivot_by_txn_code(df, stats)
     displayreport(pdf_txn, pdf_txn_code, stats)
+    if ARGS[1] == "1"
+        wdf = pivot_by_wid(df, stats)
+        display_wid_p(wdf, stats)
+        display_did_p(df, wdf, stats)
+    end
 end
 
 main()

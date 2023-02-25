@@ -98,14 +98,31 @@ cat(sprintf("* Ramp Up Time: %0.1f minute(s)\n", duration / 60))
 if ($VERBOSE == 1) {
   wid_min <- min(mix\$wid, na.rm=TRUE)
   wid_max <- max(mix\$wid, na.rm=TRUE)
-  wid_mean <- mean(mix\$wid, na.rm=TRUE)
-  wid_median <- median(mix\$wid, na.rm=TRUE)
-  wid_sd <- sd(mix\$wid, na.rm=TRUE)
-  wid_var <- var(mix\$wid, na.rm=TRUE)
-  cat(sprintf("warehouse range: min %d max %d\n", wid_min, wid_max))
-  cat(sprintf("warehouse stats: median %0.1f mean %0.1f sd %0.1f var %0.1f\n",
-              wid_median, wid_mean, wid_sd, wid_var))
 
-  xtabs(~ id + wid + did, data=mix)
+  E_w <- total_txn / (wid_max - wid_min + 1)
+  chi_square_w <- 0
+  for (i in wid_min:wid_max) {
+    O_w <- sum(mix\$wid == i & mix\$ctime > start & mix\$ctime < end)
+    chi_square_w <- chi_square_w + (O_w - E_w)^2
+  }
+  chi_square_w <- chi_square_w / E_w
+  p_w <- 1 - pchisq(chi_square_w, df=(wid_max - wid_min))
+  cat(sprintf("* Warehouse (%d-%d) chi-square p-value: %f\n",
+              wid_min, wid_max, p_w))
+
+  for (i in wid_min:wid_max) {
+    # FIXME: Should know district range used for test as opposed to hard code
+    #        to 10.
+    E_d <- O_w / 10
+    chi_square_d <- 0
+    for (j in 1:10) {
+      O_d <- sum(mix\$wid == i & mix\$did == j & mix\$ctime > start &
+                 mix\$ctime < end)
+      chi_square_d <- chi_square_d + (O_d - E_d)^2
+    }
+    chi_square_d <- chi_square_d / E_d
+    p_d <- 1 - pchisq(chi_square_d, df=9)
+    cat(sprintf("* Warehouse %d District chi-square p-value: %f\n", i, p_d))
+  }
 }
 __EOF__
