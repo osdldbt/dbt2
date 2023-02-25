@@ -87,7 +87,7 @@ function load(filenames)
             "wid",
             "did",
     ]
-    df = mapreduce(vcat, ARGS) do filename
+    df = mapreduce(vcat, filenames) do filename
         DataFrame(CSV.File(filename, header=colnames))
     end
     return df
