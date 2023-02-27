@@ -1,11 +1,9 @@
 /*
- * _semaphore.h
- *
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
+ * Copyright The DBT-2 Authors
  */
-
 
 #ifndef __semaphore_h_
 #define __semaphore_h_

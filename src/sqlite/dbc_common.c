@@ -2,11 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002      Open Source Development Labs, Inc.
- *               2004      Alexey Stroganov & MySQL AB.
- *               2008      Steve VanDeBogart & UC Regents.
- *               2002-2022 Mark Wong
- *
+ * Copyright The DBT-2 Authors
  */
 
 #define _POSIX_C_SOURCE 200809L

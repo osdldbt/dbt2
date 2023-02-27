@@ -21,15 +21,6 @@ explicit permission of the copyright holder.
 Other company, product or service names may be trademarks or service marks of
 others.
 
-Contributors to this white paper include:
-
-* Bryan Olmstead (OSDL)
-* Cliff White (OSDL)
-* Craig Thomas (OSDL)
-* Jenny Zhang (OSDL)
-* Mark Wong (OSDL)
-* Min Xu (UW-Madison)
-
 .. contents:: Table of Contents
 
 .. include:: tpc.rst

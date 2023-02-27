@@ -2,10 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002      Open Source Development Labs, Inc.
- *               2002-2022 Mark Wong
- *
- * 16 June 2002
+ * Copyright The DBT-2 Authors
  */
 
 #ifndef _DB_H_

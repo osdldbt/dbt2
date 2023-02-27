@@ -3,8 +3,8 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Open Source Development Labs, Inc.
-#               2002-2022 Mark Wong
+# Copyright The DBT-2 Authors
+#
 
 trap 'echo "Test was interrupted by Control-C."; \
 	killall dbt2-client dbt2-driver sar sadc pidstat; dbt2-${DBMS}-stop-db; killall dbt2-${DBMS}-db-stat sar sadc pidstat' INT

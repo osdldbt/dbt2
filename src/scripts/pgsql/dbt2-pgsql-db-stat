@@ -3,9 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Open Source Development Labs, Inc.
-#               2014      2ndQuadrant, Ltd.
-#               2002-2023 Mark Wong
+# Copyright The DBT-2 Authors
 #
 
 while getopts "D:l:i:o:s:" opt; do

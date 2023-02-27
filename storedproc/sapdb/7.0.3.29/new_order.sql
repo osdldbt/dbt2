@@ -1,7 +1,7 @@
 // This file is released under the terms of the Artistic License.  Please see
 // the file LICENSE, included in this package, for details.
 //
-// Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+// Copyright The DBT-2 Authors
 //
 // Based on TPC-C Standard Specification Revision 5.0 Clause 2.4.2.
 CREATE DBPROC new_order(IN w_id FIXED(9), IN d_id FIXED(2),

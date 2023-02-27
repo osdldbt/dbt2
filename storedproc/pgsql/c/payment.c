@@ -2,8 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2003-2006 Open Source Development Labs, Inc.
- *               2003-2022 Mark Wong
+ * Copyright The DBT-2 Authors
  *
  * Based on TPC-C Standard Specification Revision 5.11 Clause 2.5.2.
  */

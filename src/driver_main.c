@@ -2,8 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2002 Jenny Zhang & Open Source Development Lab, Inc.
- *               2002-2022 Mark Wong
+ * Copyright The DBT-2 Authors
  *
  * 5 august 2002
  */
