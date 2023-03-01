@@ -89,7 +89,7 @@ RUN ./configure --silent --without-ldap --without-readline --without-zlib \
 
 # Install DBT Tools
 
-ARG DBTTOOLSVER="0.3.2"
+ARG DBTTOOLSVER="0.4.0"
 RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz \
          -sOL https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz

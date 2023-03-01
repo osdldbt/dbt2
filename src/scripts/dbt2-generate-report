@@ -64,8 +64,8 @@ create_pidstat_plots()
 	COMMAND=$3
 	MYTAG=$4
 
-	dbt-plot-pidstat -i $MYPIDSTATCSV -m $METRIC -c "$COMMAND" -t $MYTAG \
-			-o $(dirname $MYPIDSTATCSV)/${MYTAG}
+	dbt-plot pidstat -i "$MYPIDSTATCSV" -m "$METRIC" -c "$COMMAND" \
+			-t "$MYTAG" -o "$(dirname "$MYPIDSTATCSV")/${MYTAG}"
 }
 
 list_multiple_systems_summary()
@@ -100,8 +100,16 @@ list_multiple_systems_summary()
 
 list_processes()
 {
-	METRICS="X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s iodelay "
-	METRICS="$METRICS cswch.s nvcswch.s threads fd.nr"
+	if [ "$DBTLANG" = "julia" ]; then
+		METRICS="%CPU %usr %system %wait %MEM kB_rd/s kB_wr/s cswch/s"
+		METRICS="$METRICS nvcswch/s fd-nr"
+	else
+		# R automatically replaces special characters with one of more other
+		# chars.
+		METRICS="X.CPU X.usr X.system X.wait X.MEM kB_rd.s kB_wr.s cswch.s"
+		METRICS="$METRICS nvcswch.s fd.nr"
+	fi
+	METRICS="$METRICS VSZ RSS iodelay threads"
 
 	list_processes2 "Driver System(s):" driver
 	list_processes2 "Client System(s):" client
@@ -209,7 +217,8 @@ show_profile_links()
 		if [ $? -eq 0 ]; then
 			FLAMEGRAPH="${INDIR}/${SYSTEM}/flamegraph.svg"
 			(cd $(dirname $FILENAME) && \
-				flamegraph.pl perf.folded > $FLAMEGRAPH 2> /dev/null)
+				flamegraph.pl perf.folded > \
+						"$(basename "$FLAMEGRAPH")" 2> /dev/null)
 		fi
 		if [ -f "$FLAMEGRAPH" ]; then
 			echo -n "\`flame-graph <${SYSTEM}/$(basename ${FLAMEGRAPH})>\`__ "
@@ -232,11 +241,8 @@ show_system_links()
 	fi
 }
 
-while getopts "b:hi:" opt; do
+while getopts "hi:" opt; do
 	case $opt in
-	b)
-		BLKDEVICES=${OPTARG}
-		;;
 	h)
 		usage
 		exit 1
@@ -275,19 +281,19 @@ done
 echo "Generating transaction distribution charts..."
 mkdir -p ${OUTDIR}/txn || exit 1
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-distribution Delivery d ${OUTDIR}/txn 1 \
+		xargs dbt-plot transaction-distribution Delivery d "${OUTDIR}/txn" 1 \
 		|| warning "Could not create Delivery response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-distribution "New Order" n ${OUTDIR}/txn 2 \
+		xargs dbt-plot transaction-distribution "New Order" n "${OUTDIR}/txn" 2 \
 		|| warning "Could not create New Order response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-distribution "Order Status" o ${OUTDIR}/txn 3 \
+		xargs dbt-plot transaction-distribution "Order Status" o "${OUTDIR}/txn" 3 \
 		|| warning "Could not create Order Status response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-distribution "Payments" p ${OUTDIR}/txn 4 \
+		xargs dbt-plot transaction-distribution "Payments" p "${OUTDIR}/txn" 4 \
 		|| warning "Could not create Payments response time distribution char"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-distribution "Stock Level" s ${OUTDIR}/txn 5 \
+		xargs dbt-plot transaction-distribution "Stock Level" s "${OUTDIR}/txn" 5 \
 		|| warning "Could not create Stock Level response time distribution char"
 
 mkdir -p ${OUTDIR}/db/sar || exit 1
@@ -296,7 +302,7 @@ echo "Generating sar io charts..."
 for SARBLOCKDEVFILE in `find $INDIR -name sar-blockdev.csv`; do
 	DIRNAME="$(dirname $SARBLOCKDEVFILE)/sar"
 	mkdir -p $DIRNAME
-	dbt-plot-sar-blockdev $SARBLOCKDEVFILE $DIRNAME $BLKDEVICES \
+	dbt-plot sar-blockdev "$SARBLOCKDEVFILE" "$DIRNAME" \
 			> /dev/null 2>&1 || warning "Could not create sar blockdev charts"
 done
 
@@ -304,7 +310,7 @@ echo "Generating memory charts..."
 for SARMEMFILE in `find $INDIR -name sar-mem.csv`; do
 	DIRNAME="$(dirname $SARMEMFILE)/sar"
 	mkdir -p $DIRNAME
-	dbt-plot-sar-mem -i $SARMEMFILE -o $DIRNAME > /dev/null 2>&1 \
+	dbt-plot sar-mem -i "$SARMEMFILE" -o "$DIRNAME" > /dev/null 2>&1 \
 			|| warning "Could not create sar mem charts from $SARMEMFILE"
 done
 
@@ -312,7 +318,7 @@ echo "Generating processor utilization charts..."
 for SARCPUFILE in `find $INDIR -name sar-cpu.csv`; do
 	DIRNAME="$(dirname $SARCPUFILE)/sar"
 	mkdir -p $DIRNAME
-	dbt-plot-sar-cpu $SARCPUFILE $DIRNAME > /dev/null 2>&1 \
+	dbt-plot sar-cpu "$SARCPUFILE" "$DIRNAME" > /dev/null 2>&1 \
 			|| warning "Could not create sar cpu charts from $SARCPUFILE"
 done
 
@@ -320,7 +326,7 @@ echo "Generating swap charts..."
 for SARSWAPFILE in `find $INDIR -name sar-swap.csv`; do
 	DIRNAME="$(dirname $SARSWAPFILE)/sar"
 	mkdir -p $DIRNAME
-	dbt-plot-sar-swap $SARSWAPFILE $DIRNAME > /dev/null 2>&1 \
+	dbt-plot sar-swap "$SARSWAPFILE" "$DIRNAME" > /dev/null 2>&1 \
 			|| warning "Could not create sar swap charts from $SARSWAPFILE"
 done
 
@@ -328,25 +334,25 @@ echo "Generating network charts..."
 for SARNETFILE in `find $INDIR -name sar-net.csv`; do
 	DIRNAME="$(dirname $SARNETFILE)/sar"
 	mkdir -p $DIRNAME
-	dbt-plot-sar-net $SARNETFILE $DIRNAME > /dev/null 2>&1 \
+	dbt-plot sar-net "$SARNETFILE" "$DIRNAME" > /dev/null 2>&1 \
 			|| warning "Could not create sar net charts from $SARNETFILE"
 done
 
 echo "Generating transaction rate charts..."
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-rate "District" d tpm ${OUTDIR}/txn 1 \
+		xargs dbt-plot transaction-rate "District" d tpm "${OUTDIR}/txn" 1 \
 		|| warning "Could not create district transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-rate "New Order" n tpm ${OUTDIR}/txn 2 \
+		xargs dbt-plot transaction-rate "New Order" n tpm "${OUTDIR}/txn" 2 \
 		|| warning "Could not create new order transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-rate "Order Status" o tpm ${OUTDIR}/txn 3 \
+		xargs dbt-plot transaction-rate "Order Status" o tpm "${OUTDIR}/txn" 3 \
 		|| warning "Could not create order status transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-rate "Payment" p tpm ${OUTDIR}/txn 4 \
+		xargs dbt-plot transaction-rate "Payment" p tpm "${OUTDIR}/txn" 4 \
 		|| warning "Could not create payment transaction rate charts"
 find ${INDIR}/driver -name 'mix*.log' | \
-		xargs dbt-plot-transaction-rate "Stock Level" s tpm ${OUTDIR}/txn 5 \
+		xargs dbt-plot transaction-rate "Stock Level" s tpm "${OUTDIR}/txn" 5 \
 		|| warning "Could not create stock level transaction rate charts"
 
 REPORTFILE="${OUTDIR}/report.rst"

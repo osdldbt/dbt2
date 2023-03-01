@@ -98,8 +98,8 @@ make_plots()
 	COMMAND=$2
 	TAG=$3
 
-	dbt-plot-pidstat -i $PIDSTATCSV -m $METRIC -c "$COMMAND" -t $TAG \
-			-o ${INDIR}/db/${SNAME}/${TAG}
+	dbt-plot pidstat -i "$PIDSTATCSV" -m "$METRIC" -c "$COMMAND" -t "$TAG" \
+			-o "${INDIR}/db/${SNAME}/${TAG}"
 }
 
 make_list()
@@ -114,24 +114,20 @@ make_list()
 		mkdir -p $TABLEDIR || exit 1
 		mkdir -p $INDEXDIR || exit 1
 
-		which dbt-pgsql-plot-database-stats > /dev/null 2>&1
+		which dbt-plot > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
-			dbt-pgsql-plot-database-stats \
+			dbt-plot pgsql-database-stats \
 					-i ${INDIR}/db/${SNAME}/pg_stat_databases.csv \
 					-n $DBNAME -o ${INDIR}/db/${SNAME}/stats 2> /dev/null
-		fi
-		which dbt-pgsql-plot-table-stats > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
+
 			for TABLENAME in `cat ${INDIR}/db/${SNAME}/table-list.txt`; do
-				dbt-pgsql-plot-table-stats \
+				dbt-plot pgsql-table-stats \
 						-i ${INDIR}/db/${SNAME}/pg_stat_tables.csv \
 						-n $TABLENAME -o $TABLEDIR > ${TABLEDIR}/r.log 2>&1
 			done
-		fi
-		which dbt-pgsql-plot-index-stats > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
+
 			for INDEXNAME in `cat ${INDIR}/db/${SNAME}/index-list.txt`; do
-				dbt-pgsql-plot-index-stats \
+				dbt-plot pgsql-index-stats \
 						-i ${INDIR}/db/${SNAME}/pg_stat_indexes.csv \
 						-n $INDEXNAME -o $INDEXDIR > $INDEXDIR/r.log 2>&1
 			done
@@ -139,10 +135,19 @@ make_list()
 
 		PIDSTATCSV="${INDIR}/db/${SNAME}/pidstat.csv"
 		PIDSTATDIR=$(dirname $PIDSTATCSV)
+		if [ "$DBTLANG" = "julia" ]; then
+			METRICS="%CPU %usr %system %wait %MEM kB_rd/s kB_wr/s cswch/s"
+			METRICS="$METRICS nvcswch/s fd-nr"
+		else
+			# R automatically replaces special characters with one of more
+			# other chars.
+			METRICS="X.CPU X.usr X.system X.wait X.MEM kB_rd.s kB_wr.s cswch.s"
+			METRICS="$METRICS nvcswch.s fd.nr"
+		fi
+		METRICS="$METRICS VSZ RSS iodelay threads"
 
 		if [ -f "$PIDSTATCSV" ]; then
-			for M in X.CPU X.usr X.system X.wait VSZ RSS X.MEM kB_rd.s kB_wr.s \
-					iodelay cswch.s nvcswch.s threads fd.nr; do
+			for M in $METRICS; do
 				make_plots $M "autovacuum" autovacum
 				make_plots $M "background writer" bgwriter
 				make_plots $M "checkpointer" checkpointer

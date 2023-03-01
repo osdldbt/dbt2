@@ -15,6 +15,7 @@ vX.Y.Z (YYYY-MM-DD)
   distribution per warehouse, as opposed to displaying the raw counts; also
   added to Julia version
 - Add tools to creating flame graphs to the AppImage
+- Require DBT Tools (dbttools) v0.4.0
 
 v0.49.1 (2023-02-17)
 
