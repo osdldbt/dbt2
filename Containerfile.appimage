@@ -98,6 +98,15 @@ RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
     (cd builds/release && make -s install DESTDIR=/usr/local/AppDir) && \
     rm -f /tmp/v${DBTTOOLSVER}.tar.gz
 
+ARG PERLVER="5.36.0"
+RUN curl -o /tmp/perl-${PERLVER}.tar.gz \
+         -sOL https://www.cpan.org/src/5.0/perl-${PERLVER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/perl-${PERLVER}.tar.gz
+WORKDIR /usr/local/src/perl-${PERLVER}
+RUN ./configure.gnu --quiet --silent --prefix=/usr/local/AppDir/usr && \
+    make -s -j $(nproc) install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/perl
+
 WORKDIR /usr/local
 RUN curl -sOL https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-${ARCH}.AppImage && \
     chmod +x appimagetool-${ARCH}.AppImage && \
