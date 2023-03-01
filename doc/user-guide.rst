@@ -13,6 +13,25 @@ the test kit.  See **Database Management System Notes** for more specific
 details as it pertains to the database management system being tested, if
 available.
 
+There are three general ways to use this kit:
+
+1. The **The "Easy" Way** section is for running something quick and easy.
+
+2. The **Manual Test Execution** section is not just how to run a test with
+   minimal assistance, but also minimal data collection.  In other words, the
+   kit only produces the test metrics and data to validate the correctness of
+   the test.  It is left to the tester to do any additional data collection to
+   characterize system behavior.  But there are no limitations on how one may
+   actually execute a test.
+
+3. The **Comprehensive Test Execution** section details how to use the provided
+   shell scripts to fully characterize system behavior in addition to executing
+   a test.  This includes collecting system statistics as well and software
+   profiles.  There is not as much flexibility as running a test manually,
+   while intending to help ease system characterization work.  Scripts are also
+   provided to generate a report with all sorts of charts using R or Julia, in
+   HTML (using Docutils) and PDFs (using pandoc in conjunction with Docutils).
+
 The database management systems that are currently supported are:
 
 * PostgreSQL
@@ -34,14 +53,25 @@ Setup
 Linux AppImage
 --------------
 
-A Linux AppImage is available.  See **Database Management System Notes** for
-specific usage and for any database management system specific limitations.
-The DBT-2 AppImage may not always be as capable as installing the kit from
-source or from other pre-packaged distributions.
+A Linux AppImage is available, intended for simplified use, albeit with reduced
+functionality, on Linux based systems.  See **Database Management System
+Notes** for specific usage and for any database management system specific
+limitations.  The DBT-2 AppImage may not always be as capable as installing the
+kit from source or from other pre-packaged distributions.
 
 For ease of use, we recommend renaming the DBT-2 AppImage binary to `dbt2`, if
-it hasn't already be done.  Examples in the documentation will assume it has
+it hasn't already been done.  Examples in the documentation will assume it has
 been renamed to `dbt2`.
+
+Limitations
+~~~~~~~~~~~
+
+These are general limitations that apply to all database management systems:
+
+1. The AppImage isn't intelligent enough yet to run 3-tier tests.  When it
+   connects to remote systems using ssh, it still expects DBT-2 scripts and
+   binaries to be installed into the user's environment as opposed to using an
+   AppImage installed on the system.
 
 Linux Distribution Packages
 ---------------------------
