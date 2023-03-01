@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.50.0 (2023-02-28)
 
 - Stop forking plot generation when generating reports since this may cause the
   system to run out of memory
