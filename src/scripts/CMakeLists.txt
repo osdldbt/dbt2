@@ -14,8 +14,15 @@ if (MYSQLCLIENT_FOUND)
 	add_subdirectory (mysql)
 endif (MYSQLCLIENT_FOUND)
 
+configure_file(
+    dbt2-version.in
+    ${CMAKE_BINARY_DIR}/dbt2-version
+    @ONLY
+)
+
 install (
 	PROGRAMS
+    ${CMAKE_BINARY_DIR}/dbt2-version
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-easy
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info

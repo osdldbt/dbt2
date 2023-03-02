@@ -1,3 +1,10 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Add "version" script to show kit version and version of software that may be
+  used by the kit
+- Update AppImage to install dbttools v0.4.1 for its version information
+  reporting
+
 v0.50.1 (2023-03-03)
 
 - Update README with correct DBT Tools version v0.4.0
