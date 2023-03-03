@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-YY)
+
+- Update README with correct DBT Tools version v0.4.0
+
 v0.50.0 (2023-02-28)
 
 - Stop forking plot generation when generating reports since this may cause the
