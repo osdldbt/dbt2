@@ -85,7 +85,7 @@ add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/AppRun AppDir
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.desktop AppDir
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.png AppDir
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.svg AppDir
     COMMAND mkdir -p AppDir/usr/share/metainfo
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.appdata.xml
             AppDir/usr/share/metainfo

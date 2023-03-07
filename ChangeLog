@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
   used by the kit
 - Update AppImage to install dbttools v0.4.1 for its version information
   reporting
+- Use .svg file for AppImage; remove .png file.
 
 v0.50.1 (2023-03-03)
 
