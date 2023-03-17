@@ -12,6 +12,16 @@ enable_testing()
 
 include (CheckLibraryExists)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set (SHELLOPTIONS "set -x")
+endif ()
+
+set (
+    HOMEPAGE
+    "Database Test 2 (DBT-2) project page: https://github.com/osdldbt/dbt2"
+)
+
+add_subdirectory (appimage)
 add_subdirectory (src)
 add_subdirectory (storedproc)
 
@@ -83,7 +93,7 @@ set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
 
 add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/AppRun AppDir
+    COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun AppDir
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.desktop AppDir
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.svg AppDir
     COMMAND mkdir -p AppDir/usr/share/metainfo

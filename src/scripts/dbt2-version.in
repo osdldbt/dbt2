@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -19,6 +20,8 @@ usage()
 	echo "  -v, --verbose    display additional versions of other potentially"
 	echo "                   used software that DBT-2 may use"
 	echo "  -?, --help       show this help, then exit"
+	echo
+	echo "@HOMEPAGE@"
 }
 
 display_version()
@@ -41,6 +44,10 @@ while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
 	(-v | --verbose)
 		VERBOSE=1
+		;;
+	(-V | --version)
+		echo "dbt2 (Database Test 2) v@PROJECT_VERSION@"
+		exit 0
 		;;
 	(-\? | --help)
 		usage
