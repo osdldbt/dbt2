@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Update AppImage to install dbttools v0.4.1 for its version information
   reporting
 - Use .svg file for AppImage; remove .png file.
+- Use ARGV0 instead of hard coding name in AppRun
 
 v0.50.1 (2023-03-03)
 

@@ -2,12 +2,11 @@
 @SHELLOPTIONS@
 
 usage() {
-	# Note that $0 return AppRun, as opposed to the AppImage filename.
 	cat << EOF
-dbt2 is Database Test 2 (DBT-2) wrapped up in an AppImage.
+Database Test 2 (DBT-2) wrapped up in an AppImage.
 
 Usage:
-  dbt2 COMMAND [OPTION]
+  $(basename "${ARGV0}") COMMAND [OPTION]
 
 Options:
   The OPTION choices are depdent on the COMMAND specified.  The -h flag will
@@ -37,8 +36,8 @@ while [ "${#}" -gt 0 ] ; do
 		exit 0
 		;;
 	(--* | -*)
-		echo "$(basename "${0}"): invalid option -- '${1}'"
-		echo "try \"$(basename "${0}") --help\" for more information."
+		echo "$(basename "${ARGV0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${ARGV0}") --help\" for more information."
 		exit 1
 		;;
 	(*)
@@ -61,7 +60,7 @@ fi
 COMMAND="${APPDIR}/usr/bin/dbt2-${1}"
 
 if [ ! -f "$COMMAND" ]; then
-	echo "COMMAND '$1' not found, run 'dbt2' without arguments for usage."
+	echo "COMMAND '${1}' not found, run '$(basename "${ARGV0}")' without arguments for usage."
 	exit 1
 fi
 
