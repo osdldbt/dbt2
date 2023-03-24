@@ -14,15 +14,26 @@ if (MYSQLCLIENT_FOUND)
 	add_subdirectory (mysql)
 endif (MYSQLCLIENT_FOUND)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set (SQLITEOPTIONS ".echo on
+.eqp on")
+endif ()
+
 configure_file(
     dbt2-version.in
     ${CMAKE_BINARY_DIR}/dbt2-version
+    @ONLY
+)
+configure_file(
+    dbt2-post-process.sql.in
+    ${CMAKE_BINARY_DIR}/dbt2-post-process.sql
     @ONLY
 )
 
 install (
 	PROGRAMS
     ${CMAKE_BINARY_DIR}/dbt2-version
+    ${CMAKE_BINARY_DIR}/dbt2-post-process.sql
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-easy
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info

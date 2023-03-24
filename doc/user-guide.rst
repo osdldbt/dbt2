@@ -50,6 +50,12 @@ Databases management systems that have worked in the past but are not current:
 Setup
 =====
 
+External Software Dependencies
+------------------------------
+
+SQLite3 is required to do basic statistical calculations in order to report
+test metrics.
+
 Linux AppImage
 --------------
 

@@ -107,6 +107,15 @@ RUN ./configure.gnu --quiet --silent --prefix=/usr/local/AppDir/usr && \
     make -s -j $(nproc) install && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/perl
 
+ARG SQLITE3VER=3410200
+RUN curl -o /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz \
+         -sOL https://www.sqlite.org/2023/sqlite-autoconf-${SQLITE3VER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz
+WORKDIR /usr/local/src/sqlite-autoconf-${SQLITE3VER}
+RUN ./configure --quiet --silent --prefix=/usr/local/AppDir/usr && \
+    make -s -j $(nproc) install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/sqlite3
+
 WORKDIR /usr/local
 RUN curl -sOL https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-${ARCH}.AppImage && \
     chmod +x appimagetool-${ARCH}.AppImage && \

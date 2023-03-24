@@ -8,7 +8,9 @@
 
 if [ "$DBT2LANG" = "" ]; then
 	# Ordered preference of which language usually runs faster.
-	if which "R" > /dev/null 2>&1; then
+	if which "sqlite3" > /dev/null 2>&1; then
+		DBT2LANG="sqlite3"
+	elif which "R" > /dev/null 2>&1; then
 		DBT2LANG="R"
 	else
 		echo "ERROR: 'R' detected for post processing"
@@ -16,7 +18,7 @@ if [ "$DBT2LANG" = "" ]; then
 	fi
 else
 	if ! which "$DBT2LANG" > /dev/null 2>&1; then
-		echo "ERROR: $DBT2LANG not detected, set to 'R', or unset "
+		echo "ERROR: $DBT2LANG not detected, set to 'sqlite3' or 'R', or unset"
 		echo "to let the script autodetect"
 		exit 1
 	fi
@@ -24,6 +26,8 @@ fi
 
 if [ "$DBT2LANG" = "R" ]; then
 	PPEXT="r"
+elif [ "$DBT2LANG" = "sqlite3" ]; then
+	PPEXT="sql"
 fi
 
 PPSCRIPT="dbt2-post-process.${PPEXT}"

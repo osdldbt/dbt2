@@ -75,7 +75,7 @@ for (i in 1:5) {
   t_mean <- mean(mix\$response[mix\$txn == txn[i] & mix\$ctime > start &
                  mix\$ctime < end], na.rm=TRUE)
   t_q90 <- quantile(mix\$response[mix\$txn == txn[i] & mix\$ctime > start &
-                    mix\$ctime < end], .9, na.rm=TRUE)
+                    mix\$ctime < end], .9, type=1, na.rm=TRUE)
   cat(sprintf("%12s  %5.2f  %9.3f  %9.3f  %11d  %11d  %5.2f\n",
               txn_name[i], t_total / total_txn * 100, t_mean, t_q90,
               t_total, t_rollback, t_rollback / t_total * 100))

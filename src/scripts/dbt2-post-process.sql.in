@@ -1,0 +1,221 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-2 Authors
+#
+
+usage() {
+	NAME="$(basename ${0})"
+	cat <<- EOF
+		$NAME is the DBT-2 mix log analyzer
+
+		Usage:
+		  $NAME mix.log [mix-1.log [...]]
+	EOF
+}
+
+cleanup() {
+    rm -rf "${TMPDIR}"
+}
+
+if [ $# -lt 1 ]; then
+	usage
+	exit 1
+fi
+
+trap cleanup INT QUIT ABRT TERM
+
+VERBOSE=0
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-v | --verbose)
+		VERBOSE=1
+		;;
+	(-V | --version)
+		echo "dbt2 (Database Test 2) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+SQLOPTIONS=""
+if [ $VERBOSE -eq 1 ]; then
+	SQLOPTIONS="@SQLITEOPTIONS@"
+fi
+
+TMPDIR=$(mktemp -d)
+
+DBFILE="${TMPDIR}/dbt2.db"
+
+sqlite3 $DBFILE << EOF
+$SQLOPTIONS
+CREATE TABLE mix(
+    "time" INTEGER
+  , "txn" TEXT
+  , "code" TEXT
+  , "response" REAL
+  , "id" TEXT
+  , "w_id" INTEGER
+  , "d_id" INTEGER
+);
+EOF
+
+for FILE in ${@}; do
+	sqlite3 $DBFILE <<- EOF
+		$SQLOPTIONS
+		.mode csv
+		.import $FILE mix
+	EOF
+done
+
+sqlite3 $DBFILE <<- EOF
+$SQLOPTIONS
+CREATE INDEX mix_time_txn_start
+ON mix (time)
+WHERE txn = 'START';
+CREATE INDEX mix_time_txn_terminated
+ON mix (time)
+WHERE txn = 'TERMINATED';
+EOF
+
+TIME0=$(sqlite3 $DBFILE "SELECT min(time) FROM mix")
+STARTTIME=$(sqlite3 $DBFILE "SELECT max(time) FROM mix WHERE txn = 'START'")
+ENDTIME=$(sqlite3 $DBFILE "SELECT min(time) FROM mix WHERE txn = 'TERMINATED'")
+
+sqlite3 $DBFILE <<- EOF
+$SQLOPTIONS
+CREATE INDEX mix_txn_time
+ON mix (txn, time)
+WHERE time > $STARTTIME
+  AND time < $ENDTIME;
+CREATE INDEX mix_txn_d_response_time
+ON mix (txn, response, time)
+WHERE time > $STARTTIME
+  AND time < $ENDTIME
+  AND txn = 'd';
+CREATE INDEX mix_txn_n_response_time
+ON mix (txn, response, time)
+WHERE time > $STARTTIME
+  AND time < $ENDTIME
+  AND txn = 'n';
+CREATE INDEX mix_txn_o_response_time
+ON mix (txn, response, time)
+WHERE time > $STARTTIME
+  AND time < $ENDTIME
+  AND txn = 'o';
+CREATE INDEX mix_txn_p_response_time
+ON mix (txn, response, time)
+WHERE time > $STARTTIME
+  AND time < $ENDTIME
+  AND txn = 'p';
+CREATE INDEX mix_txn_s_response_time
+ON mix (txn, response, time)
+WHERE time > $STARTTIME
+  AND time < $ENDTIME
+  AND txn = 's';
+EOF
+
+RAWTOTAL=$(sqlite3 $DBFILE << EOF
+SELECT count(time)
+     , count(CASE WHEN code = 'E' THEN 1 END)
+FROM mix
+WHERE time > $STARTTIME
+  AND time < $ENDTIME
+EOF
+)
+TXNTOTAL=$(echo $RAWTOTAL | cut -d "|" -f 1)
+UNKNOWN_ERRORS=$(echo $RAWTOTAL | cut -d "|" -f 2)
+
+TXNDATA=$(sqlite3 $DBFILE << EOF
+SELECT txn
+     , 100.0 * count(time) / ${TXNTOTAL}
+     , avg(response)
+     , count(time)
+     , count(CASE WHEN code = 'R' THEN 1 END)
+     , 100.0 * count(CASE WHEN code = 'R' THEN 1 END) / count(time)
+FROM mix
+WHERE time > $STARTTIME
+  AND time < $ENDTIME
+GROUP BY txn
+ORDER BY txn
+EOF
+)
+
+cat << EOF
+============  =====  =========  =========  ===========  ===========  =====
+          ..     ..    Response Time (s)            ..           ..     ..
+------------  -----  --------------------  -----------  -----------  -----
+ Transaction      %   Average     90th %        Total    Rollbacks      %
+============  =====  =========  =========  ===========  ===========  =====
+EOF
+
+for TXNLINE in $TXNDATA; do
+	TXN=$(echo $TXNLINE | cut -d "|" -f 1)
+	TXNPER=$(echo $TXNLINE | cut -d "|" -f 2)
+	AVGRESPONSE=$(echo $TXNLINE | cut -d "|" -f 3)
+	TXNCOUNT=$(echo $TXNLINE | cut -d "|" -f 4)
+	ROLLBACKS=$(echo $TXNLINE | cut -d "|" -f 5)
+	ROLLBACKPER=$(echo $TXNLINE | cut -d "|" -f 6)
+
+	Q90RESP=$(sqlite3 $DBFILE <<- EOF
+		SELECT response
+		FROM mix
+		WHERE txn = '$TXN'
+		  AND time > $STARTTIME
+		  AND time < $ENDTIME
+		ORDER BY response ASC
+		LIMIT 1
+		OFFSET $TXNCOUNT * 9 / 10;
+	EOF
+	)
+
+	if [ "${TXN}" = "d" ]; then
+		TXNNAME="Delivery"
+	elif [ "${TXN}" = "n" ]; then
+		TXNNAME="New Order"
+		NOTXNCOUNT=$TXNCOUNT
+	elif [ "${TXN}" = "o" ]; then
+		TXNNAME="Order Status"
+	elif [ "${TXN}" = "p" ]; then
+		TXNNAME="Payment"
+	elif [ "${TXN}" = "s" ]; then
+		TXNNAME="Stock Level"
+	fi
+
+	printf "%12s  %5.2f  %9.3f  %9.3f  %11d  %11d  %5.2f\n" \
+			"${TXNNAME}" $TXNPER $AVGRESPONSE $Q90RESP $TXNCOUNT $ROLLBACKS \
+            $ROLLBACKPER
+done
+
+DURATION=$(( ENDTIME - STARTTIME ))
+
+cat << EOF
+============  =====  =========  =========  ===========  ===========  =====
+
+* Throughput: $(printf "%.2f" $(echo "$NOTXNCOUNT / ($DURATION / 60)" | bc -l)) new-order transactions per minute (NOTPM)
+* Duration: $(printf "%.1f" $(echo "$DURATION / 60" | bc -l)) minute(s)
+* Unknown Errors: $UNKNOWN_ERRORS
+* Ramp Up Time: $(printf "%.1f" $(echo "($STARTTIME - $TIME0) / 60" | bc -l)) minute(s)
+EOF
+
+cleanup
+
+exit 0
