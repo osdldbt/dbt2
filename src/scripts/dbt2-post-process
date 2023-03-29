@@ -10,23 +10,19 @@ if [ "$DBT2LANG" = "" ]; then
 	# Ordered preference of which language usually runs faster.
 	if which "R" > /dev/null 2>&1; then
 		DBT2LANG="R"
-	elif which "julia" > /dev/null 2>&1; then
-		DBT2LANG="julia"
 	else
-		echo "ERROR: 'julia' nor 'R' detected for post processing"
+		echo "ERROR: 'R' detected for post processing"
 		exit 1
 	fi
 else
 	if ! which "$DBT2LANG" > /dev/null 2>&1; then
-		echo "ERROR: $DBT2LANG not detected, set to 'R' or 'julia', or unset "
+		echo "ERROR: $DBT2LANG not detected, set to 'R', or unset "
 		echo "to let the script autodetect"
 		exit 1
 	fi
 fi
 
-if [ "$DBT2LANG" = "julia" ]; then
-	PPEXT="jl"
-elif [ "$DBT2LANG" = "R" ]; then
+if [ "$DBT2LANG" = "R" ]; then
 	PPEXT="r"
 fi
 
@@ -35,28 +31,6 @@ PPSCRIPT="dbt2-post-process.${PPEXT}"
 if ! which "$PPSCRIPT" > /dev/null 2>&1; then
 		echo "ERROR: $PPSCRIPT not found in PATH"
 		exit 1
-fi
-
-if [ "$DBT2LANG" = "julia" ]; then
-
-	# Set up the depot in temp to not interfere with whatever packages that
-	# already exist.
-	DBT2_JULIA_DEPOT_PATH="/tmp/.dbt2-julia"
-	if [ "$JULIA_DEPOT_PATH" = "" ]; then
-		export JULIA_DEPOT_PATH="${DBT2_JULIA_DEPOT_PATH}"
-	else
-		export JULIA_DEPOT_PATH="${DBT2_JULIA_DEPOT_PATH}:${JULIA_DEPOT_PATH}"
-	fi
-
-	# Make sure package dependencies are installed.
-
-	PACKAGES="CSV DataFrames Distributions"
-	for PACKAGE in $PACKAGES; do
-		COUNT=$(julia -q -e "import Pkg; Pkg.status(\"${PACKAGE}\")" | wc -l)
-		if [ "$COUNT" -ne 2 ]; then
-			julia -q -e "import Pkg; Pkg.add(\"${PACKAGE}\")" > /dev/null 2>&1
-		fi
-	done
 fi
 
 "$PPSCRIPT" "$@"

@@ -27,7 +27,6 @@ install (
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process
-    ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process.jl
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process.r
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-run-workload
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-run-workload-autoscale

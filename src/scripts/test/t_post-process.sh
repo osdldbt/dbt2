@@ -9,14 +9,6 @@ oneTimeSetUp() {
 	export PATH="${TOPDIR}/src/scripts/:${PATH}"
 }
 
-testPostProcessJulia() {
-	export DBT2LANG="julia"
-	# shellcheck disable=SC2086
-	$POSTPROCESS ${TOPDIR}/src/scripts/test/mix-*.log > "$ACTUALOUTPUT"
-	diff "$ACTUALOUTPUT" "$EXPECTEDOUTPUT"
-	assertEquals "match" 0 $?
-}
-
 testPostProcessR() {
 	export DBT2LANG="R"
 	# shellcheck disable=SC2086
