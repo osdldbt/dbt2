@@ -66,7 +66,7 @@ distributions with the oldest libc version.
 
 The logo used is the number "2" from the Freeware Metal On Metal Font.
 
-See the `README.rst` in the `container/` directory for an example of creating
+See the `README.rst` in the `tools/` directory for an example of creating
 an AppImage with a Podman container.
 
 Building the AppImage

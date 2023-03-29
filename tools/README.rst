@@ -1,12 +1,11 @@
 Overview
 ========
 
-These scripts and container files are for build testing, and evaluating DBT-2
-at a small warehouse scale factor.  While DBT-2 is compatible with multiple
-database systems, this initial set of scripts works only for the subset
-described here.  Note that these scripts prefer Podman over Docker but you can
-specify the engine by setting the `ENGINE` environment variable to `podman` or
-`docker`, resp.
+These scripts are for build testing, and evaluating DBT-2 at a small warehouse
+scale factor.  While DBT-2 is compatible with multiple database systems, this
+initial set of scripts works only for the subset described here.  Note that
+these scripts prefer Podman over Docker but you can specify the engine by
+setting the `ENGINE` environment variable to `podman` or `docker`, resp.
 
 * `appimage-build` - Build the DBT-2 lite AppImage.
 * `appimage-prepare` - Build a container image to be used for creating an
@@ -40,9 +39,9 @@ PostgreSQL
 
 Create a 1 warehouse database and run a test in a 3-tier configuration::
 
-    container/start-database
-    container/start-client <database address>
-    container/start-driver <client address>
+    tools/start-database
+    tools/start-client <database address>
+    tools/start-driver <client address>
 
 Testing the complete kit
 ========================
@@ -51,7 +50,7 @@ These brief steps are intended to describe how to set up containers such that
 they can be treated with full virtual machines.  In other words, this allows
 tests scripts to collect system stats, system profiles, and generating reports.
 
-The results will be copied to `container/results`.
+The results will be copied to `tools/results`.
 
 Testing the complete kit in containers may need more advanced knowledge of
 Docker or Podman, such as have a host environment capable of running containers
@@ -80,30 +79,30 @@ CockroachDB
 
 Create all the container images for each tier with a 1 warehouse database::
 
-    container/build-all 1 pgsql
+    tools/build-all 1 pgsql
 
 Execute a test::
 
-    container/run-3tier-test 1 pgsql
+    tools/run-3tier-test 1 pgsql
 
 PostgreSQL
 ----------
 
 Create all the container images for each tier with a 1 warehouse database::
 
-    container/build-all 1 pgsql
+    tools/build-all 1 pgsql
 
 Execute a test::
 
-    container/run-3tier-test 1 pgsql
+    tools/run-3tier-test 1 pgsql
 
 YugabyteDB
 ----------
 
 Create all the container images for each tier with a 1 warehouse database::
 
-    container/build-all 1 yugabyte
+    tools/build-all 1 yugabyte
 
 Execute a test::
 
-    container/run-3tier-test 1 yugabyte
+    tools/run-3tier-test 1 yugabyte
