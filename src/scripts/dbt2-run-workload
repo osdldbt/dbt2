@@ -6,11 +6,6 @@
 # Copyright The DBT-2 Authors
 #
 
-trap 'echo "Test was interrupted by Control-C."; \
-	killall dbt2-client dbt2-driver sar sadc pidstat; dbt2-${DBMS}-stop-db; killall dbt2-${DBMS}-db-stat sar sadc pidstat' INT
-trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall dbt2-client dbt2-driver sar sadc pidstat; dbt2-${DBMS}-stop-db; killall dbt2-${DBMS}-db-stat sar sadc pidstat' TERM
-
 do_sleep()
 {
 	echo "Sleeping $1 seconds"
@@ -313,6 +308,15 @@ readprofile_clear()
 	echo "clearing readprofile data: ${HOST}"
 	${COMMAND} sudo /usr/sbin/readprofile -r
 }
+
+stop_processes() {
+	killall dbt2-client dbt2-driver sar sadc pidstat
+	"dbt2-${DBMS}-stop-db"
+	killall "dbt2-${DBMS}-db-stat" sar sadc pidstat
+}
+
+trap 'echo "Test was interrupted by Control-C."; stop_processes' INT
+trap 'echo "Test was interrupted. Got TERM signal."; stop_processes' TERM
 
 usage()
 {
