@@ -38,11 +38,12 @@ links_index_metrics()
 {
 	NAME=$1
 
-	INDEXMETRICS=`(cd ${INDIR}/db/${NAME}/indexes && ls *.png) \
-			| sed -e "s/index-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+	INDEXMETRICS=$( (cd "${INDIR}/db/${NAME}/dbstat/index" && \
+			find . -name "*.png") | sed -e "s/.\/pgsql-*.*.*-//" | \
+			sed -e "s/.png$//" | sort | uniq)
 
 	for METRIC in $INDEXMETRICS; do
-		echo -n "\`$METRIC <db/${NAME}/indexes/i_$METRIC/>\`__ "
+		echo -n "\`$METRIC <db/${NAME}/dbstat/index-stat/i_$METRIC/>\`__ "
 	done
 }
 
@@ -50,8 +51,10 @@ links_indexes()
 {
 	NAME=$1
 
-	for INDEX in $(cat ${INDIR}/db/${NAME}/index-list.txt); do
-		echo -n "\`$INDEX <db/${NAME}/indexes/${INDEX}/>\`__ "
+	grep ^public. "${INDIR}/db/${NAME}/dbstat/index-list.txt" | \
+			grep -v "\.pg_catalog\." | while IFS= read -r INDEX; do
+		printf "\`%s <db/%s/dbstat/index/%s/>\`__ " "${INDEX}" "${NAME}" \
+				"${INDEX}"
 	done
 }
 
@@ -59,11 +62,12 @@ links_table_metrics()
 {
 	NAME=$1
 
-	TABLEMETRICS=`(cd ${INDIR}/db/${NAME}/tables && ls *.png) | \
-			sed -e "s/table-stat-.*-//" | sed -e "s/.png$//" | sort | uniq`
+	TABLEMETRICS=$( (cd "${INDIR}/db/${NAME}/dbstat/table" && \
+			find . -name "*.png") | sed -e "s/^.\/pgsql-*.*-//" | \
+			sed -e "s/.png$//" | sort | uniq)
 
 	for METRIC in $TABLEMETRICS; do
-		echo -n "\`$METRIC <db/${NAME}/tables/t_${METRIC}/>\`__ "
+		echo -n "\`$METRIC <db/${NAME}/dbstat/table-stat/t_${METRIC}/>\`__ "
 	done
 }
 
@@ -71,8 +75,10 @@ links_tables()
 {
 	NAME=$1
 
-	for TABLE in $(cat ${INDIR}/db/${NAME}/table-list.txt); do
-		echo -n "\`$TABLE <db/${NAME}/tables/${TABLE}/>\`__ "
+	grep ^public. "${INDIR}/db/${NAME}/dbstat/table-list.txt" | \
+			while IFS= read -r TABLE; do
+		printf "\`%s <db/%s/dbstat/table/%s/>\`__ " "${TABLE}" "${NAME}" \
+				"${TABLE}"
 	done
 }
 
@@ -84,113 +90,54 @@ list_processes()
 		return
 	fi
 
-	for T in autovacum bgwriter checkpointer logger logical statscollector \
+	for T in autovacuum bgwriter checkpointer logger logical statscollector \
 			walwriter; do
 		create_stat_page $SNAME $T
-		echo "* \`$T <db/${SNAME}/${T}/>\`__"
+		echo "* \`$T <db/${SNAME}/sysstat/${T}/>\`__"
 	done
 	echo ""
-}
-
-make_plots()
-{
-	METRIC=$1
-	COMMAND=$2
-	TAG=$3
-
-	dbt-plot pidstat -i "$PIDSTATCSV" -m "$METRIC" -c "$COMMAND" -t "$TAG" \
-			-o "${INDIR}/db/${SNAME}/${TAG}"
 }
 
 make_list()
 {
 	# The reporting of database system is naively based on whether the
-	# dbstat.txt was created by run-workload script.
-	for UNAMEFILE in $(find ${INDIR}/db -name dbstats.txt 2> /dev/null); do
-		SNAME="$(basename $(dirname $UNAMEFILE))"
+	# dbstat diretory was created by ts-pgsql-stat script.
+	find "${INDIR}/db" -type d -name dbstat 2> /dev/null | \
+			while IFS= read -r STATDIR; do
+		SNAME="$(basename "$(dirname "${STATDIR}")")"
 
-		TABLEDIR=${INDIR}/db/${SNAME}/tables
-		INDEXDIR=${INDIR}/db/${SNAME}/indexes
-		mkdir -p $TABLEDIR || exit 1
-		mkdir -p $INDEXDIR || exit 1
-
-		which dbt-plot > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			dbt-plot pgsql-database-stats \
-					-i ${INDIR}/db/${SNAME}/pg_stat_databases.csv \
-					-n $DBNAME -o ${INDIR}/db/${SNAME}/stats 2> /dev/null
-
-			for TABLENAME in `cat ${INDIR}/db/${SNAME}/table-list.txt`; do
-				dbt-plot pgsql-table-stats \
-						-i ${INDIR}/db/${SNAME}/pg_stat_tables.csv \
-						-n $TABLENAME -o $TABLEDIR > ${TABLEDIR}/r.log 2>&1
-			done
-
-			for INDEXNAME in `cat ${INDIR}/db/${SNAME}/index-list.txt`; do
-				dbt-plot pgsql-index-stats \
-						-i ${INDIR}/db/${SNAME}/pg_stat_indexes.csv \
-						-n $INDEXNAME -o $INDEXDIR > $INDEXDIR/r.log 2>&1
-			done
-		fi
-
-		PIDSTATCSV="${INDIR}/db/${SNAME}/pidstat.csv"
+		PIDSTATCSV="${INDIR}/db/${SNAME}/sysstat/pidstat.csv"
 		PIDSTATDIR=$(dirname $PIDSTATCSV)
-		if [ "$DBTLANG" = "julia" ]; then
-			METRICS="%CPU %usr %system %wait %MEM kB_rd/s kB_wr/s cswch/s"
-			METRICS="$METRICS nvcswch/s fd-nr"
-		else
-			# R automatically replaces special characters with one of more
-			# other chars.
-			METRICS="X.CPU X.usr X.system X.wait X.MEM kB_rd.s kB_wr.s cswch.s"
-			METRICS="$METRICS nvcswch.s fd.nr"
-		fi
-		METRICS="$METRICS VSZ RSS iodelay threads"
-
-		if [ -f "$PIDSTATCSV" ]; then
-			for M in $METRICS; do
-				make_plots $M "autovacuum" autovacum
-				make_plots $M "background writer" bgwriter
-				make_plots $M "checkpointer" checkpointer
-				make_plots $M "logical replication" logical
-				make_plots $M "logger" logger
-				make_plots $M "stats collector" statscollector
-				make_plots $M "walwriter" walwriter
-			done
-			wait
-		fi
 
 		# Create additional HTML pages for the database charts.
 
 		which dbt-pgsql-generate-db-report > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
-			dbt-pgsql-generate-db-report -t "Database Test 2" \
-					-i ${INDIR}/db/${SNAME}/stats
+			dbt-pgsql-generate-db-report -t "Database Test 2" -d dbt2 \
+					-i "${INDIR}/db/${SNAME}/dbstat"
 		fi
 		which dbt-pgsql-generate-table-report > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			dbt-pgsql-generate-table-report -t "Database Test 2" \
-					-i ${INDIR}/db/${SNAME}/table-list.txt \
-					-o ${INDIR}/db/${SNAME}/tables
+					-i "${INDIR}/db/${SNAME}/dbstat/table-list.txt"
 		fi
 		which dbt-pgsql-generate-index-report > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			dbt-pgsql-generate-index-report -t "Database Test 2" \
-					-i ${INDIR}/db/${SNAME}/index-list.txt \
-					-o ${INDIR}/db/${SNAME}/indexes
+					-i "${INDIR}/db/${SNAME}/dbstat/index-list.txt"
 		fi
-		wait
 
 		cat << __EOF__
 $SNAME
 --------------------------------------------------------------------------------
 
-* \`Database Parameters <db/${SNAME}/param.txt>\`__
+* \`Database Parameters <db/${SNAME}/dbstat/params.csv>\`__
 * \`Query plans <db/${SNAME}/plan0.txt>\`__
 
 .. list-table::
 
-   * - \`Database Stats Charts <db/${SNAME}/stats/>\`__
-     -
+   * - Database Stats Charts
+     - \`dbt2 <db/${SNAME}/dbstat/db/dbt2>\`__
    * - Database Table Stats Charts:
      - $(links_tables $SNAME)
    * - Database Index Stats Charts:
@@ -214,12 +161,18 @@ show_images()
 	NAME=$1
 	TAG=$2
 
-	CHARTS=$(cd ${PIDSTATDIR}/${TAG} && ls -1v pidstat-${TAG}-*.png)
-	for CHART in $CHARTS; do
-		echo ".. image:: $CHART"
-		echo "   :target: $CHART"
-		echo "   :width: 100%"
-		echo ""
+	TAGPIDS=$(grep "${TAG}" "${PIDSTATDIR}/pidstat-index.txt" | \
+			cut -d " " -f 1)
+	for P in ${TAGPIDS}; do
+		CHARTS=$(find "${PIDSTATDIR}" -type f -name "pidstat-${P}-*.png" | \
+				sort)
+		for CHART in $CHARTS; do
+			BCHART=$(basename "${CHART}")
+			echo ".. image:: ../pidstat/${BCHART}"
+			echo "   :target: ../pidstat/${BCHART}"
+			echo "   :width: 100%"
+			echo ""
+		done
 	done
 }
 
@@ -236,6 +189,10 @@ while getopts "hi:" opt; do
 		exit 1
 		;;
 	esac
+done
+
+find "${INDIR}" -type d -name dbstat | while IFS= read -r DBDIR; do
+	ts-plot-pgsql -d dbt2 -i "${DBDIR}"
 done
 
 DBNAME=$(grep "Database Name" ${INDIR}/readme.txt | cut -d " " -f 3)

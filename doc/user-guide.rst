@@ -53,8 +53,20 @@ Setup
 External Software Dependencies
 ------------------------------
 
-SQLite3 is required to do basic statistical calculations in order to report
-test metrics.
+`SQLite3 <https://www.sqlite.org/index.html>`_ is required to do basic
+statistical calculations in order to report test metrics.
+
+System and database statistic collection and post processing are handled by
+`Touchstone Tool <https://gitlab.com/touchstone/touchstone-tools>`_.  Install
+this package in order to characterize system performance.  This package is
+included in the DBT-2 AppImage.
+
+A test report can be generated with the aid of `DBT Tools
+<https://github.com/osdldbt/dbttools>`_.  This package is included in the DBT-2
+AppImage.
+
+`gnuplot <https://www.gnuplot.info/>`_ is used when generating charts.  This
+package is also included in the DBT-2 AppImage.
 
 Linux AppImage
 --------------

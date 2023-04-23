@@ -72,6 +72,7 @@ if [ $VERBOSE -eq 0 ]; then
 	exit 0
 fi
 
+display_version gnuplot --version
 display_version julia --version
 display_version pandoc --version
 display_version perl --version

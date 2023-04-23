@@ -2,14 +2,27 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Add "version" script to show kit version and version of software that may be
   used by the kit
-- Update AppImage to install dbttools v0.4.1 for its version information
-  reporting
+- Update AppImage to install dbttools v0.5.0 for its version information
+  reporting, and updated reporting scripts
 - Use .svg file for AppImage; remove .png file.
 - Use ARGV0 instead of hard coding name in AppRun
 - Remove Julia version of dbt2-post-process
 - Add SQLite3 version of dbt2-post-process
 - Calculate type 1 quantiles
 - Rename container directory to tools
+- Use touchstone-tools v0.4.2 for gnuplot based sar, pidstat and postgresql
+  stats plotting
+- Remove dbt2-sysstat in favor of touchstone-tools ts-sysstat version.
+- Update general and postgresql report generation based on touchstone-tools
+  differing chart filenames and directory layout
+- Stop generating PDF reports with pandoc unless specified to save time
+- Remove sar post-processing since ts-sysstat handles that
+- Move profiling, stats and information collection into the db directory for
+  1-tier test execution with run-workload script
+- Remove postgresql stats collection in favor of touchstone-tools ts-pgsql-stat
+- Update appimage container file with dbttools v0.5.0 and touchstone-tools
+  v0.4.2
+- Add OS memory paging charts to report; previously omitted
 
 v0.50.1 (2023-03-03)
 

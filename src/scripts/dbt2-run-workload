@@ -195,81 +195,6 @@ perf_collect()
 	$COMMAND "perf script -i $PERFDATA > ${THISDIR}/perf.txt 2> /dev/null"
 }
 
-post_process_sar()
-{
-	# Sar data should be processed on the system they are collected on as sar
-	# versions can vary between systems and thus not be able to read another
-	# version's raw data file.
-	COMMAND=""
-	SARPATH=${1}
-	HOST=${2}
-	if [ ! "x${HOST}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		COMMAND="$SSH ${HOST}"
-		HOSTNAME=$($COMMAND hostname)
-		FILE="${SARPATH}/${HOSTNAME}/sar_raw.out"
-		${COMMAND} "which sadf > /dev/null 2>&1"
-		if [ $? -eq 0 ]; then
-			SADF="sadf -d -U"
-		    $COMMAND "$SADF 1 1 > /dev/null 2>&1"
-			RC=$?
-			if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
-		        SADF="sadf -D"
-		        $COMMAND "$SADF 1 1 > /dev/null 2>&1"
-				RC=$?
-				if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
-		            echo "WARNING: Was not able to determine proper sadf flags"
-		            SADF="true"
-		        fi
-		    fi
-		else
-			SADF=true
-		fi
-		${COMMAND} "${SADF} -P ALL ${FILE} > `dirname ${FILE}`/sar-cpu.csv"
-		${COMMAND} "${SADF} ${FILE} -- -B > `dirname ${FILE}`/sar-paging.csv"
-		$COMMAND "$SADF $FILE -- -d -p > `dirname $FILE`/sar-blockdev.csv"
-		$COMMAND "$SADF 1 1 -- -R > /dev/null 2>&1"
-		if [ $? -eq 0 ]; then
-			$COMMAND "$SADF $FILE -- -R > `dirname $FILE`/sar-mem1.csv"
-			$COMMAND "$SADF $FILE -- -r > `dirname $FILE`/sar-mem2.csv"
-		else
-			$COMMAND "$SADF $FILE -- -r > `dirname $FILE`/sar-mem.csv"
-		fi
-		${COMMAND} "${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv"
-		$COMMAND "$SADF $FILE -- -n DEV > `dirname $FILE`/sar-net.csv"
-	else
-		FILE="${SARPATH}/$(hostname)/sar_raw.out"
-		which sadf > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			SADF="sadf -d -U"
-		    $SADF 1 1 > /dev/null 2>&1
-			RC=$?
-			if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
-		        SADF="sadf -D"
-				RC=$?
-		        $SADF 1 1 > /dev/null 2>&1
-				if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then
-		            echo "WARNING: Was not able to determine proper sadf flags"
-		            SADF="true"
-		        fi
-		    fi
-		else
-			SADF=true
-		fi
-		${SADF} -P ALL ${FILE} > `dirname ${FILE}`/sar-cpu.csv
-		${SADF} ${FILE} -- -B > `dirname ${FILE}`/sar-paging.csv
-		${SADF} ${FILE} -- -d -p > `dirname ${FILE}`/sar-blockdev.csv
-		$SADF 1 1 -- -R > /dev/null 2>&1
-		if [ $? -eq 0 ]; then
-			$SADF $FILE -- -R > `dirname $FILE`/sar-mem1.csv
-			$SADF $FILE -- -r > `dirname $FILE`/sar-mem2.csv
-		else
-			$SADF $FILE -- -r > `dirname $FILE`/sar-mem.csv
-		fi
-		${SADF} ${FILE} -- -W > `dirname ${FILE}`/sar-swap.csv
-		$SADF $FILE -- -n DEV > `dirname $FILE`/sar-net.csv
-	fi
-}
-
 readprofile_collect()
 {
 	COMMAND=""
@@ -310,9 +235,21 @@ readprofile_clear()
 }
 
 stop_processes() {
-	killall dbt2-client dbt2-driver sar sadc pidstat
+	killall dbt2-client dbt2-driver
 	"dbt2-${DBMS}-stop-db"
-	killall "dbt2-${DBMS}-db-stat" sar sadc pidstat
+	eval "${DB_COMMAND2} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat -s &"
+
+	# Stop stat collection.
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		ts-sysstat -o "${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat" -s
+
+	else
+		ts-sysstat -o "${DB_OUTPUT_DIR}/$(hostname)/sysstat" -s
+	fi
+
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		$CLIENT_COMMAND "ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/sysstat -s"
+	fi
 }
 
 trap 'echo "Test was interrupted by Control-C."; stop_processes' INT
@@ -560,6 +497,14 @@ if [ ! "x${DB_PORT}" = "x" ]; then
 	fi
 fi
 
+case $DBMS in
+pgsql)
+	# Set some environment variables for known usage of psql.
+	export PGHOST="$DB_HOSTNAME"
+	export PGDATABASE="$DBNAME"
+	;;
+esac
+
 CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
 DRIVER_OUTPUT_DIR=${OUTPUT_DIR}/driver
 DB_OUTPUT_DIR=${OUTPUT_DIR}/db
@@ -603,10 +548,11 @@ echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 
 # Get any OS specific information, if this is a single tier configuration, then
 # the OS parameters will be in the database output directory.
-dbt2-get-os-info -o $DRIVER_OUTPUT_DIR/$(hostname)
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+	dbt2-get-os-info -o "${DRIVER_OUTPUT_DIR}/$(hostname)"
 	DB_COMMAND="$SSH ${DB_HOSTNAME}"
 else
+	dbt2-get-os-info -o "${DB_OUTPUT_DIR}/$(hostname)"
 	DB_COMMAND="eval"
 fi
 # Get the OS information from the database system.
@@ -783,50 +729,33 @@ ITERATIONS=`expr ${ITERATIONS} + 1`
 
 # Collect system statistics on the Client node, if remote.
 if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	HOSTNAME=`$CLIENT_COMMAND hostname`
-	CARGS="--iter $ITERATIONS --sample $SAMPLE_LENGTH"
-	CARGS="$CARGS --outdir ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-	$CLIENT_COMMAND "dbt2-get-os-info -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-	$CLIENT_COMMAND "dbt2-sysstats $CARGS" > \
-			${CLIENT_OUTPUT_DIR}/${HOSTNAME}/stats.txt 2>&1 &
+	CHOSTNAME=$($CLIENT_COMMAND hostname)
+	$CLIENT_COMMAND "dbt2-get-os-info -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}"
+	$CLIENT_COMMAND "ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/sysstat"
 fi
 
-# Unless the reporting can be made more intelligent, if this is a 1-tier
-# configuration, save the Driver node's stats in the database directory.
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	# Since the database system is a remote system, collect the Drive node's
-	# system statistics in the driver directory.
-	dbt2-sysstats \
-			--iter ${ITERATIONS} \
-			--sample ${SAMPLE_LENGTH} \
-			--outdir ${DRIVER_OUTPUT_DIR}/`hostname` > \
-			${DRIVER_OUTPUT_DIR}/`hostname`/stats.txt 2>&1 &
+	# The database system is a remote system, collect the drivers nodes' system
+	# statistics in the driver directory.
+	ts-sysstat -o "${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat"
 
 	# Don't collect system stats from the database system if the database is a
 	# service.
 	if [ $DBAAS -eq 0 ]; then
-		HOSTNAME=$($DB_COMMAND hostname)
-		CARGS="--iter ${ITERATIONS} --sample ${SAMPLE_LENGTH}"
-		CARGS="$CARGS --outdir ${DB_OUTPUT_DIR}/${HOSTNAME}"
-		${DB_COMMAND} "dbt2-sysstats $CARGS" \
-				> ${DB_OUTPUT_DIR}/stats.txt 2>&1 &
+		DBHOSTNAME=$($DB_COMMAND hostname)
+		ts-sysstat -o "${DB_OUTPUT_DIR}/${DBHOSTNAME}/sysstat"
 	fi
 else
-	# This is supposed to be a 1-tier configuration so save the Driver node's
-	# stats into the database directory.
-	dbt2-sysstats \
-			--iter ${ITERATIONS} \
-			--sample ${SAMPLE_LENGTH} \
-			--outdir ${DB_OUTPUT_DIR} > \
-			${DRIVER_OUTPUT_DIR}/`hostname`/stats.txt 2>&1 &
+	# This is a 1-tier configuration so save the driver node's stats into the
+	# database directory.
+	ts-sysstat -o "${DB_OUTPUT_DIR}/$(hostname)/sysstat"
 fi
 
 echo "collecting database statistics..."
 HOSTNAME="$($DB_COMMAND2 hostname)"
 $DB_COMMAND2 mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}
-CARGS="-D $DBNAME -o ${DB_OUTPUT_DIR}/${HOSTNAME} -i $ITERATIONS"
-CARGS="$CARGS -s $SAMPLE_LENGTH $DB_PORT_ARG"
-${DB_COMMAND2} "dbt2-${DBMS}-db-stat $CARGS > ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstats.txt 2>&1" &
+eval "dbt2-${DBMS}-plans -d ${DBNAME} -o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
+eval "${DB_COMMAND2} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat &"
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -869,9 +798,7 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
 	if [ "x$DRIVER3" = "x1" ]; then
 		echo "***experimental driver 3 active***"
-		if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-			DHNARG="-b $DBNAME -d $DB_HOSTNAME"
-		fi
+		DHNARG="-b $DBNAME -d $DB_HOSTNAME"
 		dbt2-driver3 ${DRIVER_COMMAND_ARGS} -a $DBMS $DHNARG $FPP_FLAG > \
 				${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 \
 				|| exit 1 &
@@ -906,18 +833,35 @@ fi
 
 # Start perf data collection
 if [ ${USE_PERF} -eq 1 ]; then
-	perf_start ${OUTPUT_DIR}/driver &
 	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 		perf_start ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
 	fi
 	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		perf_start "${OUTPUT_DIR}/driver" &
 		perf_start ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
+	else
+		perf_start "${OUTPUT_DIR}/db" &
 	fi
 fi
 
 # Sleep for the duration of the run.
 echo -n "estimated steady state time: "
 do_sleep $DURATION
+
+# Stop stats collection.
+if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+	ts-sysstat -o "${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat" -s
+	if [ $DBAAS -eq 0 ]; then
+		ts-sysstat -o "${DB_OUTPUT_DIR}/${DBHOSTNAME}/sysstat"
+	fi
+else
+	# This is a 1-tier configuration.
+	ts-sysstat -o "${DB_OUTPUT_DIR}/$(hostname)/sysstat" -s
+fi
+if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+	$CLIENT_COMMAND "ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/sysstat -s"
+fi
+eval "${DB_COMMAND2} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat -s &"
 
 echo ''
 echo "Stage 3. Processing of results..."
@@ -991,28 +935,19 @@ fi
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	# If a database system is specified, rsync all the logs back to the driver
 	# system after creating the sar csv data.
-	post_process_sar $DRIVER_OUTPUT_DIR &
-	SAR_PIDLIST="$!"
 	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
 		HOSTNAME=$($SSH $CLIENT_HOSTNAME hostname)
-		post_process_sar $CLIENT_OUTPUT_DIR $CLIENT_HOSTNAME
 		rsync -a -e "$SSH" --delete \
 				"${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
 				${CLIENT_OUTPUT_DIR}/ &
-		SAR_PIDLIST="$SAR_PIDLIST $!"
 	fi
 
 	# There will only be a sar output file if the database is on a separate
 	# system.
 	if [ $DBAAS -eq 0 ]; then
-		post_process_sar $DB_OUTPUT_DIR $DB_HOSTNAME
 		rsync -a -e "$SSH" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
 				${DB_OUTPUT_DIR}/ &
-		SAR_PIDLIST="$SAR_PIDLIST $!"
 	fi
-	wait $SAR_PIDLIST
-else
-	post_process_sar $DB_OUTPUT_DIR
 fi
 
 # Make sure all the drivers have exited, so all the mix files have flushed to

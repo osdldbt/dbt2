@@ -48,24 +48,15 @@ create_pidstat_page()
 
 	mkdir -p $DIR
 
+	PIDSTATINDEX="$(dirname "${PIDSTATCSV}")/pidstat-index.txt"
+
 	cat > ${DIR}/index.rst << __EOF__
 ================================================================================
 Database Test 2 pidstat $TAG Charts
 ================================================================================
 
-$(show_images_pidstat $TAG $DIR)
+$(show_images_pidstat "${TAG}" "${DIR}" "${PIDSTATINDEX}")
 __EOF__
-}
-
-create_pidstat_plots()
-{
-	MYPIDSTATCSV=$1
-	METRIC=$2
-	COMMAND=$3
-	MYTAG=$4
-
-	dbt-plot pidstat -i "$MYPIDSTATCSV" -m "$METRIC" -c "$COMMAND" \
-			-t "$MYTAG" -o "$(dirname "$MYPIDSTATCSV")/${MYTAG}"
 }
 
 list_multiple_systems_summary()
@@ -87,12 +78,13 @@ list_multiple_systems_summary()
 		echo "     - $(show_system_links ${MYTAG}/$SNAME)"
 		echo "     - $(show_profile_links ${MYTAG}/$SNAME)"
 
-		if [ -f "${INDIR}/${MYTAG}/${SNAME}/sar_raw.out" ]; then
+		if [ -f "${INDIR}/${MYTAG}/${SNAME}/sysstat/sar.datafile" ]; then
 			THISDIR="${INDIR}/${MYTAG}/$SNAME"
 			create_stat_page $MYTAG cpu $THISDIR ${THISDIR}/cpu
 			create_stat_page $MYTAG mem $THISDIR ${THISDIR}/mem
 			create_stat_page $MYTAG blockdev $THISDIR ${THISDIR}/blockdev
 			create_stat_page $MYTAG net $THISDIR ${THISDIR}/net
+			create_stat_page $MYTAG paging $THISDIR ${THISDIR}/paging
 			create_stat_page $MYTAG swap $THISDIR ${THISDIR}/swap
 		fi
 	done
@@ -100,17 +92,6 @@ list_multiple_systems_summary()
 
 list_processes()
 {
-	if [ "$DBTLANG" = "julia" ]; then
-		METRICS="%CPU %usr %system %wait %MEM kB_rd/s kB_wr/s cswch/s"
-		METRICS="$METRICS nvcswch/s fd-nr"
-	else
-		# R automatically replaces special characters with one of more other
-		# chars.
-		METRICS="X.CPU X.usr X.system X.wait X.MEM kB_rd.s kB_wr.s cswch.s"
-		METRICS="$METRICS nvcswch.s fd.nr"
-	fi
-	METRICS="$METRICS VSZ RSS iodelay threads"
-
 	list_processes2 "Driver System(s):" driver
 	list_processes2 "Client System(s):" client
 	list_processes2 "Database System(s):" db
@@ -125,28 +106,25 @@ list_processes2()
 	echo ""
 	find "${INDIR}/${MYPTAG}" -name pidstat.csv | while IFS= read -r PIDSTATCSV
     do
+		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
+		ts-plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat"
+
 		# Try not to count execution of the driver/client binaries on remote
 		# systems.
 		COUNTDRIVER=$(grep dbt2-driver "$PIDSTATCSV" | grep -c -v ssh)
 		COUNTCLIENT=$(grep dbt2-client "$PIDSTATCSV" | grep -c -v ssh)
-		SNAME=$(dirname $PIDSTATCSV)
+		SNAME=$(dirname "$(dirname "${PIDSTATCSV}")")
 		SNAME=$(basename $SNAME)
 
 		echo "* $SNAME"
 
 		if [ $COUNTDRIVER -gt 0 ]; then
 			PTAG="driver"
-			for M in $METRICS; do
-				create_pidstat_plots "$PIDSTATCSV" "$M" dbt2-driver $PTAG
-			done
 			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
 			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
 		fi
 		if [ $COUNTCLIENT -gt 0 ]; then
 			PTAG="client"
-			for M in $METRICS; do
-				create_pidstat_plots "$PIDSTATCSV" "$M" dbt2-client $PTAG
-			done
 			create_pidstat_page $PTAG ${INDIR}/${MYPTAG}/${SNAME}/${PTAG}
 			echo "   * \`$PTAG <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
 		fi
@@ -172,13 +150,19 @@ show_images_pidstat()
 {
 	TAG=$1
 	DIR=$2
+	PINDEX=$3
 
-	CHARTS=$(cd $DIR && ls -1v pidstat-${TAG}-*.png)
-	for CHART in $CHARTS; do
-		echo ".. image:: $CHART"
-		echo "   :target: $CHART"
-		echo "   :width: 100%"
-		echo ""
+	TAGPIDS=$(grep "dbt2-${TAG}" "${PINDEX}" | cut -d " " -f 1)
+	for P in ${TAGPIDS}; do
+		CHARTS=$(find "${DIR}/../sysstat/pidstat" \
+				-name "pidstat-${P}-*.png" | sort)
+		for CHART in ${CHARTS}; do
+			BCHART=$(basename "${CHART}")
+			echo ".. image:: ../sysstat/pidstat/${BCHART}"
+			echo "   :target: ../sysstat/pidstat/${BCHART}"
+			echo "   :width: 100%"
+			echo ""
+		done
 	done
 }
 
@@ -230,12 +214,14 @@ show_system_links()
 {
 	SYSTEM=$1
 
-	if [ -f "${INDIR}/${SYSTEM}/sar_raw.out" ]; then
-		echo -n "\`CPU <${SYSTEM}/cpu/>\`__ "
-		echo -n "\`Memory <${SYSTEM}/mem/>\`__ "
-		echo -n "\`Blockdev <${SYSTEM}/blockdev/>\`__ "
-		echo -n "\`Network <${SYSTEM}/net/>\`__ "
-		echo -n "\`Swap <${SYSTEM}/swap/>\`__ "
+	if [ -f "${INDIR}/${SYSTEM}/sysstat/sar.datafile" ]; then
+		LINE="\`CPU <${SYSTEM}/cpu/>\`__"
+		LINE="${LINE} \`Memory <${SYSTEM}/mem/>\`__"
+		LINE="${LINE} \`Blockdev <${SYSTEM}/blockdev/>\`__"
+		LINE="${LINE} \`Network <${SYSTEM}/net/>\`__"
+		LINE="${LINE} \`Paging <${SYSTEM}/paging/>\`__"
+		LINE="${LINE} \`Swap <${SYSTEM}/swap/>\`__"
+		echo "${LINE}"
 	else
 		echo ".."
 	fi
@@ -273,9 +259,9 @@ if [ "x$DBNAME" = "x" ]; then
 fi
 
 echo "Processing pidstat files..."
-for PIDSTATFILE in $(find $INDIR -name pidstat.txt); do
-	DIRNAME="$(dirname $PIDSTATFILE)"
-	(cd "$DIRNAME" && dbt-process-pidstat pidstat.txt)
+find "${INDIR}" -type f -name pidstat.txt | while IFS= read -r PIDSTATFILE; do
+	PDIR=$(dirname "${PIDSTATFILE}")
+	ts-process-pidstat -i "${PIDSTATFILE}"
 done
 
 echo "Generating transaction distribution charts..."
@@ -296,46 +282,9 @@ find ${INDIR}/driver -name 'mix*.log' | \
 		xargs dbt-plot transaction-distribution "Stock Level" s "${OUTDIR}/txn" 5 \
 		|| warning "Could not create Stock Level response time distribution char"
 
-mkdir -p ${OUTDIR}/db/sar || exit 1
-
-echo "Generating sar io charts..."
-for SARBLOCKDEVFILE in `find $INDIR -name sar-blockdev.csv`; do
-	DIRNAME="$(dirname $SARBLOCKDEVFILE)/sar"
-	mkdir -p $DIRNAME
-	dbt-plot sar-blockdev "$SARBLOCKDEVFILE" "$DIRNAME" \
-			> /dev/null 2>&1 || warning "Could not create sar blockdev charts"
-done
-
-echo "Generating memory charts..."
-for SARMEMFILE in `find $INDIR -name sar-mem.csv`; do
-	DIRNAME="$(dirname $SARMEMFILE)/sar"
-	mkdir -p $DIRNAME
-	dbt-plot sar-mem -i "$SARMEMFILE" -o "$DIRNAME" > /dev/null 2>&1 \
-			|| warning "Could not create sar mem charts from $SARMEMFILE"
-done
-
-echo "Generating processor utilization charts..."
-for SARCPUFILE in `find $INDIR -name sar-cpu.csv`; do
-	DIRNAME="$(dirname $SARCPUFILE)/sar"
-	mkdir -p $DIRNAME
-	dbt-plot sar-cpu "$SARCPUFILE" "$DIRNAME" > /dev/null 2>&1 \
-			|| warning "Could not create sar cpu charts from $SARCPUFILE"
-done
-
-echo "Generating swap charts..."
-for SARSWAPFILE in `find $INDIR -name sar-swap.csv`; do
-	DIRNAME="$(dirname $SARSWAPFILE)/sar"
-	mkdir -p $DIRNAME
-	dbt-plot sar-swap "$SARSWAPFILE" "$DIRNAME" > /dev/null 2>&1 \
-			|| warning "Could not create sar swap charts from $SARSWAPFILE"
-done
-
-echo "Generating network charts..."
-for SARNETFILE in `find $INDIR -name sar-net.csv`; do
-	DIRNAME="$(dirname $SARNETFILE)/sar"
-	mkdir -p $DIRNAME
-	dbt-plot sar-net "$SARNETFILE" "$DIRNAME" > /dev/null 2>&1 \
-			|| warning "Could not create sar net charts from $SARNETFILE"
+echo "Generating sar charts..."
+find "${INDIR}" -type d -name sysstat | while IFS= read -r SARDIR; do
+	ts-plot-sar -i "${SARDIR}/sar"
 done
 
 echo "Generating transaction rate charts..."
@@ -368,7 +317,7 @@ Summary
 
 * Date: $(head -n 1 "${INDIR}/readme.txt")
 * Scale Factor: $(grep "Database Scale Factor:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | xargs)
-* DBMS: $(head -n 1 "$(find "${INDIR}" -name readme-dbms.txt)")
+* DBMS: $(head -n 1 "$(find "${INDIR}" -name "readme-${DBMS}.txt")")
 
 $(cat $SUMMARY)
 
@@ -429,6 +378,8 @@ __EOF__
 # smarter such that we should actually do some combination of generating
 # formats requested or throw codes depending on what actually failed.
 
+GENERATE_PDF=0
+
 RST2HTML5=""
 which rst2html5.py > /dev/null 2>&1
 if [ $? -eq 0 ]; then
@@ -455,28 +406,29 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 	find "${OUTDIR}" -maxdepth 1 -name '*.html'
 	echo ""
 
-	# A pdf could be produced other ways, but I believe pandoc produces the most
-	# minimally styled LaTeX looking document, as opposed to using rst2latex,
-	# with default settings.
-	which pandoc > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
-		(cd $OUTDIR && \
-				pandoc -s report.html -f html -t pdf -o report.pdf \
-						2> /dev/null)
-		for HTML in $(find $OUTDIR -name "*.html"); do
-			HTMLDIR=$(dirname "$HTML")
-			HTMLNAME=$(basename "$HTML")
-			NAME="${HTMLNAME%.*}"
-			pandoc -s "$HTML" -f html -t pdf \
-					-o "${HTMLDIR}/${NAME}.pdf" 2> /dev/null
-		done
+    if [ $GENERATE_PDF -eq 1 ]; then
+		# A pdf could be produced other ways, but I believe pandoc produces the
+		# most minimally styled LaTeX looking document, as opposed to using
+		# rst2latex, with default settings.
+		if ! which pandoc > /dev/null 2>&1; then
+			(cd "${OUTDIR}" && \
+					pandoc -s report.html -f html -t pdf -o report.pdf \
+							2> /dev/null)
+			find "${OUTDIR}" -name "*.html" | while IFS= read -r HTML; do
+				HTMLDIR=$(dirname "$HTML")
+				HTMLNAME=$(basename "$HTML")
+				NAME="${HTMLNAME%.*}"
+				pandoc -s "$HTML" -f html -t pdf \
+						-o "${HTMLDIR}/${NAME}.pdf" 2> /dev/null
+			done
 
-		echo "Generated top level PDF reports:"
-		find "${OUTDIR}" -maxdepth 1 -name '*.pdf'
-		echo ""
-	else
-		echo "WARNING: pandoc required to generate pdf report"
-		exit 0
+			echo "Generated top level PDF reports:"
+			find "${OUTDIR}" -maxdepth 1 -name '*.pdf'
+			echo ""
+		else
+			echo "WARNING: pandoc required to generate pdf report"
+			exit 0
+		fi
 	fi
 else
 	echo "WARNING: rst2html5 required to generate html report"

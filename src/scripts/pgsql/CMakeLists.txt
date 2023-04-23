@@ -6,7 +6,6 @@ install (
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-create-db
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-create-indexes
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-create-tables
-    ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-db-stat
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-destroy-installation
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-drop-db
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-drop-tables
