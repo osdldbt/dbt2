@@ -22,218 +22,6 @@ make_directories()
 	${COMMAND} mkdir -p ${OUTPUT_DIR}
 }
 
-oprofile_annotate()
-{
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-	OPROFILE_DIR=${DIR}/oprofile
-	ANNOTATED_DIR=${OPROFILE_DIR}/annotated
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "oprofile is annotating source: ${HOST}"
-	${COMMAND} mkdir -p ${OPROFILE_DIR}
-	${COMMAND} mkdir -p ${ANNOTATED_DIR}
-	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "sudo opannotate --source \
-				--assembly > ${OPROFILE_DIR}/assembly.txt 2>&1"
-	else
-		sudo opannotate --source --assembly > ${OPROFILE_DIR}/assembly.txt 2>&1
-	fi
-	${COMMAND} sudo opannotate --source --output-dir=${ANNOTATED_DIR}
-	IAM=`whoami`
-	${COMMAND} sudo chown -R ${IAM} ${OPROFILE_DIR}
-}
-
-oprofile_collect()
-{
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-	OPROFILE_DIR=${DIR}/oprofile
-	ANNOTATED_DIR=${OPROFILE_DIR}/annotated
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	mkdir -p ${OPROFILE_DIR}
-	mkdir -p ${ANNOTATED_DIR}
-	#
-	# I don't think we need any output dumped to the terminal.
-	#
-	echo "oprofile is dumping data: ${HOST}"
-	${COMMAND} sudo opcontrol --dump
-	if [ -n "${COMMAND}" ]; then
-		${COMMAND} mkdir -p ${OPROFILE_DIR}
-		${COMMAND} mkdir -p ${ANNOTATED_DIR}
-		echo "Generating oprofile profile on '${HOST}'..."
-		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > ${OPROFILE_DIR}/oprofile.log 2>&1"
-		echo "Generating oprofile callgraph on '${HOST}'..."
-		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${OPROFILE_DIR}/callgraph.txt > ${OPROFILE_DIR}/oprofile.log 2>&1"
-	else
-		echo "Generating oprofile profile..."
-		sudo opreport -l -p /lib/modules/`uname -r` \
-				-o ${OPROFILE_DIR}/oprofile.txt > \
-				${OPROFILE_DIR}/oprofile.log 2>&1
-		echo "Generating oprofile callgraph..."
-		sudo opreport -l -c -p /lib/modules/`uname -r` \
-				-o ${OPROFILE_DIR}/callgraph.txt > \
-				${OPROFILE_DIR}/oprofile.log 2>&1
-	fi
-	${COMMAND} sudo opcontrol --stop
-	IAM=`whoami`
-	${COMMAND} sudo chown -R ${IAM} ${OPROFILE_DIR}
-}
-
-oprofile_init()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "starting oprofile: ${HOST}"
-	${COMMAND} sudo opcontrol \
-			--vmlinux=/lib/modules/`${COMMAND} uname -r`/vmlinux \
-			-c 100
-	sleep 1
-	START_ARGS=""
-	MACHINE=`${COMMAND} uname -m`
-	if [ "${MACHINE}" = "ppc64" ]; then
-		#
-		# Oprofile fails to work on ppc64 because the defaults settings
-		# are invalid on this platform.  Why isn't it smart enough to
-		# have valid default setting depending on arch?
-		#
-		START_ARGS="-e CYCLES:150000:0:1:1"
-	fi
-	${COMMAND} sudo opcontrol --start-daemon ${START_ARGS}
-	sleep 1
-	${COMMAND} sudo opcontrol --start
-}
-
-oprofile_reset()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "resetting oprofile counters: ${HOST}"
-	${COMMAND} sudo opcontrol --reset
-}
-
-oprofile_stop()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "stopping oprofile daemon: ${HOST}"
-	${COMMAND} sudo opcontrol --shutdown
-}
-
-perf_start()
-{
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-		HOSTNAME=$($COMMAND hostname)
-	else
-		HOSTNAME=$(hostname)
-	fi
-
-	RC=`$COMMAND cat /proc/sys/kernel/perf_event_paranoid`
-	if [ $RC -ne -1 ]; then
-		echo "WARNING: Give the current user permission to use perf by setting"
-		echo "         /proc/sys/kernel/perf_event_paranoid to -1"
-		return 0
-	fi
-	PERFDATA="${DIR}/${HOSTNAME}/perf.data"
-	$COMMAND perf record -o $PERFDATA -a -g -s sleep 10
-
-	# Default permissions varies per distro, set it readable explicitly...
-	$COMMAND chmod 644 $PERFDATA
-}
-
-perf_collect()
-{
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-		HOSTNAME=$($COMMAND hostname)
-	else
-		COMMAND="eval"
-		HOSTNAME=`hostname`
-	fi
-
-	THISDIR="${DIR}/${HOSTNAME}"
-	PERFDATA="${THISDIR}/perf.data"
-	echo "Generating perf report on '${HOSTNAME}'..."
-	$COMMAND "perf report -i $PERFDATA -n > ${THISDIR}/perf-report.txt 2> /dev/null"
-	echo "Generating perf annotated source on '${HOSTNAME}'..."
-	$COMMAND "perf annotate -l -P -i $PERFDATA > ${THISDIR}/perf-annotate.txt 2> /dev/null"
-	echo "Generating perf traces on '${HOSTNAME}'..."
-	$COMMAND "perf script -L -i $PERFDATA > ${THISDIR}/perf-trace.txt 2> /dev/null"
-	$COMMAND "perf script -i $PERFDATA > ${THISDIR}/perf.txt 2> /dev/null"
-}
-
-readprofile_collect()
-{
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-	RP_DIR=${DIR}/readprofile
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "collecting readprofile data: ${HOST}"
-	PROFILE=${RP_DIR}/readprofile.txt
-	if [ -n "${COMMAND}" ]; then
-		${COMMAND} mkdir -p ${RP_DIR}
-		${COMMAND} "/usr/sbin/readprofile -n -m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}"
-		$COMMAND "cat $PROFILE | sort -n -r -k1 > $RP_DIR/readprofile_ticks.txt"
-		$COMMAND "cat $PROFILE | sort -n -r -k3 > $RP_DIR/readprofile_load.txt"
-	else
-		mkdir -p ${RP_DIR}
-		/usr/sbin/readprofile -n -m /boot/System.map-`uname -r` > ${PROFILE}
-		cat ${PROFILE} | sort -n -r -k1 > ${RP_DIR}/readprofile_ticks.txt
-		cat ${PROFILE} | sort -n -r -k3 > ${RP_DIR}/readprofile_load.txt
-	fi
-}
-
-readprofile_clear()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="$SSH ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "clearing readprofile data: ${HOST}"
-	${COMMAND} sudo /usr/sbin/readprofile -r
-}
-
 stop_processes() {
 	killall dbt2-client dbt2-driver
 	"dbt2-${DBMS}-stop-db"
@@ -286,8 +74,6 @@ usage()
 	echo "  -L #          limit the number of terminals emulated"
 	echo "  -n            disable thinking and keying time"
 	echo "  -o PATH       path to store test results"
-	echo "  -q            enable oprofile data collection"
-	echo "  -r            enable perf data collection"
 	echo "  -s #          millisecond delay between thread creation"
 	echo "  -t #          number of districts per warehouse, default 10"
 	echo "  -u            run test as a privileged user"
@@ -329,13 +115,11 @@ DBAAS=0
 FPP=1
 PRIVILEGED=0
 THREAD_STARTUP_DELAY=1000 # milliseconds
-USE_OPROFILE=0
-USE_PERF=0
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 DBNAME=${DBT2DBNAME}
 
-while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
+while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:S:s:t:U:uw:x:yz:" opt; do
 	case $opt in
 	A)
 		ALTERED_ARG="-altered 1"
@@ -391,12 +175,6 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:qrS:s:t:U:uw:x:yz:" opt; do
 	p)
 		DB_PARAMS="${OPTARG}"
 		DB_PARAMS_ARG="-p \"${OPTARG}\""
-		;;
-	q)
-		USE_OPROFILE=1
-		;;
-	r)
-		USE_PERF=1
 		;;
 	S)
 		SOCK_FILE=${OPTARG}
@@ -757,14 +535,6 @@ $DB_COMMAND2 mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}
 eval "dbt2-${DBMS}-plans -d ${DBNAME} -o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
 eval "${DB_COMMAND2} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat &"
 
-# Initialize oprofile before we start the driver.
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_init
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_init ${DB_HOSTNAME}
-	fi
-fi
-
 # Start the driver.
 echo ''
 echo "Stage 2. Starting up driver..."
@@ -815,35 +585,6 @@ echo -n "estimated rampup time: "
 do_sleep $DRIVER_RAMPUP_TIME
 echo "estimated rampup time has elapsed"
 
-# Clear the readprofile data after the driver ramps up.
-if [ -f "/proc/profile" ]; then
-	readprofile_clear
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		readprofile_clear ${DB_HOSTNAME}
-	fi
-fi
-
-# Reset the oprofile counters after the driver ramps up.
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_reset
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_reset ${DB_HOSTNAME}
-	fi
-fi
-
-# Start perf data collection
-if [ ${USE_PERF} -eq 1 ]; then
-	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		perf_start ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
-	fi
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		perf_start "${OUTPUT_DIR}/driver" &
-		perf_start ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
-	else
-		perf_start "${OUTPUT_DIR}/db" &
-	fi
-fi
-
 # Sleep for the duration of the run.
 echo -n "estimated steady state time: "
 do_sleep $DURATION
@@ -883,51 +624,6 @@ if [ $PRIVILEGED -eq 1 ]; then
 		if [ ${USE_PGPOOL} -eq 1 ]; then
 			pgpool -f ${DIR}/pgsql/pgpool.conf stop
 		fi
-	fi
-fi
-
-# Collect readprofile data.
-if [ -f "/proc/profile" ]; then
-	readprofile_collect ${DRIVER_OUTPUT_DIR}/`hostname`
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
-	fi
-fi
-
-# Collect oprofile data.
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
-	fi
-fi
-
-# Collect perf data.
-if [ $USE_PERF -eq 1 ]; then
-	perf_collect ${OUTPUT_DIR}/driver &
-	PERF_PIDLIST="$!"
-	if [ -n ${CLIENT_HOSTNAME} ] && [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		perf_collect ${OUTPUT_DIR}/client ${CLIENT_HOSTNAME} &
-		PERF_PIDLIST="$PERF_PIDLIST $!"
-	fi
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		perf_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
-		PERF_PIDLIST="$PERF_PIDLIST $!"
-	fi
-	wait $PERF_PIDLIST
-fi
-
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_annotate ${OUTPUT_DIR} &
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
-	fi
-fi
-
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_stop
-	if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_stop ${DB_HOSTNAME}
 	fi
 fi
 

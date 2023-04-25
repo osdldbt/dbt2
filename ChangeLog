@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Remove profiling logic from run-workload script in anticipation of
+  reincorporating the same logic from touchstone-tools
+
 v0.51.0 (2023-04-25)
 
 - Add "version" script to show kit version and version of software that may be
