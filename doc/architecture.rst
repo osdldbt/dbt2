@@ -20,7 +20,7 @@ TPC-C
 The TPC-C represents the database activities of any industry that manages,
 sells, and distributes a product or service, such as car rental agencies,
 food distribution companies, and parts suppliers.  The simulated business
-model mimicks a wholesale parts supplier that operates out of a number of
+model mimics a wholesale parts supplier that operates out of a number of
 warehouses and their associated sales districts. Each warehouse has ten sales
 districts and each district servers three thousand customers.  A user from a
 sales district can select at any time one of five operations from the order
@@ -30,8 +30,8 @@ at a specified warehouse.
 
 The most frequent transaction consists of entering a new order that is
 comprised of an average of ten line items.  Each warehouse maintains stock
-for 100,000 items  and attempts to fill oders from that stock.  To simulate
-realistic events, such as the case where a particular wharehouse may not have
+for 100,000 items and attempts to fill orders from that stock.  To simulate
+realistic events, such as the case where a particular warehouse may not have
 the item in stock, the TPC-C benchmark requires that close to 10% of all
 orders must be supplied by another warehouse (i.e. 10% of all orders are not
 in stock at the warehouse where the order is entered).
@@ -76,10 +76,10 @@ adhere to these rules; thus, the results reported by the DBT-2 test kit
 do not constitute a TPC-C result, and are incomparable with any TPC-C
 benchmark.
 
-The primary metric reported by the DBT-2 workload is the number of
-New-Order transactions executed per second and is expressed as BT-2's (bogo
-transaction-2).  However, BT-2's do not and should not be compared to tpmC
-measurements in any way since the DBT-2 workload does not constitute a
+The primary metric reported by the DBT-2 workload is the number of New-Order
+transactions executed per second and is expressed as NOTPM (New Order
+Transactions per Minute).  However, NOTPM's do not and should not be compared
+to tpmC measurements in any way since the DBT-2 workload does not constitute a
 compliant TPC-C benchmark.
 
 Improper Comparisons
@@ -140,7 +140,7 @@ executed 43% of the time.
 Order-Status Transaction
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Order-Status transaction is a mid-weight read-only data transation that
+The Order-Status transaction is a mid-weight read-only data transaction that
 queries the status of a customer's most recent order.  The transaction
 performs two row selections and nine to nineteen row selections with updates,
 and is executed 4% of the time.
@@ -150,7 +150,7 @@ Delivery Transaction
 
 The Delivery transaction is a database transaction that processes up to ten
 new orders.  The transaction performs two row selections, six to sixteen row
-selections with updates, and one row delection, and is executed 4% of the time.
+selections with updates, and one row deletion, and is executed 4% of the time.
 
 Stock-Level Transaction
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -174,7 +174,7 @@ The RTE is designed as a multi-threaded program where each thread of activity
 represents a single terminal accessing the database.  Ten terminals are
 simulated for every warehouse that the database is configured for.  Each
 terminal records every interaction attempted and the response time from the
-point where the request is sent to when the reponse has been received.
+point where the request is sent to when the response has been received.
 
 Clients
 -------
