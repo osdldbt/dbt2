@@ -23,6 +23,7 @@ v0.51.0 (2023-04-25)
 - Update appimage container file with dbttools v0.5.0 and touchstone-tools
   v0.4.2
 - Add OS memory paging charts to report; previously omitted
+- Remove Julia from the AppImage.
 
 v0.50.1 (2023-03-03)
 

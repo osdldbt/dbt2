@@ -25,18 +25,8 @@ RUN yum -qy update && \
                    zlib-devel && \
     yum -qy clean all
 
-RUN mkdir -p /usr/local/AppDir
+RUN mkdir -p /usr/local/AppDir/usr/bin
 ENV LD_LIBRARY_PATH="/usr/local/lib64"
-
-ARG JULIAVER="1.8.5"
-ENV JULIA_DEPOT_PATH=/usr/local/AppDir/opt/julia
-RUN curl -o /tmp/julia-${JULIAVER}-linux-${ARCH}.tar.gz \
-         -sOL https://julialang-s3.julialang.org/bin/linux/x64/1.8/julia-${JULIAVER}-linux-${ARCH}.tar.gz && \
-    tar -C /tmp -xf /tmp/julia-${JULIAVER}-linux-${ARCH}.tar.gz && \
-    mv /tmp/julia-${JULIAVER} /usr/local/AppDir/usr && \
-    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/julia && \
-    /usr/local/AppDir/usr/bin/julia --quiet -C generic \
-            -e 'import Pkg; Pkg.add("CSV"); Pkg.add("DataFrames"); Pkg.add("Distributions"); Pkg.add("VegaLite");'
 
 # Install tools for making flame graphs
 
