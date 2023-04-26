@@ -1,7 +1,7 @@
 vX.Y.Z (YYYY-MM-DD)
 
-- Remove profiling logic from run-workload script in anticipation of
-  reincorporating the same logic from touchstone-tools
+- Use profiling scripts from touchstone-tools to collect readprofile, oprofile,
+  or perf if requested and available
 
 v0.51.0 (2023-04-25)
 

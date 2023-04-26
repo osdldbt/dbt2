@@ -76,7 +76,7 @@ list_multiple_systems_summary()
 		echo "   * - $SNAME"
 		echo "     - $(cat $UNAMEFILE)"
 		echo "     - $(show_system_links ${MYTAG}/$SNAME)"
-		echo "     - $(show_profile_links ${MYTAG}/$SNAME)"
+		echo "     - $(show_profile_links ${MYTAG}/${SNAME}/profile)"
 
 		if [ -f "${INDIR}/${MYTAG}/${SNAME}/sysstat/sar.datafile" ]; then
 			THISDIR="${INDIR}/${MYTAG}/$SNAME"
@@ -168,29 +168,59 @@ show_images_pidstat()
 
 show_profile_links()
 {
-	SYSTEM=$1
+	PPATH=$1
 
-	FILENAME="${INDIR}/${SYSTEM}/readprofile.txt"
+	FILENAME="${INDIR}/${PPATH}/readprofile.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`readprofile <${SYSTEM}/$(basename $FILENAME)>\`__ "
+		printf "%s" "\`readprofile <${PPATH}/$(basename "${FILENAME}")>\`__ "
 	fi
 
-	FILENAME="${INDIR}/${SYSTEM}/perf-report.txt"
+	FILENAME="${INDIR}/${PPATH}/readprofile-load.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`perf-report <${SYSTEM}/$(basename $FILENAME)>\`__ "
+		printf "%s" "\`readprofile-by-load <${PPATH}/$(basename "${FILENAME}")>\`__ "
 	fi
 
-	FILENAME="${INDIR}/${SYSTEM}/perf-trace.txt"
+	FILENAME="${INDIR}/${PPATH}/readprofile-ticks.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`perf-trace <${SYSTEM}/$(basename $FILENAME)>\`__ "
+		printf "%s" "\`readprofile-by-ticks <${PPATH}/$(basename "${FILENAME}")>\`__ "
 	fi
 
-	FILENAME="${INDIR}/${SYSTEM}/perf-annotate.txt"
+	FILENAME="${INDIR}/${PPATH}/opreport.txt"
 	if [ -f "$FILENAME" ]; then
-		echo -n "\`perf-annotated-source <${SYSTEM}/$(basename $FILENAME)>\`__ "
+		printf "%s" "\`opreport <${PPATH}/$(basename "${FILENAME}")>\`__ "
 	fi
 
-	FILENAME="${INDIR}/${SYSTEM}/perf.txt"
+	FILENAME="${INDIR}/${PPATH}/opreport-callgraph.txt"
+	if [ -f "$FILENAME" ]; then
+		printf "%s" "\`opreport-callgraph <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/opannotate-assembly.txt"
+	if [ -f "$FILENAME" ]; then
+		printf "%s" "\`opannotate-assembly <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/opannotate-source.txt"
+	if [ -f "$FILENAME" ]; then
+		printf "%s" "\`opannotate-source <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf-report.txt"
+	if [ -f "$FILENAME" ]; then
+		printf "%s" "\`perf-report <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf-trace.txt"
+	if [ -f "$FILENAME" ]; then
+		printf "%s" "\`perf-trace <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf-annotate.txt"
+	if [ -f "$FILENAME" ]; then
+		printf "%s" "\`perf-annotated-source <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf.txt"
 	if [ -f "$FILENAME" ]; then
 		which stackcollapse-perf.pl > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
@@ -199,13 +229,14 @@ show_profile_links()
 		fi
 		which flamegraph.pl > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
-			FLAMEGRAPH="${INDIR}/${SYSTEM}/flamegraph.svg"
+			FLAMEGRAPH="${INDIR}/${PPATH}/flamegraph.svg"
 			(cd $(dirname $FILENAME) && \
 				flamegraph.pl perf.folded > \
 						"$(basename "$FLAMEGRAPH")" 2> /dev/null)
 		fi
 		if [ -f "$FLAMEGRAPH" ]; then
-			echo -n "\`flame-graph <${SYSTEM}/$(basename ${FLAMEGRAPH})>\`__ "
+			printf "%s" \
+					"\`flame-graph <${PPATH}/$(basename "${FLAMEGRAPH}")>\`__ "
 		fi
 	fi
 }

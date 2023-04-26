@@ -22,6 +22,40 @@ make_directories()
 	${COMMAND} mkdir -p ${OUTPUT_DIR}
 }
 
+profile_collect()
+{
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		ts-profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
+		if [ $DBAAS -eq 0 ]; then
+			$DB_COMMAND "ts-profile -o ${DB_OUTPUT_DIR}/${DBHOSTNAME}/profile sleep 10" &
+		fi
+	else
+		# This is a 1-tier configuration.
+		ts-profile -o "${DB_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
+	fi
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		$CLIENT_COMMAND "ts-profile -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/profile sleep 10" &
+	fi
+}
+
+profile_process()
+{
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		ts-profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" -p
+		if [ $DBAAS -eq 0 ]; then
+			$DB_COMMAND \
+					"ts-profile -o ${DB_OUTPUT_DIR}/${DBHOSTNAME}/profile -p"
+		fi
+	else
+		# This is a 1-tier configuration.
+		ts-profile -o "${DB_OUTPUT_DIR}/$(hostname)/profile" -p
+	fi
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		$CLIENT_COMMAND \
+				"ts-profile -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/profile -p"
+	fi
+}
+
 stop_processes() {
 	killall dbt2-client dbt2-driver
 	"dbt2-${DBMS}-stop-db"
@@ -114,12 +148,13 @@ DB_USER=${DBUSER}
 DBAAS=0
 FPP=1
 PRIVILEGED=0
+PROFILE=0
 THREAD_STARTUP_DELAY=1000 # milliseconds
 THREADS_PER_WAREHOUSE=10
 USE_PGPOOL=0
 DBNAME=${DBT2DBNAME}
 
-while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:S:s:t:U:uw:x:yz:" opt; do
+while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
 	case $opt in
 	A)
 		ALTERED_ARG="-altered 1"
@@ -175,6 +210,9 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:S:s:t:U:uw:x:yz:" opt; do
 	p)
 		DB_PARAMS="${OPTARG}"
 		DB_PARAMS_ARG="-p \"${OPTARG}\""
+		;;
+	r)
+		PROFILE=1
 		;;
 	S)
 		SOCK_FILE=${OPTARG}
@@ -585,6 +623,10 @@ echo -n "estimated rampup time: "
 do_sleep $DRIVER_RAMPUP_TIME
 echo "estimated rampup time has elapsed"
 
+if [ "${PROFILE}" -eq 1 ]; then
+	profile_collect &
+fi
+
 # Sleep for the duration of the run.
 echo -n "estimated steady state time: "
 do_sleep $DURATION
@@ -658,6 +700,10 @@ cat >${OUTPUT_DIR}/detailed-summary.rst << __EOF__ &
 $(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | VERBOSE=1 xargs dbt2-post-process)
 __EOF__
 wait
+
+if [ "${PROFILE}" -eq 1 ]; then
+	profile_process
+fi
 
 echo "Test completed."
 echo "Results are in: ${OUTPUT_DIR}"
