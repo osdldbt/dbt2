@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Use profiling scripts from touchstone-tools to collect readprofile, oprofile,
   or perf if requested and available
+- Add command line flag to pgsql-load-stored-procs and pgsql-build-db to
+  specify alternative location for pl/pgsql stored functions
 
 v0.51.0 (2023-04-25)
 

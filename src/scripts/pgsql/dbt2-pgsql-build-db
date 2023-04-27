@@ -13,6 +13,8 @@ usage()
 	echo "    dbt2-pgsql-build-db -h"
 	echo ""
 	echo "Options:"
+	echo "    -i <sharedir>"
+	echo "        Directory with plpgsql stored functions"
 	echo "    -l <port>"
 	echo "        PostgreSQL port"
 	echo "    -p <database_parameters>"
@@ -38,11 +40,14 @@ REBUILD_DB=0
 UDF_TYPE="plpgsql"
 VACUUM_FULL=0
 
-while getopts "hl:p:rs:tuw:f" OPT; do
+while getopts "hi:l:p:rs:tuw:f" OPT; do
 	case ${OPT} in
 	h)
 		usage
 		exit 0
+		;;
+	i)
+		SHAREDIRARG="-i ${OPTARG}"
 		;;
 	l)
 		PORT=${OPTARG}
@@ -105,7 +110,8 @@ export PGDATABASE="${DBT2DBNAME}"
 
 dbt2-pgsql-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
 dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
-dbt2-pgsql-load-stored-procs $PORTARG -t $UDF_TYPE || exit 1
+eval "dbt2-pgsql-load-stored-procs ${SHAREDIRARG} ${PORTARG} -t ${UDF_TYPE}" \
+		|| exit 1
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"

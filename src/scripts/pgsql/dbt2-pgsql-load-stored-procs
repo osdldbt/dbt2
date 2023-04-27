@@ -13,14 +13,18 @@ fi
 
 usage()
 {
-	echo "Usage: dbt2-pgsql-load-stored-procs -t <c|plpgsql> [-l <PORT>]"
+	echo "Usage: dbt2-pgsql-load-stored-procs -t <c|plpgsql> [-i <SHAREDIR>] [-l <PORT>]"
 	echo "    c       - C stored functions"
 	echo "    plpgsql - pl/pgsql stored functions"
 }
 
+SHAREDIR=$(pg_config --sharedir)
 TYPE="plpgsql"
-while getopts "l:t:" OPT; do
+while getopts "i:l:t:" OPT; do
 	case ${OPT} in
+	i)
+		SHAREDIR=${OPTARG}
+		;;
 	l)
 		PORT=${OPTARG}
 		;;
@@ -43,7 +47,6 @@ PSQL="psql -v ON_ERROR_STOP=1 -X ${PORTARG} -e -d ${DBT2DBNAME}"
 
 if [ "${TYPE}" = "plpgsql" ]; then
 	echo "loading pl/pgsql stored functions..."
-	SHAREDIR=`pg_config --sharedir`
 	${PSQL} -f ${SHAREDIR}/delivery.sql || exit 1
 	${PSQL} -f ${SHAREDIR}/new_order.sql || exit 1
 	${PSQL} -f ${SHAREDIR}/order_status.sql || exit 1
