@@ -22,6 +22,7 @@ set (
 )
 
 add_subdirectory (appimage)
+add_subdirectory (man)
 add_subdirectory (src)
 add_subdirectory (storedproc)
 

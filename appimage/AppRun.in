@@ -24,12 +24,17 @@ if [ $# -eq 0 ]; then
 	exit 1
 fi
 
+VERBOSE=0
+VERSION=0
+
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
+	(--verbose)
+		VERBOSE=1
+		;;
 	(-V | --version)
-		echo "dbt2 (Database Test 2) v@PROJECT_VERSION@"
-		exit 0
+		VERSION=1
 		;;
 	(-\? | --help)
 		usage
@@ -46,6 +51,15 @@ while [ "${#}" -gt 0 ] ; do
 	esac
 	shift
 done
+
+if [ $VERSION -eq 1 ]; then
+	if [ $VERBOSE -eq 1 ]; then
+		"${APPDIR}/usr/bin/dbt2" -v --verbose
+	else
+		"${APPDIR}/usr/bin/dbt2" -v
+	fi
+	exit 0
+fi
 
 export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 export PATH="${APPDIR}/usr/bin:${PATH}"

@@ -1,0 +1,48 @@
+======
+ dbt2
+======
+
+---------------
+Database Test 2
+---------------
+
+:Date: @MANDATE@
+:Manual section: 1
+:Manual group: Database Test 2 @PROJECT_VERSION@ Documentation
+:Version: Database Test 2 @PROJECT_VERSION@
+
+SYNOPSIS
+========
+
+**dbt2** [option...] [command [args...]]
+
+DESCRIPTION
+===========
+
+**dbt2** is a script that helps execute all the tools provided by the Database
+Test 2 (DBT-2) test kit, a fair-use implementation of the TPC Benchmark(TM) C.
+
+COMMANDS
+========
+
+The available commands are determined by what is installed by the kit.  Run
+**dbt2** without any command line arguments to see available commands.
+
+OPTIONS
+=======
+
+--verbose  Output versions of additional programs used by DBT-2 when used with
+        -V or --version OPTION
+-V, --version  Output version information, then exit.
+--help  This usage message.  Or **-?**.
+
+EXAMPLES
+========
+
+See documentation in the *doc* directory of the source repository or online at
+https://osdldbt.github.io/dbt2/ for more information.
+
+SEE ALSO
+========
+
+**dbt2-run**\ (1)

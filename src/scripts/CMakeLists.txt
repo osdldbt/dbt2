@@ -20,8 +20,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 configure_file(
-    dbt2-version.in
-    ${CMAKE_BINARY_DIR}/dbt2-version
+    dbt2.in
+    ${CMAKE_BINARY_DIR}/dbt2
     @ONLY
 )
 configure_file(
@@ -32,7 +32,7 @@ configure_file(
 
 install (
 	PROGRAMS
-    ${CMAKE_BINARY_DIR}/dbt2-version
+    ${CMAKE_BINARY_DIR}/dbt2
     ${CMAKE_BINARY_DIR}/dbt2-post-process.sql
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-easy
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
