@@ -12,8 +12,8 @@ jobs:
     - uses: actions/checkout@v3
     - run: |
         set -x
-        sh -eux container/prepare-appimage
-        ARCH=$(uname -m) sh -eux container/build-appimage
+        sh -eux tools/prepare-appimage
+        ARCH=$(uname -m) sh -eux tools/build-appimage
         assets=()
         for asset in $(find . -name '*.AppImage'); do
           assets+=("-a" "$asset")
