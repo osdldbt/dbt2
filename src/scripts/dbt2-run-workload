@@ -26,52 +26,76 @@ profile_collect()
 {
 	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		ts-profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
-		if [ $DBAAS -eq 0 ]; then
-			$DB_COMMAND "ts-profile -o ${DB_OUTPUT_DIR}/${DBHOSTNAME}/profile sleep 10" &
-		fi
-	else
-		# This is a 1-tier configuration.
-		ts-profile -o "${DB_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
 	fi
+
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-		$CLIENT_COMMAND "ts-profile -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/profile sleep 10" &
+		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+		eval "${CLIENT_COMMAND} ts-profile -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+	fi
+
+	if [ $DBAAS -eq 0 ]; then
+		HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		eval "${DB_COMMAND} ts-profile -o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
 	fi
 }
 
 profile_process()
 {
+	echo "processing profiling data..."
 	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		ts-profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" -p
-		if [ $DBAAS -eq 0 ]; then
-			$DB_COMMAND \
-					"ts-profile -o ${DB_OUTPUT_DIR}/${DBHOSTNAME}/profile -p"
-		fi
-	else
-		# This is a 1-tier configuration.
-		ts-profile -o "${DB_OUTPUT_DIR}/$(hostname)/profile" -p
 	fi
+
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-		$CLIENT_COMMAND \
-				"ts-profile -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/profile -p"
+		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+		eval "${CLIENT_COMMAND} ts-profile -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile -p"
+	fi
+
+	if [ $DBAAS -eq 0 ]; then
+		HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		eval "${DB_COMMAND} ts-profile -o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile -p"
 	fi
 }
 
+stat_collection()
+{
+	ARGS=$1
+
+	# If the this is a 1-tier test, system stats will be saved only in the db
+	# directory.
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		eval "ts-sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+	fi
+
+	# Handle system statistics on the Client node, if remote.
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+		eval "${CLIENT_COMMAND} ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+	fi
+
+	# Don't collect system stats from the database system if the database
+	# is a service.
+	HOSTNAME=$(eval "${DB_COMMAND} hostname")
+	if [ $DBAAS -eq 0 ]; then
+		eval "${DB_COMMAND} ts-sysstat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+	fi
+	eval "${DB_COMMAND} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
+}
+
 stop_processes() {
-	killall dbt2-client dbt2-driver
+	if [ "$DRIVER3" = "1" ]; then
+		killall dbt2-driver3
+	else
+		killall dbt2-driver
+		if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+			eval "${CLIENT_COMMAND} killall dbt2-client"
+		fi
+	fi
+
 	"dbt2-${DBMS}-stop-db"
-	eval "${DB_COMMAND2} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat -s &"
 
 	# Stop stat collection.
-	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-		ts-sysstat -o "${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat" -s
-
-	else
-		ts-sysstat -o "${DB_OUTPUT_DIR}/$(hostname)/sysstat" -s
-	fi
-
-	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-		$CLIENT_COMMAND "ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/sysstat -s"
-	fi
+	stat_collection -s
 }
 
 trap 'echo "Test was interrupted by Control-C."; stop_processes' INT
@@ -313,11 +337,11 @@ if [ ! "x${DB_PORT}" = "x" ]; then
 	fi
 fi
 
+DBSTATARGS=""
 case $DBMS in
 pgsql)
-	# Set some environment variables for known usage of psql.
-	export PGHOST="$DB_HOSTNAME"
-	export PGDATABASE="$DBNAME"
+	# Set extra argument variables.
+	DBSTATARGS="-h $DB_HOSTNAME -d $DBNAME"
 	;;
 esac
 
@@ -327,15 +351,45 @@ DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 
 SUMMARY="${OUTPUT_DIR}/summary.rst"
 
+# Check if rsync exists on all systems and stop if not, required for collecting
+# data from all systems.
+if ! which rsync > /dev/null 2>&1; then
+	echo "ERROR: rsync required on current system in order to retrieve results"
+	exit 1
+fi
+
+if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+	CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME"
+	# Check for rsync on the client before continuing.
+	if ! eval "${CLIENT_COMMAND} which rsync > /dev/null 2>&1"; then
+		echo "ERROR: rsync required on client system in order to retrieve results"
+		exit 1
+	fi
+else
+	CLIENT_COMMAND=""
+fi
+
+if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ] && \
+		[ $DBAAS -eq 0 ]; then
+	DB_COMMAND="$SSH ${DB_HOSTNAME}"
+	# Check for rsync on the client before continuing.
+	if ! eval "${DB_COMMAND} which rsync > /dev/null 2>&1"; then
+		echo "ERROR: rsync required on database system in order to retrieve results"
+		exit 1
+	fi
+else
+	DB_COMMAND=""
+fi
+
 #
 # Create the directories we will need.
 #
 make_directories
 mkdir -p ${DRIVER_OUTPUT_DIR}/`hostname`
 if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	HOSTNAME=$($SSH $CLIENT_HOSTNAME hostname)
 	make_directories $CLIENT_HOSTNAME
-	${COMMAND} -- mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}
+	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+	eval "${CLIENT_COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
 fi
 if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	#
@@ -344,8 +398,6 @@ if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	if [ $DBAAS -eq 0 ]; then
 		make_directories ${DB_HOSTNAME}
 		$SSH "$DB_HOSTNAME" -- mkdir -p "$DB_OUTPUT_DIR"
-		HOSTNAME=$($SSH "$DB_HOSTNAME" hostname)
-		$SSH "$DB_HOSTNAME" dbt2-get-os-info -o "${DB_OUTPUT_DIR}/$HOSTNAME"
 	fi
 fi
 mkdir -p ${DB_OUTPUT_DIR}
@@ -366,26 +418,20 @@ echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
 # the OS parameters will be in the database output directory.
 if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	dbt2-get-os-info -o "${DRIVER_OUTPUT_DIR}/$(hostname)"
-	DB_COMMAND="$SSH ${DB_HOSTNAME}"
+	HOSTNAME=$(eval "${DB_COMMAND} hostname")
+	eval "${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}/${HOSTNAME}"
 else
 	dbt2-get-os-info -o "${DB_OUTPUT_DIR}/$(hostname)"
-	DB_COMMAND="eval"
-fi
-# Get the OS information from the database system.
-if [ $DBAAS -eq 0 ]; then
-	DB_COMMAND2="$DB_COMMAND"
-else
-	DB_COMMAND2="eval"
 fi
 
 if [ $PRIVILEGED -eq 1 ]; then
-	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
+	eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"
 	if [ $? -ne 0 ]; then
 		echo "cleaning up results..."
 		rm -rf ${OUTPUT_DIR}
 		exit 1
 	fi
-	${DB_COMMAND} "dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} -o ${DB_OUTPUT_DIR}" || exit 1
+	eval "${DB_COMMAND} dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} -o ${DB_OUTPUT_DIR}" || exit 1
 fi
 
 #
@@ -472,12 +518,6 @@ if [ ! "x$DRIVER3" = "x1" ]; then
 	END=0
 	START=1
 
-	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME --"
-	else
-		CLIENT_COMMAND="eval"
-	fi
-
 	#
 	# Count of the number of clients to run.
 	#
@@ -498,12 +538,11 @@ if [ ! "x$DRIVER3" = "x1" ]; then
 		mkdir -p ${CPDIR}
 
 		CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
-		$CLIENT_COMMAND mkdir -p ${CDIR}
+		eval "${CLIENT_COMMAND} mkdir -p ${CDIR}"
 
 		CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
 		if [ ! "x$DRIVER3" = "x1" ]; then
-			$CLIENT_COMMAND "dbt2-client ${CARGS}" > \
-					${CPDIR}/client-${SEG}.txt 2>&1 &
+			eval "${CLIENT_COMMAND} dbt2-client ${CARGS} > ${CPDIR}/client-${SEG}.txt 2>&1 &"
 		fi
 
 		PORT=`expr ${PORT} + 1`
@@ -543,35 +582,19 @@ SAMPLE_LENGTH=60
 ITERATIONS=`expr $TOTAL_RUN_TIME / $SAMPLE_LENGTH`
 ITERATIONS=`expr ${ITERATIONS} + 1`
 
-# Collect system statistics on the Client node, if remote.
-if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	CHOSTNAME=$($CLIENT_COMMAND hostname)
-	$CLIENT_COMMAND "dbt2-get-os-info -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}"
-	$CLIENT_COMMAND "ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/sysstat"
-fi
+stat_collection
 
-if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	# The database system is a remote system, collect the drivers nodes' system
-	# statistics in the driver directory.
-	ts-sysstat -o "${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat"
-
-	# Don't collect system stats from the database system if the database is a
-	# service.
-	if [ $DBAAS -eq 0 ]; then
-		DBHOSTNAME=$($DB_COMMAND hostname)
-		ts-sysstat -o "${DB_OUTPUT_DIR}/${DBHOSTNAME}/sysstat"
-	fi
-else
-	# This is a 1-tier configuration so save the driver node's stats into the
-	# database directory.
-	ts-sysstat -o "${DB_OUTPUT_DIR}/$(hostname)/sysstat"
+if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+	eval "${CLIENT_COMMAND} dbt2-get-os-info -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
 fi
 
 echo "collecting database statistics..."
-HOSTNAME="$($DB_COMMAND2 hostname)"
-$DB_COMMAND2 mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}
-eval "dbt2-${DBMS}-plans -d ${DBNAME} -o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
-eval "${DB_COMMAND2} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat &"
+HOSTNAME=$(eval "${DB_COMMAND} hostname")
+eval "$DB_COMMAND mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}"
+if [ $DBAAS -eq 0 ]; then
+	eval "${DB_COMMAND} dbt2-${DBMS}-plans -d ${DBNAME} -o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
+fi
 
 # Start the driver.
 echo ''
@@ -632,60 +655,19 @@ echo -n "estimated steady state time: "
 do_sleep $DURATION
 
 # Stop stats collection.
-if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-	ts-sysstat -o "${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat" -s
-	if [ $DBAAS -eq 0 ]; then
-		ts-sysstat -o "${DB_OUTPUT_DIR}/${DBHOSTNAME}/sysstat"
-	fi
-else
-	# This is a 1-tier configuration.
-	ts-sysstat -o "${DB_OUTPUT_DIR}/$(hostname)/sysstat" -s
-fi
-if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-	$CLIENT_COMMAND "ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${CHOSTNAME}/sysstat -s"
-fi
-eval "${DB_COMMAND2} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat -s &"
+stat_collection -s
 
 echo ''
 echo "Stage 3. Processing of results..."
 
+# TODO: Make the tear down of the clients and drivers more graceful than
+# blowing away the client and waiting for drivers to stop complaining about
+# that it disappeared.
+
 if [ ! "x$DRIVER3" = "x1" ]; then
 	# Client doesn't go away by itself like the driver does, so kill it.
 	echo "Killing client..."
-	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME --"
-	else
-		CLIENT_COMMAND="eval"
-	fi
-	$CLIENT_COMMAND "killall -q dbt2-client" > /dev/null 2>&1
-fi
-
-if [ $PRIVILEGED -eq 1 ]; then
-	${DB_COMMAND} "dbt2-${DBMS}-stop-db ${MISC_ARG}"
-	if [ ${DBMS} = "pgsql" ]; then
-		if [ ${USE_PGPOOL} -eq 1 ]; then
-			pgpool -f ${DIR}/pgsql/pgpool.conf stop
-		fi
-	fi
-fi
-
-# Post processing of Database Statistics
-if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	# If a database system is specified, rsync all the logs back to the driver
-	# system after creating the sar csv data.
-	if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-		HOSTNAME=$($SSH $CLIENT_HOSTNAME hostname)
-		rsync -a -e "$SSH" --delete \
-				"${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
-				${CLIENT_OUTPUT_DIR}/ &
-	fi
-
-	# There will only be a sar output file if the database is on a separate
-	# system.
-	if [ $DBAAS -eq 0 ]; then
-		rsync -a -e "$SSH" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
-				${DB_OUTPUT_DIR}/ &
-	fi
+	eval "${CLIENT_COMMAND} killall -q dbt2-client > /dev/null 2>&1 &"
 fi
 
 # Make sure all the drivers have exited, so all the mix files have flushed to
@@ -701,8 +683,34 @@ $(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | VERBOSE=1 xargs dbt2-post-process)
 __EOF__
 wait
 
+if [ $PRIVILEGED -eq 1 ]; then
+	eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"
+	if [ ${DBMS} = "pgsql" ]; then
+		if [ ${USE_PGPOOL} -eq 1 ]; then
+			pgpool -f ${DIR}/pgsql/pgpool.conf stop
+		fi
+	fi
+fi
+
 if [ "${PROFILE}" -eq 1 ]; then
 	profile_process
+fi
+
+# Retrieve test data from all remote systems.
+if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+	# If a database system is specified, rsync all the logs back to the driver
+	# system after creating the sar csv data.  There will only be a sar output
+	# file if the database is on a separate system.
+	if [ $DBAAS -eq 0 ]; then
+		rsync -a -e "$SSH" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
+				"${DB_OUTPUT_DIR}/"
+	fi
+fi
+
+if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+	rsync -a -e "${SSH}" --delete "${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
+			"${CLIENT_OUTPUT_DIR}/"
 fi
 
 echo "Test completed."
