@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -9,7 +10,7 @@
 do_sleep()
 {
 	echo "Sleeping $1 seconds"
-	sleep $1
+	sleep "${1}"
 }
 
 make_directories()
@@ -19,7 +20,7 @@ make_directories()
 	if [ -n "${HOST}" ]; then
 		COMMAND="$SSH ${HOST}"
 	fi
-	${COMMAND} mkdir -p ${OUTPUT_DIR}
+	${COMMAND} mkdir -p "${OUTPUT_DIR}"
 }
 
 profile_collect()
@@ -30,12 +31,14 @@ profile_collect()
 
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} ts-profile -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+		eval "${CLIENT_COMMAND} ts-profile \
+				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
 	fi
 
 	if [ $DBAAS -eq 0 ]; then
 		HOSTNAME=$(eval "${DB_COMMAND} hostname")
-		eval "${DB_COMMAND} ts-profile -o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+		eval "${DB_COMMAND} ts-profile \
+				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
 	fi
 }
 
@@ -48,12 +51,14 @@ profile_process()
 
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} ts-profile -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile -p"
+		eval "${CLIENT_COMMAND} ts-profile \
+				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile -p"
 	fi
 
 	if [ $DBAAS -eq 0 ]; then
 		HOSTNAME=$(eval "${DB_COMMAND} hostname")
-		eval "${DB_COMMAND} ts-profile -o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile -p"
+		eval "${DB_COMMAND} ts-profile \
+				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile -p"
 	fi
 }
 
@@ -70,16 +75,19 @@ stat_collection()
 	# Handle system statistics on the Client node, if remote.
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} ts-sysstat -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		eval "${CLIENT_COMMAND} ts-sysstat \
+				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
 	fi
 
 	# Don't collect system stats from the database system if the database
 	# is a service.
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	if [ $DBAAS -eq 0 ]; then
-		eval "${DB_COMMAND} ts-sysstat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		eval "${DB_COMMAND} ts-sysstat \
+				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
 	fi
-	eval "${DB_COMMAND} ts-${DBMS}-stat -o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
+	eval "${DB_COMMAND} ts-${DBMS}-stat \
+			-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
 }
 
 stop_processes() {
@@ -108,22 +116,22 @@ usage()
 		echo "error: $1"
 	fi
 	echo
-	echo "`basename $0` is the DBT-2 workload runner"
+	echo "$(basename "${0}") is the DBT-2 workload runner"
 	echo ""
 	echo "Usage:"
-	echo "  `basename $0` [OPTIONS]"
+	echo "  $(basename "${0}") [OPTIONS]"
 	echo
 	echo "Generate options:"
 	echo "  -a DBMS       dbms under test (pgsql)"
 	echo "  -A            enable altered execution mode"
 	echo "  -b #          Number of warehouses per process, default all specified by -w"
-	if [ ! "x$DRIVER3" = "x1" ]; then
+	if [ ! "$DRIVER3" = "1" ]; then
 		echo "  -c #          number of database connection to open"
 		echo "  -C ADDRESS    address of client system, default localhost"
 	fi
 	echo "  -d #          seconds of the test duration, after ramp up"
 	echo "  -D NAME       name of the database"
-	if [ "x$DRIVER3" = "x1" ]; then
+	if [ "$DRIVER3" = "1" ]; then
 		echo "  -F #          forks per processor, default 1"
 	fi
 	echo "  -h            this usage message"
@@ -166,19 +174,16 @@ SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
 CLIENT_HOSTNAME=""
-WORKING_DIR=""
 
-DB_USER=${DBUSER}
 DBAAS=0
 FPP=1
 PRIVILEGED=0
 PROFILE=0
 THREAD_STARTUP_DELAY=1000 # milliseconds
 THREADS_PER_WAREHOUSE=10
-USE_PGPOOL=0
 DBNAME=${DBT2DBNAME}
 
-while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
+while getopts "Aa:b:C:c:D:d:F:H:hL:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
 	case $opt in
 	A)
 		ALTERED_ARG="-altered 1"
@@ -196,14 +201,14 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
 		;;
 	c)
 		# Check for numeric value
-		DBCON=`echo $OPTARG | egrep "^[0-9]+$"`
+		DBCON=$(echo $OPTARG | egrep "^[0-9]+$")
 		validate_parameter $opt $OPTARG $DBCON
 		;;
 	D)
 		DBNAME=${OPTARG}
 		;;
 	d)
-		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
+		DURATION=$(echo $OPTARG | egrep "^[0-9]+$")
 		validate_parameter $opt $OPTARG $DURATION
 		;;
 	F)
@@ -222,7 +227,7 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
 		TERMINALS_LIMIT_ARG="-L $TERMINALS_LIMIT"
 		;;
 	l)
-		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
+		DB_PORT=$(echo $OPTARG | egrep "^[0-9]+$")
 		validate_parameter $opt $OPTARG $DB_PORT
 		;;
 	n)
@@ -243,11 +248,11 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
 		SOCK_FILE_ARG="-t ${OPTARG}"
 		;;
 	s)
-		THREAD_STARTUP_DELAY=`echo $OPTARG | egrep "^[0-9]+$"`
+		THREAD_STARTUP_DELAY=$(echo $OPTARG | egrep "^[0-9]+$")
 		validate_parameter $opt $OPTARG $THREAD_STARTUP_DELAY
 		;;
 	t)
-		THREADS_PER_WAREHOUSE=`echo ${OPTARG} | egrep "^[0-9]+$"`
+		THREADS_PER_WAREHOUSE=$(echo ${OPTARG} | egrep "^[0-9]+$")
 		validate_parameter $opt $OPTARG $THREADS_PER_WAREHOUSE
 		;;
 	u)
@@ -257,7 +262,7 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
 		DB_USER=${OPTARG}
 		;;
 	w)
-		WAREHOUSES=`echo $OPTARG | egrep "^[0-9]+$"`
+		WAREHOUSES=$(echo $OPTARG | egrep "^[0-9]+$")
 		validate_parameter $opt $OPTARG $WAREHOUSES
 		;;
 	x)
@@ -269,50 +274,55 @@ while getopts "Aa:b:C:c:D:d:F:H:hi:L:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
 	z)
 		COMMENT=$OPTARG
 		;;
+	*)
+		echo "$(basename "${0}"): invalid option ${1}"
+		usage
+		exit 1
+		;;
 	esac
 done
 
 # If no client hostnames have been specified, set it to localhost.
-if [ "x${CLIENT_HOSTNAME}" = "x" ]; then
+if [ "${CLIENT_HOSTNAME}" = "" ]; then
 	CLIENT_HOSTNAME="localhost"
 fi
 
 # If no chunking of warehouses per process is defined, assumed we want to run
 # everything from one process.
-if [ "x${W_CHUNK}" = "x" ]; then
+if [ "${W_CHUNK}" = "" ]; then
 	W_CHUNK=${WAREHOUSES}
 fi
 
 # Check parameters.
 
-if [ "x${DBMS}" = "x" ]; then
+if [ "${DBMS}" = "" ]; then
 	echo -n "specify which dbms system to test using -a "
 	echo "<cockroach|mysql|pgsql|sqlite>"
 	exit 1
 fi
 
-if [ "x${DBNAME}" = "x" ] && [ ! "x${DBMS}" = "xsqlite" ]; then
+if [ "${DBNAME}" = "" ] && [ ! "${DBMS}" = "sqlite" ]; then
 	echo "specify the database name using -D "
 	echo "or by setting the DBT2DBNAME environment variable"
 	exit 1
 fi
 
-if [ "x${DBCON}" = "x" ] && [ ! "x$DRIVER3" = "x1" ]; then
+if [ "${DBCON}" = "" ] && [ ! "$DRIVER3" = "1" ]; then
 	echo "specify the number of database connections using -c #"
 	exit 1
 fi
 
-if [ "x${DURATION}" = "x" ]; then
+if [ "${DURATION}" = "" ]; then
 	echo "specify the duration of the test in seconds using -d #"
 	exit 1
 fi
 
-if [ "x${WAREHOUSES}" = "x" ]; then
+if [ "${WAREHOUSES}" = "" ]; then
 	echo "specify the number of warehouses using -w #"
 	exit 1
 fi
 
-if [ "x${OUTPUT_DIR}" = "x" ]; then
+if [ "${OUTPUT_DIR}" = "" ]; then
 	echo "specify the location for results, directory must not exist, using -o <path>"
 	exit 1
 fi
@@ -323,14 +333,15 @@ if [ -d "${OUTPUT_DIR}" ]; then
 	exit 1
 fi
 
-if [ ${THREADS_PER_WAREHOUSE} -lt 1 ] || [ ${THREADS_PER_WAREHOUSE} -gt 1000 ];
+if [ "${THREADS_PER_WAREHOUSE}" -lt 1 ] || \
+		[ "${THREADS_PER_WAREHOUSE}" -gt 1000 ];
 then
 	usage "-t value should be in range [1..1000]. Please specify correct value"
 	exit 1
 fi
 
-if [ ! "x${DB_PORT}" = "x" ]; then
-	if [ "x$DRIVER3" = "x1" ]; then
+if [ ! "${DB_PORT}" = "" ]; then
+	if [ "$DRIVER3" = "1" ]; then
 		DB_PORT_ARG="-P ${DB_PORT}"
 	else
 		DB_PORT_ARG="-l ${DB_PORT}"
@@ -385,38 +396,39 @@ fi
 # Create the directories we will need.
 #
 make_directories
-mkdir -p ${DRIVER_OUTPUT_DIR}/`hostname`
-if [ ! "x${CLIENT_HOSTNAME}" = "xlocalhost" ]; then
-	make_directories $CLIENT_HOSTNAME
+mkdir -p "${DRIVER_OUTPUT_DIR}/$(hostname)"
+if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+	make_directories "${CLIENT_HOSTNAME}"
 	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
 	eval "${CLIENT_COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
 fi
-if [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+if [ ! "${DB_HOSTNAME}" = "localhost" ]; then
 	#
 	# Create direcotires on the database server if remote.
 	#
 	if [ $DBAAS -eq 0 ]; then
-		make_directories ${DB_HOSTNAME}
+		make_directories "${DB_HOSTNAME}"
 		$SSH "$DB_HOSTNAME" -- mkdir -p "$DB_OUTPUT_DIR"
 	fi
 fi
-mkdir -p ${DB_OUTPUT_DIR}
+mkdir -p "${DB_OUTPUT_DIR}"
 
-# Create a readme file in the output directory and date it.
-date >> ${OUTPUT_DIR}/readme.txt
-echo "$COMMENT" >> ${OUTPUT_DIR}/readme.txt
-echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
-
-# Output run information into the readme.txt.
-echo "RDBMS: $DBMS" >> $OUTPUT_DIR/readme.txt
-echo "Database Name: $DBNAME" >> $OUTPUT_DIR/readme.txt
-echo "Database Scale Factor: $WAREHOUSES warehouses" >> $OUTPUT_DIR/readme.txt
-echo "Test Duration: $DURATION seconds" >> ${OUTPUT_DIR}/readme.txt
-echo "Database Connections: $DBCON" >> ${OUTPUT_DIR}/readme.txt
+# Create a readme file in the output directory, date it and add run information
+# into the readme.txt.
+cat >> "${OUTPUT_DIR}/readme.txt" << EOF
+$(date)
+$COMMENT
+Command line: $0 $*
+RDBMS: $DBMS
+Database Name: $DBNAME
+Database Scale Factor: $WAREHOUSES warehouses
+Test Duration: $DURATION seconds
+Database Connections: $DBCON
+EOF
 
 # Get any OS specific information, if this is a single tier configuration, then
 # the OS parameters will be in the database output directory.
-if [ -n ${DB_HOSTNAME} ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
 	dbt2-get-os-info -o "${DRIVER_OUTPUT_DIR}/$(hostname)"
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	eval "${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}/${HOSTNAME}"
@@ -425,13 +437,13 @@ else
 fi
 
 if [ $PRIVILEGED -eq 1 ]; then
-	eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"
-	if [ $? -ne 0 ]; then
+	if eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"; then
 		echo "cleaning up results..."
-		rm -rf ${OUTPUT_DIR}
+		rm -rf "${OUTPUT_DIR}"
 		exit 1
 	fi
-	eval "${DB_COMMAND} dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} -o ${DB_OUTPUT_DIR}" || exit 1
+	eval "${DB_COMMAND} dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
+			-o ${DB_OUTPUT_DIR}" || exit 1
 fi
 
 #
@@ -471,11 +483,11 @@ if [ -n "${DB_PORT}" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
 fi
 
-OPTION1=`expr $WAREHOUSES \* $THREADS_PER_WAREHOUSE`
+OPTION1=$(( WAREHOUSES * THREADS_PER_WAREHOUSE ))
 THREADS=$OPTION1
-if [ ! "x$TERMINALS_LIMIT" = "x" ]; then
+if [ ! "$TERMINALS_LIMIT" = "" ]; then
 	OPTION2=$TERMINALS_LIMIT
-	if [ $OPTION1 -lt $OPTION2 ]; then
+	if [ "${OPTION1}" -lt "${OPTION2}" ]; then
 		THREADS=$OPTION1
 	else
 		THREADS=$OPTION2
@@ -494,27 +506,23 @@ echo ""
 # Start the client.
 #
 echo "Stage 1. Starting up client..."
-if [ ! "x$DRIVER3" = "x1" ]; then
+if [ ! "$DRIVER3" = "1" ]; then
 	echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
-	if [ ${DBMS} = "cockroach" ]; then
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME} -b ${DBNAME}"
-	elif [ ${DBMS} = "mysql" ]; then
+	if [ "${DBMS}" = "cockroach" ]; then
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
+	elif [ "${DBMS}" = "mysql" ]; then
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
-	elif [ ${DBMS} = "pgsql" ]; then
-		if [ ${USE_PGPOOL} -eq 1 ]; then
-			echo "Starting pgpool..."
-			pgpool -f ${DIR}/pgsql/pgpool.conf
-			TMP_DB_HOSTNAME="localhost"
-		else
-			TMP_DB_HOSTNAME=${DB_HOSTNAME}
-		fi
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${TMP_DB_HOSTNAME} -b ${DBNAME}"
-	elif [ ${DBMS} = "sqlite" ]; then
+	elif [ "${DBMS}" = "pgsql" ]; then
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
+	elif [ "${DBMS}" = "sqlite" ]; then
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
 	fi
-	CLIENT_COMMAND_ARGS="$CLIENT_COMMAND_ARGS -f -c $DBCON -s $THREAD_STARTUP_DELAY"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c $DBCON"
+	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -s ${THREAD_STARTUP_DELAY}"
 	END=0
 	START=1
 
@@ -523,36 +531,37 @@ if [ ! "x$DRIVER3" = "x1" ]; then
 	#
 	SEG=0
 	PORT=30000
-	while [ ${END} -lt ${WAREHOUSES} ]; do
-		START=`expr ${END} + 1`
-		END=`expr ${START} + ${W_CHUNK}`
-		END=`expr ${END} - 1`
-		SEG=`expr ${SEG} + 1`
+	while [ "${END}" -lt "${WAREHOUSES}" ]; do
+		START=$(( END + 1 ))
+		END=$(( START + W_CHUNK ))
+		END=$(( END - 1 ))
+		SEG=$(( SEG + 1 ))
 
-		if [ ${END} -gt ${WAREHOUSES} ]; then
+		if [ "${END}" -gt "${WAREHOUSES}" ]; then
 			END=${WAREHOUSES}
 		fi
 
-		HOSTNAME=`$CLIENT_COMMAND hostname`
+		HOSTNAME=$($CLIENT_COMMAND hostname)
 		CPDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-		mkdir -p ${CPDIR}
+		mkdir -p "${CPDIR}"
 
 		CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
 		eval "${CLIENT_COMMAND} mkdir -p ${CDIR}"
 
 		CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
-		if [ ! "x$DRIVER3" = "x1" ]; then
-			eval "${CLIENT_COMMAND} dbt2-client ${CARGS} > ${CPDIR}/client-${SEG}.txt 2>&1 &"
+		if [ ! "$DRIVER3" = "1" ]; then
+			eval "${CLIENT_COMMAND} dbt2-client ${CARGS} \
+					> ${CPDIR}/client-${SEG}.txt 2>&1 &"
 		fi
 
-		PORT=`expr ${PORT} + 1`
+		PORT=$(( PORT + 1))
 	done
 
 	# Sleep long enough for all the client database connections to be established.
 	CLIENT_RAMPUP_TIME=$DBCON
-	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
-	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME / 1000`
-	CLIENT_RAMPUP_TIME=`expr $CLIENT_RAMPUP_TIME + 1`
+	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
+	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME / 1000 ))
+	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME + 1 ))
 	do_sleep $CLIENT_RAMPUP_TIME
 else
 	echo "***skipping***"
@@ -561,45 +570,47 @@ fi
 # Start collecting data before we start the test.
 
 # Calculate how many terminals are being emulated.
-OPTION1=`expr $W_CHUNK + 1`
-OPTION1=`expr $OPTION1 \* $THREADS_PER_WAREHOUSE`
+OPTION1=$(( W_CHUNK + 1 ))
+OPTION1=$(( OPTION1 * THREADS_PER_WAREHOUSE ))
 DRIVER_RAMPUP_TIME=$OPTION1
-if [ ! "x$TERMINALS_LIMIT" = "x" ]; then
+if [ ! "$TERMINALS_LIMIT" = "" ]; then
 	OPTION2=$TERMINALS_LIMIT
-	if [ $OPTION1 -lt $OPTION2 ]; then
+	if [ "${OPTION1}" -lt "${OPTION2}" ]; then
 		DRIVER_RAMPUP_TIME=$OPTION1
 	else
 		DRIVER_RAMPUP_TIME=$OPTION2
 	fi
 fi
-if [ "x$DRIVER3" = "x1" ]; then
-	DRIVER_RAMPUP_TIME=$(( ($(nproc) * $FPP) - 1 ))
+if [ "$DRIVER3" = "1" ]; then
+	DRIVER_RAMPUP_TIME=$(( ($(nproc) * FPP) - 1 ))
 fi
-DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME \* $THREAD_STARTUP_DELAY`
-DRIVER_RAMPUP_TIME=`expr $DRIVER_RAMPUP_TIME / 1000`
-TOTAL_RUN_TIME=`expr $DRIVER_RAMPUP_TIME + $DURATION`
+DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
+DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME / 1000 ))
+TOTAL_RUN_TIME=$(( DRIVER_RAMPUP_TIME + DURATION ))
 SAMPLE_LENGTH=60
-ITERATIONS=`expr $TOTAL_RUN_TIME / $SAMPLE_LENGTH`
-ITERATIONS=`expr ${ITERATIONS} + 1`
+ITERATIONS=$(( TOTAL_RUN_TIME / SAMPLE_LENGTH ))
+ITERATIONS=$(( ITERATIONS + 1 ))
 
 stat_collection
 
 if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-	eval "${CLIENT_COMMAND} dbt2-get-os-info -o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+	eval "${CLIENT_COMMAND} dbt2-get-os-info \
+			-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
 fi
 
 echo "collecting database statistics..."
 HOSTNAME=$(eval "${DB_COMMAND} hostname")
 eval "$DB_COMMAND mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}"
 if [ $DBAAS -eq 0 ]; then
-	eval "${DB_COMMAND} dbt2-${DBMS}-plans -d ${DBNAME} -o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
+	eval "${DB_COMMAND} dbt2-${DBMS}-plans -d ${DBNAME} \
+			-o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
 fi
 
 # Start the driver.
 echo ''
 echo "Stage 2. Starting up driver..."
-echo "thread starting every $THREAD_STARTUP_DELAY milliseconds"
+echo "connection opening every $THREAD_STARTUP_DELAY milliseconds"
 
 END=0
 START=1
@@ -608,18 +619,18 @@ START=1
 #
 SEG=0
 PORT=30000
-while [ ${END} -lt ${WAREHOUSES} ]; do
-	START=`expr ${END} + 1`
-	END=`expr ${START} + ${W_CHUNK}`
-	END=`expr ${END} - 1`
-	SEG=`expr ${SEG} + 1`
+while [ "${END}" -lt "${WAREHOUSES}" ]; do
+	START=$(( END + 1 ))
+	END=$(( START + W_CHUNK ))
+	END=$(( END - 1 ))
+	SEG=$(( SEG + 1 ))
 
-	if [ ${END} -gt ${WAREHOUSES} ]; then
+	if [ "${END}" -gt "${WAREHOUSES}" ]; then
 		END=${WAREHOUSES}
 	fi
 
-	DDIR="${DRIVER_OUTPUT_DIR}/`hostname`.${SEG}"
-	mkdir -p ${DDIR}
+	DDIR="${DRIVER_OUTPUT_DIR}/$(hostname).${SEG}"
+	mkdir -p "${DDIR}"
 	DRIVER_COMMAND_ARGS="-l $DURATION -wmin $START"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -wmax $END -w $WAREHOUSES"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -sleep $THREAD_STARTUP_DELAY"
@@ -627,22 +638,22 @@ while [ ${END} -lt ${WAREHOUSES} ]; do
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -tpw $THREADS_PER_WAREHOUSE"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $NO_THINK $TERMINALS_LIMIT_ARG"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
-	if [ "x$DRIVER3" = "x1" ]; then
+	if [ "$DRIVER3" = "1" ]; then
 		echo "***experimental driver 3 active***"
 		DHNARG="-b $DBNAME -d $DB_HOSTNAME"
-		dbt2-driver3 ${DRIVER_COMMAND_ARGS} -a $DBMS $DHNARG $FPP_FLAG > \
-				${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 \
+		eval "dbt2-driver3 $DRIVER_COMMAND_ARGS -a $DBMS $DHNARG $FPP_FLAG \
+				> ${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
 				|| exit 1 &
 	else
-		dbt2-driver -d $CLIENT_HOSTNAME -p $PORT ${DRIVER_COMMAND_ARGS} > \
-				${DRIVER_OUTPUT_DIR}/`hostname`/driver-${SEG}.txt 2>&1 \
+		eval "dbt2-driver -d $CLIENT_HOSTNAME -p $PORT $DRIVER_COMMAND_ARGS > \
+				${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
 				|| exit 1 &
 	fi
 	DRIVER_PIDLIST="$DRIVER_PIDLIST $!"
-	PORT=`expr ${PORT} + 1`
+	PORT=$(( PORT + 1 ))
 done
 
-echo -n "estimated rampup time: "
+printf "estimated rampup time: "
 do_sleep $DRIVER_RAMPUP_TIME
 echo "estimated rampup time has elapsed"
 
@@ -651,8 +662,8 @@ if [ "${PROFILE}" -eq 1 ]; then
 fi
 
 # Sleep for the duration of the run.
-echo -n "estimated steady state time: "
-do_sleep $DURATION
+printf "estimated steady state time: "
+do_sleep "${DURATION}"
 
 # Stop stats collection.
 stat_collection -s
@@ -664,7 +675,7 @@ echo "Stage 3. Processing of results..."
 # blowing away the client and waiting for drivers to stop complaining about
 # that it disappeared.
 
-if [ ! "x$DRIVER3" = "x1" ]; then
+if [ ! "$DRIVER3" = "1" ]; then
 	# Client doesn't go away by itself like the driver does, so kill it.
 	echo "Killing client..."
 	eval "${CLIENT_COMMAND} killall -q dbt2-client > /dev/null 2>&1 &"
@@ -673,23 +684,20 @@ fi
 # Make sure all the drivers have exited, so all the mix files have flushed to
 # disk before continuing processing.  Can't count on all of the sleeps to be
 # precise...
-wait $DRIVER_PIDLIST
+eval "wait ${DRIVER_PIDLIST}"
 
-cat > $SUMMARY << __EOF__ &
-$(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | xargs dbt2-post-process)
+cat > "${SUMMARY}" << __EOF__ &
+$(find "${DRIVER_OUTPUT_DIR}" -name 'mix*.log' -print0 | \
+		xargs -0 dbt2-post-process)
 __EOF__
-cat >${OUTPUT_DIR}/detailed-summary.rst << __EOF__ &
-$(find $DRIVER_OUTPUT_DIR -name 'mix*.log' | VERBOSE=1 xargs dbt2-post-process)
+cat > "${OUTPUT_DIR}/detailed-summary.rst" << __EOF__ &
+$(find "${DRIVER_OUTPUT_DIR}" -name 'mix*.log' -print0 | \
+		VERBOSE=1 xargs -0 dbt2-post-process)
 __EOF__
 wait
 
 if [ $PRIVILEGED -eq 1 ]; then
 	eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"
-	if [ ${DBMS} = "pgsql" ]; then
-		if [ ${USE_PGPOOL} -eq 1 ]; then
-			pgpool -f ${DIR}/pgsql/pgpool.conf stop
-		fi
-	fi
 fi
 
 if [ "${PROFILE}" -eq 1 ]; then
@@ -717,4 +725,4 @@ echo "Test completed."
 echo "Results are in: ${OUTPUT_DIR}"
 echo
 
-cat $SUMMARY
+cat "${SUMMARY}"

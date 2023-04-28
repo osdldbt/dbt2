@@ -111,12 +111,11 @@ can be executed.
 
 The individual driver and client binaries (e.g. `dbt2-driver` and
 `dbt2-client`) can be run directly (and you may want to depending on the
-situation), but scripts, such as `dbt2-run-workload`, are provided to make some
-testing scenarios easier to execute.  It does this by taking advantage of
-password-less `ssh` usage, but also requires additional environmental setup.
-This **User Guide** will not where applicable and the **Database Management
-System Notes** may have additional notes depending on the database management
-system.
+situation), but scripts, such as `dbt2-run`, are provided to make some testing
+scenarios easier to execute.  It does this by taking advantage of password-less
+`ssh` usage, but also requires additional environmental setup.  This **User
+Guide** will not where applicable and the **Database Management System Notes**
+may have additional notes depending on the database management system.
 
 Multi-tier System Testing
 -------------------------
@@ -125,12 +124,12 @@ DBT-2 supports a 1-, 2-, and 3-tier client-server system configurations.
 Whether the binaries are run by hand, or whether the supplied helper scripts
 are used determine how much additional environmental setup is needed.
 
-When using the `dbt2-run-workload` script, which also supports helping execute
-a 1-, 2-, and 3-tier system configuration tests, additional environment
-variables may need to be set because a remote ssh environment may be more
-limited than a normal login environment.  For example, if the scripts and
-binaries are installed in `/usr/local/bin`, this path may not be in the path
-when using `ssh` to execute commands locally.  
+When using the `dbt2-run` script, which also supports helping execute a 1-, 2-,
+and 3-tier system configuration tests, additional environment variables may
+need to be set because a remote ssh environment may be more limited than a
+normal login environment.  For example, if the scripts and binaries are
+installed in `/usr/local/bin`, this path may not be in the path when using
+`ssh` to execute commands locally.  
 
 Also password-less ssh keys needs to be set up to keep the scripts simple, the
 kit needs to be installed in the same location on each system.  Each user must
@@ -378,20 +377,19 @@ Congratulations, you've run a test!
 Comprehensive Test Execution
 ----------------------------
 
-The `dbt2-run-workload` is a wrapper script that will attempt to collect system
+The `dbt2-run` is a wrapper script that will attempt to collect system
 statistics and database statistics, as well as start all components of the
 test.  It can optionally profile a Linux system with readprofile, oprofile, or
 perf.  See **Database Management System Notes** for any database management
 system specific notes as there may be additional system specific flags.
 
-The shell script `dbt2-run-workload` is used to execute a test.  For example,
-run a 4 minutes (480 second) test against a 1 warehouse database locally and
-save the results to `/tmp/results`::
+The shell script `dbt2-run` is used to execute a test.  For example, run a 4
+minutes (480 second) test against a 1 warehouse database locally and save the
+results to `/tmp/results`::
 
-    dbt2-run-workload -a pgsql -d 480 -w 1 -o /tmp/results -c 10
+    dbt2-run -a pgsql -d 480 -w 1 -o /tmp/results -c 10
 
-See the help output from `dbt2-run-workload -h` a brief description of all
-options.
+See the help output from `dbt2-run -h` a brief description of all options.
 
 This script will also process the results and output the same information as if
 you were running `dbt2-post-process` manually like the last section's example.
@@ -416,12 +414,12 @@ Executing with multiple tiers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To execute the test where the database is on another tier, pass the `-H
-<address>` flag to the `dbt2-run-workload` script.  The address can be a
-hostname or IP address.
+<address>` flag to the `dbt2-run` script.  The address can be a hostname or IP
+address.
 
 To execute the test where the client is on another tier, pass the `-C
-<address>` flag to the `dbt2-run-workload` script.  The address can also be a
-hostname or IP address.
+<address>` flag to the `dbt2-run` script.  The address can also be a hostname
+or IP address.
 
 Multi-process driver execution
 ------------------------------
@@ -430,9 +428,9 @@ Default behavior for the driver is to create 10 threads per warehouse under a
 single process.  At some point (depends on hardware and resource limitations)
 the driver, specifically `dbt2-driver` as a multi-threaded progress, will
 become a bottleneck.  We can increase the load by starting multiple
-multi-threaded drivers.  The `-b #` flag can be passed to the
-`dbt2-run-workload` script to specify how many warehouses to be created per
-process.  The script will calculate how many driver processes to start.
+multi-threaded drivers.  The `-b #` flag can be passed to the `dbt2-run` script
+to specify how many warehouses to be created per process.  The script will
+calculate how many driver processes to start.
 
 Keying and Thinking Time
 ------------------------
@@ -451,9 +449,8 @@ See the help from the driver binaries to see which flag controls which
 transaction's thinking and keying times if you want to varying the delays
 differently.
 
-The `dbt2-run-workload` script can set each of the thinking and keying time
-flags to 0 with the `-n` flag but does not offer any finer grained controls at
-this time.
+The `dbt2-run` script can set each of the thinking and keying time flags to 0
+with the `-n` flag but does not offer any finer grained controls at this time.
 
 Transaction Mix
 ---------------

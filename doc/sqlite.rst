@@ -7,8 +7,7 @@ To create a database::
 
 To run a test::
 
-    dbt2-run-workload -a sqlite -p /tmp/dbt2-w1 -c 1 -d 120 -w 1 -n \
-            -o /tmp/results
+    dbt2-run -a sqlite -p /tmp/dbt2-w1 -c 1 -d 120 -w 1 -n -o /tmp/results
 
-The `-p` parameter must be passed to the `dbt2-run-workload` script to specify
+The `-p` parameter must be passed to the `dbt2-run` script to specify
 where the SQLite database files are.

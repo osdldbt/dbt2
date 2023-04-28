@@ -45,10 +45,4 @@ Operating System Notes
 .. include:: linux.rst
 .. include:: solaris.rst
 
------------------------
-Connection Pooler Notes
------------------------
-
-.. include:: pgpool.rst
-
 .. include:: dev-guide.rst

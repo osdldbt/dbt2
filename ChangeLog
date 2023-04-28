@@ -4,9 +4,10 @@ vX.Y.Z (YYYY-MM-DD)
   or perf if requested and available
 - Add command line flag to pgsql-load-stored-procs and pgsql-build-db to
   specify alternative location for pl/pgsql stored functions
-- Update run-workload to use touchstone-tools v0.5.1
-- Refactor run-workload logic for handling 1-tier, 2-tier, and 3-tier testing
-  test execution and stats collection.
+- Rename run-workload script to run
+- Update run script to use touchstone-tools v0.5.1
+- Refactor run logic for handling 1-tier, 2-tier, and 3-tier testing test
+  execution and stats collection.
 
 v0.51.0 (2023-04-25)
 

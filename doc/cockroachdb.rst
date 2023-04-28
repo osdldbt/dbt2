@@ -8,9 +8,9 @@ C client library interface, thus any environment variables that libpq would
 use.  See dbt2_profile for examples of what environment variables that may be
 used.
 
-The run-workload scripts currently only support handling CockroachDB
-installations that are already setup.  i.e. script do not handle installing or
-initialization a database instance.
+The *run* script currently only support handling CockroachDB installations that
+are already setup.  i.e. script do not handle installing or initialization a
+database instance.
 
 Create a 1 warehouse database by running dbt2-cockroach-build-db::
 
@@ -29,4 +29,4 @@ Additional flags::
 
 Run a test a 2 minute, 1 warehouse test::
 
-    dbt2-run-workload -a cockroach -c 10 -d 120 -w 1 -o /tmp/results
+    dbt2-run -a cockroach -c 10 -d 120 -w 1 -o /tmp/results

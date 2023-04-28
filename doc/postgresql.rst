@@ -76,9 +76,9 @@ Create a 1 warehouse database by running `dbt2-pgsql-build-db`::
 
     dbt2-pgsql-build-db -w 1
 
-Run a 5 minute (300 second) test by running `dbt2-run-workload`::
+Run a 5 minute (300 second) test by running `dbt2-run`::
 
-    dbt2-run-workload -a pgsql -d 300 -w 1 -o /tmp/result -c 10
+    dbt2-run -a pgsql -d 300 -w 1 -o /tmp/result -c 10
 
 Building the Database
 ---------------------

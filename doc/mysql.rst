@@ -111,9 +111,9 @@ NOTE:
 RUN TEST
 --------
 
-   dbt2-run-workload
+   dbt2-run
 
-   usage: dbt2-run-workload -a mysql -c <number of database connections> -t <duration of test> -w <number of warehouses>
+   usage: dbt2-run -a mysql -c <number of database connections> -t <duration of test> -w <number of warehouses>
    other options::
 
        -D <database name. (default dbt2)>
@@ -130,7 +130,7 @@ RUN TEST
        -o <output dir>
        -p <mysql defaults file
 
-   Example: dbt2-run-workload -a mysql -D dbt2 -c 20 -t 300 -w 3 -o results -S /tmp/mysql.sock -p ~/src/dbt2/examples/mysql/mysql-dbt2.cnf
+   Example: dbt2-run -a mysql -D dbt2 -c 20 -t 300 -w 3 -o results -S /tmp/mysql.sock -p ~/src/dbt2/examples/mysql/mysql-dbt2.cnf
 
    Test will be run for 300 seconds with 20 database connections and 
    scale factor(num of warehouses) 3::
