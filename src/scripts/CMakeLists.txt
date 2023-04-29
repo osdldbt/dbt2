@@ -40,7 +40,6 @@ install (
     ${CMAKE_BINARY_DIR}/dbt2
     ${CMAKE_BINARY_DIR}/dbt2-post-process.sql
     ${CMAKE_BINARY_DIR}/dbt2-run
-    ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-easy
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process

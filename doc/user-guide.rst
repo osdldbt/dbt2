@@ -13,18 +13,16 @@ the test kit.  See **Database Management System Notes** for more specific
 details as it pertains to the database management system being tested, if
 available.
 
-There are three general ways to use this kit:
+There are two general ways to use this kit:
 
-1. The **The "Easy" Way** section is for running something quick and easy.
-
-2. The **Manual Test Execution** section is not just how to run a test with
+1. The **Manual Test Execution** section is not just how to run a test with
    minimal assistance, but also minimal data collection.  In other words, the
    kit only produces the test metrics and data to validate the correctness of
    the test.  It is left to the tester to do any additional data collection to
    characterize system behavior.  But there are no limitations on how one may
    actually execute a test.
 
-3. The **Comprehensive Test Execution** section details how to use the provided
+2. The **Comprehensive Test Execution** section details how to use the provided
    shell scripts to fully characterize system behavior in addition to executing
    a test.  This includes collecting system statistics as well and software
    profiles.  There is not as much flexibility as running a test manually,
@@ -270,7 +268,7 @@ Run the following commands to build a 1 warehouse database with pl/pgsql stored
 functions, run a 2 minute (120 second) test, and calculate the throughput::
 
     dbt2 pgsql-build-db -w 1 dbt2
-    dbt2 easy -a pgsql -b dbt2 -l 120 -outdir /tmp/results -w 1
+    dbt2 run -a pgsql -b dbt2 -l 120 -outdir /tmp/results -w 1
     dbt2 post-process /tmp/results/mix-*.log
 
 Manual Test Execution

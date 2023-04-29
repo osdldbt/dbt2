@@ -1,0 +1,138 @@
+==========
+ dbt2-run
+==========
+
+---------------
+Database Test 2
+---------------
+
+:Date: @MANDATE@
+:Manual section: 1
+:Manual group: Database Test 2 @PROJECT_VERSION@ Documentation
+:Version: Database Test 2 @PROJECT_VERSION@
+
+SYNOPSIS
+========
+
+**dbt2-run** [option...] dbms directory
+
+DESCRIPTION
+===========
+
+**dbt2-run** is a wrapper script that helps execute basic 1-tier, 2-tier, and
+3-tier client-server system architectures.  It is intended to be an easier way
+to execute the DBT-2 workload than running the individual components by hand,
+but does not provide all of the flexibility that can be achieved by running the
+driver and client components by hand.  It additionally aids in collecting
+operating system and database statistics as well as capturing software profiles
+if the user so desires.
+
+A database needs to be created before **dbt2-run** can successfully run.
+
+**dbt2-run** also make some assumptions that are not compliant to the TPC
+Benchmark(TM) C specification as a tool for simplifying the execution of the
+workload, such as not using any keying or thinking time, and driving the
+workload using a unified driver and client program.  **dbt2-run** does provides
+options to run the test closer to the benchmark specification.
+
+OPTIONS
+=======
+
+-A, --advanced  Enable advanced benchmarking execution options.  This resets
+        the keying and thinking time to benchmark specification defaults.
+--comment COMMENTS  Provide *comments* to save with the test.
+--connection-delay MILLISECONDS  *millisecond* delay between client and
+        database connections, default 100.
+-d SECONDS, --duration SECONDS  *seconds* of the test duration, after ramp up.
+        The ramp up time is estimated based on the connection delay and the
+        number of database connections to open, default 180.
+--db-host ADDRESS  *address* of database system, default localhost.
+--db-name NAME  *name* of the database, default dbt2.
+--db-port PORT  Database listening *port* number.
+--dbaas  Database server is a service.  Do not attempted to collect system
+        statistics from the database system because scripts rely on being able
+        to use **ssh** and **sar**.
+--districts DISTRICTS  Number of *districts* per warehouse, default 10.
+--driver-mode MODE  Set to 1 for threaded or 3 for event-driven process based
+        *mode*, default 3.  *mode* 3 will start a process per logical processor
+        discovered on the system and evenly divide the warehouse range to cover
+        between all of the processes started.
+--stats  Enable system and database statistics collection by using
+        **ts-sysstat**.
+--profile  Enable software profiling collection by using **ts-profile**
+        provided by Touchstone Tools.  Currently only for Linux systems that
+        have **readprofile**, **oprofile** or **perf** set up.  See
+        **ts-profile** for usage notes.
+--privileged  Run test as a privileged operating system and database user.
+--terminal-limit TERMINALS  Limit the number of *terminals* emulated.
+-w WAREHOUSES, --warehouses WAREHOUSES  Number of *warehouses* to use in the
+        database, default 1.
+--help  This usage message.  Or **-?**.
+
+driver-mode 1 (threaded) specific options:
+
+-c CONNECTIONS, --client-connections CONNECTIONS  Number of database
+        *connection* to open.
+--client-host ADDRESS  *address* of client system, default localhost.
+--driver-partition-size NUMBER  *number* of warehouses per process.  The
+        default is to start 1 process for all of the warehouses.  This will
+        start as many processes required in order to drive the specified number
+        of warehouses.
+
+driver-mode 3 (event-driven, process based) specific options:
+
+--connections-per-processor PROCESSES  Number of driver *processes* started per
+        processor, default 1.
+
+MySQL specific options:
+
+--db-user USER  Database *user*.
+--db-password PASSWORD  Database *password*.
+
+PostgreSQL specific options:
+
+--db-parameters OPTIONS  GUC command line *options* to pass to **postgres**.
+        This is intended for privileged users that can start and stop the
+        **postgres** backend while passing parameter options directly to
+        **postgres**.
+
+*dbms* options are:
+
+* cockroach  CockroachDB
+* mysql  MySQL
+* pgsql  PostgreSQL
+* sqlite  SQLite
+
+*directory* is the path to save test results.
+
+NOTES
+=====
+
+Use custom keying time, thinking time, or transaction mixes currently requires
+manual usage of the driver.
+
+The driver is capable of driving a distributed database, and database
+partitioned by warehouse id ranges.  This currently requires manual usage of
+the driver.
+
+**dbt2-run** will only start 1 client process when using driver-mode 1.
+Multiple clients can be used but this script currently does not handle that and
+it needs to be done manually.
+
+EXAMPLES
+========
+
+A simple example of running a default 3 minute (180 second) test against a
+locally running default sized 1 warehouse PostgreSQL database::
+
+    dbt2 run --dbms pgsql --output results
+
+See documentation in the *doc* directory of the source repository or online at
+https://osdldbt.github.io/dbt2/ for more information.
+
+SEE ALSO
+========
+
+**dbt2**\ (1), **oprofile**\ (1), **perf**\ (1), **readprofile**\ (8),
+**ts-profile**\ (1), **ts-sysstat**\ (1)
+

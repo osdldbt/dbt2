@@ -8,6 +8,11 @@ vX.Y.Z (YYYY-MM-DD)
 - Update run script to use touchstone-tools v0.5.1
 - Refactor run logic for handling 1-tier, 2-tier, and 3-tier testing test
   execution and stats collection.
+- Remove "easy" script and instead make its parameters the default execution
+  method, thus breaking down the traditional benchmark specification behavior
+  into additional options
+- Refactor option handling to incorporate long parameter names
+- Add "run" script man page.
 
 v0.51.0 (2023-04-25)
 

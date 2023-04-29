@@ -64,30 +64,55 @@ profile_process()
 
 stat_collection()
 {
+	if [ $STATS -ne 1 ]; then
+		return
+	fi
+
 	ARGS=$1
 
 	# If the this is a 1-tier test, system stats will be saved only in the db
 	# directory.
 	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-		eval "ts-sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+		if ! which ts-sysstat > /dev/null 2>&1; then
+			printf "WARNING: ts-sysstat not found for driver system stats "
+			echo "collection"
+		else
+			eval "ts-sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+		fi
 	fi
 
 	# Handle system statistics on the Client node, if remote.
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} ts-sysstat \
-				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		if ! eval "${CLIENT_COMMAND} which ts-sysstat > /dev/null 2>&1"; then
+			printf "WARNING: ts-sysstat not found for client system stats "
+			echo "collection"
+		else
+			HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+			eval "${CLIENT_COMMAND} ts-sysstat \
+					-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		fi
 	fi
 
 	# Don't collect system stats from the database system if the database
 	# is a service.
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	if [ $DBAAS -eq 0 ]; then
-		eval "${DB_COMMAND} ts-sysstat \
-				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		if ! eval "${DB_COMMAND} which ts-sysstat > /dev/null 2>&1"; then
+			printf "WARNING: ts-sysstat not found for database system stats "
+			echo "collection"
+		else
+			eval "${DB_COMMAND} ts-sysstat \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		fi
 	fi
-	eval "${DB_COMMAND} ts-${DBMS}-stat \
-			-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
+
+	if ! eval "${DB_COMMAND} which ts-${DBMS}-stat > /dev/null 2>&1"; then
+		printf "WARNING: ts-%s-stat not found for database stats " "${DBMS}"
+		echo "collection"
+	else
+		eval "${DB_COMMAND} ts-${DBMS}-stat \
+				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
+	fi
 }
 
 stop_processes() {
@@ -114,51 +139,78 @@ usage()
 	if [ "$1" != "" ]; then
 		echo
 		echo "error: $1"
+		echo
 	fi
-	echo
-	echo "$(basename "${0}") is the DBT-2 workload runner"
-	echo ""
-	echo "Usage:"
-	echo "  $(basename "${0}") [OPTIONS]"
-	echo
-	echo "Generate options:"
-	echo "  -a DBMS       dbms under test (pgsql)"
-	echo "  -A            enable altered execution mode"
-	echo "  -b #          Number of warehouses per process, default all specified by -w"
-	if [ ! "$DRIVER3" = "1" ]; then
-		echo "  -c #          number of database connection to open"
-		echo "  -C ADDRESS    address of client system, default localhost"
-	fi
-	echo "  -d #          seconds of the test duration, after ramp up"
-	echo "  -D NAME       name of the database"
-	if [ "$DRIVER3" = "1" ]; then
-		echo "  -F #          forks per processor, default 1"
-	fi
-	echo "  -h            this usage message"
-	echo "  -H ADDRESS    address of database system, default localhost"
-	echo "  -l PORT       database listening port number"
-	echo "  -L #          limit the number of terminals emulated"
-	echo "  -n            disable thinking and keying time"
-	echo "  -o PATH       path to store test results"
-	echo "  -s #          millisecond delay between thread creation"
-	echo "  -t #          number of districts per warehouse, default 10"
-	echo "  -u            run test as a privileged user"
-	echo "  -w #          number of warehouses to use in the database"
-	echo "  -y            database server is a service"
-	echo "  -z COMMENT    comments to save for the test"
-	echo
-	echo "MySQL specific options:"
-	echo "  -U USER        database user"
-	echo "  -x PASSWORD    database password"
-	echo
-	echo "PostgreSQL specific options:"
-	echo "  -p OPTIONS    GUC command line options to pass to postgres"
-	echo
-	echo "DBMS options are:"
-	echo "  cockroach  CockroachDB"
-	echo "  mysql      MySQL"
-	echo "  pgsql      PostgreSQL"
-	echo "  sqlite     SQLite"
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) workload runner
+
+Usage:
+  $(basename "${0}") [OPTIONS] DBMS DIRECTORY
+
+General options:
+  -A, --advanced
+                 enable advanced benchmarking execution options
+  --comment COMMENTS
+                 provide COMMENTS to save with the test
+  --connection-delay MILLISECONDS
+                 MILLISECONDS delay between client and database connections,
+                 default 100
+  -d SECONDS, --duration SECONDS
+                 SECONDS of the test duration, after ramp up, default $DURATION
+  --db-host ADDRESS
+                 ADDRESS of database system, default localhost
+  --db-name NAME
+                 NAME of the database, default $DBNAME
+  --db-port PORT
+                 database listening PORT number
+  --dbaas        database server is a service
+  --districts DISTRICTS
+                 number of DISTRICTS per warehouse, default 10
+  --driver-mode MODE
+                 1 for threaded, 3 for event-driven process MODE, default 3
+  --profile      enable software profiling collection
+  --privileged   run test as a privileged operating system and database user
+  --stats        collect system and database stats
+  --terminal-limit TERMINALS
+                 limit the number of TERMINALS emulated
+  -V, --version  output version information, then exit
+  -w WAREHOUSES, --warehouses WAREHOUSES
+                 number of WAREHOUSES to use in the database, default $WAREHOUSES
+  -?, --help     show this help, then exit
+
+driver-mode 1 (threaded) specific options:
+  -c CONNECTIONS, --client-connections CONNECTIONS
+                 number of database CONNECTIONS to open, default $DBCON
+  --client-host ADDRESS
+                 ADDRESS of client system, default localhost
+  --driver-partition-size NUMBER
+                 NUMBER of warehouses per process, default all
+
+driver-mode 3 (event-driven, process based) specific options:
+  --connections-per-processor PROCESSES
+                 driver PROCESSES started per processor, default 1
+
+MySQL specific options:
+  --db-user USER
+                 database USER
+  --db-password PASSWORD
+                 database PASSWORD
+
+PostgreSQL specific options:
+  --db-parameters OPTIONS
+                 GUC command line OPTIONS to pass to postgres, when running
+                 by privileged user
+
+DBMS options are:
+  cockroach  CockroachDB
+  mysql      MySQL
+  pgsql      PostgreSQL
+  sqlite     SQLite
+
+DIRECTORY is the path to save test results.
+
+@HOMEPAGE@
+EOF
 }
 
 validate_parameter()
@@ -169,123 +221,254 @@ validate_parameter()
 	fi
 }
 
+# Tell ssh not to check known hosts or host keys.
 SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
+CLIENT_HOSTNAME="localhost"
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
-CLIENT_HOSTNAME=""
-
 DBAAS=0
+DBCON=10
+DBNAME="dbt2"
+DRIVER3=1
+DURATION=180
+EASYFLAGS="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
 FPP=1
 PRIVILEGED=0
 PROFILE=0
-THREAD_STARTUP_DELAY=1000 # milliseconds
+STATS=0
+THREAD_STARTUP_DELAY=100 # milliseconds
 THREADS_PER_WAREHOUSE=10
-DBNAME=${DBT2DBNAME}
+WAREHOUSES=1
 
-while getopts "Aa:b:C:c:D:d:F:H:hL:l:no:p:rS:s:t:U:uw:x:yz:" opt; do
-	case $opt in
-	A)
-		ALTERED_ARG="-altered 1"
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	opt=${1}
+	case "${1}" in
+	(-A | --advanced)
+		# Advanced benchmarking usage.  Disable all "easy" flags.
+		EASYFLAGS=""
 		;;
-	a)
-		DBMS=${OPTARG}
-		export DATABASE=${DBMS}
-		;;
-	b)
-		# Number of warehouses per driver.
-		W_CHUNK=${OPTARG}
-		;;
-	C)
-		CLIENT_HOSTNAME=$OPTARG
-		;;
-	c)
+	(-c | --client-connections)
+		shift
 		# Check for numeric value
-		DBCON=$(echo $OPTARG | egrep "^[0-9]+$")
-		validate_parameter $opt $OPTARG $DBCON
+		DBCON=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${DBCON}"
 		;;
-	D)
-		DBNAME=${OPTARG}
+	(-c?*)
+		# Check for numeric value
+		DBCON=$(echo "${1#*-c}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${DBCON}"
 		;;
-	d)
-		DURATION=$(echo $OPTARG | egrep "^[0-9]+$")
-		validate_parameter $opt $OPTARG $DURATION
+	(--client-connections=?*)
+		# Check for numeric value
+		DBCON=$(echo "${1#*--client-cconnetions=}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${DBCON}"
 		;;
-	F)
-		FPP="$OPTARG"
+	(--client-host)
+		shift
+		CLIENT_HOSTNAME=$1
+		;;
+	(--client-host=?*)
+		CLIENT_HOSTNAME=${1#*--client-host=}
+		;;
+	(--comment)
+		shift
+		COMMENT=$1
+		;;
+	(--comment=?*)
+		COMMENT=${1#*--comment=}
+		;;
+	(--connection-delay)
+		shift
+		THREAD_STARTUP_DELAY=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${THREAD_STARTUP_DELAY}"
+		;;
+	(--connection-delay=?*)
+		THREAD_STARTUP_DELAY=$(echo "${1#*--connection-delay=}" \
+				| grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1#*--connection-delay=}" \
+				"${THREAD_STARTUP_DELAY}"
+		;;
+	(--connections-per-processor)
+		shift
+		FPP="$1"
 		FPP_FLAG="-fpp $FPP"
 		;;
-	H)
-		DB_HOSTNAME=${OPTARG}
+	(--connections-per-processor=?*)
+		FPP="${1#*--connections-per-processor=}"
+		FPP_FLAG="-fpp $FPP"
 		;;
-	h)
-		usage
-		exit 1
+	(-d | --duration)
+		shift
+		DURATION=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${DURATION}"
 		;;
-	L)
-		TERMINALS_LIMIT="$OPTARG"
-		TERMINALS_LIMIT_ARG="-L $TERMINALS_LIMIT"
+	(-d?*)
+		DURATION=$(echo "${1#*-d}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1#*-d}" "${DURATION}"
 		;;
-	l)
-		DB_PORT=$(echo $OPTARG | egrep "^[0-9]+$")
-		validate_parameter $opt $OPTARG $DB_PORT
+	(--duration=?*)
+		DURATION=$(echo "${1#*--duration=}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1#*--duration=}" "${DURATION}"
 		;;
-	n)
-		NO_THINK="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
+	(--db-host)
+		shift
+		DB_HOSTNAME=${1}
 		;;
-	o)
-		OUTPUT_DIR=${OPTARG}
+	(--db-host=?*)
+		DB_HOSTNAME=${1#*--db-host=}
 		;;
-	p)
-		DB_PARAMS="${OPTARG}"
-		DB_PARAMS_ARG="-p \"${OPTARG}\""
+	(--db-name)
+		shift
+		DBNAME=${1}
 		;;
-	r)
-		PROFILE=1
+	(--db-name=?*)
+		DBNAME=${1#*--db-name=}
 		;;
-	S)
-		SOCK_FILE=${OPTARG}
-		SOCK_FILE_ARG="-t ${OPTARG}"
+	(--db-parameters)
+		shift
+		DB_PARAMS="${1}"
+		DB_PARAMS_ARG="-p \"${DB_PARAMS}\""
 		;;
-	s)
-		THREAD_STARTUP_DELAY=$(echo $OPTARG | egrep "^[0-9]+$")
-		validate_parameter $opt $OPTARG $THREAD_STARTUP_DELAY
+	(--db-parameters=?*)
+		DB_PARAMS="${1#*--db-parameters=}"
+		DB_PARAMS_ARG="-p \"${DB_PARAMS}\""
 		;;
-	t)
-		THREADS_PER_WAREHOUSE=$(echo ${OPTARG} | egrep "^[0-9]+$")
-		validate_parameter $opt $OPTARG $THREADS_PER_WAREHOUSE
+	(--db-password)
+		shift
+		DB_PASSWORD=${1}
 		;;
-	u)
-		PRIVILEGED=1
+	(--db-password=?*)
+		DB_PASSWORD=${1#*--db-password=}
 		;;
-	U)
-		DB_USER=${OPTARG}
+	(--db-port)
+		shift
+		DB_PORT=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${DB_PORT}"
 		;;
-	w)
-		WAREHOUSES=$(echo $OPTARG | egrep "^[0-9]+$")
-		validate_parameter $opt $OPTARG $WAREHOUSES
+	(--db-port=?*)
+		DB_PORT=$(echo "${1#*--db-port=}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1#*--db-port=}" "${DB_PORT}"
 		;;
-	x)
-		DB_PASSWORD=${OPTARG}
+	(--db-user)
+		shift
+		DB_USER=${1}
 		;;
-	y)
+	(--db-user=?*)
+		DB_USER=${1#*--db-user=}
+		;;
+	(--dbaas)
 		DBAAS=1
 		;;
-	z)
-		COMMENT=$OPTARG
+	(--districts)
+		shift
+		THREADS_PER_WAREHOUSE=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${THREADS_PER_WAREHOUSE}"
 		;;
-	*)
-		echo "$(basename "${0}"): invalid option ${1}"
+	(--districts=?*)
+		THREADS_PER_WAREHOUSE=$(echo "${1#*--districts=}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1#*--districts=}" \
+				"${THREADS_PER_WAREHOUSE}"
+		;;
+	(--driver-mode)
+		shift
+		# Logic is pretty basic at the moment, set to 3 or unset it.
+		if [ "${1}" -ne 3 ]; then
+			DRIVER3=""
+		fi
+		;;
+	(--driver-mode=?*)
+		# Logic is pretty basic at the moment, set to 3 or unset it.
+		if [ "${1#*--driver-mode=}" -ne 3 ]; then
+			DRIVER3=""
+		fi
+		;;
+	(--driver-partition-size)
+		shift
+		# Number of warehouses per driver.
+		W_CHUNK=${1}
+		;;
+	(--driver-partition-size=?*)
+		# Number of warehouses per driver.
+		W_CHUNK=${1#*--driver-partition-size=}
+		;;
+	(--privileged)
+		PRIVILEGED=1
+		;;
+	(--profile)
+		PROFILE=1
+		;;
+	(-S)
+		shift
+		SOCK_FILE_ARG="-t ${1}"
+		;;
+	(-S?*)
+		SOCK_FILE_ARG="-t ${1#*-S}"
+		;;
+	(--stats)
+		STATS=1
+		;;
+	(--terminal-limit)
+		shift
+		TERMINALS_LIMIT="$1"
+		TERMINALS_LIMIT_ARG="-L ${TERMINALS_LIMIT}"
+		;;
+	(--terminal-limit=?*)
+		TERMINALS_LIMIT="${1#*--terminal-limit=}"
+		TERMINALS_LIMIT_ARG="-L ${TERMINALS_LIMIT}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-w | --warehouses)
+		shift
+		WAREHOUSES=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1}" "${WAREHOUSES}"
+		;;
+	(-w?*)
+		WAREHOUSES=$(echo "${1#*-w}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1#*-w}" "${WAREHOUSES}"
+		;;
+	(--warehouses=?*)
+		WAREHOUSES=$(echo "${1#*--warehouses=}" | grep -E "^[0-9]+$")
+		validate_parameter "${opt}" "${1#*--warehouses=}" "${WAREHOUSES}"
+		;;
+	(-\? | --help)
 		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
 		exit 1
 		;;
+	(*)
+		break
+		;;
 	esac
+	shift
 done
 
-# If no client hostnames have been specified, set it to localhost.
-if [ "${CLIENT_HOSTNAME}" = "" ]; then
-	CLIENT_HOSTNAME="localhost"
+if [ $# -eq 0 ]; then
+	printf "Specify which DBMS system to test, try \"%s\" " \
+			"$(basename "${0}")"
+	echo "for more information."
+	exit 1
 fi
+
+DBMS=$1
+shift
+
+if [ $# -eq 0 ]; then
+	echo "Specify the location to save test results, where directory does "
+	printf "not exist yet, try \"%s\" " "$(basename "${0}")"
+	echo "for more information."
+	exit 1
+fi
+
+OUTPUT_DIR=$1
 
 # If no chunking of warehouses per process is defined, assumed we want to run
 # everything from one process.
@@ -295,48 +478,16 @@ fi
 
 # Check parameters.
 
-if [ "${DBMS}" = "" ]; then
-	echo -n "specify which dbms system to test using -a "
-	echo "<cockroach|mysql|pgsql|sqlite>"
-	exit 1
-fi
-
-if [ "${DBNAME}" = "" ] && [ ! "${DBMS}" = "sqlite" ]; then
-	echo "specify the database name using -D "
-	echo "or by setting the DBT2DBNAME environment variable"
-	exit 1
-fi
-
-if [ "${DBCON}" = "" ] && [ ! "$DRIVER3" = "1" ]; then
-	echo "specify the number of database connections using -c #"
-	exit 1
-fi
-
-if [ "${DURATION}" = "" ]; then
-	echo "specify the duration of the test in seconds using -d #"
-	exit 1
-fi
-
-if [ "${WAREHOUSES}" = "" ]; then
-	echo "specify the number of warehouses using -w #"
-	exit 1
-fi
-
-if [ "${OUTPUT_DIR}" = "" ]; then
-	echo "specify the location for results, directory must not exist, using -o <path>"
-	exit 1
-fi
-
 if [ -d "${OUTPUT_DIR}" ]; then
-	echo "directory '${OUTPUT_DIR}' exists, stopping to prevent possible"
-	echo "clobbering of data, please specify another -o location"
+	echo "Directory '${OUTPUT_DIR}' exists, stopping to prevent possible"
+	echo "clobbering of data, please specify another location."
 	exit 1
 fi
 
 if [ "${THREADS_PER_WAREHOUSE}" -lt 1 ] || \
 		[ "${THREADS_PER_WAREHOUSE}" -gt 1000 ];
 then
-	usage "-t value should be in range [1..1000]. Please specify correct value"
+	usage "--districts value should be in range [1..1000]. Please specify correct value"
 	exit 1
 fi
 
@@ -347,6 +498,9 @@ if [ ! "${DB_PORT}" = "" ]; then
 		DB_PORT_ARG="-l ${DB_PORT}"
 	fi
 fi
+
+# Enable altered execution mode only if DRIVER3 is enabled.
+ALTERED_ARG="-altered ${DRIVER3}"
 
 DBSTATARGS=""
 case $DBMS in
@@ -373,7 +527,8 @@ if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 	CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME"
 	# Check for rsync on the client before continuing.
 	if ! eval "${CLIENT_COMMAND} which rsync > /dev/null 2>&1"; then
-		echo "ERROR: rsync required on client system in order to retrieve results"
+		printf "ERROR: rsync required on client system in order to retrieve "
+		echo "results"
 		exit 1
 	fi
 else
@@ -385,7 +540,8 @@ if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ] && \
 	DB_COMMAND="$SSH ${DB_HOSTNAME}"
 	# Check for rsync on the client before continuing.
 	if ! eval "${DB_COMMAND} which rsync > /dev/null 2>&1"; then
-		echo "ERROR: rsync required on database system in order to retrieve results"
+		printf "ERROR: rsync required on database system in order to retrieve "
+		echo "results"
 		exit 1
 	fi
 else
@@ -449,7 +605,7 @@ fi
 #
 # Redisplay the test parameters.
 #
-echo "DBT-2 test for ${DBMS} started at $(date)..."
+echo "DBT-2 test for ${DBMS} started at $(date)"
 echo ""
 echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
 if [ "${DBMS}" = "cockroach" ] || [ "${DBMS}" = "pgsql" ] || \
@@ -493,8 +649,13 @@ if [ ! "$TERMINALS_LIMIT" = "" ]; then
 		THREADS=$OPTION2
 	fi
 fi
-echo "DATABASE CONNECTIONS: ${DBCON}"
-echo "TERMINAL THREADS: ${THREADS}"
+if [ "$DRIVER3" = "1" ]; then
+	echo "DATABASE CONNECTIONS: $(nproc)"
+	echo "TERMINAL PROCESSES: $(nproc)"
+else
+	echo "DATABASE CONNECTIONS: ${DBCON}"
+	echo "TERMINAL THREADS: ${THREADS}"
+fi
 echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
 echo "TERMINAL CAP: $TERMINALS_LIMIT"
 echo "WAREHOUSES PER DRIVER/CLIENT PAIR: $W_CHUNK"
@@ -507,7 +668,8 @@ echo ""
 #
 echo "Stage 1. Starting up client..."
 if [ ! "$DRIVER3" = "1" ]; then
-	echo "database connection starting every $THREAD_STARTUP_DELAY milliseconds"
+	printf "database connection starting every %s" "${THREAD_STARTUP_DELAY}"
+	echo "milliseconds"
 	if [ "${DBMS}" = "cockroach" ]; then
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
@@ -557,7 +719,8 @@ if [ ! "$DRIVER3" = "1" ]; then
 		PORT=$(( PORT + 1))
 	done
 
-	# Sleep long enough for all the client database connections to be established.
+	# Sleep long enough for all the client database connections to be
+	# established.
 	CLIENT_RAMPUP_TIME=$DBCON
 	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
 	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME / 1000 ))
@@ -566,8 +729,6 @@ if [ ! "$DRIVER3" = "1" ]; then
 else
 	echo "***skipping***"
 fi
-
-# Start collecting data before we start the test.
 
 # Calculate how many terminals are being emulated.
 OPTION1=$(( W_CHUNK + 1 ))
@@ -591,6 +752,7 @@ SAMPLE_LENGTH=60
 ITERATIONS=$(( TOTAL_RUN_TIME / SAMPLE_LENGTH ))
 ITERATIONS=$(( ITERATIONS + 1 ))
 
+# Start collecting data before we start the test.
 stat_collection
 
 if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
@@ -636,10 +798,9 @@ while [ "${END}" -lt "${WAREHOUSES}" ]; do
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -sleep $THREAD_STARTUP_DELAY"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -outdir $DDIR"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -tpw $THREADS_PER_WAREHOUSE"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $NO_THINK $TERMINALS_LIMIT_ARG"
+	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $EASYFLAGS $TERMINALS_LIMIT_ARG"
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
 	if [ "$DRIVER3" = "1" ]; then
-		echo "***experimental driver 3 active***"
 		DHNARG="-b $DBNAME -d $DB_HOSTNAME"
 		eval "dbt2-driver3 $DRIVER_COMMAND_ARGS -a $DBMS $DHNARG $FPP_FLAG \
 				> ${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
