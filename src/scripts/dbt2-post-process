@@ -13,7 +13,7 @@ if [ "$DBT2LANG" = "" ]; then
 	elif which "R" > /dev/null 2>&1; then
 		DBT2LANG="R"
 	else
-		echo "ERROR: 'R' detected for post processing"
+		echo "ERROR: 'sqlite3' nor 'R' not detected for post processing"
 		exit 1
 	fi
 else
