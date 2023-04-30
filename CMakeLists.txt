@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.8.12)
 project (dbt2 C)
 
 set (PROJECT_VERSION_MAJOR 0)
-set (PROJECT_VERSION_MINOR 51)
+set (PROJECT_VERSION_MINOR 52)
 set (PROJECT_VERSION_PATCH 0)
 
 set (PROJECT_VERSION
