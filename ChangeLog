@@ -13,6 +13,7 @@ vX.Y.Z (YYYY-MM-DD)
   into additional options
 - Refactor option handling to incorporate long parameter names
 - Add "run" script man page.
+- Add "build" script to simplify running database build commands, with man page
 
 v0.51.0 (2023-04-25)
 

@@ -28,6 +28,7 @@ operating system and database statistics as well as capturing software profiles
 if the user so desires.
 
 A database needs to be created before **dbt2-run** can successfully run.
+**dbt2-build** can be used to build a database.
 
 **dbt2-run** also make some assumptions that are not compliant to the TPC
 Benchmark(TM) C specification as a tool for simplifying the execution of the
@@ -133,6 +134,6 @@ https://osdldbt.github.io/dbt2/ for more information.
 SEE ALSO
 ========
 
-**dbt2**\ (1), **oprofile**\ (1), **perf**\ (1), **readprofile**\ (8),
-**ts-profile**\ (1), **ts-sysstat**\ (1)
+**dbt2**\ (1), **dbt2-build**\ (1), **oprofile**\ (1), **perf**\ (1),
+**readprofile**\ (8), **ts-profile**\ (1), **ts-sysstat**\ (1)
 

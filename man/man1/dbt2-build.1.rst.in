@@ -1,0 +1,77 @@
+============
+ dbt2-build
+============
+
+---------------
+Database Test 2
+---------------
+
+:Date: @MANDATE@
+:Manual section: 1
+:Manual group: Database Test 2 @PROJECT_VERSION@ Documentation
+:Version: Database Test 2 @PROJECT_VERSION@
+
+SYNOPSIS
+========
+
+**dbt2-build** [option...] dbms [dbname]
+
+DESCRIPTION
+===========
+
+**dbt2-build** is a wrapper script that helps create a database, create tables,
+load data, and create indexes with minimal input from the user.
+
+OPTIONS
+=======
+
+--db-host ADDRESS  *address* of database system.
+--db-port PORT  Database listening *port* number.
+--dbaas  Database server is a service.  Do not attempted to collect system
+        statistics from the database system because scripts rely on being able
+        to use **ssh** and **sar**.
+--privileged  Run test as a privileged operating system and database user.
+-w WAREHOUSES, --warehouses WAREHOUSES  Number of *warehouses* to use in the
+        database, default 1.
+--help  This usage message.  Or **-?**.
+-V, --version  Output version information, then exit.
+
+PostgreSQL specific options:
+
+--db-parameters OPTIONS  GUC command line *options* to pass to **postgres**.
+        This is intended for privileged users that can start and stop the
+        **postgres** backend while passing parameter options directly to
+        **postgres**.
+
+*dbms* options are:
+
+* cockroach  CockroachDB
+* mysql  MySQL
+* pgsql  PostgreSQL
+* sqlite  SQLite
+
+*dbname* is "dbt2" by default.
+
+NOTES
+=====
+
+Running database specific build scripts manually may provide more advanced
+controls for options including, but not limited to, using tablespaces,
+selecting the type of stored functions or procedures to use, and possibly other
+database administrative tasks.
+
+EXAMPLES
+========
+
+A simple example of building a default sized 1 warehouse database using the
+default "dbt2" database name with PostgreSQL::
+
+    dbt2 build pgsql
+
+See documentation in the *doc* directory of the source repository or online at
+https://osdldbt.github.io/dbt2/ for more information.
+
+SEE ALSO
+========
+
+**dbt2**\ (1)
