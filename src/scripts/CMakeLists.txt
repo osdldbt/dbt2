@@ -35,6 +35,11 @@ configure_file(
     @ONLY
 )
 configure_file(
+    dbt2-report.in
+    ${CMAKE_BINARY_DIR}/dbt2-report
+    @ONLY
+)
+configure_file(
     dbt2-run.in
     ${CMAKE_BINARY_DIR}/dbt2-run
     @ONLY
@@ -45,10 +50,10 @@ install (
     ${CMAKE_BINARY_DIR}/dbt2
     ${CMAKE_BINARY_DIR}/dbt2-build
     ${CMAKE_BINARY_DIR}/dbt2-post-process.sql
+    ${CMAKE_BINARY_DIR}/dbt2-report
     ${CMAKE_BINARY_DIR}/dbt2-run
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info
-    ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process.r
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-run-workload-autoscale
 	DESTINATION "bin"

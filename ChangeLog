@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Add "report" script to handle both post-process and generate-report scripts
+
 v0.52.0 (2023-04-30)
 
 - Use profiling scripts from touchstone-tools to collect readprofile, oprofile,

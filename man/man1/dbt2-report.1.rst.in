@@ -1,0 +1,60 @@
+=============
+ dbt2-report
+=============
+
+---------------
+Database Test 2
+---------------
+
+:Date: @MANDATE@
+:Manual section: 1
+:Manual group: Database Test 2 @PROJECT_VERSION@ Documentation
+:Version: Database Test 2 @PROJECT_VERSION@
+
+SYNOPSIS
+========
+
+**dbt2-report** [option...] directory
+
+DESCRIPTION
+===========
+
+**dbt2-report** is a wrapper script that helps calculates the transactions
+rate, and may also be used to generate an HTML report, from test data
+collected from using the **dbt2-run** script.
+
+OPTIONS
+=======
+
+--html  generate HTML report
+--help  This usage message.  Or **-?**.
+-V, --version  Output version information, then exit.
+
+NOTES
+=====
+
+**dbt-report** executes **dbt2-post-process** to calculate transaction rates
+and **dbt2-generate-report** to create the HTML report.  See the help for these
+scripts for additional options that are available when run directly.
+
+For example, **dbt2-post-process** has additional controls for reviewing the
+driver's random number generator, and **dbt2-generate-report** has additional
+controls for selecting a different chart rendering engine.
+
+EXAMPLES
+========
+
+Calculate the transaction rates from a **dbt2-run** test saved in the *results*
+directory::
+
+    dbt2 report results
+
+Generate a comprehensive HTML report from a **dbt2-run** test saved in the
+*results* directory::
+
+    dbt2 report --html results
+
+SEE ALSO
+========
+
+**dbt2**\ (1), **dbt2-run**\ (1)

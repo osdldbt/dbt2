@@ -847,15 +847,7 @@ fi
 # precise...
 eval "wait ${DRIVER_PIDLIST}"
 
-cat > "${SUMMARY}" << __EOF__ &
-$(find "${DRIVER_OUTPUT_DIR}" -name 'mix*.log' -print0 | \
-		xargs -0 dbt2-post-process)
-__EOF__
-cat > "${OUTPUT_DIR}/detailed-summary.rst" << __EOF__ &
-$(find "${DRIVER_OUTPUT_DIR}" -name 'mix*.log' -print0 | \
-		VERBOSE=1 xargs -0 dbt2-post-process)
-__EOF__
-wait
+dbt2-report "${OUTPUT_DIR}" > "${SUMMARY}"
 
 if [ $PRIVILEGED -eq 1 ]; then
 	eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"
