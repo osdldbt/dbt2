@@ -147,4 +147,4 @@ if [ "${DBMS}" = "pgsql" ]; then
 	fi
 fi
 
-eval "dbt2-${DBMS}-build-db -w ${WAREHOUSES} ${BUILDARGS}"
+eval "dbt2 ${DBMS}-build-db -w ${WAREHOUSES} ${BUILDARGS}"

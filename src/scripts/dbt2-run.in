@@ -125,7 +125,7 @@ stop_processes() {
 		fi
 	fi
 
-	"dbt2-${DBMS}-stop-db"
+	"dbt2 ${DBMS}-stop-db"
 
 	# Stop stat collection.
 	stat_collection -s
@@ -585,20 +585,20 @@ EOF
 # Get any OS specific information, if this is a single tier configuration, then
 # the OS parameters will be in the database output directory.
 if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-	dbt2-get-os-info -o "${DRIVER_OUTPUT_DIR}/$(hostname)"
+	dbt2 get-os-info -o "${DRIVER_OUTPUT_DIR}/$(hostname)"
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
-	eval "${DB_COMMAND} dbt2-get-os-info -o ${DB_OUTPUT_DIR}/${HOSTNAME}"
+	eval "${DB_COMMAND} dbt2 get-os-info -o ${DB_OUTPUT_DIR}/${HOSTNAME}"
 else
-	dbt2-get-os-info -o "${DB_OUTPUT_DIR}/$(hostname)"
+	dbt2 get-os-info -o "${DB_OUTPUT_DIR}/$(hostname)"
 fi
 
 if [ $PRIVILEGED -eq 1 ]; then
-	if eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"; then
+	if eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"; then
 		echo "cleaning up results..."
 		rm -rf "${OUTPUT_DIR}"
 		exit 1
 	fi
-	eval "${DB_COMMAND} dbt2-${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
+	eval "${DB_COMMAND} dbt2 ${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
 			-o ${DB_OUTPUT_DIR}" || exit 1
 fi
 
@@ -712,7 +712,7 @@ if [ ! "$DRIVER3" = "1" ]; then
 
 		CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
 		if [ ! "$DRIVER3" = "1" ]; then
-			eval "${CLIENT_COMMAND} dbt2-client ${CARGS} \
+			eval "${CLIENT_COMMAND} dbt2 client ${CARGS} \
 					> ${CPDIR}/client-${SEG}.txt 2>&1 &"
 		fi
 
@@ -757,7 +757,7 @@ stat_collection
 
 if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-	eval "${CLIENT_COMMAND} dbt2-get-os-info \
+	eval "${CLIENT_COMMAND} dbt2 get-os-info \
 			-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
 fi
 
@@ -765,7 +765,7 @@ echo "collecting database statistics..."
 HOSTNAME=$(eval "${DB_COMMAND} hostname")
 eval "$DB_COMMAND mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}"
 if [ $DBAAS -eq 0 ]; then
-	eval "${DB_COMMAND} dbt2-${DBMS}-plans -d ${DBNAME} \
+	eval "${DB_COMMAND} dbt2 ${DBMS}-plans -d ${DBNAME} \
 			-o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
 fi
 
@@ -802,11 +802,11 @@ while [ "${END}" -lt "${WAREHOUSES}" ]; do
 	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
 	if [ "$DRIVER3" = "1" ]; then
 		DHNARG="-b $DBNAME -d $DB_HOSTNAME"
-		eval "dbt2-driver3 $DRIVER_COMMAND_ARGS -a $DBMS $DHNARG $FPP_FLAG \
+		eval "dbt2 driver3 $DRIVER_COMMAND_ARGS -a $DBMS $DHNARG $FPP_FLAG \
 				> ${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
 				|| exit 1 &
 	else
-		eval "dbt2-driver -d $CLIENT_HOSTNAME -p $PORT $DRIVER_COMMAND_ARGS > \
+		eval "dbt2 driver -d $CLIENT_HOSTNAME -p $PORT $DRIVER_COMMAND_ARGS > \
 				${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
 				|| exit 1 &
 	fi
@@ -847,10 +847,10 @@ fi
 # precise...
 eval "wait ${DRIVER_PIDLIST}"
 
-dbt2-report "${OUTPUT_DIR}" > "${SUMMARY}"
+dbt2 report "${OUTPUT_DIR}" > "${SUMMARY}"
 
 if [ $PRIVILEGED -eq 1 ]; then
-	eval "${DB_COMMAND} dbt2-${DBMS}-stop-db ${MISC_ARG}"
+	eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"
 fi
 
 if [ "${PROFILE}" -eq 1 ]; then
