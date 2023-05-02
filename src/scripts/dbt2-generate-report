@@ -104,7 +104,8 @@ list_processes2()
 
 	echo $TITLE
 	echo ""
-	find "${INDIR}/${MYPTAG}" -name pidstat.csv | while IFS= read -r PIDSTATCSV
+	find "${INDIR}/${MYPTAG}" -name pidstat.csv 2> /dev/null | \
+			while IFS= read -r PIDSTATCSV
     do
 		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
 		ts-plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat"
@@ -137,7 +138,7 @@ show_images()
 	DIR=$1
 	TAG=$2
 
-	CHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png")`
+	CHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png" 2> /dev/null)`
 	for CHART in $CHARTS; do
 		echo ".. image:: ../$CHART"
 		echo "   :target: ../$CHART"
@@ -155,7 +156,7 @@ show_images_pidstat()
 	TAGPIDS=$(grep "dbt2-${TAG}" "${PINDEX}" | cut -d " " -f 1)
 	for P in ${TAGPIDS}; do
 		CHARTS=$(find "${DIR}/../sysstat/pidstat" \
-				-name "pidstat-${P}-*.png" | sort)
+				-name "pidstat-${P}-*.png" 2> /dev/null | sort)
 		for CHART in ${CHARTS}; do
 			BCHART=$(basename "${CHART}")
 			echo ".. image:: ../sysstat/pidstat/${BCHART}"
@@ -290,48 +291,50 @@ if [ "x$DBNAME" = "x" ]; then
 fi
 
 echo "Processing pidstat files..."
-find "${INDIR}" -type f -name pidstat.txt | while IFS= read -r PIDSTATFILE; do
+find "${INDIR}" -type f -name pidstat.txt 2> /dev/null | \
+		while IFS= read -r PIDSTATFILE; do
 	PDIR=$(dirname "${PIDSTATFILE}")
 	ts-process-pidstat -i "${PIDSTATFILE}"
 done
 
 echo "Generating transaction distribution charts..."
 mkdir -p ${OUTDIR}/txn || exit 1
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null| \
 		xargs dbt-plot transaction-distribution Delivery d "${OUTDIR}/txn" 1 \
 		|| warning "Could not create Delivery response time distribution char"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null| \
 		xargs dbt-plot transaction-distribution "New Order" n "${OUTDIR}/txn" 2 \
 		|| warning "Could not create New Order response time distribution char"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null| \
 		xargs dbt-plot transaction-distribution "Order Status" o "${OUTDIR}/txn" 3 \
 		|| warning "Could not create Order Status response time distribution char"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null| \
 		xargs dbt-plot transaction-distribution "Payments" p "${OUTDIR}/txn" 4 \
 		|| warning "Could not create Payments response time distribution char"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null| \
 		xargs dbt-plot transaction-distribution "Stock Level" s "${OUTDIR}/txn" 5 \
 		|| warning "Could not create Stock Level response time distribution char"
 
 echo "Generating sar charts..."
-find "${INDIR}" -type d -name sysstat | while IFS= read -r SARDIR; do
+find "${INDIR}" -type d -name sysstat 2> /dev/null| \
+		while IFS= read -r SARDIR; do
 	ts-plot-sar -i "${SARDIR}/sar"
 done
 
 echo "Generating transaction rate charts..."
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null | \
 		xargs dbt-plot transaction-rate "District" d tpm "${OUTDIR}/txn" 1 \
 		|| warning "Could not create district transaction rate charts"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null | \
 		xargs dbt-plot transaction-rate "New Order" n tpm "${OUTDIR}/txn" 2 \
 		|| warning "Could not create new order transaction rate charts"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null | \
 		xargs dbt-plot transaction-rate "Order Status" o tpm "${OUTDIR}/txn" 3 \
 		|| warning "Could not create order status transaction rate charts"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null | \
 		xargs dbt-plot transaction-rate "Payment" p tpm "${OUTDIR}/txn" 4 \
 		|| warning "Could not create payment transaction rate charts"
-find ${INDIR}/driver -name 'mix*.log' | \
+find ${INDIR}/driver -name 'mix*.log' 2> /dev/null | \
 		xargs dbt-plot transaction-rate "Stock Level" s tpm "${OUTDIR}/txn" 5 \
 		|| warning "Could not create stock level transaction rate charts"
 
@@ -348,7 +351,8 @@ Summary
 
 * Date: $(head -n 1 "${INDIR}/readme.txt")
 * Scale Factor: $(grep "Database Scale Factor:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | xargs)
-* DBMS: $(head -n 1 "$(find "${INDIR}" -name "readme-${DBMS}.txt")")
+* DBMS: $(head -n 1 "$(find "${INDIR}" \
+		-name "readme-${DBMS}.txt" 2> /dev/null)")
 
 $(cat $SUMMARY)
 
@@ -426,7 +430,7 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 	# Sphinx's rst2html can. Then pandoc can convert multi-cell table headings
 	# from html to pdf.
 
-	for RST in $(find $OUTDIR -name "*.rst"); do
+	find "${OUTDIR}" -name "*.rst" 2> /dev/null | while IFS= read -r RST; do
 		RSTDIR=$(dirname "$RST")
 		RSTNAME=$(basename "$RST")
 		NAME="${RSTNAME%.*}"
@@ -434,7 +438,7 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 	done
 
 	echo "Generated top level HTML reports:"
-	find "${OUTDIR}" -maxdepth 1 -name '*.html'
+	find "${OUTDIR}" -maxdepth 1 -name '*.html' 2> /dev/null
 	echo ""
 
     if [ $GENERATE_PDF -eq 1 ]; then
@@ -445,7 +449,8 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 			(cd "${OUTDIR}" && \
 					pandoc -s report.html -f html -t pdf -o report.pdf \
 							2> /dev/null)
-			find "${OUTDIR}" -name "*.html" | while IFS= read -r HTML; do
+			find "${OUTDIR}" -name "*.html" 2> /dev/null | \
+					while IFS= read -r HTML; do
 				HTMLDIR=$(dirname "$HTML")
 				HTMLNAME=$(basename "$HTML")
 				NAME="${HTMLNAME%.*}"
@@ -454,7 +459,7 @@ if [ ! "x${RST2HTML5}" = "x" ]; then
 			done
 
 			echo "Generated top level PDF reports:"
-			find "${OUTDIR}" -maxdepth 1 -name '*.pdf'
+			find "${OUTDIR}" -maxdepth 1 -name '*.pdf' 2> /dev/null
 			echo ""
 		else
 			echo "WARNING: pandoc required to generate pdf report"

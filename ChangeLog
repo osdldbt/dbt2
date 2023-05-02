@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Update AppImage to use touchstone-tools v0.5.2
 - Update format of transaction summary output
 - Update "build" and "run" to use "dbt2" command
+- Quiet find commands in generate-report
 
 v0.52.0 (2023-04-30)
 
