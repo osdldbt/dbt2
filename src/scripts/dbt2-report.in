@@ -85,7 +85,7 @@ if ! which "$PPSCRIPT" > /dev/null 2>&1; then
 fi
 
 if [ ${HTML} -eq 1 ]; then
-	dbt2-generate-report -i "${DIRECTORY}"
+	dbt2 generate-report -i "${DIRECTORY}"
 	cat "${DIRECTORY}/summary.rst"
 else
 	find "${DIRECTORY}/driver" -name 'mix*.log' -print0 | \

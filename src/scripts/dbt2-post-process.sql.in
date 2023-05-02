@@ -160,11 +160,11 @@ EOF
 )
 
 cat << EOF
-============  =====  =========  =========  ===========  ===========  =====
-          ..     ..    Response Time (s)            ..           ..     ..
-------------  -----  --------------------  -----------  -----------  -----
- Transaction      %   Average     90th %        Total    Rollbacks      %
-============  =====  =========  =========  ===========  ===========  =====
+============  ======  =========  =========  ===========  ===========  ======
+          ..      ..    Response Time (s)            ..           ..      ..
+------------  ------  --------------------  -----------  -----------  ------
+ Transaction       %    Average     90th %        Total    Rollbacks       %
+============  ======  =========  =========  ===========  ===========  ======
 EOF
 
 for TXNLINE in $TXNDATA; do
@@ -200,7 +200,7 @@ for TXNLINE in $TXNDATA; do
 		TXNNAME="Stock Level"
 	fi
 
-	printf "%12s  %5.2f  %9.3f  %9.3f  %11d  %11d  %5.2f\n" \
+	printf "%12s  %6.2f  %9.3f  %9.3f  %11d  %11d  %6.2f\n" \
 			"${TXNNAME}" $TXNPER $AVGRESPONSE $Q90RESP $TXNCOUNT $ROLLBACKS \
             $ROLLBACKPER
 done
@@ -208,7 +208,7 @@ done
 DURATION=$(( ENDTIME - STARTTIME ))
 
 cat << EOF
-============  =====  =========  =========  ===========  ===========  =====
+============  ======  =========  =========  ===========  ===========  ======
 
 * Throughput: $(printf "%.2f" $(echo "$NOTXNCOUNT / ($DURATION / 60)" | bc -l)) new-order transactions per minute (NOTPM)
 * Duration: $(printf "%.1f" $(echo "$DURATION / 60" | bc -l)) minute(s)

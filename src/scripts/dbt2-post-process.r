@@ -50,16 +50,16 @@ total_txn <- sum(mix\$ctime > start & mix\$ctime < end)
 duration = end - start
 errors <- sum(mix\$status == "E")
 
-cat(paste("============  =====  =========  =========  ===========  ",
-          "===========  =====\n", sep = ""))
-cat(paste("          ..     ..    Response Time (s)            ..  ",
-          "         ..     ..\n", sep = ""))
-cat(paste("------------  -----  --------------------  -----------  ",
-          "-----------  -----\n", sep = ""))
-cat(paste(" Transaction      %   Average     90th %        Total    ",
-          "Rollbacks      %\n", sep = ""))
-cat(paste("============  =====  =========  =========  ===========  ",
-          "===========  =====\n", sep = ""))
+cat(paste("============  ======  =========  =========  ===========  ",
+          "===========  ======\n", sep = ""))
+cat(paste("          ..      ..    Response Time (s)            ..  ",
+          "         ..      ..\n", sep = ""))
+cat(paste("------------  ------  --------------------  -----------  ",
+          "-----------  ------\n", sep = ""))
+cat(paste(" Transaction       %    Average     90th %        Total    ",
+          "Rollbacks       %\n", sep = ""))
+cat(paste("============  ======  =========  =========  ===========  ",
+          "===========  ======\n", sep = ""))
 
 txn <- c("d", "n", "o", "p", "s")
 txn_name <- c("Delivery", "New Order", "Order Status", "Payment",
@@ -76,13 +76,13 @@ for (i in 1:5) {
                  mix\$ctime < end], na.rm=TRUE)
   t_q90 <- quantile(mix\$response[mix\$txn == txn[i] & mix\$ctime > start &
                     mix\$ctime < end], .9, type=1, na.rm=TRUE)
-  cat(sprintf("%12s  %5.2f  %9.3f  %9.3f  %11d  %11d  %5.2f\n",
+  cat(sprintf("%12s  %6.2f  %9.3f  %9.3f  %11d  %11d  %6.2f\n",
               txn_name[i], t_total / total_txn * 100, t_mean, t_q90,
               t_total, t_rollback, t_rollback / t_total * 100))
 }
 
-cat(paste("============  =====  =========  =========  ===========  ",
-          "===========  =====\n\n", sep = ""))
+cat(paste("============  ======  =========  =========  ===========  ",
+          "===========  ======\n\n", sep = ""))
 cat(sprintf("* Throughput: %0.2f new-order transactions per minute (NOTPM)\n",
             total_n / (duration / 60)))
 cat(sprintf("* Duration: %0.1f minute(s)\n", duration / 60))
