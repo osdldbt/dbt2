@@ -50,6 +50,7 @@ OPTIONS
 --db-host ADDRESS  *address* of database system, default localhost.
 --db-name NAME  *name* of the database, default dbt2.
 --db-port PORT  Database listening *port* number.
+--db-user USER  Database *user*.
 --dbaas  Database server is a service.  Do not attempted to collect system
         statistics from the database system because scripts rely on being able
         to use **ssh** and **sar**.
@@ -87,7 +88,6 @@ driver-mode 3 (event-driven, process based) specific options:
 
 MySQL specific options:
 
---db-user USER  Database *user*.
 --db-password PASSWORD  Database *password*.
 
 PostgreSQL specific options:

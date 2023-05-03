@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Update format of transaction summary output
 - Update "build" and "run" to use "dbt2" command
 - Quiet find commands in generate-report
+- Update "run" script to pass on user and port information to ts-pgsql-stat
 
 v0.52.0 (2023-04-30)
 

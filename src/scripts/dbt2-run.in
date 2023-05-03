@@ -163,6 +163,8 @@ General options:
                  NAME of the database, default $DBNAME
   --db-port PORT
                  database listening PORT number
+  --db-user USER
+                 database USER
   --dbaas        database server is a service
   --districts DISTRICTS
                  number of DISTRICTS per warehouse, default 10
@@ -191,8 +193,6 @@ driver-mode 3 (event-driven, process based) specific options:
                  driver PROCESSES started per processor, default 1
 
 MySQL specific options:
-  --db-user USER
-                 database USER
   --db-password PASSWORD
                  database PASSWORD
 
@@ -507,6 +507,12 @@ case $DBMS in
 pgsql)
 	# Set extra argument variables.
 	DBSTATARGS="-h $DB_HOSTNAME -d $DBNAME"
+	if [ ! "${DB_USER}" = "" ]; then
+		DBSTATARGS="${DBSTATARGS} -U ${DB_USER}"
+	fi
+	if [ ! "${DB_PORT}" = "" ]; then
+		DBSTATARGS="${DBSTATARGS} -p ${DB_PORT}"
+	fi
 	;;
 esac
 
