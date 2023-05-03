@@ -25,6 +25,7 @@ others.
 
 .. include:: tpc.rst
 .. include:: architecture.rst
+.. include:: quick-start.rst
 .. include:: user-guide.rst
 
 --------------------------------

@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Update "build" and "run" to use "dbt2" command
 - Quiet find commands in generate-report
 - Update "run" script to pass on user and port information to ts-pgsql-stat
+- Add quick-start section to documentation
 
 v0.52.0 (2023-04-30)
 
