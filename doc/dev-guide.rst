@@ -24,8 +24,8 @@ Building source packages::
 
 See the **AppImage** section for details on building an AppImage.  There are
 additional requirements for the `appimage` target in the `Makefile.cmake`.
-Alternatively, the kit provides scripts to create a container that can create
-an AppImage.
+Alternatively, the kit provides scripts in the *tools* diretory to create a
+container that can create an AppImage.
 
 Testing the Kit
 ===============
@@ -43,8 +43,8 @@ when comparing data since they are not likely to be the same time stamps.
 post-process
 ------------
 
-A test is provided to make sure that the post-process output continue to work
-with multiple mix files.
+A test is provided to make sure that the post-process output continues to work
+with multiple mix files as well as with various statistical analysis packages.
 
 AppImage
 ========
@@ -72,8 +72,8 @@ an AppImage with a Podman container.
 Building the AppImage
 ---------------------
 
-Use a custom configured PostgreSQL build with minimal options enabled to reduce
-library dependency support.  Part of this reason is to make it easier to
+The AppImages builds a custom minimally configured PostgreSQL build to reduce
+library dependency requirements.  Part of this reason is to make it easier to
 include libraries with compatible licences.  At least version PostgreSQL 11
 should be used for the `pg_type_d.h` header file.
 

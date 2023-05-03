@@ -28,8 +28,8 @@ other client side transaction logic::
     make
     make install
 
-The 'make install' command will need to be run by the owner of the
-database installation.
+The `make install` command will need to be run by the owner of the database
+installation.
 
 When testing PostgreSQL in a multi-tier system configuration, verify that the
 database has been configuration to accept TCP/IP connections.  For example, the
