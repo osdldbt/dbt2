@@ -51,7 +51,7 @@ links_indexes()
 {
 	NAME=$1
 
-	grep ^public. "${INDIR}/db/${NAME}/dbstat/index-list.txt" | \
+	grep ^public\. "${INDIR}/db/${NAME}/dbstat/index-list.txt" | \
 			grep -v "\.pg_catalog\." | while IFS= read -r INDEX; do
 		printf "\`%s <db/%s/dbstat/index/%s/>\`__ " "${INDEX}" "${NAME}" \
 				"${INDEX}"
@@ -75,7 +75,7 @@ links_tables()
 {
 	NAME=$1
 
-	grep ^public. "${INDIR}/db/${NAME}/dbstat/table-list.txt" | \
+	grep ^public\. "${INDIR}/db/${NAME}/dbstat/table-list.txt" | \
 			while IFS= read -r TABLE; do
 		printf "\`%s <db/%s/dbstat/table/%s/>\`__ " "${TABLE}" "${NAME}" \
 				"${TABLE}"
