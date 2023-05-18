@@ -138,10 +138,11 @@ show_images()
 	DIR=$1
 	TAG=$2
 
-	CHARTS=`(cd $DIR && find */ -name "sar-$TAG*.png" 2> /dev/null)`
+	CHARTS=$(find "${DIR}" -name "sar-${TAG}*.png" | sort -n)
 	for CHART in $CHARTS; do
-		echo ".. image:: ../$CHART"
-		echo "   :target: ../$CHART"
+		FNAME=$(basename "${CHART}")
+		echo ".. image:: ../sysstat/sar/${TAG}/${FNAME}"
+		echo "   :target: ../sysstat/sar/${TAG}/${FNAME}"
 		echo "   :width: 100%"
 		echo ""
 	done
