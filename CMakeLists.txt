@@ -89,32 +89,33 @@ set (CPACK_SOURCE_IGNORE_FILES
 
 include (CPack)
 
-set (DRIVER3 ${PROJECT_NAME}-driver3)
 set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
+
+# dbt2-driver3 libraries should overlap with psql needs.
+set (DRIVER3 "src/${PROJECT_NAME}-driver3")
+set (GNUPLOT "AppDir/usr/bin/gnuplot")
 
 add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
-    COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun AppDir
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.desktop AppDir
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.svg AppDir
+    COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun
+                   ${APPIMAGE_SOURCE_DIR}/dbt2.desktop
+                   ${APPIMAGE_SOURCE_DIR}/dbt2.svg
+            AppDir
     COMMAND mkdir -p AppDir/usr/share/metainfo
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.appdata.xml
             AppDir/usr/share/metainfo
     COMMAND mkdir -p AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libcrypto.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libev.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libpq.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libnsl.so | cut -d \" \" -f 3`
-            AppDir/usr/lib
-    COMMAND cp -aL
-            `ldd src/${DRIVER3} | grep libssl.so | cut -d \" \" -f 3`
+    COMMAND cp -aL `ldd ${DRIVER3} | grep libcrypto\\. | cut -d \" \" -f 3`
+                   `ldd ${DRIVER3} | grep libev\\. | cut -d \" \" -f 3`
+                   `ldd ${DRIVER3} | grep libnsl\\. | cut -d \" \" -f 3`
+                   `ldd ${DRIVER3} | grep libssl\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libfribidi\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libgraphite2\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep harfbuzz\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpango-1\\.0\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpangoft2-1\\.0\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpangocairo-1\\.0\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libthai\\. | cut -d \" \" -f 3`
             AppDir/usr/lib
     COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
             --comp=xz AppDir
