@@ -11,7 +11,7 @@ CONTAINER_TAG="dbt2-appimage"
 # Use the return code from `podman inspect` to determine if the container image
 # needs to be created.
 if ! podman inspect $CONTAINER_TAG > /dev/null 2>&1; then
-	"${CONTAINER_DIR}/prepare-appimage" || exit 1
+	"${CONTAINER_DIR}/build-appimage-container" || exit 1
 fi
 
 if [ "$ARCH" = "" ]; then
