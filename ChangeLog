@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-DD)
 - AppImage checks for existing LD_LIBRARY_PATH before updating
 - Add missing libraries for gnuplot to AppImage
 - Fix installation of dbt2-build man page
+- Update dbt2.desktop syntax for aarch64 AppImage
 
 v0.53.0 (2023-05-17)
 
