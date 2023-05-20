@@ -9,7 +9,7 @@ configure_file(
 )
 configure_file(
     dbt2-build.1.rst.in
-    ${CMAKE_BINARY_DIR}/man/man1/dbt2-run.1.rst
+    ${CMAKE_BINARY_DIR}/man/man1/dbt2-build.1.rst
 )
 configure_file(
     dbt2-report.1.rst.in
