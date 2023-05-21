@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.53.1 (2023-05-20)
 
 - AppImage checks for existing LD_LIBRARY_PATH before updating
 - Add missing libraries for gnuplot to AppImage
