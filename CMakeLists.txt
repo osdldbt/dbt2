@@ -98,6 +98,7 @@ set (GNUPLOT "AppDir/usr/bin/gnuplot")
 add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
     COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun
+                   ${APPIMAGE_SOURCE_DIR}/activate
                    ${APPIMAGE_SOURCE_DIR}/dbt2.desktop
                    ${APPIMAGE_SOURCE_DIR}/dbt2.svg
             AppDir

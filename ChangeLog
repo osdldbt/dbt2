@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Add missing libraries for gnuplot to AppImage
 - Fix installation of dbt2-build man page
 - Update dbt2.desktop syntax for aarch64 AppImage
+- Add "activate" script to AppImage
 
 v0.53.0 (2023-05-17)
 
