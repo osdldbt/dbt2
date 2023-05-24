@@ -2,6 +2,7 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Quiet sqlite3 post-process script from displaying an error when there are no
   New Order transactions
+- Rename post-process.sql to post-process.sqlite3
 
 v0.53.1 (2023-05-20)
 

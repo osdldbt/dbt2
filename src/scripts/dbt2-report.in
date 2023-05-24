@@ -74,7 +74,7 @@ DIRECTORY="${1}"
 if [ "$DBT2LANG" = "R" ]; then
 	PPEXT="r"
 elif [ "$DBT2LANG" = "sqlite3" ]; then
-	PPEXT="sql"
+	PPEXT="sqlite3"
 fi
 
 PPSCRIPT="dbt2-post-process.${PPEXT}"

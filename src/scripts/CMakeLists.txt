@@ -30,8 +30,8 @@ configure_file(
     @ONLY
 )
 configure_file(
-    dbt2-post-process.sql.in
-    ${CMAKE_BINARY_DIR}/dbt2-post-process.sql
+    dbt2-post-process.sqlite3.in
+    ${CMAKE_BINARY_DIR}/dbt2-post-process.sqlite3
     @ONLY
 )
 configure_file(
@@ -49,7 +49,7 @@ install (
 	PROGRAMS
     ${CMAKE_BINARY_DIR}/dbt2
     ${CMAKE_BINARY_DIR}/dbt2-build
-    ${CMAKE_BINARY_DIR}/dbt2-post-process.sql
+    ${CMAKE_BINARY_DIR}/dbt2-post-process.sqlite3
     ${CMAKE_BINARY_DIR}/dbt2-report
     ${CMAKE_BINARY_DIR}/dbt2-run
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
