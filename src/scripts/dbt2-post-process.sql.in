@@ -167,6 +167,7 @@ cat << EOF
 ============  ======  =========  =========  ===========  ===========  ======
 EOF
 
+NOTXNCOUNT=0
 for TXNLINE in $TXNDATA; do
 	TXN=$(echo $TXNLINE | cut -d "|" -f 1)
 	TXNPER=$(echo $TXNLINE | cut -d "|" -f 2)

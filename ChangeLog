@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Quiet sqlite3 post-process script from displaying an error when there are no
+  New Order transactions
+
 v0.53.1 (2023-05-20)
 
 - AppImage checks for existing LD_LIBRARY_PATH before updating
