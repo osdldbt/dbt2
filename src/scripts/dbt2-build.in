@@ -115,7 +115,7 @@ done
 # Check for required arguments.
 
 if [ $# -eq 0 ]; then
-	printf "Specify which DBMS system to test, try \"%s\" " \
+	printf "Specify which DBMS system to test, try \"%s --help\" " \
 			"$(basename "${0}")"
 	echo "for more information."
 	exit 1
