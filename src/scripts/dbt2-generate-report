@@ -339,6 +339,13 @@ find ${INDIR}/driver -name 'mix*.log' 2> /dev/null | \
 		xargs dbt-plot transaction-rate "Stock Level" s tpm "${OUTDIR}/txn" 5 \
 		|| warning "Could not create stock level transaction rate charts"
 
+DBMSFILE="$(find "${INDIR}" -name "readme-${DBMS}.txt")"
+if [ "${DBMSFILE}" = "" ]; then
+	DBMSNAME=""
+else
+	DBMSNAME="$(head -n 1 "${DBMSFILE}")"
+fi
+
 REPORTFILE="${OUTDIR}/report.rst"
 cat > $REPORTFILE << __EOF__
 ======================
@@ -352,8 +359,7 @@ Summary
 
 * Date: $(head -n 1 "${INDIR}/readme.txt")
 * Scale Factor: $(grep "Database Scale Factor:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | xargs)
-* DBMS: $(head -n 1 "$(find "${INDIR}" \
-		-name "readme-${DBMS}.txt" 2> /dev/null)")
+* DBMS: ${DBMSNAME}
 
 $(cat $SUMMARY)
 
