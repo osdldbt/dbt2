@@ -106,17 +106,31 @@ add_custom_target(appimage-podman
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.appdata.xml
             AppDir/usr/share/metainfo
     COMMAND mkdir -p AppDir/usr/lib
-    COMMAND cp -aL `ldd ${DRIVER3} | grep libcrypto\\. | cut -d \" \" -f 3`
-                   `ldd ${DRIVER3} | grep libev\\. | cut -d \" \" -f 3`
-                   `ldd ${DRIVER3} | grep libnsl\\. | cut -d \" \" -f 3`
-                   `ldd ${DRIVER3} | grep libssl\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libfribidi\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libgraphite2\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep harfbuzz\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpango-1\\.0\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpangoft2-1\\.0\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpangocairo-1\\.0\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libthai\\. | cut -d \" \" -f 3`
+    COMMAND cp -aL `ldd ${DRIVER3} | grep libcrypto\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${DRIVER3} | grep libev\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${DRIVER3} | grep libnsl\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${DRIVER3} | grep libssl\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libcairo\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libdatrie\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libfontconfig\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libfreetype\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libfribidi\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libgraphite2\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep harfbuzz\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpango-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpangoft2-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpangocairo-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpixman-1\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libpng12\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libthai\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libxcb\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libxcb-render\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libxcb-shm\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libX11\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libXau\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libXdmcp\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libXext\\\\\\\\. | cut -d \" \" -f 3`
+                   `ldd ${GNUPLOT} | grep libXrender\\\\\\\\. | cut -d \" \" -f 3`
             AppDir/usr/lib
     COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
             --comp=xz AppDir
