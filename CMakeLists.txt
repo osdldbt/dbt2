@@ -97,15 +97,15 @@ set (GNUPLOT "AppDir/usr/bin/gnuplot")
 
 add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
+    COMMAND mkdir -p AppDir/etc AppDir/usr/share/metainfo AppDir/usr/lib
+    COMMAND cp -aLr /etc/fonts AppDir/etc
     COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun
                    ${APPIMAGE_SOURCE_DIR}/activate
                    ${APPIMAGE_SOURCE_DIR}/dbt2.desktop
                    ${APPIMAGE_SOURCE_DIR}/dbt2.svg
             AppDir
-    COMMAND mkdir -p AppDir/usr/share/metainfo
     COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.appdata.xml
             AppDir/usr/share/metainfo
-    COMMAND mkdir -p AppDir/usr/lib
     COMMAND cp -aL `ldd ${DRIVER3} | grep libcrypto\\\\\\\\. | cut -d \" \" -f 3`
                    `ldd ${DRIVER3} | grep libev\\\\\\\\. | cut -d \" \" -f 3`
                    `ldd ${DRIVER3} | grep libnsl\\\\\\\\. | cut -d \" \" -f 3`
