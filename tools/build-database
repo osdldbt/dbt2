@@ -6,7 +6,7 @@ create_cockroach()
 {
 	# Based on:
 	# https://www.cockroachlabs.com/docs/stable/start-a-local-cluster-in-docker-mac.html
-	DATADIR="$(readlink -f "$(dirname "$0")")/cockroach-data"
+	DATADIR="$(dirname "$(realpath "${0}")")/cockroach-data"
 	if [ -d "${DATADIR}" ]; then
 		echo "ERROR: directory already exists ${DATADIR}"
 		exit 1
@@ -91,7 +91,7 @@ create_yugabyte()
 {
 	CONTAINER_NAME="dbt2-database-yugabyte-1w-0"
 	# Based on: https://docs.yugabyte.com/preview/quick-start/install/docker/
-	DATADIR="$(readlink -f "$(dirname "$0")")/yb_data"
+	DATADIR="$(dirname "$(realpath "${0}")")/yb_data"
 	if [ -d "${DATADIR}" ]; then
 		echo "ERROR: directory already exists ${DATADIR}"
 		exit 1

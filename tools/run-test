@@ -28,7 +28,7 @@ if [ "$TIERS" = "2" ]; then
 	RUNARGS="$RUNARGS --env DRIVER3=1"
 fi
 
-CONTAINER_DIR="$(readlink -f "$(dirname "$0")")"
+CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
 RESULTSNAME="${DBMS}-${WAREHOUSES}w-${TIERS}tier"
 mkdir -p "${CONTAINER_DIR}/results/"
 LOCALDIR="${CONTAINER_DIR}/results/${RESULTSNAME}"

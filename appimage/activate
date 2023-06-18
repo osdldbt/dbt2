@@ -21,7 +21,7 @@ deactivate()
 	unset -f deactivate
 }
 
-APPIMAGE_ENV=$(readlink -f "$(dirname "${0}")")
+APPIMAGE_ENV="$(dirname "$(realpath "${0}")")"
 
 APPIMAGE_OLD_PS1="${PS1}"
 export APPIMAGE_OLD_PS1
