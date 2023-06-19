@@ -208,13 +208,17 @@ done
 
 DURATION=$(( ENDTIME - STARTTIME ))
 
+THROUGHPUT=$(sqlite3 "${DBFILE}" "SELECT ${NOTXNCOUNT}.0 / (${DURATION}.0 / 60.0)")
+MINUTES=$(sqlite3 "${DBFILE}" "SELECT ${DURATION}.0 / 60.0")
+RAMPUP=$(sqlite3 "${DBFILE}" "SELECT (${STARTTIME}.0 - ${TIME0}.0) / 60.0")
+
 cat << EOF
 ============  ======  =========  =========  ===========  ===========  ======
 
-* Throughput: $(printf "%.2f" $(echo "$NOTXNCOUNT / ($DURATION / 60)" | bc -l)) new-order transactions per minute (NOTPM)
-* Duration: $(printf "%.1f" $(echo "$DURATION / 60" | bc -l)) minute(s)
+* Throughput: $(printf "%.2f" "${THROUGHPUT}")  new-order transactions per minute (NOTPM)
+* Duration: $(printf "%.1f" "${MINUTES}") minute(s)
 * Unknown Errors: $UNKNOWN_ERRORS
-* Ramp Up Time: $(printf "%.1f" $(echo "($STARTTIME - $TIME0) / 60" | bc -l)) minute(s)
+* Ramp Up Time: $(printf "%.1f" "${RAMPUP}") minute(s)
 EOF
 
 cleanup
