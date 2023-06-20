@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.53.2 (2023-06-19)
 
 - Quiet sqlite3 post-process script from displaying an error when there are no
   New Order transactions
