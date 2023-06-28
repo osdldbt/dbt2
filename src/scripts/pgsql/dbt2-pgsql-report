@@ -192,7 +192,7 @@ while getopts "hi:" opt; do
 done
 
 find "${INDIR}" -type d -name dbstat | while IFS= read -r DBDIR; do
-	ts-plot-pgsql -d dbt2 -i "${DBDIR}"
+	ts plot-pgsql -d dbt2 -i "${DBDIR}"
 done
 
 DBNAME=$(grep "Database Name" ${INDIR}/readme.txt | cut -d " " -f 3)

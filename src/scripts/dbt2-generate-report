@@ -108,7 +108,7 @@ list_processes2()
 			while IFS= read -r PIDSTATCSV
     do
 		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
-		ts-plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat"
+		ts plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat"
 
 		# Try not to count execution of the driver/client binaries on remote
 		# systems.
@@ -295,7 +295,7 @@ echo "Processing pidstat files..."
 find "${INDIR}" -type f -name pidstat.txt 2> /dev/null | \
 		while IFS= read -r PIDSTATFILE; do
 	PDIR=$(dirname "${PIDSTATFILE}")
-	ts-process-pidstat -i "${PIDSTATFILE}"
+	ts process-pidstat -i "${PIDSTATFILE}"
 done
 
 echo "Generating transaction distribution charts..."
@@ -319,7 +319,7 @@ find ${INDIR}/driver -name 'mix*.log' 2> /dev/null| \
 echo "Generating sar charts..."
 find "${INDIR}" -type d -name sysstat 2> /dev/null| \
 		while IFS= read -r SARDIR; do
-	ts-plot-sar -i "${SARDIR}/sar"
+	ts plot-sar -i "${SARDIR}/sar"
 done
 
 echo "Generating transaction rate charts..."

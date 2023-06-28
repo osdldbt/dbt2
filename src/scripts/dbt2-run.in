@@ -26,19 +26,39 @@ make_directories()
 profile_collect()
 {
 	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-		ts-profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
+		which ts ts-profile > /dev/null 2>&1
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			echo "WARNING: touchstone tools not found for local profiling"
+		else
+			ts profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
+		fi
 	fi
 
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} ts-profile \
-				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+		eval "${CLIENT_COMMAND} \"which ts ts-profile > /dev/null 2>&1\""
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			printf "WARNING: touchstone tools not found for profiling %s\n" \
+					"${HOSTNAME}"
+		else
+			eval "${CLIENT_COMMAND} ts profile \
+					-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+		fi
 	fi
 
 	if [ $DBAAS -eq 0 ]; then
 		HOSTNAME=$(eval "${DB_COMMAND} hostname")
-		eval "${DB_COMMAND} ts-profile \
-				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+		eval "${DB_COMMAND} \"which ts ts-profile > /dev/null 2>&1\""
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			printf "WARNING: touchstone tools not found for profiling %s\n" \
+					"${HOSTNAME}"
+		else
+			eval "${DB_COMMAND} ts profile \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+		fi
 	fi
 }
 
@@ -46,18 +66,18 @@ profile_process()
 {
 	echo "processing profiling data..."
 	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-		ts-profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" -p
+		ts profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" -p
 	fi
 
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} ts-profile \
+		eval "${CLIENT_COMMAND} ts profile \
 				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/profile -p"
 	fi
 
 	if [ $DBAAS -eq 0 ]; then
 		HOSTNAME=$(eval "${DB_COMMAND} hostname")
-		eval "${DB_COMMAND} ts-profile \
+		eval "${DB_COMMAND} ts profile \
 				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile -p"
 	fi
 }
@@ -73,22 +93,26 @@ stat_collection()
 	# If the this is a 1-tier test, system stats will be saved only in the db
 	# directory.
 	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-		if ! which ts-sysstat > /dev/null 2>&1; then
-			printf "WARNING: ts-sysstat not found for driver system stats "
-			echo "collection"
+		which ts ts-profile > /dev/null 2>&1
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			printf "WARNING: touchstone tools not found for driver system "
+			echo "stats collection"
 		else
-			eval "ts-sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+			eval "ts sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
 		fi
 	fi
 
 	# Handle system statistics on the Client node, if remote.
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-		if ! eval "${CLIENT_COMMAND} which ts-sysstat > /dev/null 2>&1"; then
-			printf "WARNING: ts-sysstat not found for client system stats "
-			echo "collection"
+		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+		eval "${CLIENT_COMMAND} \"which ts ts-profile > /dev/null 2>&1\""
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			printf "WARNING: touchstone tools not found for local system "
+			echo "stats collection"
 		else
-			HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-			eval "${CLIENT_COMMAND} ts-sysstat \
+			eval "${CLIENT_COMMAND} ts sysstat \
 					-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
 		fi
 	fi
@@ -97,20 +121,24 @@ stat_collection()
 	# is a service.
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	if [ $DBAAS -eq 0 ]; then
-		if ! eval "${DB_COMMAND} which ts-sysstat > /dev/null 2>&1"; then
-			printf "WARNING: ts-sysstat not found for database system stats "
-			echo "collection"
+		eval "${DB_COMMAND} \"which ts ts-sysstat > /dev/null 2>&1\""
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			printf "WARNING: touchstone tools not found for system stats "
+			printf "collection on %s\n" "${HOSTNAME}"
 		else
-			eval "${DB_COMMAND} ts-sysstat \
+			eval "${DB_COMMAND} ts sysstat \
 					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
 		fi
 	fi
 
-	if ! eval "${DB_COMMAND} which ts-${DBMS}-stat > /dev/null 2>&1"; then
-		printf "WARNING: ts-%s-stat not found for database stats " "${DBMS}"
-		echo "collection"
+	eval "${DB_COMMAND} \"which ts ts-${DBMS}-stat > /dev/null 2>&1\""
+	RC=$?
+	if [ $RC -gt 1 ]; then
+		printf "WARNING: touchstone tools not found for database stats "
+		printf "collection for RDBMS %s on system %s\n" "${DBMS}" "${HOSTNAME}"
 	else
-		eval "${DB_COMMAND} ts-${DBMS}-stat \
+		eval "${DB_COMMAND} ts ${DBMS}-stat \
 				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
 	fi
 }
