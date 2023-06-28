@@ -252,6 +252,7 @@ validate_parameter()
 # Tell ssh not to check known hosts or host keys.
 SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
+ALTERED_ARG=""
 CLIENT_HOSTNAME="localhost"
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
@@ -528,7 +529,9 @@ if [ ! "${DB_PORT}" = "" ]; then
 fi
 
 # Enable altered execution mode only if DRIVER3 is enabled.
-ALTERED_ARG="-altered ${DRIVER3}"
+if [ "${DRIVER3}" = "1" ]; then
+	ALTERED_ARG="-altered ${DRIVER3}"
+fi
 
 DBSTATARGS=""
 case $DBMS in
