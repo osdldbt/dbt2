@@ -60,4 +60,4 @@ ${PSQL} -c "SELECT indexname "`
 		   `"ORDER BY indexname;" > ${OUTPUT_DIR}/index-list.txt
 
 # Get the plans before the test.
-dbt2-pgsql-plans ${PORTARG2} -o ${OUTPUT_DIR}/plan0.txt
+dbt2 pgsql-plans "${PORTARG2}" -o "${OUTPUT_DIR}/plan0.txt"

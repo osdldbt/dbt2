@@ -277,8 +277,8 @@ done
 SUMMARY="${INDIR}/summary.rst"
 if [ ! -f "$SUMMARY" ]; then
 	MIXFILE="${INDIR}/mix.log"
-	dbt2-post-process $MIXFILE > $SUMMARY
-	VERBOSE=1 dbt2-post-process $MIXFILE > ${INDIR}/detailed-summary.rst
+	dbt2 post-process "${MIXFILE}" > "${SUMMARY}"
+	VERBOSE=1 dbt2 post-process "${MIXFILE}" > "${INDIR}/detailed-summary.rst"
 fi
 
 DBMS=`grep RDBMS $INDIR/readme.txt | cut -d " " -f 2`
@@ -411,7 +411,7 @@ Component Statistics per Process
 
 $(list_processes)
 
-$(dbt2-${DBMS}-report -i $INDIR 2> /dev/null)
+$(dbt2 "${DBMS}-report" -i "${INDIR}" 2> /dev/null)
 __EOF__
 
 # Generate HTML and PDF files.

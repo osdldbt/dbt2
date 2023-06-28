@@ -45,20 +45,20 @@ if [ ! "x${PORT}" = "x" ]; then
 fi
 
 if [ $REBUILD_DB -eq 1 ]; then
-	dbt2-pgsql-drop-db ${PORTARG}
+	dbt2 pgsql-drop-db "${PORTARG}"
 fi
 
-dbt2-pgsql-create-db ${PORTARG} || exit 1
-dbt2-cockroach-create-tables ${PORTARG} || exit 1
+dbt2 pgsql-create-db "${PORTARG}" || exit 1
+dbt2 cockroach-create-tables "${PORTARG}" || exit 1
 
-SEED=`dbt2-rand 1 18446744073709551615 0`
+SEED=$(dbt2 rand 1 18446744073709551615 0)
 
 # FIXME: Make datagen take argument instead of setting environment variables
 # for psql.
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
 
-dbt2-cockroach-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
-dbt2-cockroach-create-indexes ${PORTARG} || exit 1
+dbt2 cockroach-load-db "${PORTARG}" -s "${SEED}" -w "${WAREHOUSES}" || exit 1
+dbt2 cockroach-create-indexes "${PORTARG}" || exit 1
 
 exit 0

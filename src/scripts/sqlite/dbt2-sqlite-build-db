@@ -415,7 +415,7 @@ if [ ${GENERATE_DATAFILE} -eq 1 ]; then
 	#
 	# Generate data files.
 	#
-	dbt2-datagen -d ${DB_PATH} -w ${WAREHOUSES} --mysql || exit 1
+	dbt2 datagen -d "${DB_PATH}" -w "${WAREHOUSES}" --mysql || exit 1
 fi
 
 echo ""

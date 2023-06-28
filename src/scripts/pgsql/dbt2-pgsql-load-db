@@ -63,7 +63,7 @@ PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME}"
 
 # Generate a seed randomly if one is not provided.
 if [ "x${SEED}" = "x" ]; then
-	SEED=`dbt2-rand -1 1 15`
+	SEED=$(dbt2 rand -1 1 15)
 fi
 
 load_table() {
@@ -118,8 +118,8 @@ run_datagen()
 	local WAREHOUSES=$4
 	local SEED=$5
 
-	dbt2-datagen --direct -w $WAREHOUSES --pgsql --table $TABLE --seed $SEED \
-			-P $TOTAL -p $PART
+	dbt2 datagen --direct -w "${WAREHOUSES}" --pgsql --table "${TABLE}" \
+			--seed "${SEED}" -P "${TOTAL}" -p "${PART}"
 	if [ $? -ne 0 ]; then
 		echo "ERROR: datagen couldn't load part $PART of $TOTAL with $TABLE"
 		exit 1

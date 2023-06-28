@@ -88,36 +88,36 @@ fi
 if [ $REBUILD_DB -eq 1 ] && [ -d $DBT2PGDATA ]; then
 	if [ $PRIVILEGED -eq 1 ]; then
 		echo "Restarting the database to reset database parameters..."
-		dbt2-pgsql-stop-db
-		dbt2-pgsql-start-db -p "${PARAMETERS}" || exit 1
+		dbt2 pgsql-stop-db
+		dbt2 pgsql-start-db -p "${PARAMETERS}" || exit 1
 	fi
-	dbt2-pgsql-drop-db ${PORTARG}
+	dbt2 pgsql-drop-db "${PORTARG}"
 fi
 
 if [ $PRIVILEGED -eq 1 ]; then
-	dbt2-pgsql-init-db ${PORTARG} || exit 1
-	dbt2-pgsql-start-db -p "$PARAMETERS" || exit 1
+	dbt2 pgsql-init-db "${PORTARG}" || exit 1
+	dbt2 pgsql-start-db -p "$PARAMETERS" || exit 1
 fi
-dbt2-pgsql-create-db ${PORTARG} || exit 1
-dbt2-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
+dbt2 pgsql-create-db "${PORTARG}" || exit 1
+dbt2 pgsql-create-tables "${PORTARG}" "${TABLESPACES_FLAG}" || exit 1
 
-SEED=`dbt2-rand 1 18446744073709551615 0`
+SEED=$(dbt2 rand 1 18446744073709551615 0)
 
 # FIXME: Make datagen take argument instead of setting environment variables
 # for psql.
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
 
-dbt2-pgsql-load-db $PORTARG -s $SEED -w $WAREHOUSES || exit 1
-dbt2-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
-eval "dbt2-pgsql-load-stored-procs ${SHAREDIRARG} ${PORTARG} -t ${UDF_TYPE}" \
+dbt2 pgsql-load-db "${PORTARG}" -s "${SEED}" -w "${WAREHOUSES}" || exit 1
+dbt2 pgsql-create-indexes "${PORTARG}" "${TABLESPACES_FLAG}" || exit 1
+eval "dbt2 pgsql-load-stored-procs ${SHAREDIRARG} ${PORTARG} -t ${UDF_TYPE}" \
 		|| exit 1
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-SEED=`dbt2-rand -1 1 15`
+SEED=$(dbt2 rand -1 1 15)
 psql ${PORTARG} -e -d ${DBT2DBNAME} -c "SELECT setseed(${SEED});" || exit 1
 
 # Set the number of vacuumdb jobs to 1 (no parallelism) and let see

@@ -2,6 +2,7 @@ vX.Y.Z (YYYY-MM-dd)
 
 - Update touchstone tool commands to use "ts", enabling use of ts-tools
   AppImage, requires at minimum touchstone-tools v0.6.x
+- Update scripts to use "dbt2" where appropriate, enabling use of dbt2 AppImage
 
 v0.53.2 (2023-06-19)
 

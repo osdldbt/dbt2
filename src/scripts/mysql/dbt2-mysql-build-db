@@ -461,14 +461,14 @@ if [ ! -d "${DBT2DATADIR}" ]; then
 fi
 
 if [ ! -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
-  ${DIR}/dbt2-mysql-start-db ${DEFAULTS_FILE_ARG} || exit 1
+  eval "${DIR}/dbt2 mysql-start-db ${DEFAULTS_FILE_ARG}" || exit 1
 fi
 
 if [ ${GENERATE_DATAFILE} -eq 1 ]; then
   #
   # Generate data files.
   #
-  dbt2-datagen -d ${DB_PATH} -w ${WAREHOUSES} --mysql || exit 1
+  dbt2 datagen -d "${DB_PATH}" -w "${WAREHOUSES}" --mysql || exit 1
 fi
 
 MYSQL_ARGS="$MYSQL_ARGS -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"

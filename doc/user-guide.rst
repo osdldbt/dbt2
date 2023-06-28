@@ -56,8 +56,8 @@ statistical calculations in order to report test metrics.
 
 System and database statistic collection and post processing are handled by
 `Touchstone Tool <https://gitlab.com/touchstone/touchstone-tools>`_.  Install
-this package in order to characterize system performance.  This package is
-included in the DBT-2 AppImage.
+this package, or its AppImage, in order to characterize system performance.
+This package is included in the DBT-2 AppImage.
 
 A test report can be generated with the aid of `DBT Tools
 <https://github.com/osdldbt/dbttools>`_.  This package is included in the DBT-2
@@ -75,6 +75,10 @@ Notes** for specific usage and for any database management system specific
 limitations.  The DBT-2 AppImage may not always be as capable as installing the
 kit from source or from other pre-packaged distributions.
 
+The DBT-2 AppImage must be installed on each system.  It is also recommended to
+install the Touchstone Tools AppImage on each system when there are multiple
+systems in use.
+
 For ease of use, we recommend renaming the DBT-2 AppImage binary to `dbt2`, if
 it hasn't already been done.  Examples in the documentation will assume it has
 been renamed to `dbt2`.
@@ -87,15 +91,8 @@ to set your `PATH` and `LD_LIBRARTY_PATH` to use the extracted files::
 
 Then run `deactivate` to restore your environment, or exit the shell.
 
-Limitations
-~~~~~~~~~~~
-
-These are general limitations that apply to all database management systems:
-
-1. The AppImage isn't intelligent enough yet to run 3-tier tests.  When it
-   connects to remote systems using ssh, it still expects DBT-2 scripts and
-   binaries to be installed into the user's environment as opposed to using an
-   AppImage installed on the system.
+Other shells can still set `PATH` and `LD_LIBRARTY_PATH` manually to use the
+extracted environment.
 
 Linux Distribution Packages
 ---------------------------
@@ -272,12 +269,11 @@ This example will connect to PostgreSQL based on what is in the user's
 environment, as one would normally expect with core PostgreSQL utilities, but
 additional arguments can be used to change the connection information.
 
-Run the following commands to build a 1 warehouse database with pl/pgsql stored
-functions, run a 2 minute (120 second) test, and calculate the throughput::
+Execute the following commands with default parameters to build a 1 warehouse
+database with pl/pgsql stored functions, and run a 3 minute test::
 
-    dbt2 pgsql-build-db -w 1 dbt2
-    dbt2 run -a pgsql -b dbt2 -l 120 -outdir /tmp/results -w 1
-    dbt2 post-process /tmp/results/mix-*.log
+    dbt2 build pgsql
+    dbt2 run pgsql /tmp/results
 
 Manual Test Execution
 ---------------------
@@ -390,28 +386,22 @@ perf.  See **Database Management System Notes** for any database management
 system specific notes as there may be additional system specific flags.
 
 The shell script `dbt2-run` is used to execute a test.  For example, run a 4
-minutes (480 second) test against a 1 warehouse database locally and save the
-results to `/tmp/results`::
+minutes (480 second) test against a default sized 1 warehouse database locally
+and save the results to `/tmp/results`::
 
-    dbt2-run -a pgsql -d 480 -w 1 -o /tmp/results -c 10
+    dbt2 run -d 480 pgsql /tmp/results
 
-See the help output from `dbt2-run -h` a brief description of all options.
+See the help output from `dbt2 run --help` a brief description of all options.
 
 This script will also process the results and output the same information as if
-you were running `dbt2-post-process` manually like the last section's example.
-Additional, the `dbt2-generate-report` is for building a report based on all of
-the data that is saved to `/tmp/results` by running::
+you were running `dbt2 report` manually like the last section's example.
+Additional, the `dbt2 report --html` command is for building an HTML report
+based on all of the data that is saved to `/tmp/results` by running::
 
-    dbt2-generate-report -i /tmp/results
+    dbt2 report --html /tmp/results
 
-This generates a human readable text (reStructuredText) summary report in the
-same `/tmp/results` results directory.
-
-An HTML report is also generated if Docutils are available on the system.  R is
-also required to generate any charts.  This will create an `index.html` file in
-the `<directory>`.
-
-A PDF report is also generated if pandoc is available on the system.
+The HTML report uses Docutils.  gnuplot is also required to generate any
+charts.  This will create an `index.html` file in the `<directory>`.
 
 An example of the HTML report is available online:
 https://osdldbt.github.io/dbt-reports/dbt2/3-tier/report.html
@@ -419,13 +409,13 @@ https://osdldbt.github.io/dbt-reports/dbt2/3-tier/report.html
 Executing with multiple tiers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To execute the test where the database is on another tier, pass the `-H
-<address>` flag to the `dbt2-run` script.  The address can be a hostname or IP
+To execute the test where the database is on another tier, pass the `--db-host
+<address>` flag to the `dbt2 run` command.  The address can be a hostname or IP
 address.
 
-To execute the test where the client is on another tier, pass the `-C
-<address>` flag to the `dbt2-run` script.  The address can also be a hostname
-or IP address.
+To execute the test where the client is on another tier, pass the
+`--client-host <address>` flag to the `dbt2 run` command.  The address can also
+be a hostname or IP address.
 
 Multi-process driver execution
 ------------------------------
@@ -434,9 +424,9 @@ Default behavior for the driver is to create 10 threads per warehouse under a
 single process.  At some point (depends on hardware and resource limitations)
 the driver, specifically `dbt2-driver` as a multi-threaded progress, will
 become a bottleneck.  We can increase the load by starting multiple
-multi-threaded drivers.  The `-b #` flag can be passed to the `dbt2-run` script
-to specify how many warehouses to be created per process.  The script will
-calculate how many driver processes to start.
+multi-threaded drivers.  The `-b #` flag can be passed to the `dbt2 run`
+command to specify how many warehouses to be created per process.  The script
+will calculate how many driver processes to start.
 
 Keying and Thinking Time
 ------------------------
@@ -455,8 +445,8 @@ See the help from the driver binaries to see which flag controls which
 transaction's thinking and keying times if you want to varying the delays
 differently.
 
-The `dbt2-run` script can set each of the thinking and keying time flags to 0
-with the `-n` flag but does not offer any finer grained controls at this time.
+The `dbt2 run` script sets each of the thinking and keying time flags to 0 by
+default and does not offer any finer grained controls at this time.
 
 Transaction Mix
 ---------------

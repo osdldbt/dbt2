@@ -72,13 +72,13 @@ A really quick howto
 Edit `examples/dbt2_profile` and follow the notes for the `DBT2PGDATA`
 directory.  `DBT2PGDATA` is where the database directory will be created.
 
-Create a 1 warehouse database by running `dbt2-pgsql-build-db`::
+Create a 1 warehouse database by running::
 
-    dbt2-pgsql-build-db -w 1
+    dbt2 build pgsql
 
-Run a 5 minute (300 second) test by running `dbt2-run`::
+Run a 5 minute (300 second) test by running::
 
-    dbt2-run -a pgsql -d 300 -w 1 -o /tmp/result -c 10
+    dbt2 run -d 300 pgsql /tmp/result
 
 Building the Database
 ---------------------
@@ -108,13 +108,9 @@ The other significant choices available are:
 
 See the usage output with the `-h` for the complete list of options.
 
-The following command will create a 1 warehouse database::
+The following command will create a default sized 1 warehouse database::
 
-    dbt2-pgsql-build-db -w 1
-
-The following is the equivalent when using the AppImage::
-
-    dbt2 pgsql-build-db -w 1
+    dbt2 build pgsql
 
 Environment Configuration
 -------------------------
