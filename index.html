@@ -2,8 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta charset="utf-8" />
+<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 <title>Database Test 2 (DBT-2) Documentation</title>
 <style type="text/css">
 
@@ -291,7 +291,7 @@ p img, p video, figure img, figure video {
 /* Rules for easy reading and pre-defined style variants.                  */
 /*                                                                         */
 /* :Author: Günter Milde, based on html4css1.css by David Goodger          */
-/* :Id: $Id: plain.css 9081 2022-06-19 20:23:12Z milde $                                                               */
+/* :Id: $Id: plain.css 9338 2023-04-08 21:08:47Z milde $                                                               */
 /* :Copyright: © 2015 Günter Milde.                                        */
 /* :License: Released under the terms of the `2-Clause BSD license`_,      */
 /*    in short:                                                            */
@@ -570,7 +570,8 @@ math .boldsymbol {
   font-weight: bold;
 }
 mstyle.mathscr, mi.mathscr {
-  font-family: STIX;
+  font-family: STIX, XITSMathJax_Script, rsfs10,
+               "Asana Math", Garamond, cursive;
 }
 
 /* Epigraph           */
@@ -665,118 +666,125 @@ others.</p>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#user-guide" id="toc-entry-25">User Guide</a></p>
+<li><p><a class="reference internal" href="#quick-start" id="toc-entry-25">Quick Start</a></p>
 <ul>
-<li><p><a class="reference internal" href="#introduction-2" id="toc-entry-26">Introduction</a></p></li>
-<li><p><a class="reference internal" href="#setup" id="toc-entry-27">Setup</a></p>
-<ul>
-<li><p><a class="reference internal" href="#external-software-dependencies" id="toc-entry-28">External Software Dependencies</a></p></li>
-<li><p><a class="reference internal" href="#linux-appimage" id="toc-entry-29">Linux AppImage</a></p>
-<ul>
-<li><p><a class="reference internal" href="#limitations" id="toc-entry-30">Limitations</a></p></li>
+<li><p><a class="reference internal" href="#postgresql" id="toc-entry-26">PostgreSQL</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#linux-distribution-packages" id="toc-entry-31">Linux Distribution Packages</a></p></li>
-<li><p><a class="reference internal" href="#dbt-2-test-kit-source" id="toc-entry-32">DBT-2 Test Kit Source</a></p></li>
+<li><p><a class="reference internal" href="#user-guide" id="toc-entry-27">User Guide</a></p>
+<ul>
+<li><p><a class="reference internal" href="#introduction-2" id="toc-entry-28">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#setup" id="toc-entry-29">Setup</a></p>
+<ul>
+<li><p><a class="reference internal" href="#external-software-dependencies" id="toc-entry-30">External Software Dependencies</a></p></li>
+<li><p><a class="reference internal" href="#linux-appimage" id="toc-entry-31">Linux AppImage</a></p></li>
+<li><p><a class="reference internal" href="#linux-distribution-packages" id="toc-entry-32">Linux Distribution Packages</a></p></li>
+<li><p><a class="reference internal" href="#dbt-2-test-kit-source" id="toc-entry-33">DBT-2 Test Kit Source</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#environment-configuration" id="toc-entry-33">Environment Configuration</a></p>
+<li><p><a class="reference internal" href="#environment-configuration" id="toc-entry-34">Environment Configuration</a></p>
 <ul>
-<li><p><a class="reference internal" href="#multi-tier-system-testing" id="toc-entry-34">Multi-tier System Testing</a></p></li>
+<li><p><a class="reference internal" href="#multi-tier-system-testing" id="toc-entry-35">Multi-tier System Testing</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#building-the-database" id="toc-entry-35">Building the Database</a></p>
+<li><p><a class="reference internal" href="#building-the-database" id="toc-entry-36">Building the Database</a></p>
 <ul>
-<li><p><a class="reference internal" href="#sizing-consideration" id="toc-entry-36">Sizing Consideration</a></p></li>
+<li><p><a class="reference internal" href="#sizing-consideration" id="toc-entry-37">Sizing Consideration</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#running-the-test-kit" id="toc-entry-37">Running the Test Kit</a></p>
+<li><p><a class="reference internal" href="#running-the-test-kit" id="toc-entry-38">Running the Test Kit</a></p>
 <ul>
-<li><p><a class="reference internal" href="#the-easy-way" id="toc-entry-38">The &quot;Easy&quot; Way</a></p>
+<li><p><a class="reference internal" href="#the-easy-way" id="toc-entry-39">The &quot;Easy&quot; Way</a></p>
 <ul>
-<li><p><a class="reference internal" href="#postgresql" id="toc-entry-39">PostgreSQL</a></p></li>
+<li><p><a class="reference internal" href="#postgresql-1" id="toc-entry-40">PostgreSQL</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#manual-test-execution" id="toc-entry-40">Manual Test Execution</a></p></li>
-<li><p><a class="reference internal" href="#comprehensive-test-execution" id="toc-entry-41">Comprehensive Test Execution</a></p>
+<li><p><a class="reference internal" href="#manual-test-execution" id="toc-entry-41">Manual Test Execution</a></p></li>
+<li><p><a class="reference internal" href="#comprehensive-test-execution" id="toc-entry-42">Comprehensive Test Execution</a></p>
 <ul>
-<li><p><a class="reference internal" href="#executing-with-multiple-tiers" id="toc-entry-42">Executing with multiple tiers</a></p></li>
+<li><p><a class="reference internal" href="#executing-with-multiple-tiers" id="toc-entry-43">Executing with multiple tiers</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#multi-process-driver-execution" id="toc-entry-43">Multi-process driver execution</a></p></li>
-<li><p><a class="reference internal" href="#keying-and-thinking-time" id="toc-entry-44">Keying and Thinking Time</a></p></li>
-<li><p><a class="reference internal" href="#transaction-mix" id="toc-entry-45">Transaction Mix</a></p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#database-management-system-notes" id="toc-entry-46">Database Management System Notes</a></p>
-<ul>
-<li><p><a class="reference internal" href="#cockroachdb" id="toc-entry-47">CockroachDB</a></p></li>
-<li><p><a class="reference internal" href="#mysql" id="toc-entry-48">MySQL</a></p>
-<ul>
-<li><p><a class="reference internal" href="#comments" id="toc-entry-49">COMMENTS</a></p></li>
-<li><p><a class="reference internal" href="#multi-tier-testing" id="toc-entry-50">MULTI-TIER TESTING</a></p></li>
-<li><p><a class="reference internal" href="#preparation-for-test" id="toc-entry-51">PREPARATION FOR TEST</a></p></li>
-<li><p><a class="reference internal" href="#run-test" id="toc-entry-52">RUN TEST</a></p></li>
-<li><p><a class="reference internal" href="#postrunning-analyses" id="toc-entry-53">POSTRUNNING ANALYSES</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#postgresql-1" id="toc-entry-54">PostgreSQL</a></p>
-<ul>
-<li><p><a class="reference internal" href="#setup-1" id="toc-entry-55">Setup</a></p>
-<ul>
-<li><p><a class="reference internal" href="#v7-3" id="toc-entry-56">v7.3</a></p></li>
-<li><p><a class="reference internal" href="#v7-4" id="toc-entry-57">v7.4</a></p></li>
-<li><p><a class="reference internal" href="#v8-0" id="toc-entry-58">v8.0</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#a-really-quick-howto" id="toc-entry-59">A really quick howto</a></p></li>
-<li><p><a class="reference internal" href="#building-the-database-1" id="toc-entry-60">Building the Database</a></p></li>
-<li><p><a class="reference internal" href="#environment-configuration-1" id="toc-entry-61">Environment Configuration</a></p></li>
-<li><p><a class="reference internal" href="#tablespace-notes" id="toc-entry-62">Tablespace Notes</a></p></li>
-<li><p><a class="reference internal" href="#appimage-notes" id="toc-entry-63">AppImage Notes</a></p>
-<ul>
-<li><p><a class="reference internal" href="#limitations-1" id="toc-entry-64">Limitations</a></p></li>
+<li><p><a class="reference internal" href="#multi-process-driver-execution" id="toc-entry-44">Multi-process driver execution</a></p></li>
+<li><p><a class="reference internal" href="#keying-and-thinking-time" id="toc-entry-45">Keying and Thinking Time</a></p></li>
+<li><p><a class="reference internal" href="#transaction-mix" id="toc-entry-46">Transaction Mix</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#sap-db" id="toc-entry-65">SAP DB</a></p>
+<li><p><a class="reference internal" href="#database-management-system-notes" id="toc-entry-47">Database Management System Notes</a></p>
 <ul>
-<li><p><a class="reference internal" href="#setup-2" id="toc-entry-66">Setup</a></p></li>
-<li><p><a class="reference internal" href="#odbc" id="toc-entry-67">ODBC</a></p></li>
-<li><p><a class="reference internal" href="#building-the-database-2" id="toc-entry-68">Building the Database</a></p></li>
-<li><p><a class="reference internal" href="#results" id="toc-entry-69">Results</a></p></li>
+<li><p><a class="reference internal" href="#cockroachdb" id="toc-entry-48">CockroachDB</a></p></li>
+<li><p><a class="reference internal" href="#mysql" id="toc-entry-49">MySQL</a></p>
+<ul>
+<li><p><a class="reference internal" href="#comments" id="toc-entry-50">COMMENTS</a></p></li>
+<li><p><a class="reference internal" href="#multi-tier-testing" id="toc-entry-51">MULTI-TIER TESTING</a></p></li>
+<li><p><a class="reference internal" href="#preparation-for-test" id="toc-entry-52">PREPARATION FOR TEST</a></p></li>
+<li><p><a class="reference internal" href="#run-test" id="toc-entry-53">RUN TEST</a></p></li>
+<li><p><a class="reference internal" href="#postrunning-analyses" id="toc-entry-54">POSTRUNNING ANALYSES</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#sqlite" id="toc-entry-70">SQLite</a></p></li>
-<li><p><a class="reference internal" href="#yugabytedb" id="toc-entry-71">YugabyteDB</a></p></li>
+<li><p><a class="reference internal" href="#oracle" id="toc-entry-55">Oracle</a></p>
+<ul>
+<li><p><a class="reference internal" href="#topics" id="toc-entry-56">Topics</a></p></li>
+<li><p><a class="reference internal" href="#introduction-3" id="toc-entry-57">Introduction</a></p></li>
+<li><p><a class="reference internal" href="#system-requirements" id="toc-entry-58">System Requirements</a></p></li>
+<li><p><a class="reference internal" href="#setup-1" id="toc-entry-59">Setup</a></p></li>
+<li><p><a class="reference internal" href="#steps-for-manually-run-dbt2-kit" id="toc-entry-60">Steps for manually run DBT2 Kit</a></p></li>
+<li><p><a class="reference internal" href="#logs" id="toc-entry-61">Logs</a></p></li>
+<li><p><a class="reference internal" href="#errors-debugging" id="toc-entry-62">Errors/Debugging</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#operating-system-notes" id="toc-entry-72">Operating System Notes</a></p>
+<li><p><a class="reference internal" href="#postgresql-2" id="toc-entry-63">PostgreSQL</a></p>
 <ul>
-<li><p><a class="reference internal" href="#linux" id="toc-entry-73">Linux</a></p></li>
-<li><p><a class="reference internal" href="#solaris" id="toc-entry-74">Solaris</a></p></li>
+<li><p><a class="reference internal" href="#setup-2" id="toc-entry-64">Setup</a></p>
+<ul>
+<li><p><a class="reference internal" href="#v7-3" id="toc-entry-65">v7.3</a></p></li>
+<li><p><a class="reference internal" href="#v7-4" id="toc-entry-66">v7.4</a></p></li>
+<li><p><a class="reference internal" href="#v8-0" id="toc-entry-67">v8.0</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#connection-pooler-notes" id="toc-entry-75">Connection Pooler Notes</a></p>
+<li><p><a class="reference internal" href="#a-really-quick-howto" id="toc-entry-68">A really quick howto</a></p></li>
+<li><p><a class="reference internal" href="#building-the-database-1" id="toc-entry-69">Building the Database</a></p></li>
+<li><p><a class="reference internal" href="#environment-configuration-1" id="toc-entry-70">Environment Configuration</a></p></li>
+<li><p><a class="reference internal" href="#tablespace-notes" id="toc-entry-71">Tablespace Notes</a></p></li>
+<li><p><a class="reference internal" href="#appimage-notes" id="toc-entry-72">AppImage Notes</a></p>
 <ul>
-<li><p><a class="reference internal" href="#pgpool" id="toc-entry-76">pgpool</a></p></li>
+<li><p><a class="reference internal" href="#limitations" id="toc-entry-73">Limitations</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#developer-guide" id="toc-entry-77">Developer Guide</a></p>
-<ul>
-<li><p><a class="reference internal" href="#building-the-kit" id="toc-entry-78">Building the Kit</a></p></li>
-<li><p><a class="reference internal" href="#testing-the-kit" id="toc-entry-79">Testing the Kit</a></p>
-<ul>
-<li><p><a class="reference internal" href="#datagen" id="toc-entry-80">datagen</a></p></li>
-<li><p><a class="reference internal" href="#post-process" id="toc-entry-81">post-process</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#appimage" id="toc-entry-82">AppImage</a></p>
+<li><p><a class="reference internal" href="#sap-db" id="toc-entry-74">SAP DB</a></p>
 <ul>
-<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-83">Building the AppImage</a></p></li>
+<li><p><a class="reference internal" href="#setup-3" id="toc-entry-75">Setup</a></p></li>
+<li><p><a class="reference internal" href="#odbc" id="toc-entry-76">ODBC</a></p></li>
+<li><p><a class="reference internal" href="#building-the-database-2" id="toc-entry-77">Building the Database</a></p></li>
+<li><p><a class="reference internal" href="#results" id="toc-entry-78">Results</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#sqlite" id="toc-entry-79">SQLite</a></p></li>
+<li><p><a class="reference internal" href="#yugabytedb" id="toc-entry-80">YugabyteDB</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#operating-system-notes" id="toc-entry-81">Operating System Notes</a></p>
+<ul>
+<li><p><a class="reference internal" href="#linux" id="toc-entry-82">Linux</a></p></li>
+<li><p><a class="reference internal" href="#solaris" id="toc-entry-83">Solaris</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#developer-guide" id="toc-entry-84">Developer Guide</a></p>
+<ul>
+<li><p><a class="reference internal" href="#building-the-kit" id="toc-entry-85">Building the Kit</a></p></li>
+<li><p><a class="reference internal" href="#testing-the-kit" id="toc-entry-86">Testing the Kit</a></p>
+<ul>
+<li><p><a class="reference internal" href="#datagen" id="toc-entry-87">datagen</a></p></li>
+<li><p><a class="reference internal" href="#post-process" id="toc-entry-88">post-process</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#appimage" id="toc-entry-89">AppImage</a></p>
+<ul>
+<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-90">Building the AppImage</a></p></li>
 </ul>
 </li>
 </ul>
@@ -1028,10 +1036,29 @@ to the client to.</p>
 </section>
 </section>
 </section>
+<section id="quick-start">
+<h2><a class="toc-backref" href="#toc-entry-25" role="doc-backlink">Quick Start</a></h2>
+<p>The fastest way to get started is to use a Linux x86_64 based system and to
+download the latest AppImage from GitHub:
+<a class="reference external" href="https://github.com/osdldbt/dbt2/releases">https://github.com/osdldbt/dbt2/releases</a></p>
+<p>Rename the AppImage file to <strong>dbt2</strong> and make sure it is in your <cite>PATH</cite> and is
+executable.</p>
+<p>The rest of this section describes the easiest way to use this test kit.  See
+the rest of the documentation for more advanced uses.</p>
+<section id="postgresql">
+<h3><a class="toc-backref" href="#toc-entry-26" role="doc-backlink">PostgreSQL</a></h3>
+<p>Start a PostgreSQL instance on the local system and make sure the local user
+can connect to PostgreSQL.</p>
+<p>Next build a database:</p>
+<pre class="literal-block">dbt2 build pgsql</pre>
+<p>Next run a test and save the results to directory named <cite>results</cite>:</p>
+<pre class="literal-block">dbt2 run pgsql results</pre>
+</section>
+</section>
 <section id="user-guide">
-<h2><a class="toc-backref" href="#toc-entry-25" role="doc-backlink">User Guide</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-27" role="doc-backlink">User Guide</a></h2>
 <section id="introduction-2">
-<h3><a class="toc-backref" href="#toc-entry-26" role="doc-backlink">Introduction</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-28" role="doc-backlink">Introduction</a></h3>
 <p>This document provides instructions on how to set up and use the Open Source
 Development Lab's Database Test 2 (DBT-2) test kit.  Database management
 systems can be installed from source or packages, or a DBaaS option can
@@ -1039,9 +1066,8 @@ possibly be used.  This section provides the high level overview of how to use
 the test kit.  See <strong>Database Management System Notes</strong> for more specific
 details as it pertains to the database management system being tested, if
 available.</p>
-<p>There are three general ways to use this kit:</p>
+<p>There are two general ways to use this kit:</p>
 <ol class="arabic simple">
-<li><p>The <strong>The &quot;Easy&quot; Way</strong> section is for running something quick and easy.</p></li>
 <li><p>The <strong>Manual Test Execution</strong> section is not just how to run a test with
 minimal assistance, but also minimal data collection.  In other words, the
 kit only produces the test metrics and data to validate the correctness of
@@ -1053,8 +1079,8 @@ shell scripts to fully characterize system behavior in addition to executing
 a test.  This includes collecting system statistics as well and software
 profiles.  There is not as much flexibility as running a test manually,
 while intending to help ease system characterization work.  Scripts are also
-provided to generate a report with all sorts of charts using R, in HTML
-(using Docutils) and PDFs (using pandoc in conjunction with Docutils).</p></li>
+provided to generate a report with all sorts of charts using gnuplot, in
+HTML (using Docutils) and PDFs (using pandoc in conjunction with Docutils).</p></li>
 </ol>
 <p>The database management systems that are currently supported are:</p>
 <ul class="simple">
@@ -1073,75 +1099,75 @@ provided to generate a report with all sorts of charts using R, in HTML
 </ul>
 </section>
 <section id="setup">
-<h3><a class="toc-backref" href="#toc-entry-27" role="doc-backlink">Setup</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-29" role="doc-backlink">Setup</a></h3>
 <section id="external-software-dependencies">
-<h4><a class="toc-backref" href="#toc-entry-28" role="doc-backlink">External Software Dependencies</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-30" role="doc-backlink">External Software Dependencies</a></h4>
 <p><a class="reference external" href="https://www.sqlite.org/index.html">SQLite3</a> is required to do basic
 statistical calculations in order to report test metrics.</p>
 <p>System and database statistic collection and post processing are handled by
 <a class="reference external" href="https://gitlab.com/touchstone/touchstone-tools">Touchstone Tool</a>.  Install
-this package in order to characterize system performance.  This package is
-included in the DBT-2 AppImage.</p>
+this package, or its AppImage, in order to characterize system performance.
+This package is included in the DBT-2 AppImage.</p>
 <p>A test report can be generated with the aid of <a class="reference external" href="https://github.com/osdldbt/dbttools">DBT Tools</a>.  This package is included in the DBT-2
 AppImage.</p>
 <p><a class="reference external" href="https://www.gnuplot.info/">gnuplot</a> is used when generating charts.  This
 package is also included in the DBT-2 AppImage.</p>
 </section>
 <section id="linux-appimage">
-<h4><a class="toc-backref" href="#toc-entry-29" role="doc-backlink">Linux AppImage</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-31" role="doc-backlink">Linux AppImage</a></h4>
 <p>A Linux AppImage is available, intended for simplified use, albeit with reduced
 functionality, on Linux based systems.  See <strong>Database Management System
 Notes</strong> for specific usage and for any database management system specific
 limitations.  The DBT-2 AppImage may not always be as capable as installing the
 kit from source or from other pre-packaged distributions.</p>
+<p>The DBT-2 AppImage must be installed on each system.  It is also recommended to
+install the Touchstone Tools AppImage on each system when there are multiple
+systems in use.</p>
 <p>For ease of use, we recommend renaming the DBT-2 AppImage binary to <cite>dbt2</cite>, if
 it hasn't already been done.  Examples in the documentation will assume it has
 been renamed to <cite>dbt2</cite>.</p>
-<section id="limitations">
-<h5><a class="toc-backref" href="#toc-entry-30" role="doc-backlink">Limitations</a></h5>
-<p>These are general limitations that apply to all database management systems:</p>
-<ol class="arabic simple">
-<li><p>The AppImage isn't intelligent enough yet to run 3-tier tests.  When it
-connects to remote systems using ssh, it still expects DBT-2 scripts and
-binaries to be installed into the user's environment as opposed to using an
-AppImage installed on the system.</p></li>
-</ol>
-</section>
+<p>If FUSE is not available, the AppImage is self-extracting and provides a script
+(currently only for <em>bash</em> shells) to set your <cite>PATH</cite> and <cite>LD_LIBRARTY_PATH</cite> to
+use the extracted files:</p>
+<pre class="literal-block">dbt2-*.AppImage --extract-appimage
+. squashfs-root/activate</pre>
+<p>Then run <cite>deactivate</cite> to restore your environment, or exit the shell.</p>
+<p>Other shells can still set <cite>PATH</cite> and <cite>LD_LIBRARTY_PATH</cite> manually to use the
+extracted environment.</p>
 </section>
 <section id="linux-distribution-packages">
-<h4><a class="toc-backref" href="#toc-entry-31" role="doc-backlink">Linux Distribution Packages</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-32" role="doc-backlink">Linux Distribution Packages</a></h4>
 <p>There may be packaging available for your Linux distribution.  See this project
 for more details: <a class="reference external" href="https://github.com/osdldbt/dbt2-packaging">https://github.com/osdldbt/dbt2-packaging</a></p>
 </section>
 <section id="dbt-2-test-kit-source">
-<h4><a class="toc-backref" href="#toc-entry-32" role="doc-backlink">DBT-2 Test Kit Source</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-33" role="doc-backlink">DBT-2 Test Kit Source</a></h4>
 <p>The latest stable version of the kit can be found on SourceForge at:
 <a class="reference external" href="https://github.com/osdldbt/dbt2">https://github.com/osdldbt/dbt2</a></p>
 </section>
 </section>
 <section id="environment-configuration">
-<h3><a class="toc-backref" href="#toc-entry-33" role="doc-backlink">Environment Configuration</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-34" role="doc-backlink">Environment Configuration</a></h3>
 <p>The section explains how to configure various parts of the system before a test
 can be executed.</p>
 <p>The individual driver and client binaries (e.g. <cite>dbt2-driver</cite> and
 <cite>dbt2-client</cite>) can be run directly (and you may want to depending on the
-situation), but scripts, such as <cite>dbt2-run-workload</cite>, are provided to make some
-testing scenarios easier to execute.  It does this by taking advantage of
-password-less <cite>ssh</cite> usage, but also requires additional environmental setup.
-This <strong>User Guide</strong> will not where applicable and the <strong>Database Management
-System Notes</strong> may have additional notes depending on the database management
-system.</p>
+situation), but scripts, such as <cite>dbt2-run</cite>, are provided to make some testing
+scenarios easier to execute.  It does this by taking advantage of password-less
+<cite>ssh</cite> usage, but also requires additional environmental setup.  This <strong>User
+Guide</strong> will not where applicable and the <strong>Database Management System Notes</strong>
+may have additional notes depending on the database management system.</p>
 <section id="multi-tier-system-testing">
-<h4><a class="toc-backref" href="#toc-entry-34" role="doc-backlink">Multi-tier System Testing</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-35" role="doc-backlink">Multi-tier System Testing</a></h4>
 <p>DBT-2 supports a 1-, 2-, and 3-tier client-server system configurations.
 Whether the binaries are run by hand, or whether the supplied helper scripts
 are used determine how much additional environmental setup is needed.</p>
-<p>When using the <cite>dbt2-run-workload</cite> script, which also supports helping execute
-a 1-, 2-, and 3-tier system configuration tests, additional environment
-variables may need to be set because a remote ssh environment may be more
-limited than a normal login environment.  For example, if the scripts and
-binaries are installed in <cite>/usr/local/bin</cite>, this path may not be in the path
-when using <cite>ssh</cite> to execute commands locally.</p>
+<p>When using the <cite>dbt2-run</cite> script, which also supports helping execute a 1-, 2-,
+and 3-tier system configuration tests, additional environment variables may
+need to be set because a remote ssh environment may be more limited than a
+normal login environment.  For example, if the scripts and binaries are
+installed in <cite>/usr/local/bin</cite>, this path may not be in the path when using
+<cite>ssh</cite> to execute commands locally.</p>
 <p>Also password-less ssh keys needs to be set up to keep the scripts simple, the
 kit needs to be installed in the same location on each system.  Each user must
 also have sudo privileges, also without requiring a password.</p>
@@ -1156,7 +1182,7 @@ database management system, if available.</p>
 </section>
 </section>
 <section id="building-the-database">
-<h3><a class="toc-backref" href="#toc-entry-35" role="doc-backlink">Building the Database</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-36" role="doc-backlink">Building the Database</a></h3>
 <p>The database needs to be created, and data needs to be loaded before testing
 can begin.  It is recommended to build the database from the system itself, as
 opposed to from a remote system, for performance reasons if possible.  See
@@ -1167,7 +1193,7 @@ instance if one does not exist, install the database from source if the
 software is not already installed, and even scripts to help configure the
 database.</p>
 <section id="sizing-consideration">
-<h4><a class="toc-backref" href="#toc-entry-36" role="doc-backlink">Sizing Consideration</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-37" role="doc-backlink">Sizing Consideration</a></h4>
 <p>The database can be built with as few as 1 warehouse.  A 1,000 warehouse
 generates about 100 GiB of raw text data.  The size of the database ultimately
 depends on the schema definition and the number of indexes built.</p>
@@ -1187,7 +1213,7 @@ should feel free to do so.</p>
 </section>
 </section>
 <section id="running-the-test-kit">
-<h3><a class="toc-backref" href="#toc-entry-37" role="doc-backlink">Running the Test Kit</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-38" role="doc-backlink">Running the Test Kit</a></h3>
 <p>There are a numbers of ways that DBT-2 can be executed.  In each of these
 scenarios, it is required that the database has been created and loaded before
 any test can run successfully.  There are several factors that may influence
@@ -1231,7 +1257,7 @@ every warehouse and district pair in each process.</p></li>
 traditional way to run the test.  <cite>dbt2-driver3</cite> was developed as a more
 efficient and easier to use program to drive the workload.</p>
 <section id="the-easy-way">
-<h4><a class="toc-backref" href="#toc-entry-38" role="doc-backlink">The &quot;Easy&quot; Way</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-39" role="doc-backlink">The &quot;Easy&quot; Way</a></h4>
 <p>There are many ways that this kit can be used.  What <em>easy</em> means here is that
 many of the decisions are made for you:</p>
 <ol class="arabic simple">
@@ -1253,20 +1279,19 @@ system.</p></li>
 management system specific notes.</p>
 <p>The examples in this section assume that the DBT-2 AppImage has been renamed to
 <cite>dbt2</cite> and is in the user's <cite>PATH</cite>.</p>
-<section id="postgresql">
-<h5><a class="toc-backref" href="#toc-entry-39" role="doc-backlink">PostgreSQL</a></h5>
+<section id="postgresql-1">
+<h5><a class="toc-backref" href="#toc-entry-40" role="doc-backlink">PostgreSQL</a></h5>
 <p>This example will connect to PostgreSQL based on what is in the user's
 environment, as one would normally expect with core PostgreSQL utilities, but
 additional arguments can be used to change the connection information.</p>
-<p>Run the following commands to build a 1 warehouse database with pl/pgsql stored
-functions, run a 2 minute (120 second) test, and calculate the throughput:</p>
-<pre class="literal-block">dbt2 pgsql-build-db -w 1 dbt2
-dbt2 easy -a pgsql -b dbt2 -l 120 -outdir /tmp/results -w 1
-dbt2 post-process /tmp/results/mix-*.log</pre>
+<p>Execute the following commands with default parameters to build a 1 warehouse
+database with pl/pgsql stored functions, and run a 3 minute test:</p>
+<pre class="literal-block">dbt2 build pgsql
+dbt2 run pgsql /tmp/results</pre>
 </section>
 </section>
 <section id="manual-test-execution">
-<h4><a class="toc-backref" href="#toc-entry-40" role="doc-backlink">Manual Test Execution</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-41" role="doc-backlink">Manual Test Execution</a></h4>
 <p>This method involves starting each of the components manually without any help
 from any of the scripts.</p>
 <p>The database needs to be manually started.</p>
@@ -1350,53 +1375,48 @@ Order Status   5.71      0.001      0.001            6            0   0.00
 <p>Congratulations, you've run a test!</p>
 </section>
 <section id="comprehensive-test-execution">
-<h4><a class="toc-backref" href="#toc-entry-41" role="doc-backlink">Comprehensive Test Execution</a></h4>
-<p>The <cite>dbt2-run-workload</cite> is a wrapper script that will attempt to collect system
+<h4><a class="toc-backref" href="#toc-entry-42" role="doc-backlink">Comprehensive Test Execution</a></h4>
+<p>The <cite>dbt2-run</cite> is a wrapper script that will attempt to collect system
 statistics and database statistics, as well as start all components of the
 test.  It can optionally profile a Linux system with readprofile, oprofile, or
 perf.  See <strong>Database Management System Notes</strong> for any database management
 system specific notes as there may be additional system specific flags.</p>
-<p>The shell script <cite>dbt2-run-workload</cite> is used to execute a test.  For example,
-run a 4 minutes (480 second) test against a 1 warehouse database locally and
-save the results to <cite>/tmp/results</cite>:</p>
-<pre class="literal-block">dbt2-run-workload -a pgsql -d 480 -w 1 -o /tmp/results -c 10</pre>
-<p>See the help output from <cite>dbt2-run-workload -h</cite> a brief description of all
-options.</p>
+<p>The shell script <cite>dbt2-run</cite> is used to execute a test.  For example, run a 4
+minutes (480 second) test against a default sized 1 warehouse database locally
+and save the results to <cite>/tmp/results</cite>:</p>
+<pre class="literal-block">dbt2 run -d 480 pgsql /tmp/results</pre>
+<p>See the help output from <cite>dbt2 run --help</cite> a brief description of all options.</p>
 <p>This script will also process the results and output the same information as if
-you were running <cite>dbt2-post-process</cite> manually like the last section's example.
-Additional, the <cite>dbt2-generate-report</cite> is for building a report based on all of
-the data that is saved to <cite>/tmp/results</cite> by running:</p>
-<pre class="literal-block">dbt2-generate-report -i /tmp/results</pre>
-<p>This generates a human readable text (reStructuredText) summary report in the
-same <cite>/tmp/results</cite> results directory.</p>
-<p>An HTML report is also generated if Docutils are available on the system.  R is
-also required to generate any charts.  This will create an <cite>index.html</cite> file in
-the <cite>&lt;directory&gt;</cite>.</p>
-<p>A PDF report is also generated if pandoc is available on the system.</p>
+you were running <cite>dbt2 report</cite> manually like the last section's example.
+Additional, the <cite>dbt2 report --html</cite> command is for building an HTML report
+based on all of the data that is saved to <cite>/tmp/results</cite> by running:</p>
+<pre class="literal-block">dbt2 report --html /tmp/results</pre>
+<p>The HTML report uses Docutils.  gnuplot is also required to generate any
+charts.  This will create an <cite>index.html</cite> file in the <cite>&lt;directory&gt;</cite>.</p>
 <p>An example of the HTML report is available online:
 <a class="reference external" href="https://osdldbt.github.io/dbt-reports/dbt2/3-tier/report.html">https://osdldbt.github.io/dbt-reports/dbt2/3-tier/report.html</a></p>
 <section id="executing-with-multiple-tiers">
-<h5><a class="toc-backref" href="#toc-entry-42" role="doc-backlink">Executing with multiple tiers</a></h5>
-<p>To execute the test where the database is on another tier, pass the <cite>-H
-&lt;address&gt;</cite> flag to the <cite>dbt2-run-workload</cite> script.  The address can be a
-hostname or IP address.</p>
-<p>To execute the test where the client is on another tier, pass the <cite>-C
-&lt;address&gt;</cite> flag to the <cite>dbt2-run-workload</cite> script.  The address can also be a
-hostname or IP address.</p>
+<h5><a class="toc-backref" href="#toc-entry-43" role="doc-backlink">Executing with multiple tiers</a></h5>
+<p>To execute the test where the database is on another tier, pass the <cite>--db-host
+&lt;address&gt;</cite> flag to the <cite>dbt2 run</cite> command.  The address can be a hostname or IP
+address.</p>
+<p>To execute the test where the client is on another tier, pass the
+<cite>--client-host &lt;address&gt;</cite> flag to the <cite>dbt2 run</cite> command.  The address can also
+be a hostname or IP address.</p>
 </section>
 </section>
 <section id="multi-process-driver-execution">
-<h4><a class="toc-backref" href="#toc-entry-43" role="doc-backlink">Multi-process driver execution</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-44" role="doc-backlink">Multi-process driver execution</a></h4>
 <p>Default behavior for the driver is to create 10 threads per warehouse under a
 single process.  At some point (depends on hardware and resource limitations)
 the driver, specifically <cite>dbt2-driver</cite> as a multi-threaded progress, will
 become a bottleneck.  We can increase the load by starting multiple
-multi-threaded drivers.  The <cite>-b #</cite> flag can be passed to the
-<cite>dbt2-run-workload</cite> script to specify how many warehouses to be created per
-process.  The script will calculate how many driver processes to start.</p>
+multi-threaded drivers.  The <cite>-b #</cite> flag can be passed to the <cite>dbt2 run</cite>
+command to specify how many warehouses to be created per process.  The script
+will calculate how many driver processes to start.</p>
 </section>
 <section id="keying-and-thinking-time">
-<h4><a class="toc-backref" href="#toc-entry-44" role="doc-backlink">Keying and Thinking Time</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-45" role="doc-backlink">Keying and Thinking Time</a></h4>
 <p>The driver is supposed to emulate the thinking time of a person as well as the
 time a person takes to enter information into the terminal.  This introduces a
 limit on the rate of transaction that can be executed by the database.</p>
@@ -1407,12 +1427,11 @@ factor in any time for keying or thinking.  For example:</p>
 <p>See the help from the driver binaries to see which flag controls which
 transaction's thinking and keying times if you want to varying the delays
 differently.</p>
-<p>The <cite>dbt2-run-workload</cite> script can set each of the thinking and keying time
-flags to 0 with the <cite>-n</cite> flag but does not offer any finer grained controls at
-this time.</p>
+<p>The <cite>dbt2 run</cite> script sets each of the thinking and keying time flags to 0 by
+default and does not offer any finer grained controls at this time.</p>
 </section>
 <section id="transaction-mix">
-<h4><a class="toc-backref" href="#toc-entry-45" role="doc-backlink">Transaction Mix</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-46" role="doc-backlink">Transaction Mix</a></h4>
 <p>The transaction mix can be altered with the driver using the following flags,
 where the percentages are represented as a decimal number:</p>
 <table>
@@ -1437,17 +1456,17 @@ where the percentages are represented as a decimal number:</p>
 </section>
 </section>
 <section id="database-management-system-notes">
-<h2><a class="toc-backref" href="#toc-entry-46" role="doc-backlink">Database Management System Notes</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-47" role="doc-backlink">Database Management System Notes</a></h2>
 <section id="cockroachdb">
-<h3><a class="toc-backref" href="#toc-entry-47" role="doc-backlink">CockroachDB</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-48" role="doc-backlink">CockroachDB</a></h3>
 <p>A really quick howto.</p>
 <p>The CockroachDB scripts makes use of PostgreSQL's psql client program and libpq
 C client library interface, thus any environment variables that libpq would
 use.  See dbt2_profile for examples of what environment variables that may be
 used.</p>
-<p>The run-workload scripts currently only support handling CockroachDB
-installations that are already setup.  i.e. script do not handle installing or
-initialization a database instance.</p>
+<p>The <em>run</em> script currently only support handling CockroachDB installations that
+are already setup.  i.e. script do not handle installing or initialization a
+database instance.</p>
 <p>Create a 1 warehouse database by running dbt2-cockroach-build-db:</p>
 <pre class="literal-block">dbt2-cockroach-build-db -w 1 -l 26257</pre>
 <p>Flag description:</p>
@@ -1458,12 +1477,12 @@ initialization a database instance.</p>
 -r            -  Drop the database before loading, for rebuilding the
              database.</pre>
 <p>Run a test a 2 minute, 1 warehouse test:</p>
-<pre class="literal-block">dbt2-run-workload -a cockroach -c 10 -d 120 -w 1 -o /tmp/results</pre>
+<pre class="literal-block">dbt2-run -a cockroach -c 10 -d 120 -w 1 -o /tmp/results</pre>
 </section>
 <section id="mysql">
-<h3><a class="toc-backref" href="#toc-entry-48" role="doc-backlink">MySQL</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-49" role="doc-backlink">MySQL</a></h3>
 <section id="comments">
-<h4><a class="toc-backref" href="#toc-entry-49" role="doc-backlink">COMMENTS</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-50" role="doc-backlink">COMMENTS</a></h4>
 <p>There are two versions of DBT2(TPC-C) test:</p>
 <ul class="simple">
 <li><p>pure C based version of the test(nonSP)</p></li>
@@ -1476,7 +1495,7 @@ from MySQL 5.0 or higher.</p>
 <p>See examples/mysql/mysql-dbt2.cnf for example MySQL defaults file.</p>
 </section>
 <section id="multi-tier-testing">
-<h4><a class="toc-backref" href="#toc-entry-50" role="doc-backlink">MULTI-TIER TESTING</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-51" role="doc-backlink">MULTI-TIER TESTING</a></h4>
 <ul>
 <li><p>Enable 'PermitUserEnvironment' in sshd_config.</p></li>
 <li><p>Set DBT2DATADIR in the database system user's '.ssh/environment' file:</p>
@@ -1494,7 +1513,7 @@ that require access, the grant will have to be done manually:</p>
 </ul>
 </section>
 <section id="preparation-for-test">
-<h4><a class="toc-backref" href="#toc-entry-51" role="doc-backlink">PREPARATION FOR TEST</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-52" role="doc-backlink">PREPARATION FOR TEST</a></h4>
 <ol class="arabic simple" start="0">
 <li><p>Build test binaries</p></li>
 </ol>
@@ -1555,10 +1574,10 @@ options:</p>
 </ol>
 </section>
 <section id="run-test">
-<h4><a class="toc-backref" href="#toc-entry-52" role="doc-backlink">RUN TEST</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-53" role="doc-backlink">RUN TEST</a></h4>
 <blockquote>
-<p>dbt2-run-workload</p>
-<p>usage: dbt2-run-workload -a mysql -c &lt;number of database connections&gt; -t &lt;duration of test&gt; -w &lt;number of warehouses&gt;
+<p>dbt2-run</p>
+<p>usage: dbt2-run -a mysql -c &lt;number of database connections&gt; -t &lt;duration of test&gt; -w &lt;number of warehouses&gt;
 other options:</p>
 <pre class="literal-block">-D &lt;database name. (default dbt2)&gt;
 -h &lt;database host name. (default localhost)&gt;
@@ -1573,7 +1592,7 @@ other options:</p>
 -v &lt;verbose output&gt;
 -o &lt;output dir&gt;
 -p &lt;mysql defaults file</pre>
-<p>Example: dbt2-run-workload -a mysql -D dbt2 -c 20 -t 300 -w 3 -o results -S /tmp/mysql.sock -p ~/src/dbt2/examples/mysql/mysql-dbt2.cnf</p>
+<p>Example: dbt2-run -a mysql -D dbt2 -c 20 -t 300 -w 3 -o results -S /tmp/mysql.sock -p ~/src/dbt2/examples/mysql/mysql-dbt2.cnf</p>
 <p>Test will be run for 300 seconds with 20 database connections and
 scale factor(num of warehouses) 3:</p>
 <pre class="literal-block">-c number of database connections
@@ -1589,7 +1608,7 @@ will fail.</p>
 database.</p>
 </section>
 <section id="postrunning-analyses">
-<h4><a class="toc-backref" href="#toc-entry-53" role="doc-backlink">POSTRUNNING ANALYSES</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-54" role="doc-backlink">POSTRUNNING ANALYSES</a></h4>
 <p>Results can be found in bin/output/&lt;number&gt;</p>
 <p>some of the usefull log files:</p>
 <pre class="literal-block">  results/client/${HOSTNAME}.*/error.log - errors from backend C|SP based
@@ -1598,10 +1617,156 @@ database.</p>
 r  esults/report.txt - results of the test</pre>
 </section>
 </section>
-<section id="postgresql-1">
-<h3><a class="toc-backref" href="#toc-entry-54" role="doc-backlink">PostgreSQL</a></h3>
+<section id="oracle">
+<h3><a class="toc-backref" href="#toc-entry-55" role="doc-backlink">Oracle</a></h3>
+<section id="topics">
+<h4><a class="toc-backref" href="#toc-entry-56" role="doc-backlink">Topics</a></h4>
+<ol class="arabic simple">
+<li><p>Introduction</p></li>
+<li><p>System Requirements</p></li>
+<li><p>Setup</p></li>
+<li><p>Steps for manually run DBT2 Kit</p></li>
+<li><p>Logs</p></li>
+<li><p>Errors and Debugging</p></li>
+</ol>
+</section>
+<section id="introduction-3">
+<h4><a class="toc-backref" href="#toc-entry-57" role="doc-backlink">Introduction</a></h4>
+<blockquote>
+<p>The DBT-2 kit provides an on-line transaction processing (OLTP) workload using oracle database and a set of defined transactions. DBT-2 simulates a workload that represents a wholesale parts supplier operating out of a number of warehouses and their associated sales districts. This kit mainly focuses on three kind of test cases i.e IO,IO_CPU and CPU_ERP,IO testcase mainly imposes load on IO subsystem,CPU_ERP on CPU and IO_CPU on CPU aswell as IO subsystem. This is achieved by varying size of sga paramaters, size of database, io paramaters, and transaction mixes.
+These  transactions basically include entering and delivering orders, recording payments, checking the status of the orders, and monitoring the level of stock at the warehouses.</p>
+</blockquote>
+</section>
+<section id="system-requirements">
+<h4><a class="toc-backref" href="#toc-entry-58" role="doc-backlink">System Requirements</a></h4>
+<p>Storage:</p>
+<pre class="literal-block">&lt;work-home&gt;        --  10G -- location of logs,results,and server/client configuration scripts
+&lt;archive location&gt; --  5G -- location of archive files
+&lt;storage location&gt; --  9G for  2 warehouses --databse storage location
+                   --  18G for 15 warehouses
+                   --  36G for 40 warehouses
+                   --  72G for 80 warehouses
+ /tmp              -- 10MB</pre>
+<p>for granularity:</p>
+<pre class="literal-block">(i.e specifying location for each type of files and tablespace's,instaed of specifying only one storage location for all)
+2-Warehouse: ctrlloc=7.1M    datafiles=3.5G  logloc1=481G   logloc2=481G   tmptsloc=234M  undotsloc=2.8G
+15-Warehouse: ctrlloc=7.1M   datafiles=7.0G  logloc1=3.1G   logloc2=3.1G   tmptsloc=234M  undotsloc=3.0G
+40-Warehouse: ctrlloc=7.1M   datafiles=14G   logloc1=7.9G   logloc2=7.9G   tmptsloc=234M  undotsloc=4.4G
+80-Warehouse: ctrlloc=7.1M   datafiles=25G   logloc1=16G    logloc2=16G    tmptsloc=234M  undotsloc=5.8G</pre>
+<p>Packages:</p>
+<pre class="literal-block">Distribution specific development packages(e.g: gcc,make,binutils,glibc-devel(32 bit and 64 bit))
+sysstat
+bind-utils
+oracle-related package dependencies
+libaio packages
+For gcc version higher than 3.3, compat- gcc for 2.96 or 3.2</pre>
+</section>
 <section id="setup-1">
-<h4><a class="toc-backref" href="#toc-entry-55" role="doc-backlink">Setup</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-59" role="doc-backlink">Setup</a></h4>
+<ol class="arabic simple">
+<li><p>Install oracle database</p></li>
+<li><p>Copy dbt2 kit to your work location ( if it is tar file untar it, This should create a directory named dbt2)</p></li>
+<li><p>cd dbt2/scripts/oracle/install</p></li>
+</ol>
+</section>
+<section id="steps-for-manually-run-dbt2-kit">
+<h4><a class="toc-backref" href="#toc-entry-60" role="doc-backlink">Steps for manually run DBT2 Kit</a></h4>
+<ol class="arabic">
+<li><p>Kit Setup:</p>
+<pre class="literal-block">Setup of dbt2 kit mainly performas following tasks:
+accepts user parameters ,
+creates directries on all nodes,
+generates db create,db build scripts
+generates init ora parameter file,
+generates env file to start client and server,
+generates scripts to start and stop oracle,listener. and then
+copies these scripts to all server and client nodes.</pre>
+</li>
+<li><p>How to run setup:</p>
+<pre class="literal-block">./setup or ./setup -responsefile rsp
+where rsp is responsefile which contains all user parameters
+template is available rsp-rac and rsp-sn in &lt;dbt2/scripts/oracle/responsefile&gt; for RAC and single node respectively
+
+user parameters are:
+TESTCASE=io/io_cpu/cpu_erp          :    type of test
+WORKHOME=&lt;any location&gt;             :    location of work directory for dbt2 kit
+RAC=true/false                      :    true for Rac and false for running on single node
+SERVERS=&quot;&lt;hostname&gt;&quot;                :    Name of servers (for rac you can enter more than one server for Single node only one server)
+CLIENTS=&quot;&lt;hostname&gt;&quot;                :    Name of clients
+SERVERORAHOME=                      :    server oracle home(location of oracle binaries)
+CLIENTORAHOME=                      :    client oracle home
+WAREHOUSE=2/15/40/80                :    Number of warehouses
+STORAGE TYPE=filesystem/asm         :    Type of storage
+if STORAGE TYPE=filesystem then choose granularity
+GRAN=true/false                     :    true for granularity for database loaction
+if Granularity is true then ,pass locations for each following loaction else no
+LOGFILESLOC1                        :    First Log file location
+LOGFILESLOC2                        :    Second Log file location
+TMPTSLOC                            :    Temporary tablespace location
+UNDOTSLOC                           :    Undo Table space location
+CTRLLOC                             :    Control file location
+if STORAGE TYPE=asm then select type of redundancy
+REDUNDANCY=external/noraml/high     :    Type of redundancy for asm storage
+ASMDISKLIST1=&quot;&quot;                     :    asm disks groups for external redundancy
+ASMDISKLIST2=&quot;&quot;                     :    asm disk groups for normal redundancy
+ASMDISKLIST3=&quot;&quot;                     :    asm disk groups for high redundancy
+ARCHIVE=true/false                  :    true for archiving else false
+ARCHIVELOC=&lt;any location&gt;           :    location for archive files
+DBBLOCKSIZE=2K/4k/8k/16k            :    data block size
+SGA=1                               :    size of SGA in GB
+AIO=true/false                      :    Asynchronous I/O
+DIO=true/false                      :    Direct I/O
+OSSTATS=true/false                  :    True to collect OS statistics for standalone kit
+DRIVER=odbc/oci                     :    type of driver</pre>
+</li>
+<li><p>Creating the database for the test run:</p>
+<pre class="literal-block">Once setup is done it creates a work directory in WORKHOME(passed during first step) with kitname
+i.e dbt2-work,next to create DataBase move to the following location:
+i.e cd &lt;WORK-HOME/dbt2-work/server/warehouse[number]&gt;
+
+./oracle-dbt2.sh -d  --&gt; creates database</pre>
+</li>
+<li><p>Test run execution:</p>
+<pre class="literal-block">oracle-dbt2.sh  [-r ]--&gt; run kit with default values i.e 100 users and 300 seconds duration
+
+other optional parameters are
+    [-u users]--&gt; Number of users
+    [-n testname]--&gt; Testname
+    [-t duration]--&gt; Duration in seconds
+    [-h ]--&gt; print this mesage
+    [-nodb]---&gt; do not start oracle db/asm instance
+    [-nolsnr]--&gt; do not start oracle listener
+    [-debug]--&gt; For debug on
+    [-nocfg]--&gt; Do not change init.ora based on number of users
+    [-osstat]--&gt; Do not change init.ora based on number of users</pre>
+</li>
+</ol>
+<p>example:</p>
+<pre class="literal-block">./oracle-dbt2.sh -d -r -n mytest -u 300 -t 3600 -osstat
+will create datbase and run kit with test name &quot;mytest&quot;, for the duration 3600 seconds with 300 users</pre>
+</section>
+<section id="logs">
+<h4><a class="toc-backref" href="#toc-entry-61" role="doc-backlink">Logs</a></h4>
+<pre class="literal-block">&lt;WORK-HOME&gt;/dbt2-work/server/result/testname/analyze    : It contains files related to error during run
+&lt;WORK-HOME&gt;/dbt2-work/server/result/testname/metrics    : It contains result metrics after run for each transactions
+&lt;WORK-HOME&gt;/dbt2-work/server/result/log/datagen-loc     : It contains all data generated during transactions
+&lt;WORK-HOME&gt;/dbt2-work/server/result/log/db-logs         : It contains all database log files
+&lt;WORK-HOME&gt;/dbt2-work/server/result/ora-alert/run-db    : It conatains all trace files generated during run
+&lt;WORK-HOME&gt;/dbt2-work/server/result/ora-alert/create-db : It contains all trace files generated during creation of database</pre>
+</section>
+<section id="errors-debugging">
+<h4><a class="toc-backref" href="#toc-entry-62" role="doc-backlink">Errors/Debugging</a></h4>
+<p>DB creation Errors: look for:</p>
+<pre class="literal-block">&lt;WORK-HOME&gt;/dbt2-work/server/result/log/db-logs
+&lt;WORK-HOME&gt;/dbt2-work/server/result/ora-alert/create-db</pre>
+<p>Run time Errors: look for:</p>
+<pre class="literal-block">&lt;WORK-HOME&gt;/dbt2-work/server/result/ora-alert/run-db</pre>
+</section>
+</section>
+<section id="postgresql-2">
+<h3><a class="toc-backref" href="#toc-entry-63" role="doc-backlink">PostgreSQL</a></h3>
+<section id="setup-2">
+<h4><a class="toc-backref" href="#toc-entry-64" role="doc-backlink">Setup</a></h4>
 <p>The DBT-2 test kit has been ported to work with PostgreSQL starting with
 version 7.3.  It has be updated to work with later version and backwards
 compatibility may vary.  Source code for PostgreSQL can be obtained from their
@@ -1619,8 +1784,8 @@ other client side transaction logic:</p>
 <pre class="literal-block">cd storedproc/pgsql/c
 make
 make install</pre>
-<p>The 'make install' command will need to be run by the owner of the
-database installation.</p>
+<p>The <cite>make install</cite> command will need to be run by the owner of the database
+installation.</p>
 <p>When testing PostgreSQL in a multi-tier system configuration, verify that the
 database has been configuration to accept TCP/IP connections.  For example, the
 <cite>listen_addresses</cite> parameter must be set to listen for connections on the
@@ -1631,36 +1796,36 @@ connections on all interfaces.</p>
 installing from source, it is located in the <cite>contrib/pg_autovacuum</cite> directory.</p>
 <p>The following subsections have additional PostgreSQL version specific notes.</p>
 <section id="v7-3">
-<h5><a class="toc-backref" href="#toc-entry-56" role="doc-backlink">v7.3</a></h5>
+<h5><a class="toc-backref" href="#toc-entry-65" role="doc-backlink">v7.3</a></h5>
 <p>With PostgreSQL 7.3, it needs to be built with a change in <cite>pg_config.h.in</cite>
 where <cite>INDEX_MAX_KEYS</cite> must be set to 64.  Be sure to make this change before
 running the configure script for PostgreSQL.</p>
 </section>
 <section id="v7-4">
-<h5><a class="toc-backref" href="#toc-entry-57" role="doc-backlink">v7.4</a></h5>
+<h5><a class="toc-backref" href="#toc-entry-66" role="doc-backlink">v7.4</a></h5>
 <p>With PostgreSQL 7.4, it needs to be built with a change in
 <cite>src/include/pg_config_manual.h</cite> where <cite>INDEX_MAX_KEYS</cite> must be set to 64.</p>
 <p>Edit the parameter in <cite>postgresql.conf</cite> that says <cite>tcpip_socket = false</cite>,
 uncomment, set to <cite>true</cite>, and restart the daemon.</p>
 </section>
 <section id="v8-0">
-<h5><a class="toc-backref" href="#toc-entry-58" role="doc-backlink">v8.0</a></h5>
+<h5><a class="toc-backref" href="#toc-entry-67" role="doc-backlink">v8.0</a></h5>
 <p>For PostgreSQL 8.0 and later, run <cite>configure</cite> with the <cite>--enable-thread-safety</cite>
 to avoid <cite>SIGPIPE</cite> handling for the multi-thread DBT-2 client program.  This is
 a significant performance benefit.</p>
 </section>
 </section>
 <section id="a-really-quick-howto">
-<h4><a class="toc-backref" href="#toc-entry-59" role="doc-backlink">A really quick howto</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-68" role="doc-backlink">A really quick howto</a></h4>
 <p>Edit <cite>examples/dbt2_profile</cite> and follow the notes for the <cite>DBT2PGDATA</cite>
 directory.  <cite>DBT2PGDATA</cite> is where the database directory will be created.</p>
-<p>Create a 1 warehouse database by running <cite>dbt2-pgsql-build-db</cite>:</p>
-<pre class="literal-block">dbt2-pgsql-build-db -w 1</pre>
-<p>Run a 5 minute (300 second) test by running <cite>dbt2-run-workload</cite>:</p>
-<pre class="literal-block">dbt2-run-workload -a pgsql -d 300 -w 1 -o /tmp/result -c 10</pre>
+<p>Create a 1 warehouse database by running:</p>
+<pre class="literal-block">dbt2 build pgsql</pre>
+<p>Run a 5 minute (300 second) test by running:</p>
+<pre class="literal-block">dbt2 run -d 300 pgsql /tmp/result</pre>
 </section>
 <section id="building-the-database-1">
-<h4><a class="toc-backref" href="#toc-entry-60" role="doc-backlink">Building the Database</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-69" role="doc-backlink">Building the Database</a></h4>
 <p>The <cite>dbt2-pgsql-build-db</cite> script is designed to handle the following steps:</p>
 <ol class="arabic simple">
 <li><p>create the database</p></li>
@@ -1684,13 +1849,11 @@ default</p></li>
 drop and create a database</p></li>
 </ul>
 <p>See the usage output with the <cite>-h</cite> for the complete list of options.</p>
-<p>The following command will create a 1 warehouse database:</p>
-<pre class="literal-block">dbt2-pgsql-build-db -w 1</pre>
-<p>The following is the equivalent when using the AppImage:</p>
-<pre class="literal-block">dbt2 pgsql-build-db -w 1</pre>
+<p>The following command will create a default sized 1 warehouse database:</p>
+<pre class="literal-block">dbt2 build pgsql</pre>
 </section>
 <section id="environment-configuration-1">
-<h4><a class="toc-backref" href="#toc-entry-61" role="doc-backlink">Environment Configuration</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-70" role="doc-backlink">Environment Configuration</a></h4>
 <p>The DBT-2 scripts required environment variables to be set in order to work
 properly (e.g. <cite>examples/dbt2_profile</cite>) in order for the scripts to work
 properly.  For example:</p>
@@ -1710,7 +1873,7 @@ DBT2PGDATA=/tmp/pgdata
 PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin</pre>
 </section>
 <section id="tablespace-notes">
-<h4><a class="toc-backref" href="#toc-entry-62" role="doc-backlink">Tablespace Notes</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-71" role="doc-backlink">Tablespace Notes</a></h4>
 <p>The scripts assumes a specific tablespace layout.</p>
 <p>The <cite>${DBT2TSDIR}</cite> variable in <cite>dbt2_profile</cite> defines the directory where all
 tablespace devices will be mounted.  Directories or symlinks can be substituted
@@ -1739,9 +1902,9 @@ ${DBT2TSDIR}/pk_stock
 ${DBT2TSDIR}/pk_warehouse</pre>
 </section>
 <section id="appimage-notes">
-<h4><a class="toc-backref" href="#toc-entry-63" role="doc-backlink">AppImage Notes</a></h4>
-<section id="limitations-1">
-<h5><a class="toc-backref" href="#toc-entry-64" role="doc-backlink">Limitations</a></h5>
+<h4><a class="toc-backref" href="#toc-entry-72" role="doc-backlink">AppImage Notes</a></h4>
+<section id="limitations">
+<h5><a class="toc-backref" href="#toc-entry-73" role="doc-backlink">Limitations</a></h5>
 <p>Using the AppImage has some limitations with PostgreSQL:</p>
 <ol class="arabic simple">
 <li><p>The AppImage cannot alone be used to build a database with C stored
@@ -1754,9 +1917,9 @@ the pl/pgsql stored functions.</p></li>
 </section>
 </section>
 <section id="sap-db">
-<h3><a class="toc-backref" href="#toc-entry-65" role="doc-backlink">SAP DB</a></h3>
-<section id="setup-2">
-<h4><a class="toc-backref" href="#toc-entry-66" role="doc-backlink">Setup</a></h4>
+<h3><a class="toc-backref" href="#toc-entry-74" role="doc-backlink">SAP DB</a></h3>
+<section id="setup-3">
+<h4><a class="toc-backref" href="#toc-entry-75" role="doc-backlink">Setup</a></h4>
 <p>After installing SAP DB create the user id <em>sapdb</em>, assigning the user to group
 <em>sapdb</em>.</p>
 <p>Create the database stats collection tool, x_cons, by executing the following:</p>
@@ -1766,7 +1929,7 @@ be install from the source available at:
 <a class="reference external" href="http://www.unixodbc.org/unixODBC-2.2.3.tar.gz">http://www.unixodbc.org/unixODBC-2.2.3.tar.gz</a></p>
 </section>
 <section id="odbc">
-<h4><a class="toc-backref" href="#toc-entry-67" role="doc-backlink">ODBC</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-76" role="doc-backlink">ODBC</a></h4>
 <p>An <cite>.odbc.ini</cite> file must reside in the home directory of the user
 attempting to run the program.  The format of the file is:</p>
 <pre class="literal-block">[alias]
@@ -1785,7 +1948,7 @@ connect to the database.  Note that the location of _libsqlod.so_ may vary
 depending on how your database is installed on your system.</p>
 </section>
 <section id="building-the-database-2">
-<h4><a class="toc-backref" href="#toc-entry-68" role="doc-backlink">Building the Database</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-77" role="doc-backlink">Building the Database</a></h4>
 <p>The script dbt2/scripts/sapdb/create_db_sample.sh must be edited to configure
 the SAP DB devspaces.  The param_adddevspaces commands need to be changed to
 match your system configuration.  Similarly, the backup_media_put commands also
@@ -1820,7 +1983,7 @@ param_adddevspace 4 DATA /dev/raw/raw5 R 204800
 param_adddevspace 5 DATA /dev/raw/raw6 R 204800</pre>
 </section>
 <section id="results">
-<h4><a class="toc-backref" href="#toc-entry-69" role="doc-backlink">Results</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-78" role="doc-backlink">Results</a></h4>
 <p>Each output files starting with <cite>m_*.out</cite>, refers to a monitor table in the
 SAP DB database.  For example:</p>
 <table>
@@ -1858,25 +2021,24 @@ data and log devspaces statistics are collected in <cite>datadev0.txt</cite>,
 </section>
 </section>
 <section id="sqlite">
-<h3><a class="toc-backref" href="#toc-entry-70" role="doc-backlink">SQLite</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-79" role="doc-backlink">SQLite</a></h3>
 <p>To create a database:</p>
 <pre class="literal-block">dbt2-sqlite-build-db -g -w 1 -d /tmp/dbt2-w1 -f /tmp/dbt2data</pre>
 <p>To run a test:</p>
-<pre class="literal-block">dbt2-run-workload -a sqlite -p /tmp/dbt2-w1 -c 1 -d 120 -w 1 -n \
-        -o /tmp/results</pre>
-<p>The <cite>-p</cite> parameter must be passed to the <cite>dbt2-run-workload</cite> script to specify
+<pre class="literal-block">dbt2-run -a sqlite -p /tmp/dbt2-w1 -c 1 -d 120 -w 1 -n -o /tmp/results</pre>
+<p>The <cite>-p</cite> parameter must be passed to the <cite>dbt2-run</cite> script to specify
 where the SQLite database files are.</p>
 </section>
 <section id="yugabytedb">
-<h3><a class="toc-backref" href="#toc-entry-71" role="doc-backlink">YugabyteDB</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-80" role="doc-backlink">YugabyteDB</a></h3>
 <p>A really quick howto.</p>
 <p>The YugabyteDB scripts makes use of PostgreSQL's psql client program and libpq
 C client library interface, thus any environment variables that libpq would
 use.  See dbt2_profile for examples of what environment variables that may be
 used.</p>
-<p>The run-workload scripts currently only support handling YugabyteDB
-installations that are already setup.  i.e. script do not handle installing or
-initialization a database instance.</p>
+<p>The <em>run</em> script currently only support handling YugabyteDB installations that
+are already setup.  i.e. script do not handle installing or initialization a
+database instance.</p>
 <p>Create a 1 warehouse database by running dbt2-yugabyte-build-db:</p>
 <pre class="literal-block">dbt2-yugabyte-build-db -w 1 -l 26257</pre>
 <p>Flag description:</p>
@@ -1888,46 +2050,46 @@ initialization a database instance.</p>
              database.</pre>
 <p>Run a test a 2 minute, 1 warehouse test, specifying a PostgreSQL database
 management system:</p>
-<pre class="literal-block">dbt2-run-workload -a pgsql -c 10 -d 120 -w 1 -o /tmp/results</pre>
+<pre class="literal-block">dbt2-run -a pgsql -c 10 -d 120 -w 1 -o /tmp/results</pre>
 </section>
 </section>
 <section id="operating-system-notes">
-<h2><a class="toc-backref" href="#toc-entry-72" role="doc-backlink">Operating System Notes</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-81" role="doc-backlink">Operating System Notes</a></h2>
 <section id="linux">
-<h3><a class="toc-backref" href="#toc-entry-73" role="doc-backlink">Linux</a></h3>
-<p>If you want readprofile data, you need to give the database user sudo access
-to run readprofile.  Root privileges are required to clear the counter data.
-Here is an example of passwordless access for user 'postgres' to run
-'readprofile -r':</p>
+<h3><a class="toc-backref" href="#toc-entry-82" role="doc-backlink">Linux</a></h3>
+<p>If you want readprofile data, you need to give the user <strong>sudo</strong> access to run
+<strong>readprofile.  Root privileges are required to clear the counter data.
+Additionally, the Linux kernel needs to be booted with `profile=2` in the
+kernel command line.  Here is a **sudo</strong> configuration example of passwordless
+access for user <em>postgres</em> to run <strong>readprofile -r</strong>:</p>
 <pre class="literal-block">postgres ALL = NOPASSWD: /usr/sbin/readprofile -r</pre>
-<hr class="docutils" />
 <p>The number of open files will likely need to be raised for the on the systems
-that are driving the database.</p>
-<p>To increase this for a user edit '/etc/security/limits.conf'.  Here is an
-example for the user 'postgres':</p>
+that are driving the database when using the thread based driver and client
+programs.</p>
+<p>To increase this for a user edit <cite>/etc/security/limits.conf</cite>.  Here is an
+example for the user <em>postgres</em>:</p>
 <pre class="literal-block">postgres         soft    nofile          40000
 postgres         hard    nofile          40000</pre>
 <p>The Linux kernel parameter also needs to be adjusted because the user limits
-cannot be set above the operating system limits.  Edit '/etc/sysctl.conf':</p>
+cannot be set above the operating system limits.  Edit <cite>/etc/sysctl.conf</cite>:</p>
 <pre class="literal-block">fs.file-max = 40000</pre>
-<p>This can be verified in '/proc/sys/fs/file-max'.</p>
+<p>This can be verified in <cite>/proc/sys/fs/file-max</cite>.</p>
 <p>Additionally the driver for this workload may need to create more threads
 than allowed by default.  To increase the thread per process limit for the
-user in '/etc/security/limits.conf':</p>
+user in <cite>/etc/security/limits.conf</cite>:</p>
 <pre class="literal-block">postgres         soft    nproc           32768
 postgres         hard    nproc           32768</pre>
-<p>Similarly in '/etc/sysctl.conf' for the same reasons as above:</p>
+<p>Similarly in <cite>/etc/sysctl.conf</cite> for the same reasons as above:</p>
 <pre class="literal-block">kernel.threads-max = 32768</pre>
-<p>This can be verified in '/proc/sys/kernel/threads-max'.</p>
-<hr class="docutils" />
+<p>This can be verified in <cite>/proc/sys/kernel/threads-max</cite>.</p>
 <p>One of the shared memory parameters will likely needs to be raised on the
 database system in order to accommodate increasing the shared_buffers parameter
-in PostgreSQL.  One way to do this permanently is to edit /etc/sysctl.conf and
-add:</p>
+in PostgreSQL.  One way to do this permanently is to edit <cite>/etc/sysctl.conf</cite>
+and add:</p>
 <pre class="literal-block">kernel.shmmax = 41943040</pre>
 </section>
 <section id="solaris">
-<h3><a class="toc-backref" href="#toc-entry-74" role="doc-backlink">Solaris</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-83" role="doc-backlink">Solaris</a></h3>
 <p>These notes are from testing with OpenSolaris 10.</p>
 <p>Install the SFWgplot package for gnuplot from the Solaris 20 companion DVD.</p>
 <p>Added the following to your path in order to use gcc (and other development
@@ -1935,30 +2097,11 @@ tools) and to use gnuplot:</p>
 <pre class="literal-block">/usr/xpg6/bin:/usr/xpg4/bin:/usr/ccs/bin:/usr/sfw/bin:/opt/sfw/bin</pre>
 </section>
 </section>
-<section id="connection-pooler-notes">
-<h2><a class="toc-backref" href="#toc-entry-75" role="doc-backlink">Connection Pooler Notes</a></h2>
-<section id="pgpool">
-<h3><a class="toc-backref" href="#toc-entry-76" role="doc-backlink">pgpool</a></h3>
-<p>&quot;pgpool is a connection pool server for PostgreSQL. pgpool runs between
-PostgreSQL's clients(front ends) and servers(back ends). A PostgreSQL client
-can connect to pgpool as if it were a standard PostgreSQL server.&quot;</p>
-<p><a class="reference external" href="http://pgpool.projects.postgresql.org/">http://pgpool.projects.postgresql.org/</a></p>
-<p>pgpool must be use with Postgresql and the kit is configured to use pgpool by
-the --with-pgpool flag with configure.</p>
-<p>scripts/pgsql/pgpool.conf is used with pgpool.  backend_host_name must be
-changed if the test is being used in a two-tier configuration.
-run_workload.sh needs to be passed '-l 9999' otherwise the test will connect
-to the database directly instead of using pgpool.  The default port 9999 can
-be changed in the pgpool.conf file.</p>
-<p>scripts/pgsql/pgsql_profile.in also must be edited so that 'USE_PGPOOL=1'.
-configure must also be rerun.</p>
-</section>
-</section>
 <section id="developer-guide">
-<h2><a class="toc-backref" href="#toc-entry-77" role="doc-backlink">Developer Guide</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-84" role="doc-backlink">Developer Guide</a></h2>
 <p>This document is for detailing any related to the development of this test kit.</p>
 <section id="building-the-kit">
-<h3><a class="toc-backref" href="#toc-entry-78" role="doc-backlink">Building the Kit</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-85" role="doc-backlink">Building the Kit</a></h3>
 <p>CMake is build system used for this kit.  A <cite>Makefile.cmake</cite> is provided to
 automate some of the tasks.</p>
 <p>Building for debugging:</p>
@@ -1969,27 +2112,27 @@ automate some of the tasks.</p>
 <pre class="literal-block">make -f Makefile.cmake package</pre>
 <p>See the <strong>AppImage</strong> section for details on building an AppImage.  There are
 additional requirements for the <cite>appimage</cite> target in the <cite>Makefile.cmake</cite>.
-Alternatively, the kit provides scripts to create a container that can create
-an AppImage.</p>
+Alternatively, the kit provides scripts in the <em>tools</em> diretory to create a
+container that can create an AppImage.</p>
 </section>
 <section id="testing-the-kit">
-<h3><a class="toc-backref" href="#toc-entry-79" role="doc-backlink">Testing the Kit</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-86" role="doc-backlink">Testing the Kit</a></h3>
 <p>The CMake testing infrastructure is used with shUnit2 to provide some testing.</p>
 <section id="datagen">
-<h4><a class="toc-backref" href="#toc-entry-80" role="doc-backlink">datagen</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-87" role="doc-backlink">datagen</a></h4>
 <p>Tests are provided to verify that partitioning does not generate different data
 than if the data was not partitioned.  There are some data that is generated
 with the time stamp of when the data is created, so those columns are ignored
 when comparing data since they are not likely to be the same time stamps.</p>
 </section>
 <section id="post-process">
-<h4><a class="toc-backref" href="#toc-entry-81" role="doc-backlink">post-process</a></h4>
-<p>A test is provided to make sure that the post-process output continue to work
-with multiple mix files.</p>
+<h4><a class="toc-backref" href="#toc-entry-88" role="doc-backlink">post-process</a></h4>
+<p>A test is provided to make sure that the post-process output continues to work
+with multiple mix files as well as with various statistical analysis packages.</p>
 </section>
 </section>
 <section id="appimage">
-<h3><a class="toc-backref" href="#toc-entry-82" role="doc-backlink">AppImage</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-89" role="doc-backlink">AppImage</a></h3>
 <p>AppImages are only for Linux based systems:</p>
 <blockquote>
 <p><a class="reference external" href="https://appimage.org/">https://appimage.org/</a></p>
@@ -2008,9 +2151,9 @@ distributions with the oldest libc version.</p>
 <p>See the <cite>README.rst</cite> in the <cite>tools/</cite> directory for an example of creating
 an AppImage with a Podman container.</p>
 <section id="building-the-appimage">
-<h4><a class="toc-backref" href="#toc-entry-83" role="doc-backlink">Building the AppImage</a></h4>
-<p>Use a custom configured PostgreSQL build with minimal options enabled to reduce
-library dependency support.  Part of this reason is to make it easier to
+<h4><a class="toc-backref" href="#toc-entry-90" role="doc-backlink">Building the AppImage</a></h4>
+<p>The AppImages builds a custom minimally configured PostgreSQL build to reduce
+library dependency requirements.  Part of this reason is to make it easier to
 include libraries with compatible licences.  At least version PostgreSQL 11
 should be used for the <cite>pg_type_d.h</cite> header file.</p>
 <p>At the time of this document, PostgreSQL 11 was configured with the following
