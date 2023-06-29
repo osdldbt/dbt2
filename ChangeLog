@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-dd)
+v0.53.3 (2023-06-29)
 
 - Update touchstone tool commands to use "ts", enabling use of ts-tools
   AppImage, requires at minimum touchstone-tools v0.6.x
