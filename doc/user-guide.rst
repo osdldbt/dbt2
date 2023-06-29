@@ -27,8 +27,8 @@ There are two general ways to use this kit:
    a test.  This includes collecting system statistics as well and software
    profiles.  There is not as much flexibility as running a test manually,
    while intending to help ease system characterization work.  Scripts are also
-   provided to generate a report with all sorts of charts using R, in HTML
-   (using Docutils) and PDFs (using pandoc in conjunction with Docutils).
+   provided to generate a report with all sorts of charts using gnuplot, in
+   HTML (using Docutils) and PDFs (using pandoc in conjunction with Docutils).
 
 The database management systems that are currently supported are:
 
