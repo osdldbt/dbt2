@@ -1,3 +1,8 @@
+if [ "${BASH}" = "" ]; then
+	echo "sourcing activate currently requires a bash shell"
+	return
+fi
+
 APPIMAGE_NAME="dbt2"
 
 deactivate()
@@ -21,7 +26,7 @@ deactivate()
 	unset -f deactivate
 }
 
-APPIMAGE_ENV="$(dirname "$(realpath "${0}")")"
+APPIMAGE_ENV="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 APPIMAGE_OLD_PS1="${PS1}"
 export APPIMAGE_OLD_PS1

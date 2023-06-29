@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-dd)
 - Fix handling of -altered flag in "run" script for driver mode 1
 - Bump touchstone-tools version to v0.7.1 for gathering postgresql stats
   supporting v15
+- Restrict AppImage "activate" script to bash shells
 
 v0.53.2 (2023-06-19)
 

@@ -84,10 +84,11 @@ it hasn't already been done.  Examples in the documentation will assume it has
 been renamed to `dbt2`.
 
 If FUSE is not available, the AppImage is self-extracting and provides a script
-to set your `PATH` and `LD_LIBRARTY_PATH` to use the extracted files::
+(currently only for *bash* shells) to set your `PATH` and `LD_LIBRARTY_PATH` to
+use the extracted files::
 
     dbt2-*.AppImage --extract-appimage
-    source squashfs-root/activate
+    . squashfs-root/activate
 
 Then run `deactivate` to restore your environment, or exit the shell.
 
