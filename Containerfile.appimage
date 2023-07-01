@@ -28,7 +28,6 @@ RUN apt-get -qq -y update && \
     apt-get -qq -y autoclean
 
 RUN mkdir -p /usr/local/AppDir/usr/bin
-ENV LD_LIBRARY_PATH="/usr/local/lib64"
 
 # Install tools for making flame graphs
 
