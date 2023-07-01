@@ -162,7 +162,6 @@ double get_percentage(pcg64f_random_t *);
 int64_t get_random(pcg64f_random_t *, int64_t);
 int get_think_time(pcg64f_random_t *, int);
 int init_common();
-int create_pid_file();
 unsigned long int ntohll(long int);
 
 extern char *output_path;

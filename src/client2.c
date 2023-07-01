@@ -45,8 +45,8 @@ struct recv_io
 };
 
 struct udsmsg {
-	struct cmsghdr h;
 	int fd;
+	struct cmsghdr h;
 };
 
 /* Global Variables */

@@ -6,7 +6,7 @@
  */
 
 #ifndef _LISTENER_H_
-#define _LISTERNE_H_
+#define _LISTENER_H_
 
 #include <_semaphore.h>
 

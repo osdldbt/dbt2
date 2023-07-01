@@ -80,7 +80,7 @@ int execute_new_order_cockroach(struct db_context_t *dbc,
 	char w_id[W_ID_LEN + 1];
 
 	int decr_quantity;
-	float fol_amount;
+	float fol_amount = 0.0;
 	char ol_i_id[I_ID_LEN + 1];
 	char ol_number[O_OL_CNT_LEN + 1];
 	char ol_supply_w_id[W_ID_LEN + 1];

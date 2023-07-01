@@ -49,7 +49,6 @@ int  new_order_nonsp(struct db_context_t *dbc, struct new_order_t *data, char **
 	char query[1024];
 
 	float ol_amount[15];
-	float order_amount = 0.0;
 
         struct sql_result_t result;
 
@@ -229,8 +228,6 @@ int  new_order_nonsp(struct db_context_t *dbc, struct new_order_t *data, char **
             rc=16;
             break;
           }
-
-          order_amount += ol_amount[i];
 
           if (atoi(s_quantity[i] ) > ol_quantity[i] + 10) 
           {
