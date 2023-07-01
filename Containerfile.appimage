@@ -22,7 +22,6 @@ RUN apt-get -qq -y update && \
                    libsqlite3-dev \
                    make \
                    patch \
-                   perl \
                    wget \
                    xz-utils \
                    zlib1g-dev && \
