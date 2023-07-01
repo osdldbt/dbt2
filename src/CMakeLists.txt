@@ -357,11 +357,11 @@ set (CMAKE_C_FLAGS_DEBUG "-g -Wall")
 set_source_files_properties (
         ${PCG_SOURCE}
         rand.c
-        COMPILE_FLAGS "-std=c99 -DHAVE_DEV_RANDOM -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "-DHAVE_DEV_RANDOM -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         datagen.c
-        COMPILE_FLAGS "-std=c99 -I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         client_interface.c
@@ -375,16 +375,16 @@ set_source_files_properties (
         logging.c
         transaction_data.c
         transaction_queue.c
-        COMPILE_FLAGS "-std=c99 -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         driver_main.c
-        COMPILE_FLAGS "-std=c99 ${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 set_source_files_properties (
         _semaphore.c
         _socket.c
-        COMPILE_FLAGS "-std=c99 -I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
+        COMPILE_FLAGS "-I${CMAKE_HOME_DIRECTORY}/src/include ${LFS_CFLAGS}")
 set_source_files_properties (
         ${DB_SOURCE}
         client.c
@@ -394,7 +394,7 @@ set_source_files_properties (
         db.c
         db_threadpool.c
         transaction_test.c
-        COMPILE_FLAGS "-std=c99 ${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
+        COMPILE_FLAGS "${DBCFLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include -I${CMAKE_HOME_DIRECTORY}/src/pcg -I${CMAKE_HOME_DIRECTORY}/src/pcg/extras"
 )
 
 #
