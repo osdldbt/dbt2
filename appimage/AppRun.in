@@ -69,9 +69,9 @@ done
 
 if [ $VERSION -eq 1 ]; then
 	if [ $VERBOSE -eq 1 ]; then
-		"${APPDIR}/usr/bin/dbt2" -v --verbose
+		"${APPDIR}/usr/bin/dbt2" --version --verbose
 	else
-		"${APPDIR}/usr/bin/dbt2" -v
+		"${APPDIR}/usr/bin/dbt2" --version
 	fi
 	exit 0
 fi

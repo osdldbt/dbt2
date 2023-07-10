@@ -1,3 +1,7 @@
+vX.Y.X (YYYY-MM-DD)
+
+- Fix version flag usage with AppImages
+
 v0.53.3 (2023-06-29)
 
 - Update touchstone tool commands to use "ts", enabling use of ts-tools
