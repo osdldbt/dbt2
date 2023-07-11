@@ -178,54 +178,54 @@ Usage:
 General options:
   -A, --advanced
                  enable advanced benchmarking execution options
-  --comment COMMENTS
+  --comment=COMMENTS
                  provide COMMENTS to save with the test
-  --connection-delay MILLISECONDS
+  --connection-delay=MILLISECONDS
                  MILLISECONDS delay between client and database connections,
                  default 100
-  -d SECONDS, --duration SECONDS
+  -d SECONDS, --duration=SECONDS
                  SECONDS of the test duration, after ramp up, default $DURATION
-  --db-host ADDRESS
+  --db-host=ADDRESS
                  ADDRESS of database system, default localhost
-  --db-name NAME
+  --db-name=NAME
                  NAME of the database, default $DBNAME
-  --db-port PORT
+  --db-port=PORT
                  database listening PORT number
-  --db-user USER
+  --db-user=USER
                  database USER
   --dbaas        database server is a service
-  --districts DISTRICTS
+  --districts=DISTRICTS
                  number of DISTRICTS per warehouse, default 10
-  --driver-mode MODE
+  --driver-mode=MODE
                  1 for threaded, 3 for event-driven process MODE, default 3
   --profile      enable software profiling collection
   --privileged   run test as a privileged operating system and database user
   --stats        collect system and database stats
-  --terminal-limit TERMINALS
+  --terminal-limit=TERMINALS
                  limit the number of TERMINALS emulated
   -V, --version  output version information, then exit
-  -w WAREHOUSES, --warehouses WAREHOUSES
+  -w WAREHOUSES, --warehouses=WAREHOUSES
                  number of WAREHOUSES to use in the database, default $WAREHOUSES
   -?, --help     show this help, then exit
 
 driver-mode 1 (threaded) specific options:
-  -c CONNECTIONS, --client-connections CONNECTIONS
+  -c CONNECTIONS, --client-connections=CONNECTIONS
                  number of database CONNECTIONS to open, default $DBCON
-  --client-host ADDRESS
+  --client-host=ADDRESS
                  ADDRESS of client system, default localhost
-  --driver-partition-size NUMBER
+  --driver-partition-size=NUMBER
                  NUMBER of warehouses per process, default all
 
 driver-mode 3 (event-driven, process based) specific options:
-  --connections-per-processor PROCESSES
+  --connections-per-processor=PROCESSES
                  driver PROCESSES started per processor, default 1
 
 MySQL specific options:
-  --db-password PASSWORD
+  --db-password=PASSWORD
                  database PASSWORD
 
 PostgreSQL specific options:
-  --db-parameters OPTIONS
+  --db-parameters=OPTIONS
                  GUC command line OPTIONS to pass to postgres, when running
                  by privileged user
 
