@@ -1,6 +1,8 @@
 vX.Y.X (YYYY-MM-DD)
 
 - Fix version flag usage with AppImages
+- Add OpenSSH to AppImage
+- Fix dbt2-run --client-connections= command line handling
 
 v0.53.3 (2023-06-29)
 

@@ -291,7 +291,7 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--client-connections=?*)
 		# Check for numeric value
-		DBCON=$(echo "${1#*--client-cconnetions=}" | grep -E "^[0-9]+$")
+		DBCON=$(echo "${1#*--client-connections=}" | grep -E "^[0-9]+$")
 		validate_parameter "${opt}" "${1}" "${DBCON}"
 		;;
 	(--client-host)
