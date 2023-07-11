@@ -45,7 +45,18 @@ RUN wget -O /tmp/openssl-${OPENSSLVER}.tar.gz -q --no-check-certificate \
 WORKDIR /usr/local/src/openssl-${OPENSSLVER}
 RUN ./config -fPIC shared && \
     make -s -j$(nproc) && \
-    make -s install
+    make -s install && \
+    ldconfig
+
+ARG OPENSSHVER="9.3p1"
+RUN wget -O /tmp/openssh-${OPENSSHVER}.tar.gz -q --no-check-certificate \
+         https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSHVER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/openssh-${OPENSSHVER}.tar.gz
+WORKDIR /usr/local/src/openssh-${OPENSSHVER}
+RUN ./configure --quiet --prefix=/usr/local/AppDir/usr && \
+    make -s -j$(nproc) && \
+    make -s install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/ssh
 
 ARG PYTHONVER="3.11.1"
 RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsOL \
