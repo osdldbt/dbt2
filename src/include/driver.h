@@ -90,7 +90,7 @@ int start_driver();
 extern struct transaction_mix_t transaction_mix;
 extern struct key_time_t key_time;
 extern struct think_time_t think_time;
-extern char hostname[32];
+extern char hostname[HOSTNAMELEN + 1];
 extern int port;
 extern int duration;
 extern int w_id_min, w_id_max;

@@ -18,7 +18,7 @@
 #include <libpq-fe.h>
 
 #define LIBPQ_DBNAME_LEN 32
-#define LIBPQ_PGHOST_LEN 64
+#define LIBPQ_PGHOST_LEN HOSTNAMELEN
 #define LIBPQ_PGPORT_LEN 32
 
 struct db_context_libpq {
@@ -33,7 +33,7 @@ struct db_context_libpq {
 #include <mysql.h>
 
 #define MYSQL_DBNAME_LEN 31
-#define MYSQL_HOST_LEN 31
+#define MYSQL_HOST_LEN HOSTNAMELEN
 #define MYSQL_PASS_LEN 31
 #define MYSQL_PORT_T_LEN 31
 #define MYSQL_SOCKET_T_LEN 255

@@ -140,6 +140,8 @@ enum table {
 
 #define SNAMELEN 128
 
+#define HOSTNAMELEN 255
+
 struct table_cardinality_t {
 	int warehouses;
 	int districts;

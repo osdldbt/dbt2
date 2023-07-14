@@ -38,7 +38,7 @@
 static pcg64f_random_t rng;
 
 extern int client_port;
-char hostname[32];
+char hostname[HOSTNAMELEN + 1];
 
 int client_conn_sleep = 100; /* milliseconds */
 int duration = 0;

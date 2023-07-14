@@ -38,7 +38,7 @@ void *terminal_worker(void *data);
 /* Global Variables */
 pthread_t** g_tid = NULL;
 extern int client_port;
-char hostname[32];
+char hostname[HOSTNAMELEN + 1];
 int duration = 0;
 int stop_time = 0;
 int w_id_min = 0, w_id_max = 0;

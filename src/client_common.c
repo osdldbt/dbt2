@@ -35,7 +35,7 @@ char postmaster_port[32] = "5432";
 #endif /* HAVE_LIBPQ */
 
 #ifdef HAVE_MYSQL
-char dbt2_mysql_host[128];
+char dbt2_mysql_host[HOSTNAMELEN + 1];
 char dbt2_mysql_port[32];
 char dbt2_mysql_socket[256];
 #endif /* HAVE_MYSQL */

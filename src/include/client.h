@@ -32,7 +32,7 @@ extern char postmaster_port[32];
 #endif /* HAVE_LIBPQ */
 
 #ifdef HAVE_MYSQL
-extern char dbt2_mysql_host[128];
+extern char dbt2_mysql_host[HOSTNAMELEN + 1];
 extern char dbt2_mysql_port[32];
 extern char dbt2_mysql_socket[256];
 #endif /* HAVE_MYSQL */
