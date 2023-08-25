@@ -1,6 +1,7 @@
 vX.Y.X (YYYY-MM-DD)
 
 - Handle host names greater than 31 characters, now up to 255.
+- Fix detection of touchstone tools for collecting database stats
 
 v0.53.4 (2023-07-11)
 

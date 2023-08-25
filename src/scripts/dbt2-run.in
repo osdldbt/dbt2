@@ -132,7 +132,7 @@ stat_collection()
 		fi
 	fi
 
-	eval "${DB_COMMAND} \"which ts ts-${DBMS}-stat > /dev/null 2>&1\""
+	eval "${DB_COMMAND} which ts ts-${DBMS}-stat" > /dev/null 2>&1
 	RC=$?
 	if [ $RC -gt 1 ]; then
 		printf "WARNING: touchstone tools not found for database stats "
