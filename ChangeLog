@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- driver3 now processes -L flag to limit number of connections by limited the
+  number of processes forked
+
 v0.53.5 (2023-08-25)
 
 - Handle host names greater than 31 characters, now up to 255.

@@ -66,7 +66,6 @@ OPTIONS
         have **readprofile**, **oprofile** or **perf** set up.  See
         **ts-profile** for usage notes.
 --privileged  Run test as a privileged operating system and database user.
---terminal-limit TERMINALS  Limit the number of *terminals* emulated.
 -w WAREHOUSES, --warehouses WAREHOUSES  Number of *warehouses* to use in the
         database, default 1.
 --help  This usage message.  Or **-?**.
@@ -80,11 +79,14 @@ driver-mode 1 (threaded) specific options:
         default is to start 1 process for all of the warehouses.  This will
         start as many processes required in order to drive the specified number
         of warehouses.
+--terminal-limit TERMINALS  Limit the number of *terminals* emulated.
 
 driver-mode 3 (event-driven, process based) specific options:
 
 --connections-per-processor PROCESSES  Number of driver *processes* started per
         processor, default 1.
+--terminal-limit CONNECTIONS  Limit the number of database *CONNECTIONS*
+        opened.
 
 MySQL specific options:
 

@@ -46,7 +46,7 @@ int fork_per_processor = 1;
 int mode_altered = 0;
 int spread = 1;
 int stop_time = 0;
-int terminals_limit = 0; /* Not used by this driver. */
+int terminals_limit = 0;
 int w_id_min = 0, w_id_max = 0;
 
 FILE *log_mix = NULL;
@@ -260,6 +260,9 @@ int start_driver()
 	}
 	printf("[%d] pinned to processor %d.\n", getpid(), (max_fork - 1) % nprocs);
 	fflush(stdout);
+
+	if (terminals_limit > 0 && terminals_limit < max_fork)
+		max_fork = terminals_limit;
 
 	/* Caulculate when the test should stop. */
 	start_time = (int) ((double) client_conn_sleep / 1000.0 *

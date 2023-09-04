@@ -360,6 +360,8 @@ void usage(char *name)
 			"default: 0\n");
 #ifdef DRIVER2
 	printf("  -L #           limit the total number of terminals emulated\n");
+#elif DRIVER3
+	printf("  -L #           limit the total number of processes started\n");
 #endif /* DRIVER2 */
 	printf("  -spread #      fancy warehouse skipping trick for low i/o "
 			"runs\n");

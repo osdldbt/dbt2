@@ -201,8 +201,6 @@ General options:
   --profile      enable software profiling collection
   --privileged   run test as a privileged operating system and database user
   --stats        collect system and database stats
-  --terminal-limit=TERMINALS
-                 limit the number of TERMINALS emulated
   -V, --version  output version information, then exit
   -w WAREHOUSES, --warehouses=WAREHOUSES
                  number of WAREHOUSES to use in the database, default $WAREHOUSES
@@ -215,10 +213,14 @@ driver-mode 1 (threaded) specific options:
                  ADDRESS of client system, default localhost
   --driver-partition-size=NUMBER
                  NUMBER of warehouses per process, default all
+  --terminal-limit=TERMINALS
+                 limit the number of TERMINALS emulated
 
 driver-mode 3 (event-driven, process based) specific options:
   --connections-per-processor=PROCESSES
                  driver PROCESSES started per processor, default 1
+  --terminal-limit=CONNECTIONS
+                 limit the number of database CONNECTIONS opened
 
 MySQL specific options:
   --db-password=PASSWORD
@@ -694,7 +696,9 @@ else
 	echo "TERMINAL THREADS: ${THREADS}"
 fi
 echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
-echo "TERMINAL CAP: $TERMINALS_LIMIT"
+if [ ! "$DRIVER3" = "1" ]; then
+	echo "TERMINAL CAP: $TERMINALS_LIMIT"
+fi
 echo "WAREHOUSES PER DRIVER/CLIENT PAIR: $W_CHUNK"
 echo "SCALE FACTOR (WAREHOUSES): ${WAREHOUSES}"
 echo "DURATION OF TEST (in sec): ${DURATION}"
@@ -781,6 +785,10 @@ if [ ! "$TERMINALS_LIMIT" = "" ]; then
 fi
 if [ "$DRIVER3" = "1" ]; then
 	DRIVER_RAMPUP_TIME=$(( ($(nproc) * FPP) - 1 ))
+	if [ ! "$TERMINALS_LIMIT" = "" ] &&
+			[ $TERMINALS_LIMIT -lt $DRIVER_RAMPUP_TIME ]; then
+		DRIVER_RAMPUP_TIME="${TERMINALS_LIMIT}"
+	fi
 fi
 DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
 DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME / 1000 ))
