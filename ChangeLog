@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - driver3 now processes -L flag to limit number of connections by limited the
   number of processes forked
+- pgsql-build-db: fix execution of pgsql-load-db and pgsql-create-index so
+  that parameters are handled correctly when the -l argument is not used
 
 v0.53.5 (2023-08-25)
 
