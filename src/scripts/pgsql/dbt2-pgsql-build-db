@@ -28,7 +28,7 @@ usage()
 	echo "    -u"
 	echo "        Run as a privileged PostgreSQL user."
 	echo "    -w <scale factor>"
-	echo "        Number of warehouses to build. Default 1."
+	echo "        Number of warehouses to build, default: 1"
 	echo "    -f"
 	echo "        Perform vacuum operation in FULL mode."
 }

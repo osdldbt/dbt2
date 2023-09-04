@@ -23,7 +23,7 @@ Options:
                  database USER
   --privileged   run test as a privileged operating system and database user
   -V, --version  output version information, then exit
-  -w WAREHOUSES, --warehouses WAREHOUSES
+  -w WAREHOUSES, --warehouses=WAREHOUSES
                  number of WAREHOUSES to use in the database, default $WAREHOUSES
   -?, --help     show this help, then exit
 
