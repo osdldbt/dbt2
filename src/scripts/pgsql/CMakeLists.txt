@@ -8,7 +8,6 @@ install (
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-drop-db
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-drop-tables
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-init-db
-    ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-install-source
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-load-db
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-load-stored-procs
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-plans
