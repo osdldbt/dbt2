@@ -1,6 +1,8 @@
 vX.Y.Z (YYYY-MM-DD)
 
 - Remove dated psql scripts
+- psql: Do not attempt to create database if it already exists, so that errors
+  due to a lack of permissions to create database can be effectively trapped
 
 v0.53.6 (2023-09-04)
 
