@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Remove dated psql scripts
+
 v0.53.6 (2023-09-04)
 
 - driver3 now processes -L flag to limit number of connections by limited the
