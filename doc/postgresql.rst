@@ -124,14 +124,16 @@ properly.  For example::
     DBT2PGDATA=/tmp/pgdata; export DBT2PGDATA
 
 An optional environment variable can be set to specify a different location for
-the transaction logs (i.e. `pg_xlog`)::
+the transaction logs (i.e. `pg_xlog` or `pg_wal`) when the `dbt2-pgsql-init-db`
+script::
 
     DBT2XLOGDIR=/tmp/pgxlogdbt2; export DBT2XLOGDIR
 
-The environment variables must be defined in `~/.ssh/environment` file on each
-system for multi-tier environment for `ssh`.  Make sure `PATH` is set to cover
-the location where the DBT-2 executables and PostgreSQL binaries are installed.
-For example::
+The environment variables may need to be defined in `~/.ssh/environment` file
+on each system for multi-tier environment for `ssh`.  The ssh daemon may need
+to be configured to enable the use of user environment files.  Make sure `PATH`
+is set to include the location where the DBT-2 executables and PostgreSQL
+binaries are installed, if not in the default `PATH`.  For example::
 
     DBT2PORT=5432
     DBT2DBNAME=dbt2
@@ -141,16 +143,18 @@ For example::
 Tablespace Notes
 ----------------
 
-The scripts assumes a specific tablespace layout.
+The scripts assumes a specific tablespace layout for keeping the scripts
+simple.
 
-The `${DBT2TSDIR}` variable in `dbt2_profile` defines the directory where all
+The `${DBT2TSDIR}` environment variable defines the directory where all
 tablespace devices will be mounted.  Directories or symlinks can be substituted
 for what is assumed to be a mount point from this point forward.
 
-`dbt2-pgsql-create-tables` is where the tablespaces are created.
+`dbt2-pgsql-create-tables` and `dbt2-pgsql-create-indexes` are where the
+tablespaces are created.
 
-The mount points that need to be created, and must be owned by the user running
-the scripts, at::
+The expected mount points or symlinks, which must also be writeable by the
+database owner, need to be at::
 
     ${DBT2TSDIR}/warehouse
     ${DBT2TSDIR}/district
