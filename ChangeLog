@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.53.7 (2023-09-29)
 
 - Remove dated psql scripts
 - psql: Do not attempt to create database if it already exists, so that errors
