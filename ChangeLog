@@ -5,6 +5,8 @@ vX.Y.Z (YYYY-MM-DD)
   due to a lack of permissions to create database can be effectively trapped
 - Add --tablespaces option to dbt2-build script to specify where tablespace
   devices are mounted or symlinked
+- Fix handling of tablespace flag for creating tables when using
+  dbt2-pgsql-build-db
 
 v0.53.6 (2023-09-04)
 
