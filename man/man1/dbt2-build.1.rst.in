@@ -31,6 +31,9 @@ OPTIONS
         statistics from the database system because scripts rely on being able
         to use **ssh** and **sar**.
 --privileged  Run test as a privileged operating system and database user.
+--tablespaces DIRECTORY  build the database using tablspaces, where DIRECTORY
+        contains mountpoints or symlinks per documentation, default is to not
+        use tablespaces
 -w WAREHOUSES, --warehouses WAREHOUSES  Number of *warehouses* to use in the
         database, default 1.
 --help  This usage message.  Or **-?**.

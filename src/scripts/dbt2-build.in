@@ -22,6 +22,10 @@ Options:
   --db-user USER
                  database USER
   --privileged   run test as a privileged operating system and database user
+  --tablespaces DIRECTORY
+                 build the database using tablspaces, where DIRECTORY contains
+                 mountpoints or symlinks per documentation, default is to not
+                 use tablespaces
   -V, --version  output version information, then exit
   -w WAREHOUSES, --warehouses=WAREHOUSES
                  number of WAREHOUSES to use in the database, default $WAREHOUSES
@@ -81,6 +85,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -u"
+		;;
+	(--tablespaces)
+		shift
+		export DBT2TSDIR="${1}"
+		;;
+	(--tablespaces=?*)
+		export DBT2TSDIR=${1#*--tablespaces=}
 		;;
 	(-V | --version)
 		echo "$(basename "${0}") v@PROJECT_VERSION@"
@@ -145,6 +156,10 @@ if [ "${DBMS}" = "pgsql" ]; then
 	if [ ! "${DB_USER}" = "" ]; then
 		export PGUSER="${DB_USER}"
 	fi
+fi
+
+if [ ! "${DBT2TSDIR}" = "" ]; then
+	BUILDARGS="${BUILDARGS} -t"
 fi
 
 eval "dbt2 ${DBMS}-build-db -w ${WAREHOUSES} ${BUILDARGS}"
