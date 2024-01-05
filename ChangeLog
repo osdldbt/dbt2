@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Fix test for touchstone tools in "run" script
+
 v0.53.7 (2023-09-29)
 
 - Remove dated psql scripts

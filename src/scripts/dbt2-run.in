@@ -121,7 +121,7 @@ stat_collection()
 	# is a service.
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	if [ $DBAAS -eq 0 ]; then
-		eval "${DB_COMMAND} \"which ts ts-sysstat > /dev/null 2>&1\""
+		eval "${DB_COMMAND} which ts ts-sysstat > /dev/null 2>&1"
 		RC=$?
 		if [ $RC -gt 1 ]; then
 			printf "WARNING: touchstone tools not found for system stats "
