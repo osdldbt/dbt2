@@ -16,19 +16,19 @@ jobs:
         ARCH=$(uname -m) sh -eux tools/build-appimage
         assets=()
         for asset in $(find . -name '*.AppImage'); do
-          assets+=("-a" "$asset")
+          assets+=("$asset")
           bname=$(basename "$asset")
           dname=$(dirname "$asset")
           (cd "$dname" && md5sum "$bname" > "${bname}.md5")
           (cd "$dname" && sha256sum "$bname" > "${bname}.sha256")
         done
         for asset in $(find . -name '*.md5'); do
-          assets+=("-a" "$asset")
+          assets+=("$asset")
         done
         for asset in $(find . -name '*.sha256'); do
-          assets+=("-a" "$asset")
+          assets+=("$asset")
         done
         tag_name="${GITHUB_REF##*/}"
-        hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
+        gh release create $tag_name ${assets[@]}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
