@@ -22,14 +22,14 @@ done
 if [ ! "x${PORT}" = "x" ]; then
     PORTOPT="-p ${PORT}"
 fi
-PSQL="psql -X ${PORTOPT} -e -d ${DBT2DBNAME} -At"
+PSQL="psql -X ${PORTOPT} -d ${DBT2DBNAME} -At"
 
 # Create database
 echo "Creating database..."
 
 SQL="SELECT 1 FROM pg_database WHERE lower(datname) = lower('${DBT2DBNAME}');"
 
-RC=$(eval "${PSQL} -c \"${SQL}\"")
+RC=$(eval "${PSQL} -c \"${SQL}\" 2> /dev/null")
 
 if [ "${RC}" = "1" ]; then
 	echo "database already exists: ${DBT2DBNAME}"

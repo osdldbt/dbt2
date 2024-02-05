@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Fix pgsql-create-db logic for checking if the database already exists
+
 v0.53.8 (2024-01-08)
 
 - Fix test for touchstone tools in "run" script
