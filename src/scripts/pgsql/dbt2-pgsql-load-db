@@ -96,10 +96,16 @@ load_table() {
 		T=$TOTAL_PARTS
 	fi
 
-	if [ "x${PART_CURRENT}" = "x" ]; then
-		P=`seq 1 $CPUS`
+	# When TOTAL_PARTS is 1, data isn't being partitiond so it doesn't need to
+	# be parallelized.
+	if [ "${TOTAL_PARTS}" = "1" ]; then
+		P=1
 	else
-		P=$PART_CURRENT
+		if [ "${PART_CURRENT}" = "" ]; then
+			P="$(seq 1 "${CPUS}")"
+		else
+			P="${PART_CURRENT}"
+		fi
 	fi
 
 	$PSQL -c "ALTER TABLE $TABLE SET (autovacuum_enabled = false, toast.autovacuum_enabled = false);"
