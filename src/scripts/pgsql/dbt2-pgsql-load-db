@@ -131,3 +131,20 @@ for TABLE in item warehouse stock district customer history orders new_order;
 do
 	load_table $TABLE $WAREHOUSES $SEED
 done
+
+ROWCOUNT="$(eval "${PSQL} -At" <<- EOF
+	SELECT 1
+	FROM pg_proc, pg_namespace
+	WHERE pg_proc.pronamespace = pg_namespace.oid
+	  AND nspname = 'bdr'
+	  AND proname = 'wait_slot_confirm_lsn'
+	LIMIT 1;
+EOF
+)"
+if [ "${ROWCOUNT}" = "1" ]; then
+	eval "${PSQL} -e" <<- EOF
+		SELECT bdr.wait_slot_confirm_lsn(NULL, NULL);
+	EOF
+fi
+
+exit 0

@@ -12,6 +12,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Remove `activate` script in favor of just executing AppRun
 - Fix pgsql-load-stored-procs to install from AppImage by default when run from
   the AppImage
+- PostgreSQL load scripts are now BDR aware
 
 v0.53.9 (2024-02-07)
 
