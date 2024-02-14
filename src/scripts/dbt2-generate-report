@@ -25,10 +25,10 @@ warning() {
 
 create_stat_page()
 {
-	local TITLE=$1
-	local TAG=$2
-	local DIR=$3
-	local ODIR=$4
+	TITLE=$1
+	TAG=$2
+	DIR=$3
+	ODIR=$4
 
 	mkdir -p $ODIR
 

@@ -67,9 +67,9 @@ if [ "x${SEED}" = "x" ]; then
 fi
 
 load_table() {
-	local TABLE=$1
-	local WAREHOUSES=$2
-	local SEED=$3
+	TABLE=$1
+	WAREHOUSES=$2
+	SEED=$3
 
 	if [ "${TOTAL_PARTS}" = "" ]; then
 		# Detect the number of processors to determining how much to
@@ -112,11 +112,11 @@ load_table() {
 
 run_datagen()
 {
-	local TOTAL=$1
-	local PART=$2
-	local TABLE=$3
-	local WAREHOUSES=$4
-	local SEED=$5
+	TOTAL=$1
+	PART=$2
+	TABLE=$3
+	WAREHOUSES=$4
+	SEED=$5
 
 	dbt2 datagen --direct -w "${WAREHOUSES}" --pgsql --table "${TABLE}" \
 			--seed "${SEED}" -P "${TOTAL}" -p "${PART}"
