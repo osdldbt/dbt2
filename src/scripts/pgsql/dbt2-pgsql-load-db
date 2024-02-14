@@ -71,26 +71,20 @@ load_table() {
 	local WAREHOUSES=$2
 	local SEED=$3
 
-	# Detect the number of processors to determining how much to parallelize the
-	# data loading.  Otherwise arbitrarily use 2 processes.  The item table is
-	# always parallelizable.
-	local CPUS=2
-	if [ -f "/proc/stat" ]; then
-		CPUS=`grep cpu /proc/stat | wc -l`
-		CPUS=$(( $CPUS - 1 ))
-		if [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -eq 1 ]; then
+	if [ "${TOTAL_PARTS}" = "" ]; then
+		# Detect the number of processors to determining how much to
+		# parallelize the data loading.
+		CPUS="$(nproc)"
+		if [ "${WAREHOUSES}" -eq 1 ]; then
 			# Don't parallelize the load if there is only 1 warehouse.
 			CPUS=1
-		elif [ ! "x$TABLE" = "xitem" ] && [ $WAREHOUSES -lt $CPUS ]; then
+		elif [ "${WAREHOUSES}" -lt "${CPUS}" ]; then
 			# Don't parallelize more than the number of warehouses if there are
 			# less warehouses to build than the number of processors available.
 			CPUS=$WAREHOUSES
 		else
 			echo "detected $CPUS processors for parallel loading"
 		fi
-	fi
-
-	if [ "x${TOTAL_PARTS}" = "x" ]; then
 		T=$CPUS
 	else
 		T=$TOTAL_PARTS

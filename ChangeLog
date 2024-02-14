@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
   loading, which weren't doing anything
 - Parallelize some of the plotting in the generate-report and pgsql-report
   scripts
+- psql: run TRUNCATE and COPY within a transaction if data is not partitioned
 
 v0.53.9 (2024-02-07)
 

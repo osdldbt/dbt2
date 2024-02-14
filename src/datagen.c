@@ -152,6 +152,11 @@ void gen_customers()
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(output) != EOF) ;
 
+			if (partitions == 1) {
+				fprintf(output, "TRUNCATE customer;\n");
+				while (fgetc(output) != EOF) ;
+			}
+
 			fprintf(output,
 					"COPY customer FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
@@ -367,6 +372,11 @@ void gen_districts()
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(output) != EOF) ;
 
+			if (partitions == 1) {
+				fprintf(output, "TRUNCATE district;\n");
+				while (fgetc(output) != EOF) ;
+			}
+
 			fprintf(output,
 					"COPY district FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
@@ -522,6 +532,11 @@ void gen_history()
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(output) != EOF) ;
 
+			if (partitions == 1) {
+				fprintf(output, "TRUNCATE history;\n");
+				while (fgetc(output) != EOF) ;
+			}
+
 			fprintf(output,
 					"COPY history FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
@@ -662,6 +677,11 @@ void gen_items()
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(output) != EOF) ;
 
+			if (partitions == 1) {
+				fprintf(output, "TRUNCATE item;\n");
+				while (fgetc(output) != EOF) ;
+			}
+
 			fprintf(output,
 					"COPY item FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
@@ -789,6 +809,11 @@ void gen_new_orders()
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(output) != EOF) ;
+
+			if (partitions == 1) {
+				fprintf(output, "TRUNCATE new_order;\n");
+				while (fgetc(output) != EOF) ;
+			}
 
 			fprintf(output,
 					"COPY new_order FROM STDIN DELIMITER '%c' NULL '%s';\n",
@@ -929,6 +954,11 @@ void gen_orders()
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(order) != EOF) ;
 
+			if (partitions == 1) {
+				fprintf(order, "TRUNCATE orders;\n");
+				while (fgetc(order) != EOF) ;
+			}
+
 			fprintf(order,
 					"COPY orders FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
@@ -946,6 +976,11 @@ void gen_orders()
 			fprintf(order_line, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(order_line) != EOF) ;
+
+			if (partitions == 1) {
+				fprintf(order_line, "TRUNCATE order_line;\n");
+				while (fgetc(order_line) != EOF) ;
+			}
 
 			fprintf(order_line,
 					"COPY order_line FROM STDIN DELIMITER '%c' NULL '%s';\n",
@@ -1210,6 +1245,11 @@ void gen_stock()
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(output) != EOF) ;
 
+			if (partitions == 1) {
+				fprintf(output, "TRUNCATE stock;\n");
+				while (fgetc(output) != EOF) ;
+			}
+
 			fprintf(output,
 					"COPY stock FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
@@ -1406,6 +1446,11 @@ void gen_warehouses()
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
 			while (fgetc(output) != EOF) ;
+
+			if (partitions == 1) {
+				fprintf(output, "TRUNCATE warehouse;\n");
+				while (fgetc(output) != EOF) ;
+			}
 
 			fprintf(output,
 					"COPY warehouse FROM STDIN DELIMITER '%c' NULL '%s';\n",
