@@ -191,9 +191,11 @@ while getopts "hi:" opt; do
 	esac
 done
 
-find "${INDIR}" -type d -name dbstat | while IFS= read -r DBDIR; do
-	ts plot-pgsql -d dbt2 -i "${DBDIR}"
+# shellcheck disable=SC2044
+for DBDIR in $(find "${INDIR}" -type d -name dbstat); do
+	ts plot-pgsql -d dbt2 -i "${DBDIR}" &
 done
+wait
 
 DBNAME=$(grep "Database Name" ${INDIR}/readme.txt | cut -d " " -f 3)
 if [ "x${DBNAME}" = "x" ]; then

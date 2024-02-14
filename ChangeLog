@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Fix pgsql-load-db to not start multiple processes for single partition data
   loading, which weren't doing anything
+- Parallelize some of the plotting in the generate-report and pgsql-report
+  scripts
 
 v0.53.9 (2024-02-07)
 
