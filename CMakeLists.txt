@@ -92,47 +92,13 @@ include (CPack)
 
 set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
 
-# dbt2-driver3 libraries should overlap with psql needs.
-set (DRIVER3 "src/${PROJECT_NAME}-driver3")
-set (GNUPLOT "AppDir/usr/bin/gnuplot")
-
 add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
-    COMMAND mkdir -p AppDir/etc AppDir/usr/share/metainfo AppDir/usr/lib
-    COMMAND cp -aLr /etc/fonts AppDir/etc
-    COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun
-                   ${APPIMAGE_SOURCE_DIR}/activate
-                   ${APPIMAGE_SOURCE_DIR}/dbt2.desktop
-                   ${APPIMAGE_SOURCE_DIR}/dbt2.svg
-            AppDir
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt2.appdata.xml
-            AppDir/usr/share/metainfo
-    COMMAND cp -aL `ldd ${DRIVER3} | grep libcrypto\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${DRIVER3} | grep libev\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${DRIVER3} | grep libnsl\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${DRIVER3} | grep libssl\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libcairo\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libdatrie\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libfontconfig\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libfreetype\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libfribidi\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libgraphite2\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep harfbuzz\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpango-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpangoft2-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpangocairo-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpixman-1\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libpng12\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libthai\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libxcb\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libxcb-render\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libxcb-shm\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libX11\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libXau\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libXdmcp\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libXext\\\\\\\\. | cut -d \" \" -f 3`
-                   `ldd ${GNUPLOT} | grep libXrender\\\\\\\\. | cut -d \" \" -f 3`
-            AppDir/usr/lib
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/activate AppDir
     COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
-            --comp=xz AppDir
+            --appdir AppDir
+            --custom-apprun=${CMAKE_BINARY_DIR}/AppRun
+            --desktop-file=${APPIMAGE_SOURCE_DIR}/dbt2.desktop
+            --icon-file=${APPIMAGE_SOURCE_DIR}/dbt2.svg
+            --output appimage
 )
