@@ -9,6 +9,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Build gnuplot explicitly disabling unnecessary options for AppImage
 - Now only installing psql into AppImage
 - Install touchstone-tools v0.7.3 into AppImage
+- Remove `activate` script in favor of just executing AppRun
 
 v0.53.9 (2024-02-07)
 

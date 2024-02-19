@@ -94,7 +94,6 @@ set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
 
 add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/activate AppDir
     COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
             --appdir AppDir
             --custom-apprun=${CMAKE_BINARY_DIR}/AppRun
