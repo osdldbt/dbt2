@@ -79,15 +79,10 @@ RUN wget -O /tmp/postgresql-${PGVER}.tar.bz2 -q --no-check-certificate \
          https://ftp.postgresql.org/pub/source/v${PGVER}/postgresql-${PGVER}.tar.bz2 && \
     tar -C /usr/local/src -xf /tmp/postgresql-${PGVER}.tar.bz2
 WORKDIR /usr/local/src/postgresql-${PGVER}
-# I think it's simplier to install into the system's default paths and into a
-# "clean" location for ease of building other software and generating the
-# AppImage, resp.
 RUN ./configure --silent --without-ldap --without-readline --without-zlib \
     --without-gssapi --with-openssl --prefix=/usr && \
     make -s -j $(nproc) install && \
-    ./configure --silent --without-ldap --without-readline --without-zlib \
-    --without-gssapi --with-openssl --prefix=/usr/local/AppDir/usr && \
-    make -s -j $(nproc) install && \
+    cp -p /usr/bin/psql /usr/local/AppDir/usr/bin/psql && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/psql && \
     ldconfig
 

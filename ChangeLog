@@ -7,6 +7,7 @@ vX.Y.Z (YYYY-MM-DD)
 - psql: run TRUNCATE and COPY within a transaction if data is not partitioned
 - Use linuxdeploy to create AppImage
 - Build gnuplot explicitly disabling unnecessary options for AppImage
+- Now only installing psql into AppImage
 
 v0.53.9 (2024-02-07)
 
