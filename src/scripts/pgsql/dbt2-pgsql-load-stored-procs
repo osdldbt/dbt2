@@ -18,12 +18,18 @@ usage()
 	echo "    plpgsql - pl/pgsql stored functions"
 }
 
-SHAREDIR=$(pg_config --sharedir)
+if ! command -v pg_config > /dev/null; then
+	SHAREDIR=$(pg_config --sharedir)
+fi
 TYPE="plpgsql"
 while getopts "i:l:t:" OPT; do
 	case ${OPT} in
 	i)
 		SHAREDIR=${OPTARG}
+		if [ ! -d "${SHAREDIR}" ]; then
+			echo "ERROR: directory does not exist: ${SHAREDIR}"
+			exit 1
+		fi
 		;;
 	l)
 		PORT=${OPTARG}
@@ -33,6 +39,11 @@ while getopts "i:l:t:" OPT; do
 		;;
 	esac
 done
+
+if [ "${SHAREDIR}" = "" ]; then
+	echo "ERROR: postgresql share directory not detected or not specified"
+	exit 1
+fi
 
 if [ -z "${TYPE}" ]; then
 	usage
