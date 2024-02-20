@@ -18,9 +18,15 @@ usage()
 	echo "    plpgsql - pl/pgsql stored functions"
 }
 
-if ! command -v pg_config > /dev/null; then
+# Check if we are in an AppImage environment and set SHAREDIR appropriately,
+# otherwise expect the stored functions to be install into the default location
+# as specified by pg_config.
+if [ ! "${APPDIR}" = "" ]; then
+	SHAREDIR="${APPDIR}/usr/share/postgresql"
+elif ! command -v pg_config > /dev/null; then
 	SHAREDIR=$(pg_config --sharedir)
 fi
+
 TYPE="plpgsql"
 while getopts "i:l:t:" OPT; do
 	case ${OPT} in
