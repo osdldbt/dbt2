@@ -1,0 +1,5 @@
+-std=c99
+-Isrc/include
+-Isrc/pcg
+-Isrc/pcg/extras
+-DHAVE_LIBPQ
