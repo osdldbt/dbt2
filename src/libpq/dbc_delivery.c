@@ -6,6 +6,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "common.h"
 #include "logging.h"
@@ -40,6 +41,12 @@ int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data)
 	res = PQexec(dbc->library.libpq.conn, "BEGIN");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
+		if (PQresultStatus(res) == PGRES_FATAL_ERROR &&
+			strcmp("no connection to the server\n",
+				   PQerrorMessage(dbc->library.libpq.conn)) == 0) {
+			PQclear(res);
+			return RECONNECT;
+		}
 		PQclear(res);
 		return ERROR;
 	}
@@ -49,6 +56,12 @@ int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data)
 			paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("D %s", PQerrorMessage(dbc->library.libpq.conn));
+		if (PQresultStatus(res) == PGRES_FATAL_ERROR &&
+			strcmp("no connection to the server\n",
+				   PQerrorMessage(dbc->library.libpq.conn)) == 0) {
+			PQclear(res);
+			return RECONNECT;
+		}
 		PQclear(res);
 		return ERROR;
 	}

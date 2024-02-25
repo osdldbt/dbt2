@@ -30,6 +30,7 @@ int perform_integrity_check = 0;
 #ifdef DRIVER3
 extern int dbms;
 extern char dname[32];
+extern int retry_delay;
 extern char sname[SNAMELEN + 1];
 #endif /* DRIVER3 */
 
@@ -246,6 +247,10 @@ int parse_arguments(int argc, char *argv[])
 			think_time.stock_level = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "tpw") == 0) {
 			terminals_per_warehouse = atoi(argv[i + 1]);
+#ifdef DRIVER3
+		} else if (strcmp(flag, "retry-delay") == 0) {
+			retry_delay = atoi(argv[i + 1]);
+#endif /* DRIVER3 */
 		} else if (strcmp(flag, "sleep") == 0) {
 			client_conn_sleep = atoi(argv[i + 1]);
 		} else if (strcmp(flag, "spread") == 0) {
@@ -308,6 +313,8 @@ void usage(char *name)
 			"opening client connections, default %d\n", client_conn_sleep);
 #endif /* defined(DRIVER1) || defined(DRIVER2) */
 #ifdef DRIVER3
+	printf("  -retry-delay # delay in milliseconds between database "
+			"connections, default %d\n", retry_delay);
 	printf("  -sleep #       number of milliseconds to sleep between opening "
 			"database connections, default %d\n", client_conn_sleep);
 #endif /* DRIVER3 */

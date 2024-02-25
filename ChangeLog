@@ -1,3 +1,12 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- driver3 will now continually attempt to retry connecting to the database
+  for the duration of the test if the database connectivity code returns a
+  RECONNECT code
+- libpq interface now returns a RECONNECT code if a PGRES_FATAL_ERROR is
+  returned from any database call
+- Add -retry-delay flag to driver3 to adjust the delay between
+
 v0.53.10 (2024-02-22)
 
 - Fix pgsql-load-db to not start multiple processes for single partition data

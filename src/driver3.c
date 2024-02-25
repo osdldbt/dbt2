@@ -44,6 +44,7 @@ int client_conn_sleep = 100; /* milliseconds */
 int duration = 0;
 int fork_per_processor = 1;
 int mode_altered = 0;
+int retry_delay = 100; /* milliseconds */
 int spread = 1;
 int stop_time = 0;
 int terminals_limit = 0;
@@ -356,6 +357,11 @@ int start_driver()
 		printf("[%d] cannot connect to database, exiting...\n", getpid());
 		return 99;
 	}
+
+    dbc.stop_time = stop_time;
+	dbc.ts_retry.tv_sec = (time_t) (retry_delay / 1000);
+	dbc.ts_retry.tv_nsec =
+			(long) (retry_delay - (dbc.ts_retry.tv_sec * 1000)) * 1000;
 
 	rte = malloc(sizeof(struct rte_events) * (mymax - mymin + 1) *
 			terminals_per_warehouse);

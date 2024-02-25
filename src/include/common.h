@@ -62,6 +62,7 @@ enum table {
 #define ERROR_SOCKET_CLOSED 3
 #define STATUS_ROLLBACK 4
 #define ERROR_RECEIVE_TIMEOUT 5
+#define RECONNECT 6
 
 #define A_STRING_CHAR_LEN 128
 #define L_STRING_CHAR_LEN 52

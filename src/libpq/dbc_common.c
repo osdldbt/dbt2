@@ -25,6 +25,12 @@ int commit_transaction_libpq(struct db_context_t *dbc)
 	res = PQexec(dbc->library.libpq.conn, "COMMIT");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
+		if (PQresultStatus(res) == PGRES_FATAL_ERROR &&
+			strcmp("no connection to the server\n",
+				   PQerrorMessage(dbc->library.libpq.conn)) == 0) {
+			PQclear(res);
+			return RECONNECT;
+		}
 	}
 	PQclear(res);
 
@@ -101,6 +107,12 @@ int rollback_transaction_libpq(struct db_context_t *dbc)
 	res = PQexec(dbc->library.libpq.conn, "ROLLBACK");
 	if (!res || PQresultStatus(res) != PGRES_COMMAND_OK) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
+		if (PQresultStatus(res) == PGRES_FATAL_ERROR &&
+			strcmp("no connection to the server\n",
+				   PQerrorMessage(dbc->library.libpq.conn)) == 0) {
+			PQclear(res);
+			return RECONNECT;
+		}
 	}
 	PQclear(res);
 

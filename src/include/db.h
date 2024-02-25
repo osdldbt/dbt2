@@ -139,6 +139,8 @@ struct sql_result_t
 
 struct db_context_t {
 	int type;
+	int stop_time;
+	struct timespec ts_retry;
 	int (*connect)(struct db_context_t *);
 	int (*commit_transaction)(struct db_context_t *);
 	int (*disconnect)(struct db_context_t *);
