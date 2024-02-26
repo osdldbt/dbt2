@@ -8,6 +8,8 @@
 #ifndef _DRIVER_H_
 #define _DRIVER_H_
 
+#include <common.h>
+
 #define MIX_DELIVERY 0.04
 #define MIX_ORDER_STATUS 0.04
 #define MIX_PAYMENT 0.43

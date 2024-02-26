@@ -8,6 +8,10 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L
+#endif /* _POSIX_C_SOURCE */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif

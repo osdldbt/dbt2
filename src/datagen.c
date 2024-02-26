@@ -122,15 +122,15 @@ void gen_customers()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, CUSTOMER_DATA);
+		strncat(filename, CUSTOMER_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
@@ -342,15 +342,15 @@ void gen_districts()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, DISTRICT_DATA);
+		strncat(filename, DISTRICT_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
@@ -502,15 +502,15 @@ void gen_history()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, HISTORY_DATA);
+		strncat(filename, HISTORY_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
@@ -627,7 +627,7 @@ void gen_history()
 /* Clause 4.3.3.1 */
 void gen_items()
 {
-	FILE *output;
+	FILE *output = NULL;
 	int i;
 	wchar_t a_string[128];
 	char sa_string[512];
@@ -647,15 +647,15 @@ void gen_items()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, ITEM_DATA);
+		strncat(filename, ITEM_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
@@ -739,7 +739,8 @@ void gen_items()
 	}
 
 	if (mode_load == MODE_FLAT) {
-		fclose(output);
+        if (output != NULL)
+		    fclose(output);
 	} else {
 		switch (mode_string) {
 		case MODE_PGSQL:
@@ -780,15 +781,15 @@ void gen_new_orders()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, NEW_ORDER_DATA);
+		strncat(filename, NEW_ORDER_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
@@ -871,7 +872,8 @@ void gen_new_orders()
 /* Clause 4.3.3.1 */
 void gen_orders()
 {
-	FILE *order, *order_line;
+	FILE *order = NULL;
+	FILE *order_line = NULL;
 	int i, j, k, l;
 	wchar_t a_string[64];
 	char sa_string[256];
@@ -906,15 +908,15 @@ void gen_orders()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, ORDER_DATA);
+		strncat(filename, ORDER_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		order = fopen(filename, "w");
 		if (order == NULL) {
@@ -924,15 +926,15 @@ void gen_orders()
 
 		filename[0] = '\0';
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, ORDER_LINE_DATA);
+		strncat(filename, ORDER_LINE_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		order_line = fopen(filename, "w");
 		if (order_line == NULL) {
@@ -1013,7 +1015,8 @@ void gen_orders()
 				iter = (int) get_random(&rng, k - 1);
 				while (iter > 0) {
 					prev = current;
-					current = current->next;
+					if (current != NULL)
+						current = current->next;
 					--iter;
 				}
 
@@ -1037,6 +1040,10 @@ void gen_orders()
 
 			current = head;
 			for (k = 0; k < orders; k++) {
+				if (current == NULL) {
+					printf("error generating order & order_line data\n");
+					exit(1);
+				}
 				/* o_id */
 				fprintf(order, "%s%d%s", quoter, k + 1, quoter);
 				metaprintf(order, "%c", delimiter);
@@ -1163,8 +1170,10 @@ void gen_orders()
 	}
 
 	if (mode_load == MODE_FLAT) {
-		fclose(order);
-		fclose(order_line);
+		if (order != NULL)
+			fclose(order);
+		if (order_line != NULL)
+			fclose(order_line);
 	} else {
 		switch (mode_string) {
 		case MODE_PGSQL:
@@ -1195,7 +1204,7 @@ void gen_orders()
 /* Clause 4.3.3.1 */
 void gen_stock()
 {
-	FILE *output;
+	FILE *output = NULL;
 	int i, j, k;
 	wchar_t a_string[128];
 	char sa_string[512];
@@ -1215,15 +1224,15 @@ void gen_stock()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, STOCK_DATA);
+		strncat(filename, STOCK_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
@@ -1374,7 +1383,8 @@ void gen_stock()
 	}
 
 	if (mode_load == MODE_FLAT) {
-		fclose(output);
+		if (output != NULL)
+			fclose(output);
 	} else {
 		switch (mode_string) {
 		case MODE_PGSQL:
@@ -1417,15 +1427,15 @@ void gen_warehouses()
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
-			strcpy(filename, output_path);
-			strcat(filename, "/");
+			strncpy(filename, output_path, 1023);
+			strncat(filename, "/", 1023 - strlen(filename));
 		}
-		strcat(filename, WAREHOUSE_DATA);
+		strncat(filename, WAREHOUSE_DATA, 1023 - strlen(filename));
 		if (partitions > 1) {
 			char temp[4];
-			strcat(filename, ".");
+			strncat(filename, ".", 1023 - strlen(filename));
 			snprintf(temp, 3, "%d", part);
-			strcat(filename, temp);
+			strncat(filename, temp, 1023 - strlen(filename));
 		}
 		output = fopen(filename, "w");
 		if (output == NULL) {
@@ -1613,7 +1623,7 @@ int main(int argc, char *argv[])
 				printf("error allocating output_path\n");
 				exit(1);
 			}
-			strcpy(output_path, optarg);
+			strncpy(output_path, optarg, length);
 			if (output_path[length] == '/')
 				output_path[length] = '\0';
 			break;

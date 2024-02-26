@@ -179,11 +179,13 @@ int start_driver()
 			if (pthread_attr_init(&attr) != 0) {
 				LOG_ERROR_MESSAGE("could not init pthread attr: %d",
 						(i + j + 1) * terminals_per_warehouse);
+				free(tc);
 				return ERROR;
 			}
 			if (pthread_attr_setstacksize(&attr, stacksize) != 0) {
 				LOG_ERROR_MESSAGE("could not set pthread stack size: %d",
 						(i + j + 1) * terminals_per_warehouse);
+				free(tc);
 				return ERROR;
 			}
 			ret = pthread_create(&g_tid[i][j], &attr, &terminal_worker,
@@ -196,6 +198,7 @@ int start_driver()
 					LOG_ERROR_MESSAGE( "not enough system resources: %d",
 							(i + j + 1) * terminals_per_warehouse);
 				}
+				free(tc);
 				return ERROR;
 			}
 
@@ -284,7 +287,7 @@ void *terminal_worker(void *data)
 	unsigned long long local_seed = 0;
 	pid_t pid;
 	pthread_t tid;
-	char code;
+	char code = ' ';
 	pcg64f_random_t rng;
 
 	tc = (struct terminal_context_t *) data;

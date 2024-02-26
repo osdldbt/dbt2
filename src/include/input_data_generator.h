@@ -8,6 +8,8 @@
 #ifndef _INPUT_DATA_GENERATOR_H_
 #define _INPUT_DATA_GENERATOR_H_
 
+#include <pcg_variants.h>
+
 int generate_input_data(pcg64f_random_t *, int, void *, int);
 int generate_input_data2(pcg64f_random_t *, int, void *, int, int);
 

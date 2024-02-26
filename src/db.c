@@ -7,6 +7,8 @@
  * 16 June 2002
  */
 
+#define _POSIX_C_SOURCE 199309L
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -105,7 +107,7 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 {
 	int rc;
 	int i;
-	int status;
+	int status = 0;
 	int txn_count = 0;
 	struct timespec ts0, rem0;
 

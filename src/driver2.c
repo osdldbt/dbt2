@@ -238,7 +238,7 @@ static void transaction_receive_cb(struct ev_loop *loop, ev_io *w, int revents)
 
 int start_driver()
 {
-	int rc;
+	int rc = 0;
 	struct ev_loop* loop;
 
 	int i, j, k, l;
@@ -252,7 +252,8 @@ int start_driver()
 	int max_fork = (nprocs * fork_per_processor) > number_of_warehouses ?
 			number_of_warehouses : nprocs * fork_per_processor;
 	double partition_size = (double) number_of_warehouses / (double) max_fork;
-	int mymin, mymax;
+	int mymin = 0;
+	int mymax = 0;
 
 	int start_time;
 

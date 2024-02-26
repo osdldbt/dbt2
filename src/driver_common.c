@@ -89,7 +89,7 @@ int recalculate_mix()
 
 int set_client_hostname(char *addr)
 {
-	strcpy(hostname, addr);
+	strncpy(hostname, addr, HOSTNAMELEN);
 	printf("connecting to client at '%s'\n", hostname);
 	fflush(stdout);
 	return OK;
