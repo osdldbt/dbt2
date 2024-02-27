@@ -10,51 +10,50 @@
 #include <wchar.h>
 
 #include "common.h"
-#include "logging.h"
 #include "libpq_order_status.h"
+#include "logging.h"
 
-#define ORDER_STATUS_1 \
-		"SELECT c_id\n" \
-		"FROM customer\n" \
-		"WHERE c_w_id = $1\n" \
-		"  AND c_d_id = $2\n" \
-		"  AND c_last = $3\n" \
-		"ORDER BY c_first ASC"
+#define ORDER_STATUS_1                                                         \
+	"SELECT c_id\n"                                                            \
+	"FROM customer\n"                                                          \
+	"WHERE c_w_id = $1\n"                                                      \
+	"  AND c_d_id = $2\n"                                                      \
+	"  AND c_last = $3\n"                                                      \
+	"ORDER BY c_first ASC"
 
-#define ORDER_STATUS_2 \
-		"SELECT c_first, c_middle, c_last, c_balance\n" \
-		"FROM customer\n" \
-		"WHERE c_w_id = $1\n" \
-		"  AND c_d_id = $2\n" \
-		"  AND c_id = $3"
+#define ORDER_STATUS_2                                                         \
+	"SELECT c_first, c_middle, c_last, c_balance\n"                            \
+	"FROM customer\n"                                                          \
+	"WHERE c_w_id = $1\n"                                                      \
+	"  AND c_d_id = $2\n"                                                      \
+	"  AND c_id = $3"
 
-#define ORDER_STATUS_3 \
-		"SELECT o_id, o_carrier_id, o_entry_d, o_ol_cnt\n" \
-		"FROM orders\n" \
-		"WHERE o_w_id = $1\n" \
-		"  AND o_d_id = $2\n" \
-		"  AND o_c_id = $3\n" \
-		"ORDER BY o_id DESC\n" \
-		"LIMIT 1"
+#define ORDER_STATUS_3                                                         \
+	"SELECT o_id, o_carrier_id, o_entry_d, o_ol_cnt\n"                         \
+	"FROM orders\n"                                                            \
+	"WHERE o_w_id = $1\n"                                                      \
+	"  AND o_d_id = $2\n"                                                      \
+	"  AND o_c_id = $3\n"                                                      \
+	"ORDER BY o_id DESC\n"                                                     \
+	"LIMIT 1"
 
-#define ORDER_STATUS_4 \
-		"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,\n" \
-		"	ol_delivery_d\n" \
-		"FROM order_line\n" \
-		"WHERE ol_w_id = $1\n" \
-		"  AND ol_d_id = $2\n" \
-		"  AND ol_o_id = $3"
+#define ORDER_STATUS_4                                                         \
+	"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,\n"                \
+	"	ol_delivery_d\n"                                                         \
+	"FROM order_line\n"                                                        \
+	"WHERE ol_w_id = $1\n"                                                     \
+	"  AND ol_d_id = $2\n"                                                     \
+	"  AND ol_o_id = $3"
 
-int execute_order_status_cockroach(struct db_context_t *dbc,
-		struct order_status_t *data)
-{
+int execute_order_status_cockroach(
+		struct db_context_t *dbc, struct order_status_t *data) {
 	PGresult *res;
 	const char *paramValues[4];
 
 	char c_id[C_ID_LEN + 1];
 	char c_d_id[D_ID_LEN + 1];
 	char c_w_id[W_ID_LEN + 1];
-	char c_last[4 * (C_LAST_LEN +1)];
+	char c_last[4 * (C_LAST_LEN + 1)];
 	char o_id[O_ID_LEN + 1];
 
 #ifdef DEBUG
@@ -62,7 +61,7 @@ int execute_order_status_cockroach(struct db_context_t *dbc,
 #endif /* DEBUG */
 
 	snprintf(c_d_id, D_ID_LEN, "%d", data->c_d_id);
-	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN +1));
+	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN + 1));
 	snprintf(c_w_id, W_ID_LEN, "%d", data->c_w_id);
 
 	res = PQexec(dbc->library.libpq.conn, "BEGIN;");
@@ -78,15 +77,17 @@ int execute_order_status_cockroach(struct db_context_t *dbc,
 
 	if (data->c_id == 0) {
 		paramValues[2] = c_last;
-		res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_1, 3, NULL,
-				paramValues, NULL, NULL, 0);
+		res = PQexecParams(
+				dbc->library.libpq.conn, ORDER_STATUS_1, 3, NULL, paramValues,
+				NULL, NULL, 0);
 		if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 			LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 			PQclear(res);
 			return ERROR;
 		}
 		if (PQntuples(res) == 0) {
-			LOG_ERROR_MESSAGE("OS1 %s\n"
+			LOG_ERROR_MESSAGE(
+					"OS1 %s\n"
 					"OS1 c_w_id = %s\n"
 					"OS1 c_d_id = %s\n"
 					"OS1 c_last = %s",
@@ -106,15 +107,17 @@ int execute_order_status_cockroach(struct db_context_t *dbc,
 	}
 
 	paramValues[2] = c_id;
-	res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_2, 3, NULL,
-			paramValues, NULL, NULL, 0);
+	res = PQexecParams(
+			dbc->library.libpq.conn, ORDER_STATUS_2, 3, NULL, paramValues, NULL,
+			NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	if (PQntuples(res) == 0) {
-		LOG_ERROR_MESSAGE("OS2 %s\n"
+		LOG_ERROR_MESSAGE(
+				"OS2 %s\n"
 				"OS2 c_w_id = %s\n"
 				"OS2 c_d_id = %s\n"
 				"OS2 c_id = %s",
@@ -124,27 +127,28 @@ int execute_order_status_cockroach(struct db_context_t *dbc,
 	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		LOG_ERROR_MESSAGE("OS2[%d] c_first %s\n"
+		LOG_ERROR_MESSAGE(
+				"OS2[%d] c_first %s\n"
 				"OS2[%d] c_middle %s\n"
 				"OS2[%d] c_last %s\n"
 				"OS2[%d] c_balance %s",
-				i, PQgetvalue(res, i, 0),
-				i, PQgetvalue(res, i, 1),
-				i, PQgetvalue(res, i, 2),
-				i, PQgetvalue(res, i, 3));
+				i, PQgetvalue(res, i, 0), i, PQgetvalue(res, i, 1), i,
+				PQgetvalue(res, i, 2), i, PQgetvalue(res, i, 3));
 	}
 #endif /* DEBUG */
 	PQclear(res);
 
-	res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_3, 3, NULL,
-			paramValues, NULL, NULL, 0);
+	res = PQexecParams(
+			dbc->library.libpq.conn, ORDER_STATUS_3, 3, NULL, paramValues, NULL,
+			NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	if (PQntuples(res) == 0) {
-		LOG_ERROR_MESSAGE("OS3 %s\n"
+		LOG_ERROR_MESSAGE(
+				"OS3 %s\n"
 				"OS3 o_w_id = %s\n"
 				"OS3 o_d_id= %s\n"
 				"OS3 o_c_id = %s",
@@ -155,27 +159,28 @@ int execute_order_status_cockroach(struct db_context_t *dbc,
 	strncpy(o_id, PQgetvalue(res, 0, 0), C_ID_LEN);
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		LOG_ERROR_MESSAGE("OS3[%d] o_id %s\n"
+		LOG_ERROR_MESSAGE(
+				"OS3[%d] o_id %s\n"
 				"OS3[%d] o_carrier_id %s\n"
 				"OS3[%d] o_entry_d %s\n"
 				"OS3[%d] o_ol_cnt %s",
-				i, PQgetvalue(res, i, 0),
-				i, PQgetvalue(res, i, 1),
-				i, PQgetvalue(res, i, 2),
-				i, PQgetvalue(res, i, 3));
+				i, PQgetvalue(res, i, 0), i, PQgetvalue(res, i, 1), i,
+				PQgetvalue(res, i, 2), i, PQgetvalue(res, i, 3));
 	}
 #endif /* DEBUG */
 	PQclear(res);
 
-	res = PQexecParams(dbc->library.libpq.conn, ORDER_STATUS_4, 3, NULL,
-			paramValues, NULL, NULL, 0);
+	res = PQexecParams(
+			dbc->library.libpq.conn, ORDER_STATUS_4, 3, NULL, paramValues, NULL,
+			NULL, 0);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQclear(res);
 		return ERROR;
 	}
 	if (PQntuples(res) == 0) {
-		LOG_ERROR_MESSAGE("OS4 %s\n"
+		LOG_ERROR_MESSAGE(
+				"OS4 %s\n"
 				"OS4 o_w_id = %s\n"
 				"OS4 o_d_id= %s\n"
 				"OS4 o_id = %s",
@@ -185,14 +190,13 @@ int execute_order_status_cockroach(struct db_context_t *dbc,
 	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		LOG_ERROR_MESSAGE("OS4[%d] ol_i_id %s\n"
+		LOG_ERROR_MESSAGE(
+				"OS4[%d] ol_i_id %s\n"
 				"OS4[%d] ol_supply_w_id %s\n"
 				"OS4[%d] ol_quantity %s\n"
 				"OS4[%d] ol_amount %s",
-				i, PQgetvalue(res, i, 0),
-				i, PQgetvalue(res, i, 1),
-				i, PQgetvalue(res, i, 2),
-				i, PQgetvalue(res, i, 3));
+				i, PQgetvalue(res, i, 0), i, PQgetvalue(res, i, 1), i,
+				PQgetvalue(res, i, 2), i, PQgetvalue(res, i, 3));
 	}
 #endif /* DEBUG */
 	PQclear(res);

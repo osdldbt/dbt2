@@ -11,23 +11,23 @@
 
 #include <stdio.h>
 
-int execute_stock_level_mysql(struct db_context_t *dbc, struct stock_level_t *data)
-{
+int execute_stock_level_mysql(
+		struct db_context_t *dbc, struct stock_level_t *data) {
 	char stmt[512];
 
-        /* Create the query and execute it. */
-	sprintf(stmt, "call stock_level(%d, %d, %d, @low_stock)", data->w_id, data->d_id, data->threshold);
+	/* Create the query and execute it. */
+	sprintf(stmt, "call stock_level(%d, %d, %d, @low_stock)", data->w_id,
+			data->d_id, data->threshold);
 
 #ifdef DEBUG_QUERY
-        LOG_ERROR_MESSAGE("execute_stock_level stmt: %s\n", stmt);
+	LOG_ERROR_MESSAGE("execute_stock_level stmt: %s\n", stmt);
 #endif
 
-        if (mysql_query(dbc->library.mysql.mysql, stmt))
-        {
-          LOG_ERROR_MESSAGE("mysql reports: %d %s", mysql_errno(dbc->library.mysql.mysql) ,
-                            mysql_error(dbc->library.mysql.mysql));
-          return ERROR;
-        }
-        return OK;
+	if (mysql_query(dbc->library.mysql.mysql, stmt)) {
+		LOG_ERROR_MESSAGE(
+				"mysql reports: %d %s", mysql_errno(dbc->library.mysql.mysql),
+				mysql_error(dbc->library.mysql.mysql));
+		return ERROR;
+	}
+	return OK;
 }
-

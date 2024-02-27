@@ -7,45 +7,44 @@
  * Based on TPC-C Standard Specification Revision 5.11 Clause 2.5.2.
  */
 
+#include <catalog/pg_type.h> /* for type OIDs */
+#include <executor/spi.h>	 /* this should include most necessary APIs */
+#include <fmgr.h>
+#include <funcapi.h> /* for returning set of rows in order_status */
+#include <postgres.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <postgres.h>
-#include <fmgr.h>
-#include <catalog/pg_type.h> /* for type OIDs */
-#include <executor/spi.h> /* this should include most necessary APIs */
-#include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/builtins.h>
 
 #include "dbt2common.h"
 
-typedef struct
-{
-    char w_street_1[4 * (W_STREET_1_LEN + 1)];
-    char w_street_2[4 * (W_STREET_2_LEN + 1)];
-    char w_city[4 * (W_CITY_LEN + 1)];
-    char w_state[4 * (W_STATE_LEN + 1)];
-    char w_zip[4 * (W_ZIP_LEN + 1)];
-    char d_street_1[4 * (D_STREET_1_LEN + 1)];
-    char d_street_2[4 * (D_STREET_2_LEN + 1)];
-    char d_city[4 * (D_CITY_LEN + 1)];
-    char d_state[4 * (D_STATE_LEN + 1)];
-    char d_zip[4 * (D_ZIP_LEN + 1)];
-    char c_first[4 *(C_FIRST_LEN + 1)];
-    char c_middle[C_MIDDLE_LEN + 1];
-    char c_last[4 * (C_LAST_LEN + 1)];
-    char c_street_1[4 * (C_STREET_1_LEN + 1)];
-    char c_street_2[4 * (C_STREET_2_LEN + 1)];
-    char c_city[4 * (C_CITY_LEN + 1)];
-    char c_state[4 * (C_STATE_LEN + 1)];
-    char c_zip[4 * (C_ZIP_LEN + 1)];
-    char c_phone[4 * (C_PHONE_LEN + 1)];
-    char c_since[C_SINCE_LEN + 1];
-    char c_credit[C_CREDIT_LEN + 1];
-    float c_credit_lim;
-    float c_discount;
-    float c_balance;
-    char c_data[4 * (C_DATA_BC_LEN + 1)];
-    char h_date[H_DATE_LEN + 1];
+typedef struct {
+	char w_street_1[4 * (W_STREET_1_LEN + 1)];
+	char w_street_2[4 * (W_STREET_2_LEN + 1)];
+	char w_city[4 * (W_CITY_LEN + 1)];
+	char w_state[4 * (W_STATE_LEN + 1)];
+	char w_zip[4 * (W_ZIP_LEN + 1)];
+	char d_street_1[4 * (D_STREET_1_LEN + 1)];
+	char d_street_2[4 * (D_STREET_2_LEN + 1)];
+	char d_city[4 * (D_CITY_LEN + 1)];
+	char d_state[4 * (D_STATE_LEN + 1)];
+	char d_zip[4 * (D_ZIP_LEN + 1)];
+	char c_first[4 * (C_FIRST_LEN + 1)];
+	char c_middle[C_MIDDLE_LEN + 1];
+	char c_last[4 * (C_LAST_LEN + 1)];
+	char c_street_1[4 * (C_STREET_1_LEN + 1)];
+	char c_street_2[4 * (C_STREET_2_LEN + 1)];
+	char c_city[4 * (C_CITY_LEN + 1)];
+	char c_state[4 * (C_STATE_LEN + 1)];
+	char c_zip[4 * (C_ZIP_LEN + 1)];
+	char c_phone[4 * (C_PHONE_LEN + 1)];
+	char c_since[C_SINCE_LEN + 1];
+	char c_credit[C_CREDIT_LEN + 1];
+	float c_credit_lim;
+	float c_discount;
+	float c_balance;
+	char c_data[4 * (C_DATA_BC_LEN + 1)];
+	char h_date[H_DATE_LEN + 1];
 } payment_row;
 
 /*
@@ -60,93 +59,97 @@ typedef struct
 #define PAYMENT_7_BC statements[5].plan
 #define PAYMENT_8 statements[6].plan
 
-static cached_statement statements[] =
-{
-	{ /* PAYMENT_1 */
-	"UPDATE warehouse\n" \
-	"SET w_ytd = w_ytd + $1\n" \
-	"WHERE w_id = $2\n" \
-	"RETURNING w_name, w_street_1, w_street_2, w_city, w_state, w_zip",
-	2, { FLOAT4OID, INT4OID }
-	},
+static cached_statement statements[] = {
+		{/* PAYMENT_1 */
+		 "UPDATE warehouse\n"
+		 "SET w_ytd = w_ytd + $1\n"
+		 "WHERE w_id = $2\n"
+		 "RETURNING w_name, w_street_1, w_street_2, w_city, w_state, "
+		 "w_zip",
+		 2,
+		 {FLOAT4OID, INT4OID}},
 
-	{ /* PAYMENT_3 */
-	"UPDATE district\n" \
-	"SET d_ytd = d_ytd + $1\n" \
-	"WHERE d_id = $2\n" \
-	"  AND d_w_id = $3\n" \
-	"RETURNING d_name, d_street_1, d_street_2, d_city, d_state, d_zip",
-	3, { FLOAT4OID, INT4OID, INT4OID }
-	},
+		{/* PAYMENT_3 */
+		 "UPDATE district\n"
+		 "SET d_ytd = d_ytd + $1\n"
+		 "WHERE d_id = $2\n"
+		 "  AND d_w_id = $3\n"
+		 "RETURNING d_name, d_street_1, d_street_2, d_city, d_state, "
+		 "d_zip",
+		 3,
+		 {FLOAT4OID, INT4OID, INT4OID}},
 
-	{ /* PAYMENT_5 */
-	"SELECT c_id\n" \
-	"FROM customer\n" \
-	"WHERE c_w_id = $1\n" \
-	"  AND c_d_id = $2\n" \
-	"  AND c_last = $3\n" \
-	"ORDER BY c_first ASC",
-	3, { INT4OID, INT4OID, TEXTOID }
-	},
+		{/* PAYMENT_5 */
+		 "SELECT c_id\n"
+		 "FROM customer\n"
+		 "WHERE c_w_id = $1\n"
+		 "  AND c_d_id = $2\n"
+		 "  AND c_last = $3\n"
+		 "ORDER BY c_first ASC",
+		 3,
+		 {INT4OID, INT4OID, TEXTOID}},
 
-	{ /* PAYMENT_6 */
-	"SELECT c_first, c_middle, c_last, c_street_1, c_street_2, c_city,\n" \
-	"       c_state, c_zip, c_phone, c_since, c_credit, c_credit_lim,\n" \
-	"       c_discount, c_balance\n" \
-	"FROM customer\n" \
-	"WHERE c_w_id = $1\n" \
-	"  AND c_d_id = $2\n" \
-	"  AND c_id = $3",
-	3, { INT4OID, INT4OID, INT4OID }
-	},
+		{/* PAYMENT_6 */
+		 "SELECT c_first, c_middle, c_last, c_street_1, c_street_2, "
+		 "c_city,\n"
+		 "       c_state, c_zip, c_phone, c_since, c_credit, "
+		 "c_credit_lim,\n"
+		 "       c_discount, c_balance\n"
+		 "FROM customer\n"
+		 "WHERE c_w_id = $1\n"
+		 "  AND c_d_id = $2\n"
+		 "  AND c_id = $3",
+		 3,
+		 {INT4OID, INT4OID, INT4OID}},
 
-	{ /* PAYMENT_7_GC */
-	"UPDATE customer\n" \
-	"SET c_balance = c_balance - $1,\n" \
-	"    c_ytd_payment = c_ytd_payment + 1\n" \
-	"WHERE c_id = $2\n" \
-	"  AND c_w_id = $3\n" \
-	"  AND c_d_id = $4",
-	4, { FLOAT4OID, INT4OID, INT4OID, INT4OID }
-	},
+		{/* PAYMENT_7_GC */
+		 "UPDATE customer\n"
+		 "SET c_balance = c_balance - $1,\n"
+		 "    c_ytd_payment = c_ytd_payment + 1\n"
+		 "WHERE c_id = $2\n"
+		 "  AND c_w_id = $3\n"
+		 "  AND c_d_id = $4",
+		 4,
+		 {FLOAT4OID, INT4OID, INT4OID, INT4OID}},
 
-	{ /* PAYMENT_7_BC */
-	"UPDATE customer\n" \
-	"SET c_balance = c_balance - $1,\n" \
-	"    c_ytd_payment = c_ytd_payment + 1,\n" \
-	"    c_data = substring($2 || c_data, 1, 500)\n" \
-	"WHERE c_id = $3\n" \
-	"  AND c_w_id = $4\n" \
-	"  AND c_d_id = $5\n" \
-	"RETURNING substring(c_data, 1, 200)",
-	5, { FLOAT4OID, TEXTOID, INT4OID, INT4OID, INT4OID }
-	},
+		{/* PAYMENT_7_BC */
+		 "UPDATE customer\n"
+		 "SET c_balance = c_balance - $1,\n"
+		 "    c_ytd_payment = c_ytd_payment + 1,\n"
+		 "    c_data = substring($2 || c_data, 1, 500)\n"
+		 "WHERE c_id = $3\n"
+		 "  AND c_w_id = $4\n"
+		 "  AND c_d_id = $5\n"
+		 "RETURNING substring(c_data, 1, 200)",
+		 5,
+		 {FLOAT4OID, TEXTOID, INT4OID, INT4OID, INT4OID}},
 
-	{ /* PAYMENT_8 */
-	"INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, h_w_id,\n" \
-	"		     h_date, h_amount, h_data)\n" \
-	"VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7 || '    ' || $8)\n" \
-	"RETURNING h_date",
-	8, { INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, FLOAT4OID, TEXTOID, TEXTOID }
-	},
+		{/* PAYMENT_8 */
+		 "INSERT INTO history (h_c_id, h_c_d_id, h_c_w_id, h_d_id, "
+		 "h_w_id,\n"
+		 "		     h_date, h_amount, h_data)\n"
+		 "VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, $6, $7 || '    "
+		 "' "
+		 "|| $8)\n"
+		 "RETURNING h_date",
+		 8,
+		 {INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, FLOAT4OID, TEXTOID,
+		  TEXTOID}},
 
-	{ NULL }
-};
+		{NULL}};
 
 /* Prototypes to prevent potential gcc warnings. */
 Datum payment(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(payment);
 
-Datum payment(PG_FUNCTION_ARGS)
-{
+Datum payment(PG_FUNCTION_ARGS) {
 	FuncCallContext *funcctx;
 	int call_cntr;
 	int max_calls;
 	AttInMetadata *attinmeta;
 
-	if (SRF_IS_FIRSTCALL())
-	{
+	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
 		/* Input variables. */
@@ -198,8 +201,8 @@ Datum payment(PG_FUNCTION_ARGS)
 		char *c_data = NULL;
 		char *h_date = NULL;
 
-		Datum	args[8];
-		char	nulls[8] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
+		Datum args[8];
+		char nulls[8] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 		payment_row *pp;
 
@@ -209,15 +212,17 @@ Datum payment(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "IN c_w_id = %d", c_w_id);
 		elog(DEBUG1, "IN c_d_id = %d", c_d_id);
 		elog(DEBUG1, "IN c_last = %s",
-				DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(c_last))));
+			 DatumGetCString(
+					 DirectFunctionCall1(textout, PointerGetDatum(c_last))));
 		elog(DEBUG1, "IN h_amount = %f", h_amount);
 
 		funcctx = SRF_FIRSTCALL_INIT();
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
-		if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE)
+		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
+			TYPEFUNC_COMPOSITE) {
 			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					errmsg("delivery cannot accept type record")));
+							errmsg("delivery cannot accept type record")));
+		}
 		attinmeta = TupleDescGetAttInMetadata(tupdesc);
 		funcctx->attinmeta = attinmeta;
 
@@ -225,8 +230,8 @@ Datum payment(PG_FUNCTION_ARGS)
 
 		plan_queries(statements);
 
-		funcctx->user_fctx = MemoryContextAlloc(funcctx->multi_call_memory_ctx,
-					sizeof(payment_row));
+		funcctx->user_fctx = MemoryContextAlloc(
+				funcctx->multi_call_memory_ctx, sizeof(payment_row));
 		funcctx->max_calls = 0;
 		pp = (payment_row *) funcctx->user_fctx;
 
@@ -257,7 +262,7 @@ Datum payment(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "w_zip = %s", w_zip);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-				 errmsg("PAYMENT_1 failed")));
+							errmsg("PAYMENT_1 failed")));
 		}
 
 		args[0] = Float4GetDatum(h_amount);
@@ -288,7 +293,7 @@ Datum payment(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "d_zip = %s", d_zip);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-				 errmsg("PAYMENT_3 failed")));
+							errmsg("PAYMENT_3 failed")));
 		}
 
 		if (c_id == 0) {
@@ -303,12 +308,12 @@ Datum payment(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[count / 2];
 
 				tmp_c_id = SPI_getvalue(tuple, tupdesc, 1);
-				elog(DEBUG1, "c_id = %s, %d total, selected %d",
-						tmp_c_id, count, count / 2);
+				elog(DEBUG1, "c_id = %s, %d total, selected %d", tmp_c_id,
+					 count, count / 2);
 				my_c_id = atoi(tmp_c_id);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("PAYMENT_5 failed")));
+								errmsg("PAYMENT_5 failed")));
 			}
 		} else {
 			my_c_id = c_id;
@@ -367,7 +372,7 @@ Datum payment(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "c_balance = %s", c_balance);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-				 errmsg("PAYMENT_6 failed")));
+							errmsg("PAYMENT_6 failed")));
 		}
 
 		/* It's either "BC" or "GC". */
@@ -379,14 +384,15 @@ Datum payment(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(PAYMENT_7_GC, args, nulls, false, 0);
 			if (ret != SPI_OK_UPDATE) {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("PAYMENT_7_GC failed")));
+								errmsg("PAYMENT_7_GC failed")));
 			}
 			pp->c_data[0] = '\0';
 		} else {
 			char my_c_data[C_DATA_LEN + 1];
 
-			snprintf(my_c_data, C_DATA_LEN, "%d %d %d %d %d %f ",
-					my_c_id, c_d_id, c_w_id, d_id, w_id, h_amount);
+			snprintf(
+					my_c_data, C_DATA_LEN, "%d %d %d %d %d %f ", my_c_id,
+					c_d_id, c_w_id, d_id, w_id, h_amount);
 
 			args[0] = Float4GetDatum(h_amount);
 			args[1] = CStringGetTextDatum(my_c_data);
@@ -403,7 +409,7 @@ Datum payment(PG_FUNCTION_ARGS)
 				strncpy(pp->c_data, c_data, 4 * C_DATA_BC_LEN);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("PAYMENT_7_BC failed")));
+								errmsg("PAYMENT_7_BC failed")));
 			}
 		}
 		elog(DEBUG1, "c_data = %s", pp->c_data);
@@ -427,7 +433,7 @@ Datum payment(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "h_date = %s", h_date);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-				 errmsg("PAYMENT_8 failed")));
+							errmsg("PAYMENT_8 failed")));
 		}
 
 		funcctx->max_calls = 1;

@@ -11,18 +11,17 @@
 #include <wchar.h>
 
 #include "common.h"
-#include "logging.h"
 #include "libpq_order_status.h"
+#include "logging.h"
 
 #define UDF_ORDER_STATUS "SELECT * FROM order_status($1, $2, $3, $4)"
 
-int execute_order_status_libpq(struct db_context_t *dbc, struct order_status_t *data)
-{
+int execute_order_status_libpq(
+		struct db_context_t *dbc, struct order_status_t *data) {
 	PGresult *res;
 	const char *paramValues[4];
 	int paramLengths[4] = {
-			sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), 0
-	};
+			sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t), 0};
 	const int paramFormats[4] = {1, 1, 1, 1};
 	char c_last[4 * (C_LAST_LEN + 1)];
 
@@ -40,8 +39,9 @@ int execute_order_status_libpq(struct db_context_t *dbc, struct order_status_t *
 	wcstombs(c_last, data->c_last, 4 * (C_LAST_LEN + 1));
 
 #ifdef DEBUG
-	LOG_ERROR_MESSAGE("OS c_id %d c_w_id %d c_d_id %d c_last %s",
-			data->c_id, data->c_w_id, data->c_d_id, c_last);
+	LOG_ERROR_MESSAGE(
+			"OS c_id %d c_w_id %d c_d_id %d c_last %s", data->c_id,
+			data->c_w_id, data->c_d_id, c_last);
 #endif /* DEBUG */
 
 	paramValues[0] = (char *) &c_id;
@@ -66,8 +66,9 @@ int execute_order_status_libpq(struct db_context_t *dbc, struct order_status_t *
 	}
 	PQclear(res);
 
-	res = PQexecParams(dbc->library.libpq.conn, UDF_ORDER_STATUS, 4, NULL,
-			paramValues, paramLengths, paramFormats, 1);
+	res = PQexecParams(
+			dbc->library.libpq.conn, UDF_ORDER_STATUS, 4, NULL, paramValues,
+			paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("OS %s", PQerrorMessage(dbc->library.libpq.conn));
 		if (PQresultStatus(res) == PGRES_FATAL_ERROR &&
@@ -81,11 +82,11 @@ int execute_order_status_libpq(struct db_context_t *dbc, struct order_status_t *
 	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		union
-		{
+		union {
 			float f;
 			uint32_t i;
 		} v2, v3;
+
 		uint64_t v4;
 		time_t time4;
 		uint32_t v4mantissa;
@@ -94,24 +95,26 @@ int execute_order_status_libpq(struct db_context_t *dbc, struct order_status_t *
 		v2.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 2)));
 		v3.i = ntohl(*((uint32_t *) PQgetvalue(res, i, 3)));
 		v4 = ntohll(*((uint64_t *) PQgetvalue(res, i, 4)));
-		
+
 		time4 = v4 / (uint64_t) 1000000 +
 				(uint64_t) (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
 						(uint64_t) SECS_PER_DAY;
-		v4mantissa = v4 - (uint64_t) (time4 -
-				(POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) * SECS_PER_DAY) *
-					(uint64_t) 1000000 ;
+		v4mantissa =
+				v4 -
+				(uint64_t) (time4 - (POSTGRES_EPOCH_JDATE - UNIX_EPOCH_JDATE) *
+											SECS_PER_DAY) *
+						(uint64_t) 1000000;
 
 		/* For ease of coding, assume and print timestamps in GMT. */
 		tm4 = gmtime(&time4);
 
-		LOG_ERROR_MESSAGE("OS[%d] %s=%d %s=%d %s=%f %s=%f "
-				"%s=%04d-%02d-%02d %02d:%02d:%02d.%6d", i,
-				PQfname(res, 0), ntohl(*((uint32_t *) PQgetvalue(res, i, 0))),
-				PQfname(res, 1), ntohl(*((uint32_t *) PQgetvalue(res, i, 1))),
-				PQfname(res, 2), v2.f,
-				PQfname(res, 3), v3.f,
-				PQfname(res, 4),
+		LOG_ERROR_MESSAGE(
+				"OS[%d] %s=%d %s=%d %s=%f %s=%f "
+				"%s=%04d-%02d-%02d %02d:%02d:%02d.%6d",
+				i, PQfname(res, 0),
+				ntohl(*((uint32_t *) PQgetvalue(res, i, 0))), PQfname(res, 1),
+				ntohl(*((uint32_t *) PQgetvalue(res, i, 1))), PQfname(res, 2),
+				v2.f, PQfname(res, 3), v3.f, PQfname(res, 4),
 				tm4->tm_year + 1900, tm4->tm_mon + 1, tm4->tm_mday,
 				tm4->tm_hour, tm4->tm_min, tm4->tm_sec, v4mantissa);
 	}

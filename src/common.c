@@ -9,12 +9,12 @@
  * Based on TPC-C Standard Specification Revision 5.0.
  */
 
-#include <stdarg.h>
-#include <math.h>
-#include <string.h>
 #include <locale.h>
-#include <wchar.h>
+#include <math.h>
+#include <stdarg.h>
+#include <string.h>
 #include <unistd.h>
+#include <wchar.h>
 
 #include "common.h"
 #include "transaction_data.h"
@@ -27,66 +27,55 @@ char *output_path = NULL;
  * friendly.
  */
 const wchar_t a_string_char[A_STRING_CHAR_LEN] =
-        L"A!#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdef"
+		L"A!#$%&()*+,-./"
+		L"0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdef"
 		"ghijklmnopqrstuvwxyz{|}~€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ¡¢£¤¥¦§¨©";
 const wchar_t n_string_char[N_STRING_CHAR_LEN] = L"0123456789";
 const wchar_t l_string_char[L_STRING_CHAR_LEN] =
 		L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
+const wchar_t *c_last_syl[C_LAST_SYL_MAX] = {
+		L"BAR", L"OUGHT", L"ABLE",	L"PRI",	  L"PRES",
+		L"ESE", L"ANTI",  L"CALLY", L"ATION", L"EING"};
 
-const wchar_t *c_last_syl[C_LAST_SYL_MAX] =
-{
-	L"BAR", L"OUGHT", L"ABLE", L"PRI", L"PRES", L"ESE", L"ANTI", L"CALLY",
-	L"ATION", L"EING"
-};
+const char transaction_short_name[TRANSACTION_MAX] = {'d', 'n', 'o', 'p', 's'};
 
-const char transaction_short_name[TRANSACTION_MAX] =
-	{ 'd', 'n', 'o', 'p', 's' };
-
-char *transaction_name[TRANSACTION_MAX] =
-	{ "delivery    ",
-	  "new-order   ",
-	  "order-status",
-	  "payment     ",
-	  "stock-level "
-	};
+char *transaction_name[TRANSACTION_MAX] = {
+		"delivery    ", "new-order   ", "order-status", "payment     ",
+		"stock-level "};
 
 struct table_cardinality_t table_cardinality;
 
-int create_pid_file(char *name)
-{
-	FILE * fpid;
+int create_pid_file(char *name) {
+	FILE *fpid;
 	char pid_filename[512];
 
 	sprintf(pid_filename, "%s/%s", output_path, name);
 
-	fpid = fopen(pid_filename,"w");
+	fpid = fopen(pid_filename, "w");
 	if (!fpid) {
 		printf("cann't create pid file: %s\n", pid_filename);
 		return ERROR;
 	}
 
-	fprintf(fpid,"%d", getpid());
+	fprintf(fpid, "%d", getpid());
 	fclose(fpid);
 
 	return OK;
 }
 
-double difftimeval(struct timeval rt1, struct timeval rt0)
-{
+double difftimeval(struct timeval rt1, struct timeval rt0) {
 	return (rt1.tv_sec - rt0.tv_sec) +
-		(double) (rt1.tv_usec - rt0.tv_usec) / 1000000.00;
+		   (double) (rt1.tv_usec - rt0.tv_usec) / 1000000.00;
 }
 
 /* generates a random number on [0,1)-real-interval */
-double genrand64_real2(pcg64f_random_t *rng)
-{
-    return (pcg64f_random_r(rng) >> 11) * (1.0 / 9007199254740992.0);
+double genrand64_real2(pcg64f_random_t *rng) {
+	return (pcg64f_random_r(rng) >> 11) * (1.0 / 9007199254740992.0);
 }
 
 /* Clause 4.3.2.2.  */
-void get_a_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
-{
+void get_a_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y) {
 	int length;
 	int i;
 	pcg64f_random_t local_rng;
@@ -96,8 +85,7 @@ void get_a_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 	length = x + (int) get_random(&local_rng, (int) (y - x + 1)) + 1;
 	a_string[length - 1] = L'\0';
 
-	for (i = 0; i < length - 1; i++)
-	{
+	for (i = 0; i < length - 1; i++) {
 		a_string[i] = a_string_char[get_random(&local_rng, A_STRING_CHAR_LEN)];
 	}
 
@@ -105,14 +93,12 @@ void get_a_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 }
 
 /* Clause 4.3.2.3 */
-int get_c_last(wchar_t *c_last, int i)
-{
+int get_c_last(wchar_t *c_last, int i) {
 	wchar_t tmp[4];
 
 	c_last[0] = L'\0';
 
-	if (i < 0 || i > 999)
-	{
+	if (i < 0 || i > 999) {
 		return ERROR;
 	}
 
@@ -125,8 +111,7 @@ int get_c_last(wchar_t *c_last, int i)
 	return OK;
 }
 
-void get_l_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
-{
+void get_l_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y) {
 	int length;
 	int i;
 	pcg64f_random_t local_rng;
@@ -136,8 +121,7 @@ void get_l_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 	length = x + (int) get_random(&local_rng, (int) (y - x + 1)) + 1;
 	a_string[length - 1] = L'\0';
 
-	for (i = 0; i < length - 1; i++)
-	{
+	for (i = 0; i < length - 1; i++) {
 		a_string[i] =
 				l_string_char[(int) get_random(&local_rng, L_STRING_CHAR_LEN)];
 	}
@@ -146,8 +130,7 @@ void get_l_string(pcg64f_random_t *rng, wchar_t *a_string, int x, int y)
 }
 
 /* Clause 4.3.2.2.  */
-void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y)
-{
+void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y) {
 	int length;
 	int i;
 	pcg64f_random_t local_rng;
@@ -157,8 +140,7 @@ void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y)
 	length = x + (int) get_random(&local_rng, (int) (y - x + 1)) + 1;
 	n_string[length - 1] = L'\0';
 
-	for (i = 0; i < length - 1; i++)
-	{
+	for (i = 0; i < length - 1; i++) {
 		n_string[i] =
 				n_string_char[(int) get_random(&local_rng, N_STRING_CHAR_LEN)];
 	}
@@ -167,21 +149,19 @@ void get_n_string(pcg64f_random_t *rng, wchar_t *n_string, int x, int y)
 }
 
 /* Clause 2.1.6 */
-int get_nurand(pcg64f_random_t *rng, int a, int x, int y)
-{
-	return ((get_random(rng, a + 1) |
-			(x + get_random(rng, y + 1))) % (y - x + 1)) + x;
+int get_nurand(pcg64f_random_t *rng, int a, int x, int y) {
+	return ((get_random(rng, a + 1) | (x + get_random(rng, y + 1))) %
+			(y - x + 1)) +
+		   x;
 }
 
-double get_percentage(pcg64f_random_t *rng)
-{
-	return (pcg64f_random_r(rng) >> 11) * (1.0/9007199254740991.0);
+double get_percentage(pcg64f_random_t *rng) {
+	return (pcg64f_random_r(rng) >> 11) * (1.0 / 9007199254740991.0);
 }
 
 /* Return a number from [0 to max). */
-int64_t get_random(pcg64f_random_t *rng, int64_t max)
-{
-	return (int64_t) ((double) (max) * genrand64_real2(rng));
+int64_t get_random(pcg64f_random_t *rng, int64_t max) {
+	return (int64_t) ((double) (max) *genrand64_real2(rng));
 }
 
 /*
@@ -192,13 +172,11 @@ int64_t get_random(pcg64f_random_t *rng, int64_t max)
  * r: random number, where 0 < r <= 1
  * mean_think_time = mean think time, in milliseconds
  */
-int get_think_time(pcg64f_random_t *rng, int mean_think_time)
-{
+int get_think_time(pcg64f_random_t *rng, int mean_think_time) {
 	return (-1.0 * log(get_percentage(rng) + 0.000001) * mean_think_time);
 }
 
-int init_common()
-{
+int init_common() {
 	int rc = OK;
 
 	printf("setting locale: %s\n", setlocale(LC_ALL, "en_US.utf8"));
@@ -214,11 +192,11 @@ int init_common()
 	return rc;
 }
 
-unsigned long int ntohll(long int x)
-{
-	if (ntohl(1) == 1)
+unsigned long int ntohll(long int x) {
+	if (ntohl(1) == 1) {
 		return x;
-	else
+	} else {
 		return (long int) (ntohl((int) ((x << 32) >> 32))) << 32 |
-				(long int) ntohl(((int) (x >> 32)));
+			   (long int) ntohl(((int) (x >> 32)));
+	}
 }

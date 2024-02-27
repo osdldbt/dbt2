@@ -6,16 +6,15 @@
  *
  */
 
+#include <inttypes.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
-#include <inttypes.h>
 
-#include "pcg_variants.h"
 #include "entropy.h"
+#include "pcg_variants.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	unsigned long long seed = 1;
 	pcg64f_random_t rng;
 	int64_t min, max;
@@ -43,7 +42,7 @@ int main(int argc, char *argv[])
 			max *= 10.0;
 		}
 		r = (double) (min + ((max - min + 1) * (pcg64f_random_r(&rng) >> 11) *
-				(1.0 / 9007199254740992.0)));
+							 (1.0 / 9007199254740992.0)));
 		for (i = 0; i < p; i++) {
 			r /= 10.0;
 		}
@@ -51,7 +50,7 @@ int main(int argc, char *argv[])
 	} else {
 		int64_t r;
 		r = min + (int64_t) ((max - min + 1) * (pcg64f_random_r(&rng) >> 11) *
-				(1.0 / 9007199254740992.0));
+							 (1.0 / 9007199254740992.0));
 		printf("%" SCNd64 "\n", r);
 	}
 

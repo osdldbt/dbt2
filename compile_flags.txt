@@ -1,5 +1,7 @@
 -std=c99
+-DHAVE_LIBPQ
 -Isrc/include
 -Isrc/pcg
 -Isrc/pcg/extras
--DHAVE_LIBPQ
+-I/usr/include/postgresql
+-I/usr/include/postgresql/server

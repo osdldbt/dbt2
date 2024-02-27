@@ -9,27 +9,25 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <strings.h>
+#include <unistd.h>
 
 #include "_socket.h"
 
 #ifndef INADDR_NONE
-#define INADDR_NONE     -1
+#define INADDR_NONE -1
 #endif
 
 int resolveproto(const char *proto);
 
-int _accept(int *s)
-{
+int _accept(int *s) {
 	socklen_t addrlen;
 	struct sockaddr_in sa;
 	int sockfd;
 
 	addrlen = sizeof(struct sockaddr_in);
 	sockfd = accept(*s, (struct sockaddr *) &sa, &addrlen);
-	if (sockfd == -1)
-	{
+	if (sockfd == -1) {
 		perror("_accept");
 		printf("Can't accept driver connection, possible reasons may be\n");
 		printf("that the number of allowed open files may be exceeded.\n");
@@ -62,13 +60,14 @@ int _connect(char *address, unsigned short port) {
 	}
 
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
-		sockfd = socket(rp->ai_family, rp->ai_socktype,
-				rp->ai_protocol);
-		if (sockfd == -1)
+		sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (sockfd == -1) {
 			continue;
+		}
 
-		if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) != -1)
+		if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) != -1) {
 			break;
+		}
 
 		close(sockfd);
 		sockfd = -1;
@@ -87,8 +86,7 @@ int _connect(char *address, unsigned short port) {
 	return sockfd;
 }
 
-int _receive(int s, void *data, int length)
-{
+int _receive(int s, void *data, int length) {
 	int received, total, remaining;
 	remaining = length;
 	total = 0;
@@ -103,13 +101,11 @@ int _receive(int s, void *data, int length)
 		total += received;
 		data += received;
 		remaining -= received;
-	}
-	while (total != length);
+	} while (total != length);
 	return total;
 }
 
-int _send(int s, void *data, int length)
-{
+int _send(int s, void *data, int length) {
 	int sent = 0;
 	int remaining = length;
 	do {
@@ -125,13 +121,12 @@ int _send(int s, void *data, int length)
 	return sent;
 }
 
-int _listen(int port)
-{
+int _listen(int port) {
 	struct sockaddr_in sa;
 	int val;
 	int sockfd;
 
-	val= 1;
+	val = 1;
 
 	memset(&sa, 0, sizeof(struct sockaddr_in));
 	sa.sin_family = AF_INET;
@@ -144,10 +139,9 @@ int _listen(int port)
 		return ERR_SOCKET_CREATE;
 	}
 
-	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof (val));
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
-	if (bind(sockfd, (struct sockaddr *)&sa,
-		sizeof(struct sockaddr_in)) < 0) {
+	if (bind(sockfd, (struct sockaddr *) &sa, sizeof(struct sockaddr_in)) < 0) {
 		perror("_listen");
 		return ERR_SOCKET_BIND;
 	}
@@ -159,8 +153,7 @@ int _listen(int port)
 	return sockfd;
 }
 
-int resolveproto(const char *proto)
-{
+int resolveproto(const char *proto) {
 	struct protoent *protocol;
 
 	protocol = getprotobyname(proto);

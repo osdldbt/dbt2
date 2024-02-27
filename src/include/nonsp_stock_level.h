@@ -10,11 +10,11 @@
 #ifndef _NONSP_STOCK_LEVEL_H_
 #define _NONSP_STOCK_LEVEL_H_
 
-#include <transaction_data.h>
 #include <nonsp_common.h>
+#include <transaction_data.h>
 
 int execute_stock_level_nonsp(struct db_context_t *, struct stock_level_t *);
 int stock_level_nonsp(struct db_context_t *, struct stock_level_t *, char **,
-		int);
+                      int);
 
 #endif /* _NONSP_STOCK_LEVEL_H_ */

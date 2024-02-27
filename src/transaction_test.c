@@ -15,8 +15,8 @@
 #include <string.h>
 #include <strings.h>
 
-#include "common.h"
 #include "client_interface.h"
+#include "common.h"
 #include "db.h"
 #include "input_data_generator.h"
 #include "logging.h"
@@ -27,8 +27,7 @@
 char connect_str[32] = "";
 int mode_altered = 0;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	int i;
 	int dbms;
 	int transaction = -1;
@@ -46,8 +45,9 @@ int main(int argc, char *argv[])
 	init_logging();
 
 	if (argc < 3) {
-		printf("usage: %s -a <dbms> -d <connect string> -t d/n/o/p/s [-w #] [-c #] [-i #] [-o #] [-n #] [-p #]",
-			argv[0]);
+		printf("usage: %s -a <dbms> -d <connect string> -t d/n/o/p/s [-w #] "
+			   "[-c #] [-i #] [-o #] [-n #] [-p #]",
+			   argv[0]);
 		printf("\n\n");
 		printf("-a <dbms>\n");
 		printf("\tcockroach|mysql|pgsql|yugabyte\n");
@@ -57,17 +57,16 @@ int main(int argc, char *argv[])
 		printf("-w #\n");
 		printf("\tnumber of warehouses, default 1\n");
 		printf("-c #\n");
-		printf("\tcustomer cardinality, default %d\n",
-			CUSTOMER_CARDINALITY);
+		printf("\tcustomer cardinality, default %d\n", CUSTOMER_CARDINALITY);
 		printf("-i #\n");
 		printf("\titem cardinality, default %d\n", ITEM_CARDINALITY);
 		printf("-o #\n");
 		printf("\torder cardinality, default %d\n", ORDER_CARDINALITY);
 		printf("-n #\n");
-		printf("\tnew-order cardinality, default %d\n",
-			NEW_ORDER_CARDINALITY);
+		printf("\tnew-order cardinality, default %d\n", NEW_ORDER_CARDINALITY);
 		printf("-p #\n");
-		printf("\tport of client program, if -d is used, -d takes the address\n");
+		printf("\tport of client program, if -d is used, -d takes the "
+			   "address\n");
 		printf("\tof the client program host system\n");
 #ifdef HAVE_ODBC
 		printf("\nODBC:\n");
@@ -88,11 +87,11 @@ int main(int argc, char *argv[])
 			return 2;
 		}
 		if (argv[i][1] == 'a') {
-			if (strcmp(argv[i + 1], "cockroach") == 0)
+			if (strcmp(argv[i + 1], "cockroach") == 0) {
 				dbms = DBMSCOCKROACH;
-			else if (strcmp(argv[i + 1], "pgsql") == 0)
+			} else if (strcmp(argv[i + 1], "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
-			else {
+			} else {
 				printf("unrecognized dbms option: %s", argv[i + 1]);
 				exit(1);
 			}
@@ -110,8 +109,7 @@ int main(int argc, char *argv[])
 			} else if (argv[i + 1][0] == 's') {
 				transaction = STOCK_LEVEL;
 			} else {
-				printf("unknown transaction: %s\n",
-					argv[i + 1]);
+				printf("unknown transaction: %s\n", argv[i + 1]);
 				return 3;
 			}
 		} else if (argv[i][1] == 'w') {
@@ -163,27 +161,28 @@ int main(int argc, char *argv[])
 	memset(&transaction_data, 0, sizeof(union transaction_data_t));
 	switch (transaction) {
 	case DELIVERY:
-		generate_input_data(&rng, DELIVERY,
-				(void *) &transaction_data.delivery,
+		generate_input_data(
+				&rng, DELIVERY, (void *) &transaction_data.delivery,
 				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case NEW_ORDER:
-		generate_input_data(&rng, NEW_ORDER,
-				(void *) &transaction_data.new_order,
+		generate_input_data(
+				&rng, NEW_ORDER, (void *) &transaction_data.new_order,
 				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case ORDER_STATUS:
-		generate_input_data(&rng, ORDER_STATUS,
-				(void *) &transaction_data.order_status,
+		generate_input_data(
+				&rng, ORDER_STATUS, (void *) &transaction_data.order_status,
 				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case PAYMENT:
-		generate_input_data(&rng, PAYMENT, (void *) &transaction_data.payment,
+		generate_input_data(
+				&rng, PAYMENT, (void *) &transaction_data.payment,
 				(int) get_random(&rng, table_cardinality.warehouses) + 1);
 		break;
 	case STOCK_LEVEL:
-		generate_input_data2(&rng, STOCK_LEVEL,
-				(void *) &transaction_data.stock_level,
+		generate_input_data2(
+				&rng, STOCK_LEVEL, (void *) &transaction_data.stock_level,
 				(int) get_random(&rng, table_cardinality.warehouses) + 1,
 				(int) get_random(&rng, table_cardinality.districts) + 1);
 		break;
@@ -194,46 +193,46 @@ int main(int argc, char *argv[])
 		 * Process transaction by connecting directly to the database.
 		 */
 		printf("connecting directly to the database...\n");
-		switch(dbms) {
+		switch (dbms) {
 #ifdef HAVE_LIBPQ
 		case DBMSCOCKROACH:
-				db_init_cockroach(&dbc, "", connect_str, "");
-				break;
+			db_init_cockroach(&dbc, "", connect_str, "");
+			break;
 		case DBMSLIBPQ:
-				db_init_libpq(&dbc, "", connect_str, "");
-				break;
+			db_init_libpq(&dbc, "", connect_str, "");
+			break;
 #endif /* HAVE_LIBPQ */
 
 #ifdef HAVE_MYSQL
 		case DBMSMYSQL:
-				/* TODO: Implement this for MySQL */
-				printf("error: not implemented for mysql");
-				exit(1);
-				break;
+			/* TODO: Implement this for MySQL */
+			printf("error: not implemented for mysql");
+			exit(1);
+			break;
 #endif /* HAVE_MYSQL */
 
 #ifdef HAVE_SQLITE3
 		case DBMSSQLITE:
-				db_init_sqlite(&dbc, connect_str);
-				break;
+			db_init_sqlite(&dbc, connect_str);
+			break;
 #endif /* HAVE_SQLITE3 */
 
 #ifdef HAVE_ODBC
 		case DBMSODBC:
-				db_init_odbc(connect_str, "", "");
-				break;
+			db_init_odbc(connect_str, "", "");
+			break;
 #endif /* HAVE_ODBC */
 
 		default:
-				LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);
-				return ERROR;
+			LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);
+			return ERROR;
 		}
 		if ((*dbc.connect)(&dbc) != OK) {
 			printf("cannot establish a database connection\n");
 			return 6;
 		}
-		if (process_transaction(transaction, &dbc,
-			(void *) &transaction_data) != OK) {
+		if (process_transaction(
+					transaction, &dbc, (void *) &transaction_data) != OK) {
 			disconnect_from_db(&dbc);
 			printf("transaction failed\n");
 			return 11;
@@ -250,7 +249,7 @@ int main(int argc, char *argv[])
 
 		client_txn.transaction = transaction;
 		memcpy(&client_txn.transaction_data, &transaction_data,
-			sizeof(union transaction_data_t));
+			   sizeof(union transaction_data_t));
 		printf("sending transaction data...\n");
 		if (send_transaction_data(sockfd, &client_txn) != OK) {
 			printf("send_transaction_data() error\n");
@@ -264,7 +263,7 @@ int main(int argc, char *argv[])
 		}
 
 		memcpy(&transaction_data, &client_txn.transaction_data,
-			sizeof(union transaction_data_t));
+			   sizeof(union transaction_data_t));
 	}
 
 	dump(stdout, transaction, (void *) &transaction_data);

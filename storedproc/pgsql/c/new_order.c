@@ -7,15 +7,15 @@
  * Based on TPC-C Standard Specification Revision 5.11 Clause 2.4.2.
  */
 
+#include <catalog/pg_type.h>   /* for OIDs */
+#include <executor/executor.h> /* for GetAttributeByName() */
+#include <executor/spi.h>	   /* this should include most necessary APIs */
+#include <fmgr.h>
+#include <funcapi.h> /* for returning set of rows in order_status */
+#include <postgres.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <postgres.h>
-#include <fmgr.h>
-#include <catalog/pg_type.h> /* for OIDs */
-#include <executor/spi.h> /* this should include most necessary APIs */
-#include <executor/executor.h>  /* for GetAttributeByName() */
 #include <utils/builtins.h>
-#include <funcapi.h> /* for returning set of rows in order_status */
 
 #include "dbt2common.h"
 
@@ -33,93 +33,91 @@
 #define NEW_ORDER_9 statements[7].plan
 #define NEW_ORDER_10 statements[8].plan
 
-const char s_dist[10][11] = {
-	"s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04", "s_dist_05",
-	"s_dist_06", "s_dist_07", "s_dist_08", "s_dist_09", "s_dist_10"
-};
+const char s_dist[10][11] = {"s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04",
+							 "s_dist_05", "s_dist_06", "s_dist_07", "s_dist_08",
+							 "s_dist_09", "s_dist_10"};
 
-static cached_statement statements[] =
-{
+static cached_statement statements[] = {
 
-	{ /* NEW_ORDER_1 */
-	"SELECT w_tax\n" \
-	"FROM warehouse\n" \
-	"WHERE w_id = $1",
-	1, { INT4OID }
-	},
+		{/* NEW_ORDER_1 */
+		 "SELECT w_tax\n"
+		 "FROM warehouse\n"
+		 "WHERE w_id = $1",
+		 1,
+		 {INT4OID}},
 
-	{ /* NEW_ORDER_2 */
-	"UPDATE district\n" \
-	"SET d_next_o_id = d_next_o_id + 1\n" \
-	"WHERE d_w_id = $1\n" \
-	"  AND d_id = $2\n" \
-	"RETURNING d_tax, d_next_o_id",
-	2, { INT4OID, INT4OID }
-	},
+		{/* NEW_ORDER_2 */
+		 "UPDATE district\n"
+		 "SET d_next_o_id = d_next_o_id + 1\n"
+		 "WHERE d_w_id = $1\n"
+		 "  AND d_id = $2\n"
+		 "RETURNING d_tax, d_next_o_id",
+		 2,
+		 {INT4OID, INT4OID}},
 
-	{ /* NEW_ORDER_4 */
-	"SELECT c_discount, c_last, c_credit\n" \
-	"FROM customer\n" \
-	"WHERE c_w_id = $1\n" \
-	"  AND c_d_id = $2\n" \
-	"  AND c_id = $3",
-	3, { INT4OID, INT4OID, INT4OID }
-	},
+		{/* NEW_ORDER_4 */
+		 "SELECT c_discount, c_last, c_credit\n"
+		 "FROM customer\n"
+		 "WHERE c_w_id = $1\n"
+		 "  AND c_d_id = $2\n"
+		 "  AND c_id = $3",
+		 3,
+		 {INT4OID, INT4OID, INT4OID}},
 
-	{ /* NEW_ORDER_5 */
-	"INSERT INTO new_order (no_o_id, no_w_id, no_d_id)\n" \
-	"VALUES ($1, $2, $3)",
-	3, { INT4OID, INT4OID, INT4OID}
-	},
+		{/* NEW_ORDER_5 */
+		 "INSERT INTO new_order (no_o_id, no_w_id, no_d_id)\n"
+		 "VALUES ($1, $2, $3)",
+		 3,
+		 {INT4OID, INT4OID, INT4OID}},
 
-	{ /* NEW_ORDER_6 */
-	"INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d,\n" \
-	"		    o_carrier_id, o_ol_cnt, o_all_local)\n" \
-	"VALUES ($1, $2, $3, $4, current_timestamp, NULL, $5, $6)",
-	6, { INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, INT4OID}
-	},
+		{/* NEW_ORDER_6 */
+		 "INSERT INTO orders (o_id, o_d_id, o_w_id, o_c_id, o_entry_d,\n"
+		 "		    o_carrier_id, o_ol_cnt, o_all_local)\n"
+		 "VALUES ($1, $2, $3, $4, current_timestamp, NULL, $5, $6)",
+		 6,
+		 {INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, INT4OID}},
 
-	{ /* NEW_ORDER_7 */
-	"SELECT i_price, i_name, i_data\n" \
-	"FROM item\n" \
-	"WHERE i_id = $1",
-	1, { INT4OID }
-	},
+		{/* NEW_ORDER_7 */
+		 "SELECT i_price, i_name, i_data\n"
+		 "FROM item\n"
+		 "WHERE i_id = $1",
+		 1,
+		 {INT4OID}},
 
-	{ /* NEW_ORDER_8 */
-	"SELECT s_quantity, $1, s_data\n" \
-	"FROM stock\n" \
-	"WHERE s_i_id = $2\n" \
-	"  AND s_w_id = $3",
-	3, { TEXTOID, INT4OID, INT4OID}
-	},
+		{/* NEW_ORDER_8 */
+		 "SELECT s_quantity, $1, s_data\n"
+		 "FROM stock\n"
+		 "WHERE s_i_id = $2\n"
+		 "  AND s_w_id = $3",
+		 3,
+		 {TEXTOID, INT4OID, INT4OID}},
 
-	{ /* NEW_ORDER_9 */
-	"UPDATE stock\n" \
-	"SET s_quantity = s_quantity - $1\n" \
-	"WHERE s_i_id = $2\n" \
-	"  AND s_w_id = $3",
-	3, { INT4OID, INT4OID, INT4OID}
-	},
+		{/* NEW_ORDER_9 */
+		 "UPDATE stock\n"
+		 "SET s_quantity = s_quantity - $1\n"
+		 "WHERE s_i_id = $2\n"
+		 "  AND s_w_id = $3",
+		 3,
+		 {INT4OID, INT4OID, INT4OID}},
 
-	{ /* NEW_ORDER_10 */
-	"INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, ol_number,\n" \
-	"			ol_i_id, ol_supply_w_id, ol_delivery_d,\n" \
-	"			ol_quantity, ol_amount, ol_dist_info)\n" \
-	"VALUES ($1, $2, $3, $4, $5, $6, NULL, $7, $8, $9)",
-	9, { INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, FLOAT4OID, TEXTOID }
-	},
+		{/* NEW_ORDER_10 */
+		 "INSERT INTO order_line (ol_o_id, ol_d_id, ol_w_id, "
+		 "ol_number,\n"
+		 "			ol_i_id, ol_supply_w_id, ol_delivery_d,\n"
+		 "			ol_quantity, ol_amount, ol_dist_info)\n"
+		 "VALUES ($1, $2, $3, $4, $5, $6, NULL, $7, $8, $9)",
+		 9,
+		 {INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, INT4OID, INT4OID,
+		  FLOAT4OID, TEXTOID}},
 
-	{ NULL }
-};
+		{NULL}};
 
 /* Prototypes to prevent potential gcc warnings. */
 Datum new_order(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(new_order);
 
-typedef struct
-{
+typedef struct {
 	int ol_supply_w_id;
 	int ol_i_id;
 	char i_name[4 * (I_NAME_LEN + 1)];
@@ -130,15 +128,13 @@ typedef struct
 	char brand_generic;
 } no_order_line;
 
-Datum new_order(PG_FUNCTION_ARGS)
-{
+Datum new_order(PG_FUNCTION_ARGS) {
 	FuncCallContext *funcctx;
 	int call_cntr;
 	int max_calls;
 	AttInMetadata *attinmeta;
 
-	if (SRF_IS_FIRSTCALL())
-	{
+	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
 		/* Input variables. */
@@ -181,20 +177,20 @@ Datum new_order(PG_FUNCTION_ARGS)
 		char *s_data[15];
 
 		Datum args[9];
-		char  nulls[9] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
+		char nulls[9] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '};
 
 		no_order_line *pp;
 
 		/* Loop through the last set of parameters. */
 		for (i = 0, j = 5; i < 15; i++) {
 			bool isnull;
-			HeapTupleHeader  t = PG_GETARG_HEAPTUPLEHEADER(j++);
-			ol_i_id[i] = DatumGetInt32(GetAttributeByName(t, "ol_i_id",
-					&isnull));
-			ol_supply_w_id[i] = DatumGetInt32(GetAttributeByName(t,
-					"ol_supply_w_id", &isnull));
-			ol_quantity[i] = DatumGetInt32(GetAttributeByName(t, "ol_quantity",
-					&isnull));
+			HeapTupleHeader t = PG_GETARG_HEAPTUPLEHEADER(j++);
+			ol_i_id[i] =
+					DatumGetInt32(GetAttributeByName(t, "ol_i_id", &isnull));
+			ol_supply_w_id[i] = DatumGetInt32(
+					GetAttributeByName(t, "ol_supply_w_id", &isnull));
+			ol_quantity[i] = DatumGetInt32(
+					GetAttributeByName(t, "ol_quantity", &isnull));
 		}
 
 		elog(DEBUG1, "IN w_id = %d", w_id);
@@ -206,15 +202,17 @@ Datum new_order(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "IN ##  ol_i_id  ol_supply_w_id  ol_quantity");
 		elog(DEBUG1, "IN --  -------  --------------  -----------");
 		for (i = 0; i < o_ol_cnt; i++) {
-			elog(DEBUG1, "IN %2d  %7d  %14d  %11d",
-					i + 1, ol_i_id[i], ol_supply_w_id[i], ol_quantity[i]);
+			elog(DEBUG1, "IN %2d  %7d  %14d  %11d", i + 1, ol_i_id[i],
+				 ol_supply_w_id[i], ol_quantity[i]);
 		}
 
 		funcctx = SRF_FIRSTCALL_INIT();
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
-		if (get_call_result_type(fcinfo, NULL, &tupdesc) != TYPEFUNC_COMPOSITE)
+		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
+			TYPEFUNC_COMPOSITE) {
 			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					errmsg("delivery cannot accept type record")));
+							errmsg("delivery cannot accept type record")));
+		}
 		attinmeta = TupleDescGetAttInMetadata(tupdesc);
 		funcctx->attinmeta = attinmeta;
 
@@ -222,8 +220,9 @@ Datum new_order(PG_FUNCTION_ARGS)
 
 		plan_queries(statements);
 
-		funcctx->user_fctx = MemoryContextAlloc(funcctx->multi_call_memory_ctx,
-					sizeof(no_order_line) * o_ol_cnt);
+		funcctx->user_fctx = MemoryContextAlloc(
+				funcctx->multi_call_memory_ctx,
+				sizeof(no_order_line) * o_ol_cnt);
 
 		args[0] = Int32GetDatum(w_id);
 		ret = SPI_execute_plan(NEW_ORDER_1, args, nulls, true, 0);
@@ -236,7 +235,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "w_tax = %s", w_tax);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-                 errmsg("NEW_ORDER_1 failed")));
+							errmsg("NEW_ORDER_1 failed")));
 		}
 
 		args[0] = Int32GetDatum(w_id);
@@ -253,7 +252,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "d_next_o_id = %d", d_next_o_id);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-                 errmsg("NEW_ORDER_3 failed")));
+							errmsg("NEW_ORDER_3 failed")));
 		}
 
 		args[0] = Int32GetDatum(w_id);
@@ -273,7 +272,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "c_credit = %s", c_credit);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-                 errmsg("NEW_ORDER_4 failed")));
+							errmsg("NEW_ORDER_4 failed")));
 		}
 
 		args[0] = Int32GetDatum(d_next_o_id);
@@ -282,7 +281,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(NEW_ORDER_5, args, nulls, false, 0);
 		if (ret != SPI_OK_INSERT) {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-                 errmsg("NEW_ORDER_5 failed")));
+							errmsg("NEW_ORDER_5 failed")));
 		}
 
 		args[0] = Int32GetDatum(d_next_o_id);
@@ -294,7 +293,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(NEW_ORDER_6, args, nulls, false, 0);
 		if (ret != SPI_OK_INSERT) {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-                 errmsg("NEW_ORDER_6 failed")));
+							errmsg("NEW_ORDER_6 failed")));
 		}
 
 		pp = (no_order_line *) funcctx->user_fctx;
@@ -323,7 +322,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			} else {
 				/* Item doesn't exist, rollback transaction. */
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("NEW_ORDER_8 failed: item not found")));
+								errmsg("NEW_ORDER_8 failed: item not found")));
 				SPI_finish();
 				PG_RETURN_NULL();
 			}
@@ -348,7 +347,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 				elog(DEBUG1, "s_data[%d] = %s", i, s_data[i]);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("NEW_ORDER_8 failed")));
+								errmsg("NEW_ORDER_8 failed")));
 			}
 			order_amount += ol_amount[i];
 
@@ -363,7 +362,7 @@ Datum new_order(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(NEW_ORDER_9, args, nulls, false, 0);
 			if (ret != SPI_OK_UPDATE) {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("NEW_ORDER_9 failed")));
+								errmsg("NEW_ORDER_9 failed")));
 			}
 
 			args[0] = Int32GetDatum(d_next_o_id);
@@ -378,13 +377,15 @@ Datum new_order(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(NEW_ORDER_10, args, nulls, false, 0);
 			if (ret != SPI_OK_INSERT) {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("NEW_ORDER_10 failed")));
+								errmsg("NEW_ORDER_10 failed")));
 			}
 
-			if (strstr(i_data[i], "ORIGINAL") && strstr(s_data[i], "ORIGINAL"))
+			if (strstr(i_data[i], "ORIGINAL") &&
+				strstr(s_data[i], "ORIGINAL")) {
 				pp[i].brand_generic = 'B';
-			else
+			} else {
 				pp[i].brand_generic = 'G';
+			}
 			elog(DEBUG1, "brand_generic[%d] = %c", i, pp[i].brand_generic);
 		}
 		funcctx->max_calls = o_ol_cnt;

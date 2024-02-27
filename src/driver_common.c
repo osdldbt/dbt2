@@ -6,8 +6,8 @@
  */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "driver.h"
@@ -21,8 +21,7 @@ struct transaction_mix_t transaction_mix;
 struct key_time_t key_time;
 struct think_time_t think_time;
 
-int init_driver()
-{
+int init_driver() {
 	terminals_per_warehouse = table_cardinality.districts;
 
 	transaction_mix.delivery_actual = MIX_DELIVERY;
@@ -45,17 +44,16 @@ int init_driver()
 	return OK;
 }
 
-int recalculate_mix()
-{
+int recalculate_mix() {
 	/*
 	 * Calculate the actual percentage that the New-Order transaction will
 	 * be execute.
 	 */
-	transaction_mix.new_order_actual = 1.0 -
-			(transaction_mix.delivery_actual +
-			transaction_mix.order_status_actual +
-			transaction_mix.payment_actual +
-			transaction_mix.stock_level_actual);
+	transaction_mix.new_order_actual =
+			1.0 - (transaction_mix.delivery_actual +
+				   transaction_mix.order_status_actual +
+				   transaction_mix.payment_actual +
+				   transaction_mix.stock_level_actual);
 
 	if (transaction_mix.new_order_actual < 0.0) {
 		LOG_ERROR_MESSAGE(
@@ -71,46 +69,40 @@ int recalculate_mix()
 
 	/* Calculate the thresholds of each transaction. */
 	transaction_mix.new_order_threshold = transaction_mix.new_order_actual;
-	transaction_mix.payment_threshold =
-			transaction_mix.new_order_threshold +
-			transaction_mix.payment_actual;
+	transaction_mix.payment_threshold = transaction_mix.new_order_threshold +
+										transaction_mix.payment_actual;
 	transaction_mix.order_status_threshold =
-			transaction_mix.payment_threshold
-			+ transaction_mix.order_status_actual;
+			transaction_mix.payment_threshold +
+			transaction_mix.order_status_actual;
 	transaction_mix.delivery_threshold =
-			transaction_mix.order_status_threshold
-			+ transaction_mix.delivery_actual;
-	transaction_mix.stock_level_threshold =
-			transaction_mix.delivery_threshold +
-			transaction_mix.stock_level_actual;
+			transaction_mix.order_status_threshold +
+			transaction_mix.delivery_actual;
+	transaction_mix.stock_level_threshold = transaction_mix.delivery_threshold +
+											transaction_mix.stock_level_actual;
 
 	return OK;
 }
 
-int set_client_hostname(char *addr)
-{
+int set_client_hostname(char *addr) {
 	strncpy(hostname, addr, HOSTNAMELEN);
 	printf("connecting to client at '%s'\n", hostname);
 	fflush(stdout);
 	return OK;
 }
 
-int set_client_port(int port)
-{
+int set_client_port(int port) {
 	client_port = port;
 	printf("connecting to client port at '%d'\n", client_port);
 	fflush(stdout);
 	return OK;
 }
 
-int set_duration(int seconds)
-{
+int set_duration(int seconds) {
 	duration = seconds;
 	return OK;
 }
 
-int set_table_cardinality(int table, int cardinality)
-{
+int set_table_cardinality(int table, int cardinality) {
 	switch (table) {
 	case TABLE_WAREHOUSE:
 		table_cardinality.warehouses = cardinality;
@@ -134,8 +126,7 @@ int set_table_cardinality(int table, int cardinality)
 	return OK;
 }
 
-int set_transaction_mix(int transaction, double mix)
-{
+int set_transaction_mix(int transaction, double mix) {
 	switch (transaction) {
 	case DELIVERY:
 		transaction_mix.delivery_actual = mix;

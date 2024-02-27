@@ -10,11 +10,11 @@
 #ifndef _NONSP_ORDER_STATUS_H_
 #define _NONSP_ORDER_STATUS_H_
 
-#include <transaction_data.h>
 #include <nonsp_common.h>
+#include <transaction_data.h>
 
 int execute_order_status_nonsp(struct db_context_t *, struct order_status_t *);
 int order_status_nonsp(struct db_context_t *, struct order_status_t *, char **,
-		int);
+                       int);
 
 #endif /* _NONSP_ORDER_STATUS_H_ */

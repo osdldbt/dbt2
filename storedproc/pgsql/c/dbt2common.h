@@ -10,6 +10,8 @@
 #ifndef _DBT2COMMON_H_
 #define _DBT2COMMON_H_
 
+#include <catalog/pg_type.h>
+
 #define TIMESTAMP_LEN 28
 
 #define C_CREDIT_LEN 2
@@ -52,12 +54,11 @@
  * cached_statement encapsulates all we need to know about a query to prepare
  * it using SPI_prepare().
  */
-typedef struct
-{
-	const char *sql;		/* statement text */
-	int		nargs;			/* number of arguments in the query */
-	Oid		argtypes[10];	/* argument types */
-	SPIPlanPtr plan;		/* plan_queries() stores the prepared plan here */
+typedef struct {
+	const char *sql;  /* statement text */
+	int nargs;		  /* number of arguments in the query */
+	Oid argtypes[10]; /* argument types */
+	SPIPlanPtr plan;  /* plan_queries() stores the prepared plan here */
 } cached_statement;
 
 /*
@@ -68,18 +69,16 @@ typedef struct
  * go away at the end of transaction, and saved in the 'plan' field of each
  * statement struct.
  */
-static void plan_queries(cached_statement *statements)
-{
+static void plan_queries(cached_statement *statements) {
 	cached_statement *s;
 
 	/* On first invocation, plan all the queries */
-	for (s = statements; s->sql != NULL; s++)
-	{
-		if (s->plan == NULL)
-		{
+	for (s = statements; s->sql != NULL; s++) {
+		if (s->plan == NULL) {
 			SPIPlanPtr plan = SPI_prepare(s->sql, s->nargs, s->argtypes);
-			if (plan == NULL)
+			if (plan == NULL) {
 				elog(ERROR, "failed to plan query: %s", s->sql);
+			}
 			s->plan = SPI_saveplan(plan);
 			SPI_freeplan(plan);
 		}

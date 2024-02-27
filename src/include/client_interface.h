@@ -10,11 +10,10 @@
 
 #include <transaction_data.h>
 
-struct client_transaction_t
-{
-	int status;
-	int transaction;
-	union transaction_data_t transaction_data;
+struct client_transaction_t {
+  int status;
+  int transaction;
+  union transaction_data_t transaction_data;
 };
 
 int connect_to_client(char *addr, int port);

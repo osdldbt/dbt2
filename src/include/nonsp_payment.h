@@ -10,10 +10,10 @@
 #ifndef _NONSP_PAYMENT_H_
 #define _NONSP_PAYMENT_H_
 
-#include <transaction_data.h>
 #include <nonsp_common.h>
+#include <transaction_data.h>
 
 int execute_payment_nonsp(struct db_context_t *, struct payment_t *);
-int  payment_nonsp(struct db_context_t *, struct payment_t *, char **, int);
+int payment_nonsp(struct db_context_t *, struct payment_t *, char **, int);
 
 #endif /* _NONSP_PAYMENT_H_ */

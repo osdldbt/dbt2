@@ -9,14 +9,14 @@
 
 #include <odbc_new_order.h>
 
-int execute_new_order(struct db_context_t *odbcc, struct new_order_t *data)
-{
+int execute_new_order(struct db_context_t *odbcc, struct new_order_t *data) {
 	SQLRETURN rc;
 	int i = 1;
 	int j;
 
 	/* Perpare statement for New Order transaction. */
-	rc = SQLPrepare(odbcc->library.odbc.hstmt, (unsigned char *) STMT_NEW_ORDER,
+	rc = SQLPrepare(
+			odbcc->library.odbc.hstmt, (unsigned char *) STMT_NEW_ORDER,
 			SQL_NTS);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
@@ -24,147 +24,146 @@ int execute_new_order(struct db_context_t *odbcc, struct new_order_t *data)
 	}
 
 	/* Bind variables for New Order transaction. */
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-		&data->w_id, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+			SQL_INTEGER, 0, 0, &data->w_id, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-		&data->d_id, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+			SQL_INTEGER, 0, 0, &data->d_id, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-		&data->c_id, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+			SQL_INTEGER, 0, 0, &data->c_id, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-		&data->o_all_local, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+			SQL_INTEGER, 0, 0, &data->o_all_local, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-		&data->o_ol_cnt, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+			SQL_INTEGER, 0, 0, &data->o_ol_cnt, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
 	for (j = 0; j < O_OL_CNT_MAX; j++) {
-		rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-			i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-			&data->order_line[j].ol_i_id, 0, NULL);
+		rc = SQLBindParameter(
+				odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+				SQL_INTEGER, 0, 0, &data->order_line[j].ol_i_id, 0, NULL);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 			return ERROR;
 		}
-		rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-			i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-			&data->order_line[j].ol_supply_w_id, 0, NULL);
+		rc = SQLBindParameter(
+				odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+				SQL_INTEGER, 0, 0, &data->order_line[j].ol_supply_w_id, 0,
+				NULL);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 			return ERROR;
 		}
-		rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-			i++, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-			&data->order_line[j].ol_quantity, 0, NULL);
+		rc = SQLBindParameter(
+				odbcc->library.odbc.hstmt, i++, SQL_PARAM_INPUT, SQL_C_SLONG,
+				SQL_INTEGER, 0, 0, &data->order_line[j].ol_quantity, 0, NULL);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 			return ERROR;
 		}
-		rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-			i++, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0,
-			data->order_line[j].i_name,
-			sizeof(data->order_line[j].i_name), NULL);
+		rc = SQLBindParameter(
+				odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_CHAR,
+				SQL_VARCHAR, 0, 0, data->order_line[j].i_name,
+				sizeof(data->order_line[j].i_name), NULL);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 			return ERROR;
 		}
-		rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-			i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-			&data->order_line[j].i_price, 0, NULL);
+		rc = SQLBindParameter(
+				odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE,
+				SQL_DOUBLE, 0, 0, &data->order_line[j].i_price, 0, NULL);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 			return ERROR;
 		}
-		rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-			i++, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-			&data->order_line[j].s_quantity, 0, NULL);
+		rc = SQLBindParameter(
+				odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_SLONG,
+				SQL_INTEGER, 0, 0, &data->order_line[j].s_quantity, 0, NULL);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 			return ERROR;
 		}
-		rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-			i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-			&data->order_line[j].ol_amount, 0, NULL);
+		rc = SQLBindParameter(
+				odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE,
+				SQL_DOUBLE, 0, 0, &data->order_line[j].ol_amount, 0, NULL);
 		if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 			LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 			return ERROR;
 		}
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-		&data->o_id, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_SLONG,
+			SQL_INTEGER, 0, 0, &data->o_id, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-		&data->total_amount, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE,
+			SQL_DOUBLE, 0, 0, &data->total_amount, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-		&data->w_tax, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE,
+			SQL_DOUBLE, 0, 0, &data->w_tax, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-		&data->d_tax, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE,
+			SQL_DOUBLE, 0, 0, &data->d_tax, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0,
-		data->c_last,
-		sizeof(data->c_last), NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_CHAR,
+			SQL_VARCHAR, 0, 0, data->c_last, sizeof(data->c_last), NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_CHAR, SQL_VARCHAR, 0, 0,
-		data->c_credit,
-		sizeof(data->c_credit), NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_CHAR,
+			SQL_VARCHAR, 0, 0, data->c_credit, sizeof(data->c_credit), NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE, SQL_DOUBLE, 0, 0,
-		&data->c_discount, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_DOUBLE,
+			SQL_DOUBLE, 0, 0, &data->c_discount, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}
-	rc = SQLBindParameter(odbcc->library.odbc.hstmt,
-		i++, SQL_PARAM_OUTPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0,
-		&data->rollback, 0, NULL);
+	rc = SQLBindParameter(
+			odbcc->library.odbc.hstmt, i++, SQL_PARAM_OUTPUT, SQL_C_SLONG,
+			SQL_INTEGER, 0, 0, &data->rollback, 0, NULL);
 	if (rc != SQL_SUCCESS && rc != SQL_SUCCESS_WITH_INFO) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
@@ -172,7 +171,8 @@ int execute_new_order(struct db_context_t *odbcc, struct new_order_t *data)
 
 	/* Execute stored procedure. */
 	rc = SQLExecute(odbcc->library.odbc.hstmt);
-	if (check_odbc_rc(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt, rc) == ERROR) {
+	if (check_odbc_rc(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt, rc) ==
+		ERROR) {
 		LOG_ODBC_ERROR(SQL_HANDLE_STMT, odbcc->library.odbc.hstmt);
 		return ERROR;
 	}

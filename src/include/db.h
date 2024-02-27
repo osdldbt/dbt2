@@ -26,10 +26,10 @@
 #define LIBPQ_PGPORT_LEN 32
 
 struct db_context_libpq {
-	PGconn *conn;
-	char dbname[LIBPQ_DBNAME_LEN + 1];
-	char pghost[LIBPQ_PGHOST_LEN + 1];
-	char pgport[LIBPQ_PGPORT_LEN + 1];
+  PGconn *conn;
+  char dbname[LIBPQ_DBNAME_LEN + 1];
+  char pghost[LIBPQ_PGHOST_LEN + 1];
+  char pgport[LIBPQ_PGPORT_LEN + 1];
 };
 #endif /* HAVE_LIBPQ */
 
@@ -44,23 +44,22 @@ struct db_context_libpq {
 #define MYSQL_USER_LEN 31
 
 struct db_context_mysql {
-	MYSQL *mysql;
-	char dbname[MYSQL_DBNAME_LEN + 1];
-	char host[MYSQL_HOST_LEN + 1];
-	char port_t[MYSQL_PORT_T_LEN + 1];
-	char user[MYSQL_USER_LEN + 1];
-	char pass[MYSQL_PASS_LEN + 1];
-	char socket_t[MYSQL_SOCKET_T_LEN + 1];
+  MYSQL *mysql;
+  char dbname[MYSQL_DBNAME_LEN + 1];
+  char host[MYSQL_HOST_LEN + 1];
+  char port_t[MYSQL_PORT_T_LEN + 1];
+  char user[MYSQL_USER_LEN + 1];
+  char pass[MYSQL_PASS_LEN + 1];
+  char socket_t[MYSQL_SOCKET_T_LEN + 1];
 };
 
-struct sql_result_mysql
-{
-	MYSQL_RES * result_set;
-	MYSQL_ROW current_row;
-	unsigned int num_fields;
-	unsigned int num_rows;
-	unsigned long * lengths;
-	char * query;
+struct sql_result_mysql {
+  MYSQL_RES *result_set;
+  MYSQL_ROW current_row;
+  unsigned int num_fields;
+  unsigned int num_rows;
+  unsigned long *lengths;
+  char *query;
 };
 #endif /* HAVE_MYSQL */
 
@@ -79,22 +78,21 @@ struct sql_result_mysql
 #define SQLLEN SQLINTEGER
 #endif
 
-#define LOG_ODBC_ERROR(type, handle) \
-		log_odbc_error(__FILE__, __LINE__, type, handle)
+#define LOG_ODBC_ERROR(type, handle)                                           \
+  log_odbc_error(__FILE__, __LINE__, type, handle)
 
 struct db_context_odbc {
-	SQLHDBC hdbc;
-	SQLHSTMT hstmt;
+  SQLHDBC hdbc;
+  SQLHSTMT hstmt;
 };
 
-struct sql_result_odbc
-{
-	unsigned int current_row;
-	unsigned int result_set;
-	SQLSMALLINT num_fields;
-	SQLLEN num_rows;
-	SQLUINTEGER *lengths;
-	char *query;
+struct sql_result_odbc {
+  unsigned int current_row;
+  unsigned int result_set;
+  SQLSMALLINT num_fields;
+  SQLLEN num_rows;
+  SQLUINTEGER *lengths;
+  char *query;
 };
 #endif /* HAVE_ODBC */
 
@@ -104,18 +102,17 @@ struct sql_result_odbc
 #define SQLITE3_DBNAME_LEN 255
 
 struct db_context_sqlite {
-	char dbname[SQLITE3_DBNAME_LEN + 1];
-	unsigned char inTransaction;
-	sqlite3 *db;
+  char dbname[SQLITE3_DBNAME_LEN + 1];
+  unsigned char inTransaction;
+  sqlite3 *db;
 };
 
-struct sql_result_sqlite
-{
-	unsigned char query_running;
-	unsigned char error;
-	unsigned char prefetched;
-	unsigned int num_fields;
-	sqlite3_stmt * pStmt;
+struct sql_result_sqlite {
+  unsigned char query_running;
+  unsigned char error;
+  unsigned char prefetched;
+  unsigned int num_fields;
+  sqlite3_stmt *pStmt;
 };
 #endif /* HAVE_SQLITE3 */
 
@@ -125,55 +122,56 @@ struct sql_result_sqlite
 #define DBMSODBC 4
 #define DBMSSQLITE 5
 
-struct sql_result_t
-{
-	int type;
-	union {
+struct sql_result_t {
+  int type;
+
+  union {
 #ifdef HAVE_MYSQL
-		struct sql_result_mysql mysql;
+    struct sql_result_mysql mysql;
 #endif /* HAVE_MYSQL */
 #ifdef HAVE_ODBC
-		struct sql_result_odbc odbc;
+    struct sql_result_odbc odbc;
 #endif /* HAVE_ODBC */
 #ifdef HAVE_SQLITE3
-		struct sql_result_sqlite sqlite;
+    struct sql_result_sqlite sqlite;
 #endif /* HAVE_SQLITE3 */
-	} library;
+  } library;
 };
 
 struct db_context_t {
-	int type;
-	int stop_time;
-	struct timespec ts_retry;
-	int (*connect)(struct db_context_t *);
-	int (*commit_transaction)(struct db_context_t *);
-	int (*disconnect)(struct db_context_t *);
-	int (*rollback_transaction)(struct db_context_t *);
-	int (*execute_delivery)(struct db_context_t *, struct delivery_t *);
-	int (*execute_integrity)(struct db_context_t *, struct integrity_t *);
-	int (*execute_new_order)(struct db_context_t *, struct new_order_t *);
-	int (*execute_order_status)(struct db_context_t *, struct order_status_t *);
-	int (*execute_payment)(struct db_context_t *, struct payment_t *);
-	int (*execute_stock_level)(struct db_context_t *, struct stock_level_t *);
-	int (*sql_execute)(struct db_context_t *, char *, struct sql_result_t *,
-			char *);
-	int (*sql_fetchrow)(struct db_context_t *, struct sql_result_t *);
-	int (*sql_close_cursor)(struct db_context_t *, struct sql_result_t *);
-	char *(*sql_getvalue)(struct db_context_t *, struct sql_result_t *, int);
-	union {
+  int type;
+  int stop_time;
+  struct timespec ts_retry;
+  int (*connect)(struct db_context_t *);
+  int (*commit_transaction)(struct db_context_t *);
+  int (*disconnect)(struct db_context_t *);
+  int (*rollback_transaction)(struct db_context_t *);
+  int (*execute_delivery)(struct db_context_t *, struct delivery_t *);
+  int (*execute_integrity)(struct db_context_t *, struct integrity_t *);
+  int (*execute_new_order)(struct db_context_t *, struct new_order_t *);
+  int (*execute_order_status)(struct db_context_t *, struct order_status_t *);
+  int (*execute_payment)(struct db_context_t *, struct payment_t *);
+  int (*execute_stock_level)(struct db_context_t *, struct stock_level_t *);
+  int (*sql_execute)(struct db_context_t *, char *, struct sql_result_t *,
+                     char *);
+  int (*sql_fetchrow)(struct db_context_t *, struct sql_result_t *);
+  int (*sql_close_cursor)(struct db_context_t *, struct sql_result_t *);
+  char *(*sql_getvalue)(struct db_context_t *, struct sql_result_t *, int);
+
+  union {
 #ifdef HAVE_LIBPQ
-		struct db_context_libpq libpq;
+    struct db_context_libpq libpq;
 #endif /* HAVE_LIBPQ */
 #ifdef HAVE_MYSQL
-		struct db_context_mysql mysql;
+    struct db_context_mysql mysql;
 #endif /* HAVE_MYSQL */
 #ifdef HAVE_ODBC
-		struct db_context_odbc odbc;
+    struct db_context_odbc odbc;
 #endif /* HAVE_ODBC */
 #ifdef HAVE_SQLITE3
-		struct db_context_sqlite sqlite;
+    struct db_context_sqlite sqlite;
 #endif /* HAVE_SQLITE3 */
-	} library;
+  } library;
 };
 
 extern const char s_dist[10][11];
@@ -190,12 +188,12 @@ int db_init(char *_dbname, char *_pghost, char *_pgport);
 int commit_transaction_mysql(struct db_context_t *);
 int connect_to_db_mysql(struct db_context_t *);
 int db_init_mysql(struct db_context_t *, char *, char *, char *, char *, char *,
-		char *);
+                  char *);
 int disconnect_from_db_mysql(struct db_context_t *);
 int rollback_transaction_mysql(struct db_context_t *);
 
 int sql_execute_mysql(struct db_context_t *, char *, struct sql_result_t *,
-		char *);
+                      char *);
 int sql_close_cursor_mysql(struct db_context_t *, struct sql_result_t *);
 int sql_fetchrow_mysql(struct db_context_t *, struct sql_result_t *);
 char *sql_getvalue_mysql(struct db_context_t *, struct sql_result_t *, int);
@@ -228,7 +226,7 @@ int db_init_odbc(char *, char *, char *);
 int rollback_transaction_odbc(struct db_context_t *);
 
 int sql_execute_odbc(struct db_context_t *, char *, struct sql_result_t *,
-		char *);
+                     char *);
 int sql_close_cursor_odbc(struct db_context_t *, struct sql_result_t *);
 int sql_fetchrow_odbc(struct db_context_t *, struct sql_result_t *);
 char *sql_getvalue_odbc(struct db_context_t *, struct sql_result_t *, int);
@@ -242,7 +240,7 @@ int disconnect_from_db_sqlite(struct db_context_t *);
 int rollback_transaction_sqlite(struct db_context_t *);
 
 int sql_execute_sqlite(struct db_context_t *, char *, struct sql_result_t *,
-		char *);
+                       char *);
 int sql_close_cursor_sqlite(struct db_context_t *, struct sql_result_t *);
 int sql_fetchrow_sqlite(struct db_context_t *, struct sql_result_t *);
 char *sql_getvalue_sqlite(struct db_context_t *, struct sql_result_t *, int);

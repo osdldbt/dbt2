@@ -9,25 +9,24 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <pthread.h>
 
-#include "common.h"
-#include "logging.h"
 #include "client.h"
+#include "common.h"
 #include "db_threadpool.h"
 #include "listener.h"
+#include "logging.h"
 #include "transaction_queue.h"
 
 /* Function Prototypes */
 int parse_command(char *command);
 
-int startup()
-{
+int startup() {
 	pthread_t tid;
 	int ret;
 	char command[128];
@@ -46,8 +45,7 @@ int startup()
 
 	ret = pthread_create(&tid, NULL, &init_listener, &sockfd);
 	if (ret != 0) {
-		LOG_ERROR_MESSAGE(
-			"pthread_create() error with init_listener()");
+		LOG_ERROR_MESSAGE("pthread_create() error with init_listener()");
 		if (ret == EAGAIN) {
 			LOG_ERROR_MESSAGE("not enough system resources");
 		}
@@ -75,15 +73,14 @@ int startup()
 		if (parse_command(command) == EXIT_CODE) {
 			break;
 		}
-	} while(1);
+	} while (1);
 
 	printf("closing socket...\n");
 	close(sockfd);
 	return OK;
 }
 
-void status()
-{
+void status() {
 	unsigned int count;
 	time_t current_time;
 	int i, j;
@@ -106,8 +103,8 @@ void status()
 	printf("transaction   queued  executing\n");
 	printf("------------  ------  ---------\n");
 	for (i = 0; i < TRANSACTION_MAX; i++) {
-		printf("%12s  %6d  %9d\n", transaction_name[i],
-				stats[REQ_QUEUED][i], stats[REQ_EXECUTING][i]);
+		printf("%12s  %6d  %9d\n", transaction_name[i], stats[REQ_QUEUED][i],
+			   stats[REQ_EXECUTING][i]);
 	}
 	printf("------------  ------  ---------\n");
 	printf("------  ------------  --------\n");
@@ -116,7 +113,7 @@ void status()
 	time(&current_time);
 	for (i = 0; i < db_connections; i++) {
 		printf("%6d  %12d  %8d\n", i, worker_count[i],
-				(int) (current_time - last_txn[i]));
+			   (int) (current_time - last_txn[i]));
 	}
 	printf("------  ------------  --------\n");
 }

@@ -5,12 +5,11 @@
  * Copyright The DBT-2 Authors
  */
 
+#include <libpq-fe.h>
 #include <stdio.h>
 #include <string.h>
-#include <libpq-fe.h>
 
 #include "common.h"
-#include "logging.h"
 #include "db.h"
 #include "libpq_delivery.h"
 #include "libpq_integrity.h"
@@ -18,9 +17,9 @@
 #include "libpq_order_status.h"
 #include "libpq_payment.h"
 #include "libpq_stock_level.h"
+#include "logging.h"
 
-int commit_transaction_libpq(struct db_context_t *dbc)
-{
+int commit_transaction_libpq(struct db_context_t *dbc) {
 	PGresult *res;
 
 	res = PQexec(dbc->library.libpq.conn, "COMMIT");
@@ -39,12 +38,10 @@ int commit_transaction_libpq(struct db_context_t *dbc)
 }
 
 /* Open a connection to the database. */
-int connect_to_db_libpq(struct db_context_t *dbc)
-{
+int connect_to_db_libpq(struct db_context_t *dbc) {
 	const char *application_name = "dbt2-client";
 	const char *keywords[5] = {
-		"application_name", "host", "port", "dbname", NULL
-	};
+			"application_name", "host", "port", "dbname", NULL};
 	const char *values[5];
 
 	values[0] = application_name;
@@ -55,7 +52,8 @@ int connect_to_db_libpq(struct db_context_t *dbc)
 
 	dbc->library.libpq.conn = PQconnectdbParams(keywords, values, 1);
 	if (PQstatus(dbc->library.libpq.conn) != CONNECTION_OK) {
-		LOG_ERROR_MESSAGE("Connection to database '%s' failed.",
+		LOG_ERROR_MESSAGE(
+				"Connection to database '%s' failed.",
 				dbc->library.libpq.dbname);
 		LOG_ERROR_MESSAGE("%s", PQerrorMessage(dbc->library.libpq.conn));
 		PQfinish(dbc->library.libpq.conn);
@@ -65,15 +63,13 @@ int connect_to_db_libpq(struct db_context_t *dbc)
 }
 
 /* Disconnect from the database and free the connection handle. */
-int disconnect_from_db_libpq(struct db_context_t *dbc)
-{
+int disconnect_from_db_libpq(struct db_context_t *dbc) {
 	PQfinish(dbc->library.libpq.conn);
 	return OK;
 }
 
-int db_init_libpq(struct db_context_t *dbc, char *dbname, char *pghost,
-		char *pgport)
-{
+int db_init_libpq(
+		struct db_context_t *dbc, char *dbname, char *pghost, char *pgport) {
 	dbc->connect = connect_to_db_libpq;
 	dbc->commit_transaction = commit_transaction_libpq;
 	dbc->disconnect = disconnect_from_db_libpq;
@@ -101,8 +97,7 @@ int db_init_libpq(struct db_context_t *dbc, char *dbname, char *pghost,
 	return OK;
 }
 
-int rollback_transaction_libpq(struct db_context_t *dbc)
-{
+int rollback_transaction_libpq(struct db_context_t *dbc) {
 	PGresult *res;
 
 	res = PQexec(dbc->library.libpq.conn, "ROLLBACK");

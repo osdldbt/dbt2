@@ -12,12 +12,12 @@
 #include <config.h>
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
-#include <time.h>
 #include <sys/time.h>
+#include <time.h>
 
 #include <arpa/inet.h>
 
@@ -32,7 +32,7 @@
 
 /* Julian-date equivalents of Day 0 in Unix and Postgres reckoning */
 #define POSTGRES_EPOCH_JDATE 2451545 /* == date2j(2000, 1, 1) */
-#define UNIX_EPOCH_JDATE 2440588 /* == date2j(1970, 1, 1) */
+#define UNIX_EPOCH_JDATE 2440588     /* == date2j(1970, 1, 1) */
 #define SECS_PER_DAY 86400
 
 #define DELIVERY 0
@@ -44,16 +44,16 @@
 #define INTEGRITY 10
 
 enum table {
-	TABLE_WAREHOUSE,
-	TABLE_DISTRICT,
-	TABLE_CUSTOMER,
-	TABLE_ITEM,
-	TABLE_ORDER,
-	TABLE_STOCK,
-	TABLE_NEW_ORDER,
-	TABLE_HISTORY,
-	TABLE_ORDER_LINE,
-	TABLE_ALL
+  TABLE_WAREHOUSE,
+  TABLE_DISTRICT,
+  TABLE_CUSTOMER,
+  TABLE_ITEM,
+  TABLE_ORDER,
+  TABLE_STOCK,
+  TABLE_NEW_ORDER,
+  TABLE_HISTORY,
+  TABLE_ORDER_LINE,
+  TABLE_ALL
 };
 
 #define ERROR 0
@@ -144,12 +144,12 @@ enum table {
 #define HOSTNAMELEN 255
 
 struct table_cardinality_t {
-	int warehouses;
-	int districts;
-	int customers;
-	int items;
-	int orders;
-	int new_orders;
+  int warehouses;
+  int districts;
+  int customers;
+  int items;
+  int orders;
+  int new_orders;
 };
 
 /* Prototypes */

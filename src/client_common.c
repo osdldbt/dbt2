@@ -6,12 +6,12 @@
  */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "common.h"
-#include "logging.h"
 #include "db.h"
+#include "logging.h"
 
 int connections_per_process = 1;
 int db_conn_sleep = 1000; /* milliseconds */
@@ -40,42 +40,42 @@ char dbt2_mysql_port[32];
 char dbt2_mysql_socket[256];
 #endif /* HAVE_MYSQL */
 
-int init_dbc(struct db_context_t *dbc)
-{
+int init_dbc(struct db_context_t *dbc) {
 	memset(dbc, 0, sizeof(struct db_context_t));
-	switch(dbms) {
+	switch (dbms) {
 #ifdef HAVE_LIBPQ
 	case DBMSCOCKROACH:
-			db_init_cockroach(dbc, dname, sname, postmaster_port);
-			break;
+		db_init_cockroach(dbc, dname, sname, postmaster_port);
+		break;
 	case DBMSLIBPQ:
-			db_init_libpq(dbc, dname, sname, postmaster_port);
-			break;
+		db_init_libpq(dbc, dname, sname, postmaster_port);
+		break;
 #endif /* HAVE_LIBPQ */
 
 #ifdef HAVE_MYSQL
 	case DBMSMYSQL:
-			db_init_mysql(dbc, sname, dbt2_mysql_host , dbt2_user, dbt2_pass,
-					dbt2_mysql_port, dbt2_mysql_socket);
-			break;
+		db_init_mysql(
+				dbc, sname, dbt2_mysql_host, dbt2_user, dbt2_pass,
+				dbt2_mysql_port, dbt2_mysql_socket);
+		break;
 #endif /* HAVE_MYSQL */
 
 #ifdef HAVE_SQLITE3
 	case DBMSSQLITE:
-			db_init_sqlite(dbc, sname);
-			break;
+		db_init_sqlite(dbc, sname);
+		break;
 #endif /* HAVE_SQLITE3 */
 
 #ifdef HAVE_ODBC
 	case DBMSODBC:
-			db_init_odbc(sname, "", "");
-			break;
+		db_init_odbc(sname, "", "");
+		break;
 #endif /* HAVE_ODBC */
 
 	default:
-			printf("unrecognized dbms code: %d\n", dbms);
-			LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);
-			return 1;
+		printf("unrecognized dbms code: %d\n", dbms);
+		LOG_ERROR_MESSAGE("unrecognized dbms code: %d", dbms);
+		return 1;
 	}
 
 	return 0;

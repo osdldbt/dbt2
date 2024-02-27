@@ -7,13 +7,13 @@
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
  */
 
+#include <catalog/pg_type.h> /* for OIDs */
+#include <executor/spi.h>	 /* this should include most necessary APIs */
+#include <fmgr.h>
+#include <funcapi.h> /* for returning set of rows in order_status */
+#include <postgres.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <postgres.h>
-#include <fmgr.h>
-#include <catalog/pg_type.h>    /* for OIDs */
-#include <executor/spi.h> /* this should include most necessary APIs */
-#include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/builtins.h>
 
 #include "dbt2common.h"
@@ -27,51 +27,48 @@
 #define ORDER_STATUS_3 statements[2].plan
 #define ORDER_STATUS_4 statements[3].plan
 
-
 static cached_statement statements[] = {
-	{ /* ORDER_STATUS_1 */
-	"SELECT c_id\n" \
-	"FROM customer\n" \
-	"WHERE c_w_id = $1\n" \
-	"  AND c_d_id = $2\n" \
-	"  AND c_last = $3\n" \
-	"ORDER BY c_first ASC",
-	3, { INT4OID, INT4OID, TEXTOID }
-	},
+		{/* ORDER_STATUS_1 */
+		 "SELECT c_id\n"
+		 "FROM customer\n"
+		 "WHERE c_w_id = $1\n"
+		 "  AND c_d_id = $2\n"
+		 "  AND c_last = $3\n"
+		 "ORDER BY c_first ASC",
+		 3,
+		 {INT4OID, INT4OID, TEXTOID}},
 
-	{ /* ORDER_STATUS_2 */
-	"SELECT c_first, c_middle, c_last, c_balance\n" \
-	"FROM customer\n" \
-	"WHERE c_w_id = $1\n" \
-	"  AND c_d_id = $2\n" \
-	"  AND c_id = $3",
-	3, { INT4OID, INT4OID, INT4OID }
-	},
+		{/* ORDER_STATUS_2 */
+		 "SELECT c_first, c_middle, c_last, c_balance\n"
+		 "FROM customer\n"
+		 "WHERE c_w_id = $1\n"
+		 "  AND c_d_id = $2\n"
+		 "  AND c_id = $3",
+		 3,
+		 {INT4OID, INT4OID, INT4OID}},
 
-	{ /* ORDER_STATUS_3 */
-	"SELECT o_id, o_carrier_id, o_entry_d, o_ol_cnt\n" \
-	"FROM orders\n" \
-	"WHERE o_w_id = $1\n" \
-	"  AND o_d_id = $2\n" \
-	"  AND o_c_id = $3\n" \
-	"ORDER BY o_id DESC\n" \
-	"LIMIT 1",
-	3, { INT4OID, INT4OID, INT4OID }
-	},
+		{/* ORDER_STATUS_3 */
+		 "SELECT o_id, o_carrier_id, o_entry_d, o_ol_cnt\n"
+		 "FROM orders\n"
+		 "WHERE o_w_id = $1\n"
+		 "  AND o_d_id = $2\n"
+		 "  AND o_c_id = $3\n"
+		 "ORDER BY o_id DESC\n"
+		 "LIMIT 1",
+		 3,
+		 {INT4OID, INT4OID, INT4OID}},
 
-	{ /* ORDER_STATUS_4 */
-	"SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,\n" \
-	"	ol_delivery_d\n" \
-	"FROM order_line\n" \
-	"WHERE ol_w_id = $1\n" \
-	"  AND ol_d_id = $2\n" \
-	"  AND ol_o_id = $3",
-	3, { INT4OID, INT4OID, INT4OID }
-	},
+		{/* ORDER_STATUS_4 */
+		 "SELECT ol_i_id, ol_supply_w_id, ol_quantity, ol_amount,\n"
+		 "	ol_delivery_d\n"
+		 "FROM order_line\n"
+		 "WHERE ol_w_id = $1\n"
+		 "  AND ol_d_id = $2\n"
+		 "  AND ol_o_id = $3",
+		 3,
+		 {INT4OID, INT4OID, INT4OID}},
 
-	{ NULL }
-};
-
+		{NULL}};
 
 /* Prototypes to prevent potential gcc warnings. */
 
@@ -79,11 +76,10 @@ Datum order_status(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(order_status);
 
-Datum order_status(PG_FUNCTION_ARGS)
-{
+Datum order_status(PG_FUNCTION_ARGS) {
 	/* for Set Returning Function (SRF) */
-	FuncCallContext  *funcctx;
-	MemoryContext     oldcontext;
+	FuncCallContext *funcctx;
+	MemoryContext oldcontext;
 
 	/* tuple manipulating variables */
 	TupleDesc tupdesc;
@@ -119,20 +115,20 @@ Datum order_status(PG_FUNCTION_ARGS)
 		char *o_ol_cnt = NULL;
 
 		Datum args[4];
-		char nulls[4] = { ' ', ' ', ' ', ' ' };
+		char nulls[4] = {' ', ' ', ' ', ' '};
 
 		elog(DEBUG1, "IN c_id = %d", c_id);
 		elog(DEBUG1, "IN c_w_id = %d", c_w_id);
 		elog(DEBUG1, "IN c_d_id = %d", c_d_id);
 		elog(DEBUG1, "IN c_last = %s",
-				DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(c_last))));
+			 DatumGetCString(
+					 DirectFunctionCall1(textout, PointerGetDatum(c_last))));
 
 		/* SRF setup */
 		funcctx = SRF_FIRSTCALL_INIT();
 
 		/* Connect to SPI manager */
-		if (( ret = SPI_connect()) < 0) {
+		if ((ret = SPI_connect()) < 0) {
 			/* internal error */
 			elog(ERROR, "order_status: SPI connect returned %d", ret);
 		}
@@ -157,12 +153,12 @@ Datum order_status(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[count / 2];
 
 				tmp_c_id = SPI_getvalue(tuple, tupdesc, 1);
-				elog(DEBUG1, "c_id = %s, %d total, selected %d",
-						tmp_c_id, count, count / 2);
+				elog(DEBUG1, "c_id = %s, %d total, selected %d", tmp_c_id,
+					 count, count / 2);
 				my_c_id = atoi(tmp_c_id);
 			} else {
 				ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-					 errmsg("ORDER_STATUS_1 failed")));
+								errmsg("ORDER_STATUS_1 failed")));
 			}
 		} else {
 			my_c_id = c_id;
@@ -187,7 +183,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "c_balance = %s", c_balance);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-				 errmsg("ORDER_STATUS_2 failed")));
+							errmsg("ORDER_STATUS_2 failed")));
 		}
 
 		/* Maybe this should be a join with the previous query. */
@@ -210,7 +206,7 @@ Datum order_status(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "o_ol_cnt = %s", o_ol_cnt);
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-				 errmsg("ORDER_STATUS_3 failed")));
+							errmsg("ORDER_STATUS_3 failed")));
 		}
 
 		args[0] = Int32GetDatum(c_w_id);
@@ -219,8 +215,10 @@ Datum order_status(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(ORDER_STATUS_4, args, nulls, true, 0);
 		count = SPI_processed;
 
-		elog(DEBUG1, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d");
-		elog(DEBUG1, "--  -------  --------------  -----------  ---------  -------------");
+		elog(DEBUG1, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  "
+					 "ol_delivery_d");
+		elog(DEBUG1, "--  -------  --------------  -----------  ---------  "
+					 "-------------");
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -243,16 +241,16 @@ Datum order_status(PG_FUNCTION_ARGS)
 				ol_quantity[idx] = SPI_getvalue(tuple, tupdesc, 3);
 				ol_amount[idx] = SPI_getvalue(tuple, tupdesc, 4);
 				ol_delivery_d[idx] = SPI_getvalue(tuple, tupdesc, 5);
-				elog(DEBUG1, "%2d  %7s  %14s  %11s  %9.2f  %13s",
-						j + 1, ol_i_id[idx] ? ol_i_id[idx] : "",
-						ol_supply_w_id[idx] ? ol_supply_w_id[idx] : "",
-						ol_quantity[idx] ? ol_quantity[idx] : "",
-						atof(ol_amount[idx] ? ol_amount[idx] : 0),
-						ol_delivery_d[idx] ? ol_delivery_d[idx] : "");
+				elog(DEBUG1, "%2d  %7s  %14s  %11s  %9.2f  %13s", j + 1,
+					 ol_i_id[idx] ? ol_i_id[idx] : "",
+					 ol_supply_w_id[idx] ? ol_supply_w_id[idx] : "",
+					 ol_quantity[idx] ? ol_quantity[idx] : "",
+					 atof(ol_amount[idx] ? ol_amount[idx] : 0),
+					 ol_delivery_d[idx] ? ol_delivery_d[idx] : "");
 			}
 		} else {
 			ereport(ERROR, (errcode(ERRCODE_INTERNAL_ERROR),
-				 errmsg("ORDER_STATUS_4 failed")));
+							errmsg("ORDER_STATUS_4 failed")));
 		}
 
 		/*
@@ -280,16 +278,16 @@ Datum order_status(PG_FUNCTION_ARGS)
 
 		/* setup some variables */
 		Datum result;
-		char** cstr_values;
+		char **cstr_values;
 		HeapTuple result_tuple;
-		tuptable = (SPITupleTable*) funcctx->user_fctx;
+		tuptable = (SPITupleTable *) funcctx->user_fctx;
 		tupdesc = tuptable->tupdesc;
 		tuple = tuptable->vals[funcctx->call_cntr]; /* ith row */
 
 		/* TODO: get rid of the hard coded 5! */
 		cstr_values = (char **) palloc(5 * sizeof(char *));
-		for(j = 0; j < 5; j++) {
-			cstr_values[j] = SPI_getvalue(tuple, tupdesc, j+1);
+		for (j = 0; j < 5; j++) {
+			cstr_values[j] = SPI_getvalue(tuple, tupdesc, j + 1);
 		}
 
 		/* build a tuple */

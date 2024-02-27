@@ -5,13 +5,12 @@
  * Copyright The DBT-2 Authors
  */
 
+#include <_socket.h>
+#include <client_interface.h>
 #include <common.h>
 #include <logging.h>
-#include <client_interface.h>
-#include <_socket.h>
 
-int connect_to_client(char *addr, int port)
-{
+int connect_to_client(char *addr, int port) {
 	int sockfd;
 
 	sockfd = _connect(addr, port);
@@ -19,8 +18,7 @@ int connect_to_client(char *addr, int port)
 	return sockfd;
 }
 
-int receive_transaction_data(int s, struct client_transaction_t *client_data)
-{
+int receive_transaction_data(int s, struct client_transaction_t *client_data) {
 	int length;
 
 	length = _receive(s, client_data, sizeof(struct client_transaction_t));
@@ -38,12 +36,11 @@ int receive_transaction_data(int s, struct client_transaction_t *client_data)
 	return length;
 }
 
-int send_transaction_data(int s, struct client_transaction_t *client_data)
-{
+int send_transaction_data(int s, struct client_transaction_t *client_data) {
 	int length;
 
-	length = _send(s, (void *) client_data,
-		sizeof(struct client_transaction_t));
+	length =
+			_send(s, (void *) client_data, sizeof(struct client_transaction_t));
 	if (length == -1) {
 		LOG_ERROR_MESSAGE("cannot send transaction data");
 		return ERROR;

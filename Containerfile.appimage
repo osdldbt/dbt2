@@ -113,7 +113,8 @@ RUN ./configure.gnu --quiet --silent --prefix=/usr/local/AppDir/usr && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/perl
 
 ARG SQLITE3VER=3410200
-RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q --no-check-certificate \
+RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q \
+         --no-check-certificate \
          https://www.sqlite.org/2023/sqlite-autoconf-${SQLITE3VER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz
 WORKDIR /usr/local/src/sqlite-autoconf-${SQLITE3VER}

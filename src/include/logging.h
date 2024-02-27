@@ -9,7 +9,7 @@
 #define _LOGGING_H_
 
 #define ERROR_LOG_NAME "error.log"
-#define LOG_ERROR_MESSAGE(arg...) log_error_message(__FILE__, __LINE__, ## arg)
+#define LOG_ERROR_MESSAGE(arg...) log_error_message(__FILE__, __LINE__, ##arg)
 
 int edump(int type, void *data);
 int init_logging();

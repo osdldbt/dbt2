@@ -7,12 +7,12 @@
  * 24 june 2002
  */
 
-#include <transaction_data.h>
 #include <pthread.h>
+#include <transaction_data.h>
 
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
-union data_pointer_t
-{
+
+union data_pointer_t {
 	struct delivery_t *de;
 	struct new_order_t *no;
 	struct order_status_t *os;
@@ -20,8 +20,7 @@ union data_pointer_t
 	struct stock_level_t *sl;
 };
 
-int dump(FILE *fp, int type, void *data)
-{
+int dump(FILE *fp, int type, void *data) {
 	int i;
 	union data_pointer_t ptr;
 	char s[1024];
@@ -47,25 +46,21 @@ int dump(FILE *fp, int type, void *data)
 		fprintf(fp, "c_discount = %0.4f\n", ptr.no->c_discount);
 		fprintf(fp, "o_all_local = %d\n", ptr.no->o_all_local);
 		fprintf(fp, "o_ol_cnt = %d\n", ptr.no->o_ol_cnt);
-		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s BG\n",
-			"##", "ol_i_id", "i_name", "i_price",
-			"ol_supply_w_id", "ol_quantity", "s_quantity",
-			"ol_ammount");
-		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s --\n",
-				"--", "-------", "------------------------", "---------",
+		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s BG\n", "##",
+				"ol_i_id", "i_name", "i_price", "ol_supply_w_id", "ol_quantity",
+				"s_quantity", "ol_ammount");
+		fprintf(fp, "%-2s %-7s %-24s %-9s %-14s %-11s %-10s %-10s --\n", "--",
+				"-------", "------------------------", "---------",
 				"--------------", "-----------", "----------", "----------");
 		for (i = 0; i < ptr.no->o_ol_cnt; i++) {
-			fprintf(fp,
-				"%2d %7d %24s %9.2f %14d %11d %10d %10.2f %c\n",
-				i + 1,
-				ptr.no->order_line[i].ol_i_id,
-				ptr.no->order_line[i].i_name,
-				ptr.no->order_line[i].i_price,
-				ptr.no->order_line[i].ol_supply_w_id,
-				ptr.no->order_line[i].ol_quantity,
-				ptr.no->order_line[i].s_quantity,
-				ptr.no->order_line[i].ol_amount,
-				ptr.no->order_line[i].brand_generic);
+			fprintf(fp, "%2d %7d %24s %9.2f %14d %11d %10d %10.2f %c\n", i + 1,
+					ptr.no->order_line[i].ol_i_id, ptr.no->order_line[i].i_name,
+					ptr.no->order_line[i].i_price,
+					ptr.no->order_line[i].ol_supply_w_id,
+					ptr.no->order_line[i].ol_quantity,
+					ptr.no->order_line[i].s_quantity,
+					ptr.no->order_line[i].ol_amount,
+					ptr.no->order_line[i].brand_generic);
 		}
 		fprintf(fp, "o_id = %d\n", ptr.no->o_id);
 		fprintf(fp, "total_amount = %0.2f\n", ptr.no->total_amount);
@@ -87,14 +82,15 @@ int dump(FILE *fp, int type, void *data)
 		fprintf(fp, "o_carrier_id = %d\n", ptr.os->o_carrier_id);
 		fprintf(fp, "o_entry_d = '%s'\n", ptr.os->o_entry_d);
 		fprintf(fp, "o_ol_cnt = %d\n", ptr.os->o_ol_cnt);
-		fprintf(fp, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  ol_delivery_d\n");
+		fprintf(fp, "##  ol_i_id  ol_supply_w_id  ol_quantity  ol_amount  "
+					"ol_delivery_d\n");
 		for (i = 0; i < ptr.os->o_ol_cnt; i++) {
 			fprintf(fp, "%2d  %7d  %14d  %11d  %9.2f  %s\n", i,
-				ptr.os->order_line[i].ol_i_id,
-				ptr.os->order_line[i].ol_supply_w_id,
-				ptr.os->order_line[i].ol_quantity,
-				ptr.os->order_line[i].ol_amount,
-				ptr.os->order_line[i].ol_delivery_d);
+					ptr.os->order_line[i].ol_i_id,
+					ptr.os->order_line[i].ol_supply_w_id,
+					ptr.os->order_line[i].ol_quantity,
+					ptr.os->order_line[i].ol_amount,
+					ptr.os->order_line[i].ol_delivery_d);
 		}
 		pthread_mutex_unlock(&mut);
 		break;

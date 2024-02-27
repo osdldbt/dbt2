@@ -5,23 +5,22 @@
  * Copyright The DBT-2 Authors
  */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <getopt.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
-#include "common.h"
-#include "logging.h"
-#include "client.h"
 #include "_socket.h"
+#include "client.h"
+#include "common.h"
 #include "db.h"
+#include "logging.h"
 
 int parse_arguments(int, char **);
 int parse_command(char *);
 void usage(char *);
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	if (parse_arguments(argc, argv) != OK) {
 		usage(argv[0]);
 		return 1;
@@ -64,8 +63,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-int parse_arguments(int argc, char *argv[])
-{
+int parse_arguments(int argc, char *argv[]) {
 	int c;
 	int length;
 
@@ -75,12 +73,11 @@ int parse_arguments(int argc, char *argv[])
 
 	while (1) {
 		int option_index = 0;
-		static struct option long_options[] = {
-			{ 0, 0, 0, 0 }
-		};
+		static struct option long_options[] = {{0, 0, 0, 0}};
 
-		c = getopt_long(argc, argv, "a:b:c:C:d:fl:o:p:s:t:h:u:x:z:",
-			long_options, &option_index);
+		c = getopt_long(
+				argc, argv, "a:b:c:C:d:fl:o:p:s:t:h:u:x:z:", long_options,
+				&option_index);
 		if (c == -1) {
 			break;
 		}
@@ -89,15 +86,15 @@ int parse_arguments(int argc, char *argv[])
 		case 0:
 			break;
 		case 'a':
-			if (strcmp(optarg, "cockroach") == 0)
+			if (strcmp(optarg, "cockroach") == 0) {
 				dbms = DBMSCOCKROACH;
-			else if (strcmp(optarg, "odbc") == 0)
+			} else if (strcmp(optarg, "odbc") == 0) {
 				dbms = DBMSODBC;
-			else if (strcmp(optarg, "pgsql") == 0)
+			} else if (strcmp(optarg, "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
-			else if (strcmp(optarg, "sqlite") == 0)
+			} else if (strcmp(optarg, "sqlite") == 0) {
 				dbms = DBMSSQLITE;
-			else {
+			} else {
 				printf("unrecognized dbms option: %s\n", optarg);
 				exit(1);
 			}
@@ -115,7 +112,7 @@ int parse_arguments(int argc, char *argv[])
 			strncpy(sname, optarg, sizeof(sname));
 			break;
 		case 'f':
-			force_sleep=1;
+			force_sleep = 1;
 			break;
 		case 'l':
 #if defined(HAVE_LIBPQ)
@@ -138,8 +135,9 @@ int parse_arguments(int argc, char *argv[])
 				exit(1);
 			}
 			strcpy(output_path, optarg);
-			if (output_path[length] == '/')
+			if (output_path[length] == '/') {
 				output_path[length] = '\0';
+			}
 			break;
 		case 'p':
 			port = atoi(optarg);
@@ -183,12 +181,10 @@ int parse_arguments(int argc, char *argv[])
 	return OK;
 }
 
-int parse_command(char *command)
-{
+int parse_command(char *command) {
 	if (strcmp(command, "status") == 0) {
 		status();
-	} else if (strcmp(command, "exit") == 0 ||
-		strcmp(command, "quit") == 0) {
+	} else if (strcmp(command, "exit") == 0 || strcmp(command, "quit") == 0) {
 		exiting = 1;
 		return EXIT_CODE;
 	} else if (strcmp(command, "help") == 0 || strcmp(command, "?") == 0) {
@@ -201,8 +197,7 @@ int parse_command(char *command)
 	return OK;
 }
 
-void usage(char *name)
-{
+void usage(char *name) {
 	printf("%s is the DBT-2 Client\n\n", name);
 	printf("Usage:\n");
 	printf("  %s [OPTION]\n\n", name);
@@ -214,13 +209,16 @@ void usage(char *name)
 #endif /* CLIENT1 */
 #ifdef CLIENT2
 	printf("  -C #           roughly maximum number of driver connections, "
-			"default %d\n", max_driver_connections);
+		   "default %d\n",
+		   max_driver_connections);
 #endif /* CLIENT2 */
 	printf("  -o <path>      output directory, default '.'\n");
 	printf("  -p #           port to listen for incoming driver connections, "
-			"default %d\n", CLIENT_PORT);
-	printf("  -s #           seconds to sleep between openning db connections, "
-			"default 1 s\n");
+		   "default %d\n",
+		   CLIENT_PORT);
+	printf("  -s #           seconds to sleep between openning db "
+		   "connections, "
+		   "default 1 s\n");
 #ifdef CLIENT2
 	printf("  -x #           number of database connections per process\n");
 #endif /* CLIENT2 */

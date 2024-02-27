@@ -7,10 +7,8 @@
 
 #include "libpq_integrity.h"
 
-int execute_integrity_cockroach(struct db_context_t *dbc,
-		struct integrity_t *data)
-{
+int execute_integrity_cockroach(
+		struct db_context_t *dbc, struct integrity_t *data) {
 	/* Integrity tests should be implemented  */
 	return OK;
 }
-

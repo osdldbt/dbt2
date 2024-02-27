@@ -18,15 +18,15 @@ int generate_delivery_data(pcg64f_random_t *, int, struct delivery_t *);
 int generate_new_order_data(pcg64f_random_t *, int, struct new_order_t *);
 int generate_order_status_data(pcg64f_random_t *, int, struct order_status_t *);
 int generate_payment_data(pcg64f_random_t *, int, struct payment_t *);
-int generate_stock_level_data(pcg64f_random_t *, int, int, struct stock_level_t *);
+int generate_stock_level_data(
+		pcg64f_random_t *, int, int, struct stock_level_t *);
 int generate_integrity_data(int w_id, struct integrity_t *data);
 
 /* Does it make sense to include driver.h for this? */
 extern int mode_altered;
 
 /* This function generates data for all transactions except Stock-Level. */
-int generate_input_data(pcg64f_random_t *rng, int type, void *data, int w_id)
-{
+int generate_input_data(pcg64f_random_t *rng, int type, void *data, int w_id) {
 	switch (type) {
 	case DELIVERY:
 		generate_delivery_data(rng, w_id, (struct delivery_t *) data);
@@ -40,7 +40,7 @@ int generate_input_data(pcg64f_random_t *rng, int type, void *data, int w_id)
 	case PAYMENT:
 		generate_payment_data(rng, w_id, (struct payment_t *) data);
 		break;
-        case INTEGRITY:
+	case INTEGRITY:
 		generate_integrity_data(w_id, (struct integrity_t *) data);
 	default:
 		return ERROR;
@@ -49,17 +49,15 @@ int generate_input_data(pcg64f_random_t *rng, int type, void *data, int w_id)
 }
 
 /* This function generates data only for the Stock-Level transaction. */
-int generate_input_data2(pcg64f_random_t *rng, int type, void *data, int w_id,
-		int d_id)
-{
+int generate_input_data2(
+		pcg64f_random_t *rng, int type, void *data, int w_id, int d_id) {
 	generate_stock_level_data(rng, w_id, d_id, (struct stock_level_t *) data);
 	return OK;
 }
 
 /* Clause 2.7.1 */
-int generate_delivery_data(pcg64f_random_t *rng, int w_id,
-		struct delivery_t *data)
-{
+int generate_delivery_data(
+		pcg64f_random_t *rng, int w_id, struct delivery_t *data) {
 	memset(data, 0, sizeof(struct delivery_t));
 	data->w_id = w_id;
 	data->o_carrier_id = (int) get_random(rng, O_CARRIER_ID_MAX) + 1;
@@ -68,8 +66,8 @@ int generate_delivery_data(pcg64f_random_t *rng, int w_id,
 }
 
 /* Clause 2.4.1 */
-int generate_new_order_data(pcg64f_random_t *rng, int w_id, struct new_order_t *data)
-{
+int generate_new_order_data(
+		pcg64f_random_t *rng, int w_id, struct new_order_t *data) {
 	int i;
 
 	memset(data, 0, sizeof(struct new_order_t));
@@ -85,10 +83,11 @@ int generate_new_order_data(pcg64f_random_t *rng, int w_id, struct new_order_t *
 			} else {
 				data->order_line[i].ol_supply_w_id =
 						get_random(rng, table_cardinality.warehouses - 1) + 1;
-				if (data->order_line[i].ol_supply_w_id >= w_id)
+				if (data->order_line[i].ol_supply_w_id >= w_id) {
 					data->order_line[i].ol_supply_w_id =
 							(data->order_line[i].ol_supply_w_id + 1) %
 							table_cardinality.warehouses;
+				}
 			}
 		} else {
 			data->order_line[i].ol_supply_w_id = 1;
@@ -105,9 +104,8 @@ int generate_new_order_data(pcg64f_random_t *rng, int w_id, struct new_order_t *
 }
 
 /* Clause 2.6.1 */
-int generate_order_status_data(pcg64f_random_t *rng, int w_id,
-		struct order_status_t *data)
-{
+int generate_order_status_data(
+		pcg64f_random_t *rng, int w_id, struct order_status_t *data) {
 	memset(data, 0, sizeof(struct order_status_t));
 	data->c_w_id = w_id;
 	data->c_d_id = (int) get_random(rng, D_ID_MAX) + 1;
@@ -124,9 +122,8 @@ int generate_order_status_data(pcg64f_random_t *rng, int w_id,
 }
 
 /* Clause 2.5.1 */
-int generate_payment_data(pcg64f_random_t *rng, int w_id,
-		struct payment_t *data)
-{
+int generate_payment_data(
+		pcg64f_random_t *rng, int w_id, struct payment_t *data) {
 	memset(data, 0, sizeof(struct payment_t));
 	data->w_id = w_id;
 	data->d_id = (int) get_random(rng, D_ID_MAX) + 1;
@@ -150,15 +147,14 @@ int generate_payment_data(pcg64f_random_t *rng, int w_id,
 			 * as this user's home warehouse by shifting the
 			 * numbers slightly.
 			 */
-			data->c_w_id = (int) get_random(rng,
-					table_cardinality.warehouses - 1) + 1;
+			data->c_w_id =
+					(int) get_random(rng, table_cardinality.warehouses - 1) + 1;
 			if (data->c_w_id >= w_id) {
-				data->c_w_id = (data->c_w_id + 1) %
-						table_cardinality.warehouses;
+				data->c_w_id =
+						(data->c_w_id + 1) % table_cardinality.warehouses;
 			}
-			if (!data->c_w_id)
-			{
-			  data->c_w_id = 1;
+			if (!data->c_w_id) {
+				data->c_w_id = 1;
 			}
 		} else {
 			data->c_w_id = 1;
@@ -170,9 +166,8 @@ int generate_payment_data(pcg64f_random_t *rng, int w_id,
 }
 
 /* Clause 2.8.1 */
-int generate_stock_level_data(pcg64f_random_t *rng, int w_id, int d_id,
-		struct stock_level_t *data)
-{
+int generate_stock_level_data(
+		pcg64f_random_t *rng, int w_id, int d_id, struct stock_level_t *data) {
 	memset(data, 0, sizeof(struct stock_level_t));
 	data->w_id = w_id;
 	data->d_id = d_id;
@@ -181,10 +176,9 @@ int generate_stock_level_data(pcg64f_random_t *rng, int w_id, int d_id,
 	return OK;
 }
 
-int generate_integrity_data(int w_id, struct integrity_t *data)
-{
-        memset(data, 0, sizeof(struct integrity_t));
-        data->w_id = w_id;
+int generate_integrity_data(int w_id, struct integrity_t *data) {
+	memset(data, 0, sizeof(struct integrity_t));
+	data->w_id = w_id;
 
-        return OK;
+	return OK;
 }

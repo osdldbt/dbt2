@@ -21,20 +21,20 @@
 
 #ifdef HAVE_ODBC
 #include "odbc_delivery.h"
+#include "odbc_integrity.h"
+#include "odbc_new_order.h"
 #include "odbc_order_status.h"
 #include "odbc_payment.h"
 #include "odbc_stock_level.h"
-#include "odbc_new_order.h"
-#include "odbc_integrity.h"
 #endif /* HAVE_ODBC */
 
 #ifdef HAVE_LIBPQ
 #include "libpq_delivery.h"
+#include "libpq_integrity.h"
+#include "libpq_new_order.h"
 #include "libpq_order_status.h"
 #include "libpq_payment.h"
 #include "libpq_stock_level.h"
-#include "libpq_new_order.h"
-#include "libpq_integrity.h"
 #endif /* HAVE_LIBPQ */
 
 #ifdef HAVE_MYSQL
@@ -48,17 +48,16 @@
 
 #ifdef HAVE_SQLITE3
 #include "nonsp_delivery.h"
+#include "nonsp_integrity.h"
+#include "nonsp_new_order.h"
 #include "nonsp_order_status.h"
 #include "nonsp_payment.h"
 #include "nonsp_stock_level.h"
-#include "nonsp_new_order.h"
-#include "nonsp_integrity.h"
 #endif /* HAVE_SQLITE3 */
 
-const char s_dist[10][11] = {
-	"s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04", "s_dist_05",
-	"s_dist_06", "s_dist_07", "s_dist_08", "s_dist_09", "s_dist_10"
-};
+const char s_dist[10][11] = {"s_dist_01", "s_dist_02", "s_dist_03", "s_dist_04",
+							 "s_dist_05", "s_dist_06", "s_dist_07", "s_dist_08",
+							 "s_dist_09", "s_dist_10"};
 
 int connect_to_db(struct db_context_t *dbc) {
 	int rc;
@@ -67,7 +66,8 @@ int connect_to_db(struct db_context_t *dbc) {
 
 	while (1) {
 		time_t tt = time(NULL);
-		if (dbc->stop_time != 0 && tt > dbc->stop_time) return ERROR;
+		if (dbc->stop_time != 0 && tt > dbc->stop_time)
+			return ERROR;
 		++retry_count;
 		rc = (*dbc->connect)(dbc);
 		if (rc == OK) {
@@ -82,8 +82,8 @@ int connect_to_db(struct db_context_t *dbc) {
 				memcpy(&ts0, &rem0, sizeof(struct timespec));
 			} else {
 				LOG_ERROR_MESSAGE(
-						"sleep time invalid %ld s %ld ns",
-						ts0.tv_sec, ts0.tv_nsec);
+						"sleep time invalid %ld s %ld ns", ts0.tv_sec,
+						ts0.tv_nsec);
 			}
 		}
 	}
@@ -102,9 +102,9 @@ int disconnect_from_db(struct db_context_t *dbc) {
 	return OK;
 }
 
-int process_transaction(int transaction, struct db_context_t *dbc,
-	union transaction_data_t *td)
-{
+int process_transaction(
+		int transaction, struct db_context_t *dbc,
+		union transaction_data_t *td) {
 	int rc;
 	int i;
 	int status = 0;
@@ -126,7 +126,7 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 			td->new_order.o_all_local = 1;
 			for (i = 0; i < td->new_order.o_ol_cnt; i++) {
 				if (td->new_order.order_line[i].ol_supply_w_id !=
-						td->new_order.w_id) {
+					td->new_order.w_id) {
 					td->new_order.o_all_local = 0;
 					break;
 				}
@@ -140,9 +140,9 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 				 * SUBTRANS ROLLBACK without throwing an error.
 				 */
 				td->new_order.total_amount =
-					td->new_order.total_amount *
-					(1 - td->new_order.c_discount) *
-					(1 + td->new_order.w_tax + td->new_order.d_tax);
+						td->new_order.total_amount *
+						(1 - td->new_order.c_discount) *
+						(1 + td->new_order.w_tax + td->new_order.d_tax);
 			} else {
 				rc = ERROR;
 			}
@@ -164,10 +164,13 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 		/* Commit or rollback the transaction on expected OK or ERROR. */
 		if (rc == OK) {
 			status = (*dbc->commit_transaction)(dbc);
-			if (status == OK) break;
+			if (status == OK) {
+				break;
+			}
 		} else if (rc == ERROR) {
 			status = (*dbc->rollback_transaction)(dbc);
-			if (status == STATUS_ROLLBACK) break;
+			if (status == STATUS_ROLLBACK)
+				break;
 		}
 
 		/* Reconnect to the database on unexpected return codes. */
@@ -176,7 +179,9 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 		/* Retry until the calculated stop time. */
 		while (1) {
 			time_t tt = time(NULL);
-			if (dbc->stop_time == 0 || tt > dbc->stop_time) return ERROR;
+			if (dbc->stop_time == 0 || tt > dbc->stop_time) {
+				return ERROR;
+			}
 
 			++retry_count;
 			LOG_ERROR_MESSAGE("retrying database connection");
@@ -193,8 +198,8 @@ int process_transaction(int transaction, struct db_context_t *dbc,
 					memcpy(&ts0, &rem0, sizeof(struct timespec));
 				} else {
 					LOG_ERROR_MESSAGE(
-							"sleep time invalid %ld s %ld ns",
-							ts0.tv_sec, ts0.tv_nsec);
+							"sleep time invalid %ld s %ld ns", ts0.tv_sec,
+							ts0.tv_nsec);
 				}
 			}
 		}

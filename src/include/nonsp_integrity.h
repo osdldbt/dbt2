@@ -10,10 +10,11 @@
 #ifndef _NONSP_INTEGRITY_H_
 #define _NONSP_INTEGRITY_H_
 
-#include <transaction_data.h>
 #include <nonsp_common.h>
+#include <transaction_data.h>
 
 int execute_integrity_nonsp(struct db_context_t *, struct integrity_t *);
-int integrity(struct db_context_t *dbc, struct integrity_t *data, char ** vals, int nvals);
+int integrity(struct db_context_t *dbc, struct integrity_t *data, char **vals,
+              int nvals);
 
 #endif /* _NONSP_INTEGRITY_H_ */

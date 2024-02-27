@@ -10,8 +10,8 @@
 #ifndef _NONSP_NEW_ORDER_H_
 #define _NONSP_NEW_ORDER_H_
 
-#include <transaction_data.h>
 #include <nonsp_common.h>
+#include <transaction_data.h>
 
 int execute_new_order_nonsp(struct db_context_t *, struct new_order_t *);
 int new_order_nonsp(struct db_context_t *, struct new_order_t *, char **, int);

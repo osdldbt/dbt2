@@ -9,18 +9,17 @@
 #include <string.h>
 
 #include "common.h"
-#include "logging.h"
 #include "libpq_stock_level.h"
+#include "logging.h"
 
 #define UDF_STOCK_LEVEL "SELECT * FROM stock_level($1, $2, $3)"
 
-int execute_stock_level_libpq(struct db_context_t *dbc, struct stock_level_t *data)
-{
+int execute_stock_level_libpq(
+		struct db_context_t *dbc, struct stock_level_t *data) {
 	PGresult *res;
 	const char *paramValues[3];
 	const int paramLengths[3] = {
-			sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t)
-	};
+			sizeof(uint32_t), sizeof(uint32_t), sizeof(uint32_t)};
 	const int paramFormats[3] = {1, 1, 1};
 
 	uint32_t d_w_id;
@@ -30,8 +29,9 @@ int execute_stock_level_libpq(struct db_context_t *dbc, struct stock_level_t *da
 #ifdef DEBUG
 	int i;
 
-	LOG_ERROR_MESSAGE("SL d_w_id %d d_id %d threshold %d",
-			data->w_id, data->d_id, data->threshold);
+	LOG_ERROR_MESSAGE(
+			"SL d_w_id %d d_id %d threshold %d", data->w_id, data->d_id,
+			data->threshold);
 #endif /* DEBUG */
 
 	d_w_id = htonl((uint32_t) data->w_id);
@@ -57,8 +57,9 @@ int execute_stock_level_libpq(struct db_context_t *dbc, struct stock_level_t *da
 	}
 	PQclear(res);
 
-	res = PQexecParams(dbc->library.libpq.conn, UDF_STOCK_LEVEL, 3, NULL,
-			paramValues, paramLengths, paramFormats, 1);
+	res = PQexecParams(
+			dbc->library.libpq.conn, UDF_STOCK_LEVEL, 3, NULL, paramValues,
+			paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("SL %s", PQerrorMessage(dbc->library.libpq.conn));
 		if (PQresultStatus(res) == PGRES_FATAL_ERROR &&
@@ -72,7 +73,8 @@ int execute_stock_level_libpq(struct db_context_t *dbc, struct stock_level_t *da
 	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		LOG_ERROR_MESSAGE("SL[%d] %s %d", i, PQfname(res, 0),
+		LOG_ERROR_MESSAGE(
+				"SL[%d] %s %d", i, PQfname(res, 0),
 				ntohl(*((uint32_t *) PQgetvalue(res, i, 0))));
 	}
 #endif /* DEBUG */

@@ -9,13 +9,12 @@
 #include <string.h>
 
 #include "common.h"
-#include "logging.h"
 #include "libpq_delivery.h"
+#include "logging.h"
 
 #define UDF_DELIVERY "SELECT * FROM delivery($1, $2)"
 
-int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data)
-{
+int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data) {
 	PGresult *res;
 	const char *paramValues[2];
 	const int paramLengths[2] = {sizeof(uint32_t), sizeof(uint32_t)};
@@ -27,8 +26,8 @@ int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data)
 #ifdef DEBUG
 	int i;
 
-	LOG_ERROR_MESSAGE("D d_w_id %d o_carrier_id %d",
-			data->w_id, data->o_carrier_id);
+	LOG_ERROR_MESSAGE(
+			"D d_w_id %d o_carrier_id %d", data->w_id, data->o_carrier_id);
 #endif /* DEBUG */
 
 	w_id = htonl((uint32_t) data->w_id);
@@ -52,7 +51,8 @@ int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data)
 	}
 	PQclear(res);
 
-	res = PQexecParams(dbc->library.libpq.conn, UDF_DELIVERY, 2, NULL, paramValues,
+	res = PQexecParams(
+			dbc->library.libpq.conn, UDF_DELIVERY, 2, NULL, paramValues,
 			paramLengths, paramFormats, 1);
 	if (!res || PQresultStatus(res) != PGRES_TUPLES_OK) {
 		LOG_ERROR_MESSAGE("D %s", PQerrorMessage(dbc->library.libpq.conn));
@@ -67,9 +67,10 @@ int execute_delivery_libpq(struct db_context_t *dbc, struct delivery_t *data)
 	}
 #ifdef DEBUG
 	for (i = 0; i < PQntuples(res); i++) {
-		LOG_ERROR_MESSAGE("SL[%d] %s=%d %s=%d", i,
-				PQfname(res, 0), ntohl(*((uint32_t *) PQgetvalue(res, i, 0))),
-				PQfname(res, 1), ntohl(*((uint32_t *) PQgetvalue(res, i, 1))));
+		LOG_ERROR_MESSAGE(
+				"SL[%d] %s=%d %s=%d", i, PQfname(res, 0),
+				ntohl(*((uint32_t *) PQgetvalue(res, i, 0))), PQfname(res, 1),
+				ntohl(*((uint32_t *) PQgetvalue(res, i, 1))));
 	}
 #endif /* DEBUG */
 	PQclear(res);

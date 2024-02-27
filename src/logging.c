@@ -9,8 +9,8 @@
 
 #include <common.h>
 #include <pthread.h>
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -21,8 +21,7 @@
 FILE *log_error;
 pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
 
-int edump(int type, void *data)
-{
+int edump(int type, void *data) {
 	pthread_mutex_lock(&mutex_error_log);
 	fprintf(log_error, "[%lx]\n", pthread_self());
 	dump(log_error, type, data);
@@ -32,8 +31,7 @@ int edump(int type, void *data)
 }
 
 /* Open a file to log errors to. */
-int init_logging()
-{
+int init_logging() {
 	char log_filename[512];
 	log_filename[511] = '\0';
 	snprintf(log_filename, 511, "%s/%s", output_path, ERROR_LOG_NAME);
@@ -47,8 +45,7 @@ int init_logging()
 }
 
 /* Open a file to log errors to, for multi process use. */
-int init_logging_f()
-{
+int init_logging_f() {
 	char log_filename[512];
 	log_filename[511] = '\0';
 	snprintf(log_filename, 511, "%s/error-%d.log", output_path, getpid());
@@ -61,12 +58,11 @@ int init_logging_f()
 	return OK;
 }
 
-int log_error_message(char *filename, int line, const char *fmt, ...)
-{
+int log_error_message(char *filename, int line, const char *fmt, ...) {
 	va_list fmtargs;
 	time_t t;
 	struct tm *tmp;
-	FILE *of = (log_error) ? log_error: stderr;
+	FILE *of = (log_error) ? log_error : stderr;
 	char outstr[32];
 
 	t = time(NULL);

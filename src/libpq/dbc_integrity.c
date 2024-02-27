@@ -7,11 +7,10 @@
 
 #include "libpq_integrity.h"
 
-int execute_integrity_libpq(struct db_context_t *dbc, struct integrity_t *data)
-{
+int execute_integrity_libpq(
+		struct db_context_t *dbc, struct integrity_t *data) {
 
-/* Integrity tests should be implemented  */
+	/* Integrity tests should be implemented  */
 
-        return OK;
+	return OK;
 }
-

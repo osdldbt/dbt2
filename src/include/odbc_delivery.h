@@ -12,8 +12,7 @@
 
 #include "db.h"
 
-#define STMT_DELIVERY \
-	"CALL delivery (?, ?)"
+#define STMT_DELIVERY "CALL delivery (?, ?)"
 
 int execute_delivery(struct db_context_t *odbcc, struct delivery_t *data);
 

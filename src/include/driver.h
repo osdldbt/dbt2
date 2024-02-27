@@ -31,51 +31,47 @@
 #define KEYING 1
 #define THINKING 2
 
-struct key_time_t
-{
-	int delivery;
-	int new_order;
-	int order_status;
-	int payment;
-	int stock_level;
+struct key_time_t {
+  int delivery;
+  int new_order;
+  int order_status;
+  int payment;
+  int stock_level;
 };
 
-struct terminal_context_t
-{
-	int w_id;
-	int d_id;
+struct terminal_context_t {
+  int w_id;
+  int d_id;
 };
 
-struct transaction_mix_t
-{
-	/*
-	 * These are the numbers are the actual percentage a transaction is
-	 * executed.
-	 */
-	double delivery_actual;
-	double new_order_actual;
-	double payment_actual;
-	double order_status_actual;
-	double stock_level_actual;
+struct transaction_mix_t {
+  /*
+   * These are the numbers are the actual percentage a transaction is
+   * executed.
+   */
+  double delivery_actual;
+  double new_order_actual;
+  double payment_actual;
+  double order_status_actual;
+  double stock_level_actual;
 
-	/*
-	 * These are the numbers checked against to determine the next
-	 * transaction.
-	 */
-	double delivery_threshold;
-	double new_order_threshold;
-	double payment_threshold;
-	double order_status_threshold;
-	double stock_level_threshold;
+  /*
+   * These are the numbers checked against to determine the next
+   * transaction.
+   */
+  double delivery_threshold;
+  double new_order_threshold;
+  double payment_threshold;
+  double order_status_threshold;
+  double stock_level_threshold;
 };
 
-struct think_time_t
-{
-	int delivery;
-	int new_order;
-	int order_status;
-	int payment;
-	int stock_level;
+struct think_time_t {
+  int delivery;
+  int new_order;
+  int order_status;
+  int payment;
+  int stock_level;
 };
 
 int init_driver();

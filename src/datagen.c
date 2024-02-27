@@ -12,19 +12,19 @@
 
 #include "common.h"
 
+#include <getopt.h>
+#include <math.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <getopt.h>
 #include <wchar.h>
-#include <math.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "entropy.h"
 
@@ -69,38 +69,36 @@ char quoter[2] = "";
 unsigned long long seed = 0;
 int table = TABLE_ALL;
 
-int part = 1; /* Which partition to generator. */
+int part = 1;		/* Which partition to generator. */
 int partitions = 1; /* How many partitions of data. */
 
 void (*print_timestamp)(FILE *, struct tm *);
 
 void usage(char *);
 
-void metaprintf(FILE *fp, char *fmt, ...)
-{
+void metaprintf(FILE *fp, char *fmt, ...) {
 	va_list fmtargs;
 	va_start(fmtargs, fmt);
 	vfprintf(fp, fmt, fmtargs);
 	va_end(fmtargs);
 }
 
-void print_timestamp_pgsql(FILE *ofile, struct tm *date)
-{
-	metaprintf(ofile, "%04d-%02d-%02d %02d:%02d:%02d",
-			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-			date->tm_hour, date->tm_min, date->tm_sec);
+void print_timestamp_pgsql(FILE *ofile, struct tm *date) {
+	metaprintf(
+			ofile, "%04d-%02d-%02d %02d:%02d:%02d", date->tm_year + 1900,
+			date->tm_mon + 1, date->tm_mday, date->tm_hour, date->tm_min,
+			date->tm_sec);
 }
 
-void print_timestamp_sapdb(FILE *ofile, struct tm *date)
-{
-	metaprintf(ofile, "\"%04d%02d%02d%02d%02d%02d000000\"",
-			date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-			date->tm_hour, date->tm_min, date->tm_sec);
+void print_timestamp_sapdb(FILE *ofile, struct tm *date) {
+	metaprintf(
+			ofile, "\"%04d%02d%02d%02d%02d%02d000000\"", date->tm_year + 1900,
+			date->tm_mon + 1, date->tm_mday, date->tm_hour, date->tm_min,
+			date->tm_sec);
 }
 
 /* Clause 4.3.3.1 */
-void gen_customers()
-{
+void gen_customers() {
 	FILE *output;
 	int i, j, k;
 	wchar_t a_string[1024];
@@ -118,7 +116,7 @@ void gen_customers()
 
 	pcg64f_srandom_r(&rng, seed);
 	printf("Generating customer table data for warehouse %d to %d...\n",
-			start + 1, end);
+		   start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
@@ -146,32 +144,38 @@ void gen_customers()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(output, "TRUNCATE customer;\n");
-				while (fgetc(output) != EOF) ;
+				while (fgetc(output) != EOF)
+					;
 			}
 
 			fprintf(output,
 					"COPY customer FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 			break;
 		}
 	} else {
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	if (part > 1)
-		pcg64f_advance_r(&rng,
-				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
-				* (customers * 10 + 2 * (customers - 1000)));
+	if (part > 1) {
+		pcg64f_advance_r(
+				&rng, (part - 1) * (warehouses / partitions) *
+							  DISTRICT_CARDINALITY *
+							  (customers * 10 + 2 * (customers - 1000)));
+	}
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -268,8 +272,8 @@ void gen_customers()
 				metaprintf(output, "%c", delimiter);
 
 				/* c_discount */
-				fprintf(output, "%s0.%04d%s",
-						quoter, (int) get_random(&rng, 5000), quoter);
+				fprintf(output, "%s0.%04d%s", quoter,
+						(int) get_random(&rng, 5000), quoter);
 				metaprintf(output, "%c", delimiter);
 
 				/* c_balance */
@@ -304,11 +308,13 @@ void gen_customers()
 		case MODE_PGSQL:
 			fprintf(output, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			pclose(output);
 			break;
@@ -316,13 +322,12 @@ void gen_customers()
 	}
 
 	printf("Finished customer table data for warehouse %d to %d...\n",
-			start + 1, end);
+		   start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
-void gen_districts()
-{
+void gen_districts() {
 	FILE *output;
 	int i, j;
 	wchar_t a_string[48];
@@ -338,7 +343,7 @@ void gen_districts()
 
 	pcg64f_srandom_r(&rng, seed);
 	printf("Generating district table data for warehouse %d to %d...\n",
-			start + 1, end);
+		   start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
@@ -366,32 +371,37 @@ void gen_districts()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(output, "TRUNCATE district;\n");
-				while (fgetc(output) != EOF) ;
+				while (fgetc(output) != EOF)
+					;
 			}
 
 			fprintf(output,
 					"COPY district FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 			break;
 		}
 	} else {
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	if (part > 1)
-		pcg64f_advance_r(&rng,
-				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
-				* 7);
+	if (part > 1) {
+		pcg64f_advance_r(
+				&rng, (part - 1) * (warehouses / partitions) *
+							  DISTRICT_CARDINALITY * 7);
+	}
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -440,8 +450,8 @@ void gen_districts()
 			metaprintf(output, "%c", delimiter);
 
 			/* d_tax */
-			fprintf(output, "%s0.%04d%s",
-					quoter, (int) get_random(&rng, 2000), quoter);
+			fprintf(output, "%s0.%04d%s", quoter, (int) get_random(&rng, 2000),
+					quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* d_ytd */
@@ -462,11 +472,13 @@ void gen_districts()
 		case MODE_PGSQL:
 			fprintf(output, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			pclose(output);
 			break;
@@ -474,13 +486,12 @@ void gen_districts()
 	}
 
 	printf("Finished district table data for warehouse %d to %d...\n",
-			start + 1, end);
+		   start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
-void gen_history()
-{
+void gen_history() {
 	FILE *output;
 	int i, j, k;
 	wchar_t a_string[64];
@@ -498,7 +509,7 @@ void gen_history()
 
 	pcg64f_srandom_r(&rng, seed);
 	printf("Generating history table data from warehouse %d to %d...\n",
-			start + 1, end);
+		   start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
@@ -526,32 +537,37 @@ void gen_history()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(output, "TRUNCATE history;\n");
-				while (fgetc(output) != EOF) ;
+				while (fgetc(output) != EOF)
+					;
 			}
 
 			fprintf(output,
 					"COPY history FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 			break;
 		}
 	} else {
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	if (part > 1)
-		pcg64f_advance_r(&rng,
-				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
-				* customers);
+	if (part > 1) {
+		pcg64f_advance_r(
+				&rng, (part - 1) * (warehouses / partitions) *
+							  DISTRICT_CARDINALITY * customers);
+	}
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -608,25 +624,26 @@ void gen_history()
 		case MODE_PGSQL:
 			fprintf(output, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			pclose(output);
 			break;
 		}
 	}
 
-	printf("Finished history table data for warehouse %d to %d...\n",
-			start + 1, end);
+	printf("Finished history table data for warehouse %d to %d...\n", start + 1,
+		   end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
-void gen_items()
-{
+void gen_items() {
 	FILE *output = NULL;
 	int i;
 	wchar_t a_string[128];
@@ -671,31 +688,35 @@ void gen_items()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(output, "TRUNCATE item;\n");
-				while (fgetc(output) != EOF) ;
+				while (fgetc(output) != EOF)
+					;
 			}
 
-			fprintf(output,
-					"COPY item FROM STDIN DELIMITER '%c' NULL '%s';\n",
+			fprintf(output, "COPY item FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 			break;
 		}
 	} else {
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	if (part > 1)
-		pcg64f_advance_r(&rng,
-				round((double) (part - 1) * partition_size * 5.0));
+	if (part > 1) {
+		pcg64f_advance_r(
+				&rng, round((double) (part - 1) * partition_size * 5.0));
+	}
 
 	for (i = start; i < end; i++) {
 		/* i_id */
@@ -703,8 +724,8 @@ void gen_items()
 		metaprintf(output, "%c", delimiter);
 
 		/* i_im_id */
-		fprintf(output, "%s%d%s",
-				quoter, (int) get_random(&rng, 9999) + 1, quoter);
+		fprintf(output, "%s%d%s", quoter, (int) get_random(&rng, 9999) + 1,
+				quoter);
 		metaprintf(output, "%c", delimiter);
 
 		/* i_name */
@@ -739,18 +760,21 @@ void gen_items()
 	}
 
 	if (mode_load == MODE_FLAT) {
-        if (output != NULL)
-		    fclose(output);
+		if (output != NULL) {
+			fclose(output);
+		}
 	} else {
 		switch (mode_string) {
 		case MODE_PGSQL:
 			fprintf(output, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			pclose(output);
 			break;
@@ -762,8 +786,7 @@ void gen_items()
 }
 
 /* Clause 4.3.3.1 */
-void gen_new_orders()
-{
+void gen_new_orders() {
 	FILE *output;
 	int i, j, k;
 	char filename[1024] = "\0";
@@ -777,7 +800,7 @@ void gen_new_orders()
 
 	pcg64f_srandom_r(&rng, seed);
 	printf("Generating new-order table data for warehouse %d to %d...\n",
-			start + 1, end);
+		   start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
@@ -805,22 +828,26 @@ void gen_new_orders()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(output, "TRUNCATE new_order;\n");
-				while (fgetc(output) != EOF) ;
+				while (fgetc(output) != EOF)
+					;
 			}
 
 			fprintf(output,
 					"COPY new_order FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 			break;
 		}
 	} else {
@@ -853,11 +880,13 @@ void gen_new_orders()
 		case MODE_PGSQL:
 			fprintf(output, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			pclose(output);
 			break;
@@ -865,13 +894,12 @@ void gen_new_orders()
 	}
 
 	printf("Finished new-order table data for warehouse %d to %d...\n",
-			start + 1, end);
+		   start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
-void gen_orders()
-{
+void gen_orders() {
 	FILE *order = NULL;
 	FILE *order_line = NULL;
 	int i, j, k, l;
@@ -904,7 +932,8 @@ void gen_orders()
 
 	pcg64f_srandom_r(&rng, seed);
 	printf("Generating order and order-line table data for warehouse %d to %d"
-			"...\n", start + 1, end);
+		   "...\n",
+		   start + 1, end);
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
@@ -950,22 +979,25 @@ void gen_orders()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order) != EOF) ;
+			while (fgetc(order) != EOF)
+				;
 
 			fprintf(order, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order) != EOF) ;
+			while (fgetc(order) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(order, "TRUNCATE orders;\n");
-				while (fgetc(order) != EOF) ;
+				while (fgetc(order) != EOF)
+					;
 			}
 
-			fprintf(order,
-					"COPY orders FROM STDIN DELIMITER '%c' NULL '%s';\n",
+			fprintf(order, "COPY orders FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order) != EOF) ;
+			while (fgetc(order) != EOF)
+				;
 
 			order_line = popen("psql", "w");
 			if (order_line == NULL) {
@@ -973,32 +1005,38 @@ void gen_orders()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order_line) != EOF) ;
+			while (fgetc(order_line) != EOF)
+				;
 
 			fprintf(order_line, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order_line) != EOF) ;
+			while (fgetc(order_line) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(order_line, "TRUNCATE order_line;\n");
-				while (fgetc(order_line) != EOF) ;
+				while (fgetc(order_line) != EOF)
+					;
 			}
 
 			fprintf(order_line,
 					"COPY order_line FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order_line) != EOF) ;
+			while (fgetc(order_line) != EOF)
+				;
 			break;
 		}
 	} else {
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	if (part > 1)
-		pcg64f_advance_r(&rng,
-				(part - 1) * (warehouses / partitions) * DISTRICT_CARDINALITY \
-				* ((customers - 1) + 2101 + orders));
+	if (part > 1) {
+		pcg64f_advance_r(
+				&rng, (part - 1) * (warehouses / partitions) *
+							  DISTRICT_CARDINALITY *
+							  ((customers - 1) + 2101 + orders));
+	}
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < DISTRICT_CARDINALITY; j++) {
@@ -1015,8 +1053,9 @@ void gen_orders()
 				iter = (int) get_random(&rng, k - 1);
 				while (iter > 0) {
 					prev = current;
-					if (current != NULL)
+					if (current != NULL) {
 						current = current->next;
+					}
 					--iter;
 				}
 
@@ -1074,8 +1113,8 @@ void gen_orders()
 
 				/* o_carrier_id */
 				if (k < 2101) {
-					fprintf(order, "%s%d%s",
-							quoter, (int) get_random(&rng, 9) + 1, quoter);
+					fprintf(order, "%s%d%s", quoter,
+							(int) get_random(&rng, 9) + 1, quoter);
 				} else {
 					metaprintf(order, "%s", null_str);
 				}
@@ -1125,12 +1164,12 @@ void gen_orders()
 
 					/* ol_delivery_d */
 					if (k < 2101) {
-					/*
-					 * Milliseconds are not
-					 * calculated.  This should
-					 * also be the time when the
-					 * data is loaded, I think.
-					 */
+						/*
+						 * Milliseconds are not
+						 * calculated.  This should
+						 * also be the time when the
+						 * data is loaded, I think.
+						 */
 						time(&t1);
 						tm1 = localtime(&t1);
 						(*print_timestamp)(order_line, tm1);
@@ -1148,8 +1187,9 @@ void gen_orders()
 						metaprintf(order_line, "0.00");
 					} else {
 						fprintf(order_line, "%s%f%s", quoter,
-								(double) (get_random(&ol_rng,
-										999998) + 1) / 100.0, quoter);
+								(double) (get_random(&ol_rng, 999998) + 1) /
+										100.0,
+								quoter);
 					}
 					metaprintf(order_line, "%c", delimiter);
 
@@ -1170,26 +1210,32 @@ void gen_orders()
 	}
 
 	if (mode_load == MODE_FLAT) {
-		if (order != NULL)
+		if (order != NULL) {
 			fclose(order);
-		if (order_line != NULL)
+		}
+		if (order_line != NULL) {
 			fclose(order_line);
+		}
 	} else {
 		switch (mode_string) {
 		case MODE_PGSQL:
 			fprintf(order, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order) != EOF) ;
+			while (fgetc(order) != EOF)
+				;
 			fprintf(order_line, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order_line) != EOF) ;
+			while (fgetc(order_line) != EOF)
+				;
 
 			fprintf(order, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order) != EOF) ;
+			while (fgetc(order) != EOF)
+				;
 			fprintf(order_line, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(order_line) != EOF) ;
+			while (fgetc(order_line) != EOF)
+				;
 
 			pclose(order);
 			pclose(order_line);
@@ -1197,13 +1243,13 @@ void gen_orders()
 		}
 	}
 	printf("Finished order and order-line table data for warehouse %d to %d"
-			"...\n", start + 1, end);
+		   "...\n",
+		   start + 1, end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
-void gen_stock()
-{
+void gen_stock() {
 	FILE *output = NULL;
 	int i, j, k;
 	wchar_t a_string[128];
@@ -1219,8 +1265,8 @@ void gen_stock()
 	end = end > warehouses ? warehouses : end;
 
 	pcg64f_srandom_r(&rng, seed);
-	printf("Generating stock table data for warehouse %d to %d...\n",
-			start + 1, end);
+	printf("Generating stock table data for warehouse %d to %d...\n", start + 1,
+		   end);
 
 	if (mode_load == MODE_FLAT) {
 		if (output_path != NULL) {
@@ -1248,31 +1294,35 @@ void gen_stock()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(output, "TRUNCATE stock;\n");
-				while (fgetc(output) != EOF) ;
+				while (fgetc(output) != EOF)
+					;
 			}
 
-			fprintf(output,
-					"COPY stock FROM STDIN DELIMITER '%c' NULL '%s';\n",
+			fprintf(output, "COPY stock FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 			break;
 		}
 	} else {
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	if (part > 1)
-		pcg64f_advance_r(&rng,
-				(part - 1) * (warehouses / partitions) * items * 13);
+	if (part > 1) {
+		pcg64f_advance_r(
+				&rng, (part - 1) * (warehouses / partitions) * items * 13);
+	}
 
 	for (i = start; i < end; i++) {
 		for (j = 0; j < items; j++) {
@@ -1285,8 +1335,8 @@ void gen_stock()
 			metaprintf(output, "%c", delimiter);
 
 			/* s_quantity */
-			fprintf(output, "%s%d%s",
-					quoter, (int) get_random(&rng, 90) + 10, quoter);
+			fprintf(output, "%s%d%s", quoter, (int) get_random(&rng, 90) + 10,
+					quoter);
 			metaprintf(output, "%c", delimiter);
 
 			/* s_dist_01 */
@@ -1383,18 +1433,21 @@ void gen_stock()
 	}
 
 	if (mode_load == MODE_FLAT) {
-		if (output != NULL)
+		if (output != NULL) {
 			fclose(output);
+		}
 	} else {
 		switch (mode_string) {
 		case MODE_PGSQL:
 			fprintf(output, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			pclose(output);
 			break;
@@ -1402,13 +1455,12 @@ void gen_stock()
 	}
 
 	printf("Finished stock table data for warehouse %d to %d...\n", start + 1,
-			end);
+		   end);
 	return;
 }
 
 /* Clause 4.3.3.1 */
-void gen_warehouses()
-{
+void gen_warehouses() {
 	FILE *output;
 	int i;
 	wchar_t a_string[48];
@@ -1451,30 +1503,35 @@ void gen_warehouses()
 				return;
 			}
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "BEGIN;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			if (partitions == 1) {
 				fprintf(output, "TRUNCATE warehouse;\n");
-				while (fgetc(output) != EOF) ;
+				while (fgetc(output) != EOF)
+					;
 			}
 
 			fprintf(output,
 					"COPY warehouse FROM STDIN DELIMITER '%c' NULL '%s';\n",
 					delimiter, null_str);
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 			break;
 		}
 	} else {
 		printf("error unknown load mode: %d\n", mode_load);
 	}
 
-	if (part > 1)
+	if (part > 1) {
 		pcg64f_advance_r(&rng, (part - 1) * (warehouses / partitions) * 7);
+	}
 
 	for (i = start; i < end; i++) {
 		/* w_id */
@@ -1535,11 +1592,13 @@ void gen_warehouses()
 		case MODE_PGSQL:
 			fprintf(output, "\\.\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			fprintf(output, "COMMIT;\n");
 			/* FIXME: Handle properly instead of blindly reading the output. */
-			while (fgetc(output) != EOF) ;
+			while (fgetc(output) != EOF)
+				;
 
 			pclose(output);
 			break;
@@ -1550,8 +1609,7 @@ void gen_warehouses()
 	return;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	int length;
 	struct stat st;
 
@@ -1569,19 +1627,18 @@ int main(int argc, char *argv[])
 	while (1) {
 		int option_index = 0;
 		static struct option long_options[] = {
-			{ "direct", no_argument, &mode_load, MODE_DIRECT },
-			{ "seed", required_argument, 0, 0 },
-			{ "table", required_argument, 0, 0 },
-			{ "part", required_argument, 0, 0 },
-			{ "partitions", required_argument, 0, 0 },
-			{ "pgsql", no_argument, &mode_string, MODE_PGSQL },
-			{ "sapdb", no_argument, &mode_string, MODE_SAPDB },
-			{ "mysql", no_argument, &mode_string, MODE_MYSQL },
-			{ 0, 0, 0, 0 }
-		};
+				{"direct", no_argument, &mode_load, MODE_DIRECT},
+				{"seed", required_argument, 0, 0},
+				{"table", required_argument, 0, 0},
+				{"part", required_argument, 0, 0},
+				{"partitions", required_argument, 0, 0},
+				{"pgsql", no_argument, &mode_string, MODE_PGSQL},
+				{"sapdb", no_argument, &mode_string, MODE_SAPDB},
+				{"mysql", no_argument, &mode_string, MODE_MYSQL},
+				{0, 0, 0, 0}};
 
-		c = getopt_long(argc, argv, "c:d:i:n:o:P:p:w:",
-				long_options, &option_index);
+		c = getopt_long(
+				argc, argv, "c:d:i:n:o:P:p:w:", long_options, &option_index);
 		if (c == -1) {
 			break;
 		}
@@ -1624,8 +1681,9 @@ int main(int argc, char *argv[])
 				exit(1);
 			}
 			strncpy(output_path, optarg, length);
-			if (output_path[length] == '/')
+			if (output_path[length] == '/') {
 				output_path[length] = '\0';
+			}
 			break;
 		case 'i':
 			items = atoi(optarg);
@@ -1675,7 +1733,8 @@ int main(int argc, char *argv[])
 	if (partitions > 1) {
 		if (part > partitions) {
 			printf("the part to generate must be less that the number of "
-					"partitions: %d\n", partitions);
+				   "partitions: %d\n",
+				   partitions);
 			return 3;
 		}
 	}
@@ -1685,8 +1744,8 @@ int main(int argc, char *argv[])
 		return 3;
 	}
 
-	if (output_path != NULL && ((stat(output_path, &st) < 0) ||
-			(st.st_mode & S_IFMT) != S_IFDIR)) {
+	if (output_path != NULL &&
+		((stat(output_path, &st) < 0) || (st.st_mode & S_IFMT) != S_IFDIR)) {
 		printf("Output directory of data files '%s' not exists\n", output_path);
 		return 3;
 	}
@@ -1730,7 +1789,7 @@ int main(int argc, char *argv[])
 
 	if (mode_load != MODE_DIRECT) {
 		if (output_path != NULL) {
-			printf("Output directory of data files: %s\n",output_path);
+			printf("Output directory of data files: %s\n", output_path);
 		} else {
 			printf("Output directory of data files: current directory\n");
 		}
@@ -1739,46 +1798,54 @@ int main(int argc, char *argv[])
 
 	printf("Generating data files for %d warehouse(s)...\n", warehouses);
 
-	if (table == TABLE_ALL || table == TABLE_ITEM)
+	if (table == TABLE_ALL || table == TABLE_ITEM) {
 		gen_items();
-	if (table == TABLE_ALL || table == TABLE_WAREHOUSE)
+	}
+	if (table == TABLE_ALL || table == TABLE_WAREHOUSE) {
 		gen_warehouses();
-	if (table == TABLE_ALL || table == TABLE_STOCK)
+	}
+	if (table == TABLE_ALL || table == TABLE_STOCK) {
 		gen_stock();
-	if (table == TABLE_ALL || table == TABLE_DISTRICT)
+	}
+	if (table == TABLE_ALL || table == TABLE_DISTRICT) {
 		gen_districts();
-	if (table == TABLE_ALL || table == TABLE_CUSTOMER)
+	}
+	if (table == TABLE_ALL || table == TABLE_CUSTOMER) {
 		gen_customers();
-	if (table == TABLE_ALL || table == TABLE_HISTORY)
+	}
+	if (table == TABLE_ALL || table == TABLE_HISTORY) {
 		gen_history();
-	if (table == TABLE_ALL || table == TABLE_ORDER)
+	}
+	if (table == TABLE_ALL || table == TABLE_ORDER) {
 		gen_orders();
-	if (table == TABLE_ALL || table == TABLE_NEW_ORDER)
+	}
+	if (table == TABLE_ALL || table == TABLE_NEW_ORDER) {
 		gen_new_orders();
+	}
 
 	return 0;
 }
 
-void usage(char *name)
-{
+void usage(char *name) {
 	printf("%s is the DBT-2 data generator\n\n", name);
 	printf("Usage:\n");
 	printf("  %s [OPTION]\n", name);
 	printf("\nGeneral options:\n");
 	printf("  -d <path>           output path of data files\n");
 	printf("  -w <int>            warehouse cardinality\n");
-	printf("  --direct            don't generate flat files, load directly into "
-			"database\n");
+	printf("  --direct            don't generate flat files, load directly "
+		   "into "
+		   "database\n");
 	printf("  --seed <int>        set random number generation seed\n");
 	printf("\nCardinality options:\n");
 	printf("  -c <int>            customer cardinality, default %d\n",
-			CUSTOMER_CARDINALITY);
+		   CUSTOMER_CARDINALITY);
 	printf("  -i <int>            item cardinality, default %d\n",
-			ITEM_CARDINALITY);
+		   ITEM_CARDINALITY);
 	printf("  -n <int>            new-order cardinality, default %d\n",
-			NEW_ORDER_CARDINALITY);
+		   NEW_ORDER_CARDINALITY);
 	printf("  -o <int>            order cardinality, default %d\n",
-			ORDER_CARDINALITY);
+		   ORDER_CARDINALITY);
 	printf("\nData format options:\n");
 	printf("  --mysql             format data for MySQL\n");
 	printf("  --pgsql             format data for PostgreSQL\n");

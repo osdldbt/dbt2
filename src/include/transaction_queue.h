@@ -15,12 +15,11 @@
 #define REQ_QUEUED 0
 #define REQ_EXECUTING 1
 
-struct transaction_queue_node_t
-{
-	int s;
-	int id;
-	struct client_transaction_t client_data;
-	struct transaction_queue_node_t *next;
+struct transaction_queue_node_t {
+  int s;
+  int id;
+  struct client_transaction_t client_data;
+  struct transaction_queue_node_t *next;
 };
 
 struct transaction_queue_node_t *dequeue_transaction();
