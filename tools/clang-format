@@ -1,0 +1,15 @@
+#!/bin/sh
+
+BASEDIR="$(dirname "$(realpath "${0}")")/.."
+
+for DIR in \
+		src \
+		src/cockroach \
+		src/mysql \
+		src/libpq \
+		src/odbc \
+		src/nonsp \
+		storedproc/pgsql/c \
+		; do
+	clang-format -i "${BASEDIR}"/"${DIR}"/*.[ch]
+done
