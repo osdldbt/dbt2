@@ -10,6 +10,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix check for existing database in pgsql-create-db
 - Use CREATE DATABASE SQL statement instead of createdb binary in
   pgsql-create-db
+- Use VACUUM SQL statement insetead of vacuumdb binary in pgsql-build-db
 
 v0.53.10 (2024-02-22)
 

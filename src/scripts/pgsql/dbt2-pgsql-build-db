@@ -151,16 +151,17 @@ fi
 # can be used to execute VACUUM in FULL mode.
 
 # Perform VACUUM FREEZE ANALYZE by default
-VACUUM_OPTS="-z -F"
+VACUUM_OPTS="ANALYZE"
 if [ $VACUUM_FULL -eq 1 ]; then
-	VACUUM_OPTS="-z -f"
+	VACUUM_OPTS="${VACUUM_OPTS}, FULL"
 fi
 
-# Use vacuumdb's -j option only if VACUUM_JOBS is greater than 1.
 if [ $VACUUM_JOBS -gt 1 ]; then
-	VACUUM_OPTS="$VACUUM_OPTS -j $VACUUM_JOBS"
+	VACUUM_OPTS="${VACUUM_OPTS}, PARALLEL ${VACUUM_JOBS}"
 fi
 
-vacuumdb ${PORTARG} ${VACUUM_OPTS} -d ${DBT2DBNAME} || exit 1
+psql -X "${PORTARG}" -e -d "${DBT2DBNAME}" <<- EOF
+	VACUUM (${VACUUM_OPTS});
+EOF
 
 exit 0
