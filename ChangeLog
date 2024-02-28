@@ -12,6 +12,7 @@ vX.Y.Z (YYYY-MM-DD)
   pgsql-create-db
 - Use VACUUM SQL statement insetead of vacuumdb binary in pgsql-build-db
 - Remove unnecessary binaries from AppImage
+- Create AppImage on Debian 10 (buster), previously Ubuntu 14.04 (Trust Tahr)
 
 v0.53.10 (2024-02-22)
 

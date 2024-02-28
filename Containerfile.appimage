@@ -1,8 +1,8 @@
 # Build an environment for creating an AppImage.
 
-# Use a distro with an old libc to maximize support on as many linux distros as
-# possible for x86_64 and aarch64.
-FROM ubuntu:14.04
+# Try to use a distro with an old libc to maximize support on as many linux
+# distros as possible for x86_64 and aarch64.
+FROM debian:10
 
 ARG ARCH
 
@@ -18,6 +18,7 @@ RUN apt-get -qq -y update && \
                    libev-dev \
                    libffi-dev \
                    libpango1.0-dev \
+                   libssl-dev \
                    libsqlite3-dev \
                    make \
                    patch \
@@ -38,31 +39,12 @@ RUN curl -o /usr/local/AppDir/usr/bin/stackcollapse-perf.pl -SsOL \
 	chmod +x /usr/local/AppDir/usr/bin/stackcollapse-perf.pl \
              /usr/local/AppDir/usr/bin/flamegraph.pl
 
-ARG OPENSSLVER="1.1.1s"
-RUN wget -O /tmp/openssl-${OPENSSLVER}.tar.gz -q --no-check-certificate \
-         https://www.openssl.org/source/openssl-${OPENSSLVER}.tar.gz && \
-    tar -C /usr/local/src -xf /tmp/openssl-${OPENSSLVER}.tar.gz
-WORKDIR /usr/local/src/openssl-${OPENSSLVER}
-RUN ./config -fPIC shared && \
-    make -s -j$(nproc) && \
-    make -s install && \
-    ldconfig
-
-ARG OPENSSHVER="9.3p1"
-RUN wget -O /tmp/openssh-${OPENSSHVER}.tar.gz -q --no-check-certificate \
-         https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSHVER}.tar.gz && \
-    tar -C /usr/local/src -xf /tmp/openssh-${OPENSSHVER}.tar.gz
-WORKDIR /usr/local/src/openssh-${OPENSSHVER}
-RUN ./configure --quiet --prefix=/usr/local && \
-    make -s -j$(nproc) && \
-    make -s install
-
 ARG PYTHONVER="3.11.1"
 RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsOL \
          https://www.python.org/ftp/python/${PYTHONVER}/Python-${PYTHONVER}.tgz && \
     tar -C /usr/local/src -xf /tmp/Python-${PYTHONVER}.tgz
 WORKDIR /usr/local/src/Python-${PYTHONVER}
-RUN ./configure --silent --prefix=/usr --with-openssl-rpath=/usr/local/lib && \
+RUN ./configure --silent --prefix=/usr && \
     make -s -j$(nproc) && \
     make -s install && \
     sed -i -e 's#/usr#././#g' /usr/bin/python3.11
@@ -98,14 +80,6 @@ WORKDIR /usr/local/src/dbttools-${DBTTOOLSVER}
 RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
     (cd builds/release && make -s install DESTDIR=/usr/local/AppDir) && \
     rm -f /tmp/v${DBTTOOLSVER}.tar.gz
-
-ARG PERLVER="5.36.0"
-RUN wget -O /tmp/perl-${PERLVER}.tar.gz -q --no-check-certificate \
-         https://www.cpan.org/src/5.0/perl-${PERLVER}.tar.gz && \
-    tar -C /usr/local/src -xf /tmp/perl-${PERLVER}.tar.gz
-WORKDIR /usr/local/src/perl-${PERLVER}
-RUN ./configure.gnu --quiet --silent --prefix=/usr/local && \
-    make -s -j $(nproc) install
 
 ARG SQLITE3VER=3410200
 RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q \
