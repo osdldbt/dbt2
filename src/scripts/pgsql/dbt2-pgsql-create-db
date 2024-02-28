@@ -22,7 +22,7 @@ done
 if [ ! "x${PORT}" = "x" ]; then
     PORTOPT="-p ${PORT}"
 fi
-PSQL="psql -X ${PORTOPT} -d ${DBT2DBNAME} -At"
+PSQL="psql -X ${PORTOPT} -At"
 
 # Create database
 echo "Creating database..."
@@ -34,7 +34,9 @@ RC=$(eval "${PSQL} -c \"${SQL}\" 2> /dev/null")
 if [ "${RC}" = "1" ]; then
 	echo "database already exists: ${DBT2DBNAME}"
 else
-	eval "createdb ${PORTOPT} ${DBT2DBNAME}" || exit 1
+	eval "${PSQL}" <<- EOF
+		CREATE DATABASE ${DBT2DBNAME};
+	EOF
 fi
 
 exit 0

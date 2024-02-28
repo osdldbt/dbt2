@@ -7,6 +7,9 @@ vX.Y.Z (YYYY-MM-DD)
   returned from any database call
 - Add -retry-delay flag to driver3 to adjust the delay between
 - Remove lingering hard coded fontconfig path from AppImage
+- Fix check for existing database in pgsql-create-db
+- Use CREATE DATABASE SQL statement instead of createdb binary in
+  pgsql-create-db
 
 v0.53.10 (2024-02-22)
 
