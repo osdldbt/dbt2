@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.1.0)
+cmake_minimum_required (VERSION 3.5.0)
 project (dbt2 C)
 
 set (PROJECT_VERSION_MAJOR 0)

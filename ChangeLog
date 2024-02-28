@@ -13,6 +13,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Use VACUUM SQL statement insetead of vacuumdb binary in pgsql-build-db
 - Remove unnecessary binaries from AppImage
 - Create AppImage on Debian 10 (buster), previously Ubuntu 14.04 (Trust Tahr)
+- Bump minimum CMake version to 3.5 per deprecation warnings
 
 v0.53.10 (2024-02-22)
 
