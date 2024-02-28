@@ -53,23 +53,20 @@ RUN wget -O /tmp/openssh-${OPENSSHVER}.tar.gz -q --no-check-certificate \
          https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-${OPENSSHVER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/openssh-${OPENSSHVER}.tar.gz
 WORKDIR /usr/local/src/openssh-${OPENSSHVER}
-RUN ./configure --quiet --prefix=/usr/local/AppDir/usr && \
+RUN ./configure --quiet --prefix=/usr/local && \
     make -s -j$(nproc) && \
-    make -s install && \
-    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/ssh
+    make -s install
 
 ARG PYTHONVER="3.11.1"
 RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsOL \
          https://www.python.org/ftp/python/${PYTHONVER}/Python-${PYTHONVER}.tgz && \
     tar -C /usr/local/src -xf /tmp/Python-${PYTHONVER}.tgz
 WORKDIR /usr/local/src/Python-${PYTHONVER}
-RUN ./configure --silent --prefix=/usr/local/AppDir/usr \
-                --with-openssl-rpath=/usr/local/lib && \
+RUN ./configure --silent --prefix=/usr --with-openssl-rpath=/usr/local/lib && \
     make -s -j$(nproc) && \
     make -s install && \
-    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/python3.11 && \
-    /usr/local/AppDir/usr/bin/pip3 install docutils && \
-    sed -i '1s/^.*$/#!\/usr\/bin\/env python3/' /usr/local/AppDir/usr/bin/rst2html5.py
+    sed -i -e 's#/usr#././#g' /usr/bin/python3.11
+RUN /usr/bin/pip3 install --prefix=/usr/local/AppDir/usr docutils
 
 # PostgreSQL 11 is the first release creating the pg_type_d.h include file for
 # CockroachDB binary support.
@@ -82,8 +79,7 @@ WORKDIR /usr/local/src/postgresql-${PGVER}
 RUN ./configure --silent --without-ldap --without-readline --without-zlib \
     --without-gssapi --with-openssl --prefix=/usr && \
     make -s -j $(nproc) install && \
-    cp -p /usr/bin/psql /usr/local/AppDir/usr/bin/psql && \
-    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/psql && \
+    sed -i -e 's#/usr#././#g' /usr/bin/psql && \
     ldconfig
 
 ARG CMAKEVER="3.7.2"
@@ -108,9 +104,8 @@ RUN wget -O /tmp/perl-${PERLVER}.tar.gz -q --no-check-certificate \
          https://www.cpan.org/src/5.0/perl-${PERLVER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/perl-${PERLVER}.tar.gz
 WORKDIR /usr/local/src/perl-${PERLVER}
-RUN ./configure.gnu --quiet --silent --prefix=/usr/local/AppDir/usr && \
-    make -s -j $(nproc) install && \
-    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/perl
+RUN ./configure.gnu --quiet --silent --prefix=/usr/local && \
+    make -s -j $(nproc) install
 
 ARG SQLITE3VER=3410200
 RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q \
@@ -118,23 +113,23 @@ RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q \
          https://www.sqlite.org/2023/sqlite-autoconf-${SQLITE3VER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz
 WORKDIR /usr/local/src/sqlite-autoconf-${SQLITE3VER}
-RUN ./configure --quiet --silent --prefix=/usr/local/AppDir/usr && \
+RUN ./configure --quiet --silent --prefix=/usr/local && \
     make -s -j $(nproc) install && \
-    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/sqlite3
+    sed -i -e 's#/usr#././#g' /usr/local/bin/sqlite3
 
 ARG GNUPLOTVER="5.4.6"
 RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q --no-check-certificate \
          https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.6/gnuplot-5.4.6.tar.gz/download && \
     tar -C /usr/local/src -xf /tmp/gnuplot-${GNUPLOTVER}.tar.gz
 WORKDIR /usr/local/src/gnuplot-${GNUPLOTVER}
-RUN ./configure -q --prefix=/usr/local/AppDir/usr --without-libcerf \
+RUN ./configure -q --prefix=/usr/local --without-libcerf \
                 --without-latex --without-readline --without-lua \
                 --without-tektronix --with-qt=no --disable-history-file \
                 --disable-x11-external --disable-raise-console \
                 --disable-wxwidgets --disable-plugins \
                 --disable-dependency-tracking && \
     make -s -j$(nproc) install && \
-    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/gnuplot
+    sed -i -e 's#/usr#././#g' /usr/local/bin/gnuplot
 
 ARG TSTOOLSVER="0.7.3"
 RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsOL \
@@ -153,3 +148,5 @@ RUN curl -SsOL \
          https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20240109-1/linuxdeploy-static-${ARCH}.AppImage && \
     chmod +x linuxdeploy-static-${ARCH}.AppImage && \
     ./linuxdeploy-static-${ARCH}.AppImage --appimage-extract
+
+RUN sed -i -e 's#/usr#././#g' /usr/bin/perl

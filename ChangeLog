@@ -11,6 +11,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Use CREATE DATABASE SQL statement instead of createdb binary in
   pgsql-create-db
 - Use VACUUM SQL statement insetead of vacuumdb binary in pgsql-build-db
+- Remove unnecessary binaries from AppImage
 
 v0.53.10 (2024-02-22)
 
