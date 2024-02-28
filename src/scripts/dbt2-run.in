@@ -37,7 +37,7 @@ profile_collect()
 
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} \"which ts ts-profile > /dev/null 2>&1\""
+		eval "${CLIENT_COMMAND} which ts ts-profile" > /dev/null 2>&1
 		RC=$?
 		if [ $RC -gt 1 ]; then
 			printf "WARNING: touchstone tools not found for profiling %s\n" \
@@ -50,7 +50,7 @@ profile_collect()
 
 	if [ $DBAAS -eq 0 ]; then
 		HOSTNAME=$(eval "${DB_COMMAND} hostname")
-		eval "${DB_COMMAND} \"which ts ts-profile > /dev/null 2>&1\""
+		eval "${DB_COMMAND} which ts ts-profile" > /dev/null 2>&1
 		RC=$?
 		if [ $RC -gt 1 ]; then
 			printf "WARNING: touchstone tools not found for profiling %s\n" \
@@ -106,7 +106,7 @@ stat_collection()
 	# Handle system statistics on the Client node, if remote.
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} \"which ts ts-profile > /dev/null 2>&1\""
+		eval "${CLIENT_COMMAND} which ts ts-profile" > /dev/null 2>&1
 		RC=$?
 		if [ $RC -gt 1 ]; then
 			printf "WARNING: touchstone tools not found for local system "
@@ -121,7 +121,7 @@ stat_collection()
 	# is a service.
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	if [ $DBAAS -eq 0 ]; then
-		eval "${DB_COMMAND} which ts ts-sysstat > /dev/null 2>&1"
+		eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
 		RC=$?
 		if [ $RC -gt 1 ]; then
 			printf "WARNING: touchstone tools not found for system stats "
@@ -565,7 +565,7 @@ fi
 if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 	CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME"
 	# Check for rsync on the client before continuing.
-	if ! eval "${CLIENT_COMMAND} which rsync > /dev/null 2>&1"; then
+	if ! eval "${CLIENT_COMMAND} which rsync" > /dev/null 2>&1; then
 		printf "ERROR: rsync required on client system in order to retrieve "
 		echo "results"
 		exit 1
@@ -578,7 +578,7 @@ if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ] && \
 		[ $DBAAS -eq 0 ]; then
 	DB_COMMAND="$SSH ${DB_HOSTNAME}"
 	# Check for rsync on the client before continuing.
-	if ! eval "${DB_COMMAND} which rsync > /dev/null 2>&1"; then
+	if ! eval "${DB_COMMAND} which rsync" > /dev/null 2>&1; then
 		printf "ERROR: rsync required on database system in order to retrieve "
 		echo "results"
 		exit 1

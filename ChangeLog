@@ -15,6 +15,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Create AppImage on Debian 10 (buster), previously Ubuntu 14.04 (Trust Tahr)
 - Bump minimum CMake version to 3.5 per deprecation warnings
 - Use Linux system call to get thread id instead of using the thread's address
+- Fix `run` script execution of stats and profile collection for 1-tier tests
 
 v0.53.10 (2024-02-22)
 
