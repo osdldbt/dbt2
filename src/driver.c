@@ -7,6 +7,7 @@
  * 7 August 2002
  */
 
+#define _GNU_SOURCE
 #define _POSIX_C_SOURCE 199309L
 
 #ifdef HAVE_CONFIG_H
@@ -19,7 +20,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/syscall.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -286,16 +289,16 @@ void *terminal_worker(void *data) {
 	int rc;
 	unsigned long long local_seed = 0;
 	pid_t pid;
-	pthread_t tid;
+	pid_t tid;
 	char code = ' ';
 	pcg64f_random_t rng;
 
 	tc = (struct terminal_context_t *) data;
 	/* Each thread needs to seed in Linux. */
-	tid = pthread_self();
+	tid = syscall(SYS_gettid);
 	pid = getpid();
 	entropy_getbytes((void *) &local_seed, sizeof(local_seed));
-	printf("seed for %d:%lx : %llu\n", pid, tid, local_seed);
+	printf("seed for %d:%d : %llu\n", pid, tid, local_seed);
 	fflush(stdout);
 	pcg64f_srandom_r(&rng, local_seed);
 
@@ -415,9 +418,9 @@ void *terminal_worker(void *data) {
 		} else if (rc == ERROR) {
 			code = 'E';
 		}
-		fprintf(log_mix, "%d,%c,%c,%f,%lx,%d,%d\n", (int) time(NULL),
+		fprintf(log_mix, "%d,%c,%c,%f,%ld,%d,%d\n", (int) time(NULL),
 				transaction_short_name[client_data.transaction], code,
-				response_time, pthread_self(), tc->w_id, tc->d_id);
+				response_time, syscall(SYS_gettid), tc->w_id, tc->d_id);
 		fflush(log_mix);
 		pthread_mutex_unlock(&mutex_mix_log);
 		pthread_mutex_lock(
@@ -457,8 +460,8 @@ void *terminal_worker(void *data) {
 
 	/* Note when each thread has exited. */
 	pthread_mutex_lock(&mutex_mix_log);
-	fprintf(log_mix, "%d,TERMINATED,,,%d,,\n", (int) time(NULL),
-			(int) pthread_self());
+	fprintf(log_mix, "%d,TERMINATED,,,%ld,,\n", (int) time(NULL),
+			syscall(SYS_gettid));
 	fflush(log_mix);
 	pthread_mutex_unlock(&mutex_mix_log);
 	return NULL; /* keep the compiler quiet */

@@ -7,11 +7,15 @@
  * 19 August 2002
  */
 
+#define _GNU_SOURCE
+
 #include <common.h>
 #include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -23,7 +27,7 @@ pthread_mutex_t mutex_error_log = PTHREAD_MUTEX_INITIALIZER;
 
 int edump(int type, void *data) {
 	pthread_mutex_lock(&mutex_error_log);
-	fprintf(log_error, "[%lx]\n", pthread_self());
+	fprintf(log_error, "[%ld]\n", syscall(SYS_gettid));
 	dump(log_error, type, data);
 	pthread_mutex_unlock(&mutex_error_log);
 
@@ -70,7 +74,8 @@ int log_error_message(char *filename, int line, const char *fmt, ...) {
 	strftime(outstr, sizeof(outstr), "%Y-%m-%d %T %Z", tmp);
 
 	pthread_mutex_lock(&mutex_error_log);
-	fprintf(of, "%s tid:%lx %s:%d\n", outstr, pthread_self(), filename, line);
+	fprintf(of, "%s tid:%ld %s:%d\n", outstr, syscall(SYS_gettid), filename,
+			line);
 	va_start(fmtargs, fmt);
 	vfprintf(of, fmt, fmtargs);
 	va_end(fmtargs);
