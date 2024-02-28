@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-DD)
 - libpq interface now returns a RECONNECT code if a PGRES_FATAL_ERROR is
   returned from any database call
 - Add -retry-delay flag to driver3 to adjust the delay between
+- Remove lingering hard coded fontconfig path from AppImage
 
 v0.53.10 (2024-02-22)
 

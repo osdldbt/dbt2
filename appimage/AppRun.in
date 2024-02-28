@@ -84,9 +84,6 @@ else
 	export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 fi
 
-export FONTCONFIG_FILE=${APPDIR}/etc/fonts/fonts.conf
-export FONTCONFIG_PATH=${APPDIR}/etc/fonts/
-
 if [ "$PGHOST" = "" ]; then
 	export PGHOST="/tmp,/var/run/postgresql"
 fi
