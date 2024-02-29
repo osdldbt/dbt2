@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.60.0 (2024-02-29)
 
 - driver3 will now continually attempt to retry connecting to the database
   for the duration of the test if the database connectivity code returns a
