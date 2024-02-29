@@ -16,6 +16,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Bump minimum CMake version to 3.5 per deprecation warnings
 - Use Linux system call to get thread id instead of using the thread's address
 - Fix `run` script execution of stats and profile collection for 1-tier tests
+- Add --row-per-commit to datagen to control the number of rows loaded before
+  committing when directly loading a database
 
 v0.53.10 (2024-02-22)
 

@@ -67,6 +67,7 @@ char null_str[16] = "\"NULL\"";
 char quoter[2] = "";
 
 unsigned long long seed = 0;
+unsigned long long rows_per_commit = 0;
 int table = TABLE_ALL;
 
 int part = 1;		/* Which partition to generator. */
@@ -107,6 +108,7 @@ void gen_customers() {
 	time_t t1;
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
+	long long rows = 0;
 
 	double partition_size = (double) warehouses / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -297,6 +299,39 @@ void gen_customers() {
 				wcstombs(sa_string, a_string, 4096);
 				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 				metaprintf(output, "\n");
+
+				if (rows_per_commit && (++rows % rows_per_commit) == 0) {
+					switch (mode_string) {
+					case MODE_PGSQL:
+						fprintf(output, "\\.\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output, "COMMIT;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output, "BEGIN;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output,
+								"COPY customer FROM STDIN DELIMITER '%c' NULL "
+								"'%s';\n",
+								delimiter, null_str);
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -334,6 +369,7 @@ void gen_districts() {
 	char sa_string[192];
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
+	long long rows = 0;
 
 	double partition_size = (double) warehouses / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -462,6 +498,40 @@ void gen_districts() {
 			metaprintf(output, "3001");
 
 			metaprintf(output, "\n");
+
+			if (rows_per_commit && (++rows % rows_per_commit) == 0) {
+				switch (mode_string) {
+				case MODE_PGSQL:
+					fprintf(output, "\\.\n");
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					fprintf(output, "COMMIT;\n");
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					fprintf(output, "BEGIN;\n");
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					fprintf(output,
+							"COPY district FROM STDIN DELIMITER '%c' NULL "
+							"'%s';\n",
+							delimiter, null_str);
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					break;
+				}
+			}
 		}
 	}
 
@@ -500,6 +570,7 @@ void gen_history() {
 	time_t t1;
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
+	long long rows = 0;
 
 	double partition_size = (double) warehouses / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -613,6 +684,40 @@ void gen_history() {
 				fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 
 				metaprintf(output, "\n");
+
+				if (rows_per_commit && (++rows % rows_per_commit) == 0) {
+					switch (mode_string) {
+					case MODE_PGSQL:
+						fprintf(output, "\\.\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output, "COMMIT;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output, "BEGIN;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output,
+								"COPY history FROM STDIN DELIMITER '%c' NULL "
+								"'%s';\n",
+								delimiter, null_str);
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -652,6 +757,7 @@ void gen_items() {
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
 	pcg64f_random_t temp_rng;
+	long long rows = 0;
 
 	double partition_size = (double) items / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -757,6 +863,39 @@ void gen_items() {
 		fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 
 		metaprintf(output, "\n");
+
+		if (rows_per_commit && (++rows % rows_per_commit) == 0) {
+			switch (mode_string) {
+			case MODE_PGSQL:
+				fprintf(output, "\\.\n");
+				/* FIXME: Handle properly instead of blindly reading the
+				 * output. */
+				while (fgetc(output) != EOF)
+					;
+
+				fprintf(output, "COMMIT;\n");
+				/* FIXME: Handle properly instead of blindly reading the
+				 * output. */
+				while (fgetc(output) != EOF)
+					;
+
+				fprintf(output, "BEGIN;\n");
+				/* FIXME: Handle properly instead of blindly reading the
+				 * output. */
+				while (fgetc(output) != EOF)
+					;
+
+				fprintf(output,
+						"COPY item FROM STDIN DELIMITER '%c' NULL '%s';\n",
+						delimiter, null_str);
+				/* FIXME: Handle properly instead of blindly reading the output.
+				 */
+				while (fgetc(output) != EOF)
+					;
+
+				break;
+			}
+		}
 	}
 
 	if (mode_load == MODE_FLAT) {
@@ -791,6 +930,7 @@ void gen_new_orders() {
 	int i, j, k;
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
+	long long rows = 0;
 
 	double partition_size = (double) warehouses / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -869,6 +1009,40 @@ void gen_new_orders() {
 				fprintf(output, "%s%d%s", quoter, i + 1, quoter);
 
 				metaprintf(output, "\n");
+
+				if (rows_per_commit && (++rows % rows_per_commit) == 0) {
+					switch (mode_string) {
+					case MODE_PGSQL:
+						fprintf(output, "\\.\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output, "COMMIT;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output, "BEGIN;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						fprintf(output,
+								"COPY new_order FROM STDIN DELIMITER '%c' NULL "
+								"'%s';\n",
+								delimiter, null_str);
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(output) != EOF)
+							;
+
+						break;
+					}
+				}
 			}
 		}
 	}
@@ -923,6 +1097,9 @@ void gen_orders() {
 
 	pcg64f_random_t rng;
 	pcg64f_random_t ol_rng;
+
+	long long rowso = 0;
+	long long rowsol = 0;
 
 	double partition_size = (double) warehouses / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -1131,6 +1308,40 @@ void gen_orders() {
 
 				metaprintf(order, "\n");
 
+				if (rows_per_commit && (++rowso % rows_per_commit) == 0) {
+					switch (mode_string) {
+					case MODE_PGSQL:
+						fprintf(order, "\\.\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(order) != EOF)
+							;
+
+						fprintf(order, "COMMIT;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(order) != EOF)
+							;
+
+						fprintf(order, "BEGIN;\n");
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(order) != EOF)
+							;
+
+						fprintf(order,
+								"COPY orders FROM STDIN DELIMITER '%c' NULL "
+								"'%s';\n",
+								delimiter, null_str);
+						/* FIXME: Handle properly instead of blindly reading the
+						 * output. */
+						while (fgetc(order) != EOF)
+							;
+
+						break;
+					}
+				}
+
 				/*
 				 * Generate data in the order-line table for
 				 * this order.
@@ -1199,6 +1410,40 @@ void gen_orders() {
 					fprintf(order_line, "%s%s%s", quoter, sa_string, quoter);
 
 					metaprintf(order_line, "\n");
+
+					if (rows_per_commit && (++rowsol % rows_per_commit) == 0) {
+						switch (mode_string) {
+						case MODE_PGSQL:
+							fprintf(order_line, "\\.\n");
+							/* FIXME: Handle properly instead of blindly reading
+							 * the output. */
+							while (fgetc(order_line) != EOF)
+								;
+
+							fprintf(order_line, "COMMIT;\n");
+							/* FIXME: Handle properly instead of blindly reading
+							 * the output. */
+							while (fgetc(order_line) != EOF)
+								;
+
+							fprintf(order_line, "BEGIN;\n");
+							/* FIXME: Handle properly instead of blindly reading
+							 * the output. */
+							while (fgetc(order_line) != EOF)
+								;
+
+							fprintf(order_line,
+									"COPY order_line FROM STDIN DELIMITER '%c' "
+									"NULL '%s';\n",
+									delimiter, null_str);
+							/* FIXME: Handle properly instead of blindly reading
+							 * the output. */
+							while (fgetc(order_line) != EOF)
+								;
+
+							break;
+						}
+					}
 				}
 			}
 			while (head != NULL) {
@@ -1257,6 +1502,8 @@ void gen_stock() {
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
 	pcg64f_random_t temp_rng;
+
+	long long rows = 0;
 
 	double partition_size = (double) warehouses / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -1429,6 +1676,38 @@ void gen_stock() {
 			fprintf(output, "%s%s%s", quoter, sa_string, quoter);
 
 			metaprintf(output, "\n");
+			if (rows_per_commit && (++rows % rows_per_commit) == 0) {
+				switch (mode_string) {
+				case MODE_PGSQL:
+					fprintf(output, "\\.\n");
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					fprintf(output, "COMMIT;\n");
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					fprintf(output, "BEGIN;\n");
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					fprintf(output,
+							"COPY stock FROM STDIN DELIMITER '%c' NULL '%s';\n",
+							delimiter, null_str);
+					/* FIXME: Handle properly instead of blindly reading the
+					 * output. */
+					while (fgetc(output) != EOF)
+						;
+
+					break;
+				}
+			}
 		}
 	}
 
@@ -1467,6 +1746,7 @@ void gen_warehouses() {
 	char sa_string[192];
 	char filename[1024] = "\0";
 	pcg64f_random_t rng;
+	long long rows = 0;
 
 	double partition_size = (double) warehouses / (double) partitions;
 	int start = (int) round(partition_size * (double) (part - 1));
@@ -1583,6 +1863,39 @@ void gen_warehouses() {
 		metaprintf(output, "300000.00");
 
 		metaprintf(output, "\n");
+
+		if (rows_per_commit && (++rows % rows_per_commit) == 0) {
+			switch (mode_string) {
+			case MODE_PGSQL:
+				fprintf(output, "\\.\n");
+				/* FIXME: Handle properly instead of blindly reading the
+				 * output. */
+				while (fgetc(output) != EOF)
+					;
+
+				fprintf(output, "COMMIT;\n");
+				/* FIXME: Handle properly instead of blindly reading the
+				 * output. */
+				while (fgetc(output) != EOF)
+					;
+
+				fprintf(output, "BEGIN;\n");
+				/* FIXME: Handle properly instead of blindly reading the
+				 * output. */
+				while (fgetc(output) != EOF)
+					;
+
+				fprintf(output,
+						"COPY warehouse FROM STDIN DELIMITER '%c' NULL '%s';\n",
+						delimiter, null_str);
+				/* FIXME: Handle properly instead of blindly reading the output.
+				 */
+				while (fgetc(output) != EOF)
+					;
+
+				break;
+			}
+		}
 	}
 
 	if (mode_load == MODE_FLAT) {
@@ -1628,6 +1941,7 @@ int main(int argc, char *argv[]) {
 		int option_index = 0;
 		static struct option long_options[] = {
 				{"direct", no_argument, &mode_load, MODE_DIRECT},
+				{"rows-per-commit", required_argument, 0, 0},
 				{"seed", required_argument, 0, 0},
 				{"table", required_argument, 0, 0},
 				{"part", required_argument, 0, 0},
@@ -1666,6 +1980,10 @@ int main(int argc, char *argv[]) {
 					printf("unknown table: %s\n", optarg);
 					return 2;
 				}
+			} else if (
+					strcmp(long_options[option_index].name,
+						   "rows-per-commit") == 0) {
+				rows_per_commit = strtoull(optarg, NULL, 10);
 			} else if (strcmp(long_options[option_index].name, "seed") == 0) {
 				seed = strtoull(optarg, NULL, 10);
 			}
@@ -1834,8 +2152,10 @@ void usage(char *name) {
 	printf("  -d <path>           output path of data files\n");
 	printf("  -w <int>            warehouse cardinality\n");
 	printf("  --direct            don't generate flat files, load directly "
-		   "into "
-		   "database\n");
+		   "into database\n");
+	printf("  --rows-per-commit <int>\n");
+	printf("                      number of rows sent before a COMMIT, only "
+		   "for direct loading, default all\n");
 	printf("  --seed <int>        set random number generation seed\n");
 	printf("\nCardinality options:\n");
 	printf("  -c <int>            customer cardinality, default %d\n",
