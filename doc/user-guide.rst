@@ -99,12 +99,6 @@ If FUSE is not available, the AppImage is self-extracting and provides a script
 Alternatively, one could also set `PATH` and `LD_LIBRARTY_PATH` manually to
 include the extracted environment.
 
-Linux Distribution Packages
----------------------------
-
-There may be packaging available for your Linux distribution.  See this project
-for more details: https://github.com/osdldbt/dbt2-packaging
-
 DBT-2 Test Kit Source
 ---------------------
 
