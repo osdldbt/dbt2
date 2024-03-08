@@ -102,7 +102,7 @@ include the extracted environment.
 DBT-2 Test Kit Source
 ---------------------
 
-The latest stable version of the kit can be found on SourceForge at:
+The latest stable version of the kit can be found on GitHub at:
 https://github.com/osdldbt/dbt2
 
 Environment Configuration
