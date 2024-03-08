@@ -42,6 +42,8 @@ OPTIONS
 -A, --advanced  Enable advanced benchmarking execution options.  This resets
         the keying and thinking time to benchmark specification defaults.
 --comment COMMENTS  Provide *comments* to save with the test.
+--config CONFIG  CONFIG file to use for executing a test.  These settings will
+        override any conflicting command line arguments.
 --connection-delay MILLISECONDS  *millisecond* delay between client and
         database connections, default 100.
 -d SECONDS, --duration SECONDS  *seconds* of the test duration, after ramp up.
@@ -132,6 +134,131 @@ locally running default sized 1 warehouse PostgreSQL database::
 
 See documentation in the *doc* directory of the source repository or online at
 https://osdldbt.github.io/dbt2/ for more information.
+
+TOML CONFIG FILE
+----------------
+
+This is an example::
+
+    # DBT-2 Execution Configuration
+
+    # Required general settings:
+
+    # Test mode, see driver documentation for details.  Use 1 or 3.
+    mode = 3
+
+    # Database name
+    database_name = "dbt2"
+
+    # Scale factor, the number of warehouses that have been loaded
+    warehouses = 1
+
+    # Test duration in seconds
+    duration = 120
+
+    # Optional general settings:
+
+    # Database user name, if not default
+    #dbuser: dbt2
+
+    # Client configuration: create a [[client]] (Array of Tables) entry for each
+    # instance of a "client" to start.  Client are only needed for "mode" 1.
+
+    [[client]]
+    # These settings are required
+
+    # Hostname where a client will be started.  Using "localhost" will not open an
+    # ssh connection but instead just execute locally.
+    client_addr = "client1.int"
+
+    # Database address to connect to
+    database_addr = "db1.int"
+
+    # Number of database connections to open
+    connections = 1
+
+    # These are optional, defaults are used when commented out.
+
+    # The database port
+    #database_port = 5432
+
+    # The client listener port
+    #client_port = 30001
+
+    # Delay in milliseconds between opening database connections, default 100
+    #connection_delay = 1000
+
+    # Delay in milliseconds to wait between database connection attempts, default
+    # 100
+    #retry_delay = 100
+
+    [[client]]
+    client_addr = "client2.int"
+    database = "db2.int"
+    connections = 1
+    #database_port = 5432
+    #client_port = 30001
+    #connection_delay = 1000
+
+    # Driver (a.k.a. terminal emulator) configuration: create a [[driver]] (Array
+    # of Tables) entry for each instance of a "driver" to start.  Configuration
+    # options varies depending on mode type.
+
+    [[driver]]
+    # These settings are required
+
+    # Hostname where a driver will be started.  Using "localhost" will not open an
+    # ssh connection but instead just execute locally.
+    driver_addr = "driver1.int"
+
+    # Hostname of a client to connect to, if mode is 1
+    client_addr = "client1.int"
+
+    # Hostname of a client to connect to, if mode is 3
+    database_addr = "db1.int"
+
+    # You must review the following to determine if they are optional or not
+
+    # Minimum and maximum (inclusive) warehouse ID that this driver will use.  This
+    # must be used when multiple drivers are defined, otherwise database integrity
+    # violations will occur.
+    #wmin = 1
+    #wmax = 100
+
+    # These are optional, defaults are used when commented out.
+
+    # The client listener port
+    #client_port = 30001
+
+    # Limit the number of total connections from this driver instance, default is
+    # unlimited.
+    #connection_limit = 1
+
+    # How many processes to start per processor, which also means a connection will
+    # be opened per process started, default 1
+    #connections_per_processor = 2
+
+    # Advanced mode, requires intimate knowledge of the TPC-C specification.  Do
+    # not turn on if you are not intimately familiar with the TPC-C benchmark.
+    #advanced = 1
+
+    [[driver]]
+    driver_addr = "driver2.int"
+    client_addr = "client2.int"
+    database_addr = "db2.int"
+    #wmin = 1
+    #wmax = 100
+    #client_port = 30001
+    #connection_limit = 1
+    #connections_per_processor = 2
+    #advanced = 1
+
+    # Create a [[database]] (Array of Tables) entry for each additional database to
+    # collect data from when running with the --stats or --profile flag.  These
+    # additional entry are only needed for systems that the client or driver are
+    # not already connecting to as defined in this configuration file.
+    #[[database]]
+    #database_addr = db3.int
 
 SEE ALSO
 ========

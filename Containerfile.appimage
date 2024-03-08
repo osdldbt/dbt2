@@ -14,6 +14,7 @@ RUN apt-get -qq -y update && \
                    file \
                    flex \
                    gcc \
+                   jq \
                    libcairo2-dev \
                    libev-dev \
                    libffi-dev \
@@ -123,4 +124,12 @@ RUN curl -SsOL \
     chmod +x linuxdeploy-static-${ARCH}.AppImage && \
     ./linuxdeploy-static-${ARCH}.AppImage --appimage-extract
 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+         -o /tmp/sh.rustup.sh && \
+    sh /tmp/sh.rustup.sh -y
+
+RUN ${HOME}/.cargo/bin/cargo install toml-cli
+
+RUN sed -i -e 's#/usr#././#g' /usr/bin/jq
 RUN sed -i -e 's#/usr#././#g' /usr/bin/perl
+RUN sed -i -e 's#/usr#././#g' ${HOME}/.cargo/bin/toml

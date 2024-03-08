@@ -98,6 +98,8 @@ add_custom_target(appimage-podman
             --appdir AppDir
             --custom-apprun=${CMAKE_BINARY_DIR}/AppRun
             --desktop-file=${APPIMAGE_SOURCE_DIR}/dbt2.desktop
+            --executable=/root/.cargo/bin/toml
+            --executable=/usr/bin/jq
             --executable=/usr/bin/perl
             --executable=/usr/bin/psql
             --executable=/usr/bin/python3.11

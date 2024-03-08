@@ -90,56 +90,108 @@ stat_collection()
 
 	ARGS=$1
 
-	# If the this is a 1-tier test, system stats will be saved only in the db
-	# directory.
-	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-		which ts ts-profile > /dev/null 2>&1
+	if [ "${CONFIGFILE}" = "" ]; then
+		# If the this is a 1-tier test, system stats will be saved only in the
+		# db directory.
+		if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+			which ts ts-profile > /dev/null 2>&1
+			RC=$?
+			if [ $RC -gt 1 ]; then
+				printf "WARNING: touchstone tools not found for driver system "
+				echo "stats collection"
+			else
+				eval "ts sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+			fi
+		fi
+
+		# Handle system statistics on the Client node, if remote.
+		if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+			HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+			eval "${CLIENT_COMMAND} which ts ts-profile" > /dev/null 2>&1
+			RC=$?
+			if [ $RC -gt 1 ]; then
+				printf "WARNING: touchstone tools not found for local system "
+				echo "stats collection"
+			else
+				eval "${CLIENT_COMMAND} ts sysstat \
+						-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+			fi
+		fi
+
+		# Don't collect system stats from the database system if the database
+		# is a service.
+		HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		if [ $DBAAS -eq 0 ]; then
+			eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
+			RC=$?
+			if [ $RC -gt 1 ]; then
+				printf "WARNING: touchstone tools not found for system stats "
+				printf "collection on %s\n" "${HOSTNAME}"
+			else
+				eval "${DB_COMMAND} ts sysstat \
+						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+			fi
+		fi
+
+		eval "${DB_COMMAND} which ts ts-${DBMS}-stat" > /dev/null 2>&1
 		RC=$?
 		if [ $RC -gt 1 ]; then
-			printf "WARNING: touchstone tools not found for driver system "
-			echo "stats collection"
+			printf "WARNING: touchstone tools not found for database stats "
+			printf "collection for RDBMS %s on system %s\n" \
+					"${DBMS}" "${HOSTNAME}"
 		else
-			eval "ts sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+			eval "${DB_COMMAND} ts ${DBMS}-stat \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
 		fi
-	fi
-
-	# Handle system statistics on the Client node, if remote.
-	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-		eval "${CLIENT_COMMAND} which ts ts-profile" > /dev/null 2>&1
-		RC=$?
-		if [ $RC -gt 1 ]; then
-			printf "WARNING: touchstone tools not found for local system "
-			echo "stats collection"
-		else
-			eval "${CLIENT_COMMAND} ts sysstat \
-					-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
-		fi
-	fi
-
-	# Don't collect system stats from the database system if the database
-	# is a service.
-	HOSTNAME=$(eval "${DB_COMMAND} hostname")
-	if [ $DBAAS -eq 0 ]; then
-		eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
-		RC=$?
-		if [ $RC -gt 1 ]; then
-			printf "WARNING: touchstone tools not found for system stats "
-			printf "collection on %s\n" "${HOSTNAME}"
-		else
-			eval "${DB_COMMAND} ts sysstat \
-					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
-		fi
-	fi
-
-	eval "${DB_COMMAND} which ts ts-${DBMS}-stat" > /dev/null 2>&1
-	RC=$?
-	if [ $RC -gt 1 ]; then
-		printf "WARNING: touchstone tools not found for database stats "
-		printf "collection for RDBMS %s on system %s\n" "${DBMS}" "${HOSTNAME}"
 	else
-		eval "${DB_COMMAND} ts ${DBMS}-stat \
-				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
+		for SYSTEM in ${DRIVERLIST}; do
+			if [ "${SYSTEM}" = "localhost" ]; then
+				CMD=""
+			else
+				CMD="${SSH} ${SYSTEM}"
+			fi
+			HOSTNAME=$(eval "${CMD} hostname")
+			if eval "${CMD} command -v ts" > /dev/null; then
+				eval "${CMD} ts sysstat \
+						-o ${DRIVER_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+			else
+				printf "WARNING: touchstone tools not found for "
+				printf "stats collection on system %s\n" "${HOSTNAME}"
+			fi
+		done
+		for SYSTEM in ${CLIENTLIST}; do
+			if [ "${SYSTEM}" = "localhost" ]; then
+				CMD=""
+			else
+				CMD="${SSH} ${SYSTEM}"
+			fi
+			HOSTNAME=$(eval "${CMD} hostname")
+			if eval "${CMD} command -v ts" > /dev/null; then
+				eval "${CMD} ts sysstat \
+						-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+			else
+				printf "WARNING: touchstone tools not found for "
+				printf "stats collection on system %s\n" "${HOSTNAME}"
+			fi
+		done
+		for SYSTEM in ${DBLIST}; do
+			if [ "${SYSTEM}" = "localhost" ]; then
+				CMD=""
+			else
+				CMD="${SSH} ${SYSTEM}"
+			fi
+			HOSTNAME=$(eval "${CMD} hostname")
+			if eval "${CMD} command -v ts" > /dev/null; then
+				eval "${CMD} ts sysstat \
+						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+				eval "${CMD} ts ${DBMS}-stat \
+						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} \
+						${ARGS} &"
+			else
+				printf "WARNING: touchstone tools not found for "
+				printf "stats collection on system %s\n" "${HOSTNAME}"
+			fi
+		done
 	fi
 }
 
@@ -180,6 +232,9 @@ General options:
                  enable advanced benchmarking execution options
   --comment=COMMENTS
                  provide COMMENTS to save with the test
+  --config=CONFIG
+                 CONFIG file to use for executing a test.  These settings will
+                 override any conflicting command line arguments.
   --connection-delay=MILLISECONDS
                  MILLISECONDS delay between client and database connections,
                  default 100
@@ -256,12 +311,16 @@ SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
 ALTERED_ARG=""
 CLIENT_HOSTNAME="localhost"
+CLIENTLIST=""
+CONFIGFILE=""
 DB_HOSTNAME="localhost"
 DB_PASSWORD=""
+DBLIST=""
 DBAAS=0
 DBCON=10
 DBNAME="dbt2"
 DRIVER3=1
+DRIVERLIST=""
 DURATION=180
 EASYFLAGS="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
 FPP=1
@@ -295,6 +354,13 @@ while [ "${#}" -gt 0 ] ; do
 		# Check for numeric value
 		DBCON=$(echo "${1#*--client-connections=}" | grep -E "^[0-9]+$")
 		validate_parameter "${opt}" "${1}" "${DBCON}"
+		;;
+	(--config)
+		shift
+		CONFIGFILE="${1}"
+		;;
+	(--config=*)
+		CONFIGFILE="${1#*--config=}"
 		;;
 	(--client-host)
 		shift
@@ -499,15 +565,7 @@ if [ $# -eq 0 ]; then
 	exit 1
 fi
 
-OUTPUT_DIR=$1
-
-# If no chunking of warehouses per process is defined, assumed we want to run
-# everything from one process.
-if [ "${W_CHUNK}" = "" ]; then
-	W_CHUNK=${WAREHOUSES}
-fi
-
-# Check parameters.
+OUTPUT_DIR="${1}"
 
 if [ -d "${OUTPUT_DIR}" ]; then
 	echo "Directory '${OUTPUT_DIR}' exists, stopping to prevent possible"
@@ -515,12 +573,13 @@ if [ -d "${OUTPUT_DIR}" ]; then
 	exit 1
 fi
 
-if [ "${THREADS_PER_WAREHOUSE}" -lt 1 ] || \
-		[ "${THREADS_PER_WAREHOUSE}" -gt 1000 ];
-then
-	usage "--districts value should be in range [1..1000]. Please specify correct value"
-	exit 1
-fi
+CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
+DRIVER_OUTPUT_DIR=${OUTPUT_DIR}/driver
+DB_OUTPUT_DIR=${OUTPUT_DIR}/db
+mkdir -p "${OUTPUT_DIR}" "${CLIENT_OUTPUT_DIR}" "${DRIVER_OUTPUT_DIR}" \
+		"${DB_OUTPUT_DIR}"
+
+SUMMARY="${OUTPUT_DIR}/summary.rst"
 
 if [ ! "${DB_PORT}" = "" ]; then
 	if [ "$DRIVER3" = "1" ]; then
@@ -528,11 +587,6 @@ if [ ! "${DB_PORT}" = "" ]; then
 	else
 		DB_PORT_ARG="-l ${DB_PORT}"
 	fi
-fi
-
-# Enable altered execution mode only if DRIVER3 is enabled.
-if [ "${DRIVER3}" = "1" ]; then
-	ALTERED_ARG="-altered ${DRIVER3}"
 fi
 
 DBSTATARGS=""
@@ -549,64 +603,97 @@ pgsql)
 	;;
 esac
 
-CLIENT_OUTPUT_DIR=${OUTPUT_DIR}/client
-DRIVER_OUTPUT_DIR=${OUTPUT_DIR}/driver
-DB_OUTPUT_DIR=${OUTPUT_DIR}/db
+if [ "${CONFIGFILE}" = "" ]; then
+	# If no chunking of warehouses per process is defined, assumed we want to run
+	# everything from one process.
+	if [ "${W_CHUNK}" = "" ]; then
+		W_CHUNK=${WAREHOUSES}
+	fi
 
-SUMMARY="${OUTPUT_DIR}/summary.rst"
+	# Check parameters.
 
-# Check if rsync exists on all systems and stop if not, required for collecting
-# data from all systems.
-if ! which rsync > /dev/null 2>&1; then
-	echo "ERROR: rsync required on current system in order to retrieve results"
-	exit 1
-fi
+	if [ "${THREADS_PER_WAREHOUSE}" -lt 1 ] || \
+			[ "${THREADS_PER_WAREHOUSE}" -gt 1000 ];
+	then
+		usage "--districts value should be in range [1..1000]. Please specify correct value"
+		exit 1
+	fi
 
-if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-	CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME"
-	# Check for rsync on the client before continuing.
-	if ! eval "${CLIENT_COMMAND} which rsync" > /dev/null 2>&1; then
-		printf "ERROR: rsync required on client system in order to retrieve "
+	# Check if rsync exists on all systems and stop if not, required for
+	# collecting data from all systems.
+	if ! which rsync > /dev/null 2>&1; then
+		printf "ERROR: rsync required on current system in order to retrieve "
 		echo "results"
 		exit 1
 	fi
+
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME"
+		# Check for rsync on the client before continuing.
+		if ! eval "${CLIENT_COMMAND} which rsync" > /dev/null 2>&1; then
+			printf "ERROR: rsync required on client system in order to "
+			echo "retrieve results"
+			exit 1
+		fi
+	else
+		CLIENT_COMMAND=""
+	fi
+
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ] && \
+			[ $DBAAS -eq 0 ]; then
+		DB_COMMAND="$SSH ${DB_HOSTNAME}"
+		# Check for rsync on the client before continuing.
+		if ! eval "${DB_COMMAND} which rsync" > /dev/null 2>&1; then
+			printf "ERROR: rsync required on database system in order to "
+			echo "retrieve results"
+			exit 1
+		fi
+	else
+		DB_COMMAND=""
+	fi
+
+	#
+	# Create the directories we will need.
+	#
+	make_directories
+	mkdir -p "${DRIVER_OUTPUT_DIR}/$(hostname)"
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		make_directories "${CLIENT_HOSTNAME}"
+		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+		eval "${CLIENT_COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+	fi
+	if [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		#
+		# Create direcotires on the database server if remote.
+		#
+		if [ $DBAAS -eq 0 ]; then
+			make_directories "${DB_HOSTNAME}"
+			$SSH "$DB_HOSTNAME" -- mkdir -p "$DB_OUTPUT_DIR"
+		fi
+	fi
+	mkdir -p "${DB_OUTPUT_DIR}"
 else
-	CLIENT_COMMAND=""
+	if [ ! -f "${CONFIGFILE}" ]; then
+		echo "ERROR: config file '${CONFIGFILE}' not found"
+		exit 98
+	fi
+
+	DBNAME="$(toml get "${CONFIGFILE}" . | jq -r '.database_name')"
+	DURATION="$(toml get "${CONFIGFILE}" . | jq -r '.duration')"
+	WAREHOUSES="$(toml get "${CONFIGFILE}" . | jq -r '.warehouses')"
+
+	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.mode')"
+	if [ "${TMP}" = "3" ]; then
+		DRIVER3=1
+	else
+		DRIVER3=0
+	fi
 fi
 
-if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ] && \
-		[ $DBAAS -eq 0 ]; then
-	DB_COMMAND="$SSH ${DB_HOSTNAME}"
-	# Check for rsync on the client before continuing.
-	if ! eval "${DB_COMMAND} which rsync" > /dev/null 2>&1; then
-		printf "ERROR: rsync required on database system in order to retrieve "
-		echo "results"
-		exit 1
-	fi
-else
-	DB_COMMAND=""
+# Enable altered execution mode only if DRIVER3 is enabled.
+if [ "${DRIVER3}" = "1" ]; then
+	ALTERED_ARG="-altered ${DRIVER3}"
 fi
-
-#
-# Create the directories we will need.
-#
-make_directories
-mkdir -p "${DRIVER_OUTPUT_DIR}/$(hostname)"
-if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-	make_directories "${CLIENT_HOSTNAME}"
-	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-	eval "${CLIENT_COMMAND} mkdir -p ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-fi
-if [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-	#
-	# Create direcotires on the database server if remote.
-	#
-	if [ $DBAAS -eq 0 ]; then
-		make_directories "${DB_HOSTNAME}"
-		$SSH "$DB_HOSTNAME" -- mkdir -p "$DB_OUTPUT_DIR"
-	fi
-fi
-mkdir -p "${DB_OUTPUT_DIR}"
 
 # Create a readme file in the output directory, date it and add run information
 # into the readme.txt.
@@ -618,27 +705,28 @@ RDBMS: $DBMS
 Database Name: $DBNAME
 Database Scale Factor: $WAREHOUSES warehouses
 Test Duration: $DURATION seconds
-Database Connections: $DBCON
 EOF
 
-# Get any OS specific information, if this is a single tier configuration, then
-# the OS parameters will be in the database output directory.
-if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-	dbt2 get-os-info -o "${DRIVER_OUTPUT_DIR}/$(hostname)"
-	HOSTNAME=$(eval "${DB_COMMAND} hostname")
-	eval "${DB_COMMAND} dbt2 get-os-info -o ${DB_OUTPUT_DIR}/${HOSTNAME}"
-else
-	dbt2 get-os-info -o "${DB_OUTPUT_DIR}/$(hostname)"
-fi
-
-if [ $PRIVILEGED -eq 1 ]; then
-	if eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"; then
-		echo "cleaning up results..."
-		rm -rf "${OUTPUT_DIR}"
-		exit 1
+if [ "${CONFIGFILE}" = "" ]; then
+	# Get any OS specific information, if this is a single tier configuration,
+	# then the OS parameters will be in the database output directory.
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		dbt2 get-os-info -o "${DRIVER_OUTPUT_DIR}/$(hostname)"
+		HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		eval "${DB_COMMAND} dbt2 get-os-info -o ${DB_OUTPUT_DIR}/${HOSTNAME}"
+	else
+		dbt2 get-os-info -o "${DB_OUTPUT_DIR}/$(hostname)"
 	fi
-	eval "${DB_COMMAND} dbt2 ${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
-			-o ${DB_OUTPUT_DIR}" || exit 1
+
+	if [ $PRIVILEGED -eq 1 ]; then
+		if eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"; then
+			echo "cleaning up results..."
+			rm -rf "${OUTPUT_DIR}"
+			exit 1
+		fi
+		eval "${DB_COMMAND} dbt2 ${DBMS}-start-db ${DB_PARAMS_ARG} ${MISC_ARG} \
+				-o ${DB_OUTPUT_DIR}" || exit 1
+	fi
 fi
 
 #
@@ -651,6 +739,7 @@ if [ "${DBMS}" = "cockroach" ] || [ "${DBMS}" = "pgsql" ] || \
 		[ "${DBMS}" = "mysql" ]; then
 	echo "DATABASE NAME: ${DBNAME}"
 fi
+echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
 
 #
 # Build up the client command line arguments.
@@ -668,69 +757,243 @@ if [ -n "${DB_PASSWORD}" ]; then
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
 fi
 
-if [ -n "${DB_SOCKET}" ]; then
-	echo "DATABASE SOCKET: ${DB_SOCKET}"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
-fi
-
-if [ -n "${DB_PORT}" ]; then
-	echo "DATABASE PORT: ${DB_PORT}"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
-fi
-
-OPTION1=$(( WAREHOUSES * THREADS_PER_WAREHOUSE ))
-THREADS=$OPTION1
-if [ ! "$TERMINALS_LIMIT" = "" ]; then
-	OPTION2=$TERMINALS_LIMIT
-	if [ "${OPTION1}" -lt "${OPTION2}" ]; then
-		THREADS=$OPTION1
-	else
-		THREADS=$OPTION2
+if [ "${CONFIGFILE}" = "" ]; then
+	if [ -n "${DB_SOCKET}" ]; then
+		echo "DATABASE SOCKET: ${DB_SOCKET}"
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
 	fi
+
+	if [ -n "${DB_PORT}" ]; then
+		echo "DATABASE PORT: ${DB_PORT}"
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
+	fi
+
+	OPTION1=$(( WAREHOUSES * THREADS_PER_WAREHOUSE ))
+	THREADS=$OPTION1
+	if [ ! "$TERMINALS_LIMIT" = "" ]; then
+		OPTION2=$TERMINALS_LIMIT
+		if [ "${OPTION1}" -lt "${OPTION2}" ]; then
+			THREADS=$OPTION1
+		else
+			THREADS=$OPTION2
+		fi
+	fi
+	if [ "$DRIVER3" = "1" ]; then
+		echo "DATABASE CONNECTIONS: $(nproc)"
+		echo "TERMINAL PROCESSES: $(nproc)"
+	else
+		echo "DATABASE CONNECTIONS: ${DBCON}"
+		echo "TERMINAL THREADS: ${THREADS}"
+	fi
+	if [ ! "$DRIVER3" = "1" ]; then
+		echo "TERMINAL CAP: $TERMINALS_LIMIT"
+	fi
+	echo "WAREHOUSES PER DRIVER/CLIENT PAIR: $W_CHUNK"
+	echo "SCALE FACTOR (WAREHOUSES): ${WAREHOUSES}"
+	echo "DURATION OF TEST (in sec): ${DURATION}"
+	echo ""
 fi
-if [ "$DRIVER3" = "1" ]; then
-	echo "DATABASE CONNECTIONS: $(nproc)"
-	echo "TERMINAL PROCESSES: $(nproc)"
-else
-	echo "DATABASE CONNECTIONS: ${DBCON}"
-	echo "TERMINAL THREADS: ${THREADS}"
-fi
-echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
-if [ ! "$DRIVER3" = "1" ]; then
-	echo "TERMINAL CAP: $TERMINALS_LIMIT"
-fi
-echo "WAREHOUSES PER DRIVER/CLIENT PAIR: $W_CHUNK"
-echo "SCALE FACTOR (WAREHOUSES): ${WAREHOUSES}"
-echo "DURATION OF TEST (in sec): ${DURATION}"
-echo ""
 
 #
 # Start the client.
 #
 echo "Stage 1. Starting up client..."
-if [ ! "$DRIVER3" = "1" ]; then
-	printf "database connection starting every %s" "${THREAD_STARTUP_DELAY}"
-	echo "milliseconds"
-	if [ "${DBMS}" = "cockroach" ]; then
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
-	elif [ "${DBMS}" = "mysql" ]; then
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
-	elif [ "${DBMS}" = "pgsql" ]; then
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
-	elif [ "${DBMS}" = "sqlite" ]; then
-		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
+if [ "${CONFIGFILE}" = "" ]; then
+	if [ ! "$DRIVER3" = "1" ]; then
+		printf "database connection starting every %s" "${THREAD_STARTUP_DELAY}"
+		echo "milliseconds"
+		if [ "${DBMS}" = "cockroach" ]; then
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
+		elif [ "${DBMS}" = "mysql" ]; then
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DBNAME}"
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${SOCK_FILE_ARG} -u root"
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -h ${DB_HOSTNAME}"
+		elif [ "${DBMS}" = "pgsql" ]; then
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
+		elif [ "${DBMS}" = "sqlite" ]; then
+			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_PARAMS}"
+		fi
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c $DBCON"
+		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -s ${THREAD_STARTUP_DELAY}"
+		END=0
+		START=1
+
+		#
+		# Count of the number of clients to run.
+		#
+		SEG=0
+		PORT=30000
+		while [ "${END}" -lt "${WAREHOUSES}" ]; do
+			START=$(( END + 1 ))
+			END=$(( START + W_CHUNK ))
+			END=$(( END - 1 ))
+			SEG=$(( SEG + 1 ))
+
+			if [ "${END}" -gt "${WAREHOUSES}" ]; then
+				END=${WAREHOUSES}
+			fi
+
+			HOSTNAME=$($CLIENT_COMMAND hostname)
+			CPDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+			mkdir -p "${CPDIR}"
+
+			CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
+			eval "${CLIENT_COMMAND} mkdir -p ${CDIR}"
+
+			CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
+			eval "${CLIENT_COMMAND} dbt2 client ${CARGS} \
+					> ${CPDIR}/client-${SEG}.txt 2>&1 &"
+
+			PORT=$(( PORT + 1))
+		done
+
+		# Sleep long enough for all the client database connections to be
+		# established.
+		CLIENT_RAMPUP_TIME=$DBCON
+		CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
+		CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME / 1000 ))
+		CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME + 1 ))
+		do_sleep $CLIENT_RAMPUP_TIME
+	else
+		echo "***skipping***"
 	fi
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -f -c $DBCON"
-	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -s ${THREAD_STARTUP_DELAY}"
+
+	# Calculate how many terminals are being emulated.
+	OPTION1=$(( W_CHUNK + 1 ))
+	OPTION1=$(( OPTION1 * THREADS_PER_WAREHOUSE ))
+	DRIVER_RAMPUP_TIME=$OPTION1
+	if [ ! "$TERMINALS_LIMIT" = "" ]; then
+		OPTION2=$TERMINALS_LIMIT
+		if [ "${OPTION1}" -lt "${OPTION2}" ]; then
+			DRIVER_RAMPUP_TIME=$OPTION1
+		else
+			DRIVER_RAMPUP_TIME=$OPTION2
+		fi
+	fi
+	if [ "$DRIVER3" = "1" ]; then
+		DRIVER_RAMPUP_TIME=$(( ($(nproc) * FPP) - 1 ))
+		if [ ! "$TERMINALS_LIMIT" = "" ] &&
+				[ $TERMINALS_LIMIT -lt $DRIVER_RAMPUP_TIME ]; then
+			DRIVER_RAMPUP_TIME="${TERMINALS_LIMIT}"
+		fi
+	fi
+	DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
+	DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME / 1000 ))
+	TOTAL_RUN_TIME=$(( DRIVER_RAMPUP_TIME + DURATION ))
+	SAMPLE_LENGTH=60
+	ITERATIONS=$(( TOTAL_RUN_TIME / SAMPLE_LENGTH ))
+	ITERATIONS=$(( ITERATIONS + 1 ))
+
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+		eval "${CLIENT_COMMAND} dbt2 get-os-info \
+				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+	fi
+
+	echo "collecting database statistics..."
+	HOSTNAME=$(eval "${DB_COMMAND} hostname")
+	eval "$DB_COMMAND mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}"
+	if [ $DBAAS -eq 0 ]; then
+		eval "${DB_COMMAND} dbt2 ${DBMS}-plans -d ${DBNAME} \
+				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
+	fi
+else
+	if [ ! "${DRIVER3}" = "1" ]; then
+		CLIENTS="$(toml get "${CONFIGFILE}" . | jq -r '.client | length')"
+
+		CLIENT_RAMPUP_TIME=0
+		for INDEX in $(seq 0 $(( CLIENTS - 1 ))); do
+			CLIENT_HOSTNAME="$(toml get "${CONFIGFILE}" client | \
+					jq -r ".[${INDEX}].client_addr")"
+			DB_HOSTNAME="$(toml get "${CONFIGFILE}" client | \
+					jq -r ".[${INDEX}].database_addr")"
+			DBCON="$(toml get "${CONFIGFILE}" client | \
+					jq -r ".[${INDEX}].connections")"
+
+			TMP="$(toml get "${CONFIGFILE}" client | \
+					jq -r ".[${INDEX}].connection_delay")"
+			if [ ! "${TMP}" = "null" ]; then
+				THREAD_STARTUP_DELAY="${TMP}"
+			fi
+
+			PORT=30000
+			TMP="$(toml get "${CONFIGFILE}" client | \
+					jq -r ".[${INDEX}].client_port")"
+			if [ ! "${TMP}" = "null" ]; then
+				PORT="${TMP}"
+			fi
+
+			CLIENTLIST="${CLIENTLIST} ${CLIENT_HOSTNAME}"
+			DBLIST="${DBLIST} ${DB_HOSTNAME}"
+
+			CLIENT_CMD_ARGS2="${CLIENT_COMMAND_ARGS}"
+			if [ "${DBMS}" = "cockroach" ]; then
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -d ${DB_HOSTNAME}"
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -b ${DBNAME}"
+			elif [ "${DBMS}" = "mysql" ]; then
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -d ${DBNAME}"
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} ${SOCK_FILE_ARG} -u root"
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -h ${DB_HOSTNAME}"
+			elif [ "${DBMS}" = "pgsql" ]; then
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -d ${DB_HOSTNAME}"
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -b ${DBNAME}"
+			elif [ "${DBMS}" = "sqlite" ]; then
+				CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -d ${DB_PARAMS}"
+			fi
+			CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -f -c ${DBCON}"
+			CLIENT_CMD_ARGS2="${CLIENT_CMD_ARGS2} -s ${THREAD_STARTUP_DELAY}"
+
+			if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+				CLIENT_COMMAND="${SSH} ${CLIENT_HOSTNAME}"
+				# Check for rsync on the client before continuing.
+				if ! eval "${CLIENT_COMMAND} which rsync" > /dev/null 2>&1;
+				then
+					printf "ERROR: rsync required on client system in order "
+					echo "to retrieve results"
+					exit 1
+				fi
+			else
+				CLIENT_COMMAND=""
+			fi
+
+			HOSTNAME="$(${CLIENT_COMMAND} hostname)"
+			CPDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
+			mkdir -p "${CPDIR}"
+
+			CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
+			eval "${CLIENT_COMMAND} mkdir -p ${CDIR}"
+
+			CARGS="${CLIENT_CMD_ARGS2} -p ${PORT} -o ${CDIR}"
+			eval "${CLIENT_COMMAND} dbt2 client ${CARGS} \
+					> ${CPDIR}/client-${INDEX}.txt 2>&1 &"
+
+			# Sleep for only the duration of the client with the longest ramp
+			# up time.
+			THIS_RAMPUP_TIME=${DBCON}
+			THIS_RAMPUP_TIME=$(( THIS_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
+			THIS_RAMPUP_TIME=$(( THIS_RAMPUP_TIME / 1000 ))
+			THIS_RAMPUP_TIME=$(( THIS_RAMPUP_TIME + 1 ))
+
+			if [ ${THIS_RAMPUP_TIME} -gt ${CLIENT_RAMPUP_TIME} ]; then
+				CLIENT_RAMPUP_TIME=${THIS_RAMPUP_TIME}
+			fi
+		done
+		do_sleep ${CLIENT_RAMPUP_TIME}
+	fi
+fi
+
+# Start the driver.
+echo ''
+echo "Stage 2. Starting up driver..."
+echo "connection opening every $THREAD_STARTUP_DELAY milliseconds"
+
+if [ "${CONFIGFILE}" = "" ]; then
 	END=0
 	START=1
-
 	#
-	# Count of the number of clients to run.
+	# Count of the number of drivers run.
 	#
 	SEG=0
 	PORT=30000
@@ -744,120 +1007,171 @@ if [ ! "$DRIVER3" = "1" ]; then
 			END=${WAREHOUSES}
 		fi
 
-		HOSTNAME=$($CLIENT_COMMAND hostname)
-		CPDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-		mkdir -p "${CPDIR}"
+		DDIR="${DRIVER_OUTPUT_DIR}/$(hostname).${SEG}"
+		mkdir -p "${DDIR}"
+		DRIVER_COMMAND_ARGS="-l $DURATION -wmin $START"
+		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -wmax $END -w $WAREHOUSES"
+		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -sleep $THREAD_STARTUP_DELAY"
+		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -outdir $DDIR"
+		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -tpw $THREADS_PER_WAREHOUSE"
+		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $EASYFLAGS $TERMINALS_LIMIT_ARG"
+		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
+		if [ "$DRIVER3" = "1" ]; then
+			DHNARG="-b $DBNAME -d $DB_HOSTNAME"
+			eval "dbt2 driver3 $DRIVER_COMMAND_ARGS -a $DBMS $DHNARG $FPP_FLAG \
+					> ${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
+					|| exit 1 &
+		else
+			eval "dbt2 driver -d $CLIENT_HOSTNAME -p $PORT $DRIVER_COMMAND_ARGS > \
+					${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
+					|| exit 1 &
+		fi
+		DRIVER_PIDLIST="$DRIVER_PIDLIST $!"
+		PORT=$(( PORT + 1 ))
+	done
+else
+	DRIVERS="$(toml get "${CONFIGFILE}" . | jq -r '.driver | length')"
 
-		CDIR="${CLIENT_OUTPUT_DIR}/${HOSTNAME}.${SEG}"
-		eval "${CLIENT_COMMAND} mkdir -p ${CDIR}"
+	DRIVER_RAMPUP_TIME=0
+	START=1
+	END="${WAREHOUSES}"
+	for INDEX in $(seq 0 $(( DRIVERS - 1 ))); do
+		FPP_FLAG=""
 
-		CARGS="${CLIENT_COMMAND_ARGS} -p ${PORT} -o ${CDIR}"
-		if [ ! "$DRIVER3" = "1" ]; then
-			eval "${CLIENT_COMMAND} dbt2 client ${CARGS} \
-					> ${CPDIR}/client-${SEG}.txt 2>&1 &"
+		DRIVER_HOSTNAME="$(toml get "${CONFIGFILE}" driver | \
+				jq -r ".[${INDEX}].driver_addr")"
+
+		TMP="$(toml get "${CONFIGFILE}" driver | \
+				jq -r ".[${INDEX}].connection_limit")"
+		if [ ! "${TMP}" = "null" ]; then
+			TERMINALS_LIMIT="${TMP}"
+			TERMINALS_LIMIT_ARG="-L ${TERMINALS_LIMIT}"
 		fi
 
-		PORT=$(( PORT + 1))
+		TMP="$(toml get "${CONFIGFILE}" driver | \
+				jq -r ".[${INDEX}].connections_per_processor")"
+		if [ ! "${TMP}" = "null" ]; then
+			FPP="${TMP}"
+			FPP_FLAG="-fpp ${FPP}"
+		fi
+
+		TMP="$(toml get "${CONFIGFILE}" driver | jq -r ".[${INDEX}].wmin")"
+		if [ ! "${TMP}" = "null" ]; then
+			START="${TMP}"
+		fi
+
+		TMP="$(toml get "${CONFIGFILE}" driver | jq -r ".[${INDEX}].wmax")"
+		if [ ! "${TMP}" = "null" ]; then
+			END="${TMP}"
+		fi
+
+		DRIVERLIST="${DRIVERLIST} ${DRIVER_HOSTNAME}"
+
+		if [ "${DRIVER_HOSTNAME}" = "localhost" ]; then
+			DRIVER_COMMAND=""
+			HOSTNAME="$(hostname)"
+		else
+			DRIVER_COMMAND="${SSH} ${DRIVER_HOSTNAME}"
+			# Check for rsync on the client before continuing.
+			if ! eval "${DRIVER_COMMAND} which rsync" > /dev/null 2>&1; then
+				printf "ERROR: rsync required on driver system in order to "
+				echo "retrieve results"
+				exit 1
+			fi
+			HOSTNAME="$(eval "${DRIVER_COMMAND} hostname")"
+		fi
+
+		DDIR="${DRIVER_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
+		eval "${DRIVER_COMMAND} mkdir -p ${DDIR} \
+				${DRIVER_OUTPUT_DIR}/${HOSTNAME}"
+
+		DRIVER_CMD_ARGS="-l ${DURATION}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} -wmin ${START}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} -wmax ${END}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} -w ${WAREHOUSES}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} -sleep ${THREAD_STARTUP_DELAY}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} -outdir ${DDIR}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} -tpw ${THREADS_PER_WAREHOUSE}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} ${EASYFLAGS}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} ${TERMINALS_LIMIT_ARG}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} ${ALTERED_ARG}"
+		DRIVER_CMD_ARGS="${DRIVER_CMD_ARGS} ${DB_PORT_ARG}"
+
+		if [ "${DRIVER3}" = "1" ]; then
+			DB_HOSTNAME="$(toml get "${CONFIGFILE}" driver | \
+					jq -r ".[${INDEX}].database_addr")"
+
+			eval "${DRIVER_COMMAND} dbt2 driver3 ${DRIVER_CMD_ARGS} \
+					-a ${DBMS} -b ${DBNAME} -d ${DB_HOSTNAME} ${FPP_FLAG} > \
+					${DRIVER_OUTPUT_DIR}/${HOSTNAME}/driver-${INDEX}.txt 2>&1" \
+					|| exit 1 &
+			DBLIST="${DBLIST} ${DB_HOSTNAME}"
+		else
+			CLIENT_HOSTNAME="$(toml get "${CONFIGFILE}" driver | \
+					jq -r ".[${INDEX}].client_addr")"
+
+			PORT=30000
+			TMP="$(toml get "${CONFIGFILE}" driver | \
+					jq -r ".[${INDEX}].client_port")"
+			if [ ! "${TMP}" = "null" ]; then
+				PORT="${TMP}"
+			fi
+
+			eval "${DRIVER_COMMAND} dbt2 driver -d ${CLIENT_HOSTNAME} \
+					-p ${PORT} ${DRIVER_CMD_ARGS} > \
+					${DRIVER_OUTPUT_DIR}/${HOSTNAME}/driver-${INDEX}.txt 2>&1" \
+					|| exit 1 &
+		fi
+
+		# Calculate ramp up time for this driver and sleep only for the
+		# duration of the driver with the longest ramp up time.
+
+		OPTION1=$(( WMAX - WMIN + 1 ))
+		OPTION1=$(( OPTION1 * THREADS_PER_WAREHOUSE ))
+		THIS_RAMPUP_TIME=${OPTION1}
+		if [ ! "${TERMINALS_LIMIT}" = "" ]; then
+			OPTION2=${TERMINALS_LIMIT}
+			if [ "${OPTION1}" -lt "${OPTION2}" ]; then
+				THIS_RAMPUP_TIME=${OPTION1}
+			else
+				THIS_RAMPUP_TIME=${OPTION2}
+			fi
+		fi
+		if [ "${DRIVER3}" = "1" ]; then
+			THIS_RAMPUP_TIME=$(( ($(nproc) * FPP) - 1 ))
+			if [ ! "${TERMINALS_LIMIT}" = "" ] &&
+					[ "${TERMINALS_LIMIT}" -lt "${THIS_RAMPUP_TIME}" ]; then
+				THIS_RAMPUP_TIME="${TERMINALS_LIMIT}"
+			fi
+		fi
+		THIS_RAMPUP_TIME=$(( THIS_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
+		THIS_RAMPUP_TIME=$(( THIS_RAMPUP_TIME / 1000 ))
+
+		if [ ${THIS_RAMPUP_TIME} -gt ${DRIVER_RAMPUP_TIME} ]; then
+			DRIVER_RAMPUP_TIME=${THIS_RAMPUP_TIME}
+		fi
 	done
+	DRIVERLIST="$(echo "${DRIVERLIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+	printf "Driver systems: %s\n" "${DRIVERLIST}"
+	echo
 
-	# Sleep long enough for all the client database connections to be
-	# established.
-	CLIENT_RAMPUP_TIME=$DBCON
-	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
-	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME / 1000 ))
-	CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME + 1 ))
-	do_sleep $CLIENT_RAMPUP_TIME
-else
-	echo "***skipping***"
+	DATABASES="$(toml get "${CONFIGFILE}" . | jq -r '.database | length')"
+	for INDEX in $(seq 0 $(( DATABASES - 1 ))); do
+		DB_HOSTNAME="$(toml get "${CONFIGFILE}" database | \
+				jq -r ".[${INDEX}].database_addr")"
+		DBLIST="${DBLIST} ${DB_HOSTNAME}"
+	done
+	DBLIST="$(echo "${DBLIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+
+	echo
+	printf "Database systems: %s\n" "${DBLIST}"
+	echo
 fi
 
-# Calculate how many terminals are being emulated.
-OPTION1=$(( W_CHUNK + 1 ))
-OPTION1=$(( OPTION1 * THREADS_PER_WAREHOUSE ))
-DRIVER_RAMPUP_TIME=$OPTION1
-if [ ! "$TERMINALS_LIMIT" = "" ]; then
-	OPTION2=$TERMINALS_LIMIT
-	if [ "${OPTION1}" -lt "${OPTION2}" ]; then
-		DRIVER_RAMPUP_TIME=$OPTION1
-	else
-		DRIVER_RAMPUP_TIME=$OPTION2
-	fi
-fi
-if [ "$DRIVER3" = "1" ]; then
-	DRIVER_RAMPUP_TIME=$(( ($(nproc) * FPP) - 1 ))
-	if [ ! "$TERMINALS_LIMIT" = "" ] &&
-			[ $TERMINALS_LIMIT -lt $DRIVER_RAMPUP_TIME ]; then
-		DRIVER_RAMPUP_TIME="${TERMINALS_LIMIT}"
-	fi
-fi
-DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
-DRIVER_RAMPUP_TIME=$(( DRIVER_RAMPUP_TIME / 1000 ))
-TOTAL_RUN_TIME=$(( DRIVER_RAMPUP_TIME + DURATION ))
-SAMPLE_LENGTH=60
-ITERATIONS=$(( TOTAL_RUN_TIME / SAMPLE_LENGTH ))
-ITERATIONS=$(( ITERATIONS + 1 ))
-
-# Start collecting data before we start the test.
+# Start collecting system statistics while we ramp up the test.
 stat_collection
-
-if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-	eval "${CLIENT_COMMAND} dbt2 get-os-info \
-			-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
-fi
-
-echo "collecting database statistics..."
-HOSTNAME=$(eval "${DB_COMMAND} hostname")
-eval "$DB_COMMAND mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}"
-if [ $DBAAS -eq 0 ]; then
-	eval "${DB_COMMAND} dbt2 ${DBMS}-plans -d ${DBNAME} \
-			-o ${DB_OUTPUT_DIR}/${HOSTNAME}/plan0.txt"
-fi
-
-# Start the driver.
-echo ''
-echo "Stage 2. Starting up driver..."
-echo "connection opening every $THREAD_STARTUP_DELAY milliseconds"
-
-END=0
-START=1
-#
-# Count of the number of drivers run.
-#
-SEG=0
-PORT=30000
-while [ "${END}" -lt "${WAREHOUSES}" ]; do
-	START=$(( END + 1 ))
-	END=$(( START + W_CHUNK ))
-	END=$(( END - 1 ))
-	SEG=$(( SEG + 1 ))
-
-	if [ "${END}" -gt "${WAREHOUSES}" ]; then
-		END=${WAREHOUSES}
-	fi
-
-	DDIR="${DRIVER_OUTPUT_DIR}/$(hostname).${SEG}"
-	mkdir -p "${DDIR}"
-	DRIVER_COMMAND_ARGS="-l $DURATION -wmin $START"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -wmax $END -w $WAREHOUSES"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -sleep $THREAD_STARTUP_DELAY"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -outdir $DDIR"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS -tpw $THREADS_PER_WAREHOUSE"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $EASYFLAGS $TERMINALS_LIMIT_ARG"
-	DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
-	if [ "$DRIVER3" = "1" ]; then
-		DHNARG="-b $DBNAME -d $DB_HOSTNAME"
-		eval "dbt2 driver3 $DRIVER_COMMAND_ARGS -a $DBMS $DHNARG $FPP_FLAG \
-				> ${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
-				|| exit 1 &
-	else
-		eval "dbt2 driver -d $CLIENT_HOSTNAME -p $PORT $DRIVER_COMMAND_ARGS > \
-				${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
-				|| exit 1 &
-	fi
-	DRIVER_PIDLIST="$DRIVER_PIDLIST $!"
-	PORT=$(( PORT + 1 ))
-done
 
 printf "estimated rampup time: "
 do_sleep $DRIVER_RAMPUP_TIME
@@ -877,48 +1191,85 @@ stat_collection -s
 echo ''
 echo "Stage 3. Processing of results..."
 
-# TODO: Make the tear down of the clients and drivers more graceful than
-# blowing away the client and waiting for drivers to stop complaining about
-# that it disappeared.
+if [ "${CONFIGFILE}" = "" ]; then
+	# TODO: Make the tear down of the clients and drivers more graceful than
+	# blowing away the client and waiting for drivers to stop complaining about
+	# that it disappeared.
 
-if [ ! "$DRIVER3" = "1" ]; then
-	# Client doesn't go away by itself like the driver does, so kill it.
-	echo "Killing client..."
-	eval "${CLIENT_COMMAND} killall -q dbt2-client > /dev/null 2>&1 &"
+	if [ ! "$DRIVER3" = "1" ]; then
+		# Client doesn't go away by itself like the driver does, so kill it.
+		echo "Killing client..."
+		eval "${CLIENT_COMMAND} killall -q dbt2-client > /dev/null 2>&1 &"
+	fi
+
+	# Make sure all the drivers have exited, so all the mix files have flushed
+	# to disk before continuing processing.  Can't count on all of the sleeps
+	# to be precise...
+	eval "wait ${DRIVER_PIDLIST}"
+
+	if [ $PRIVILEGED -eq 1 ]; then
+		eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"
+	fi
+
+	if [ "${PROFILE}" -eq 1 ]; then
+		profile_process
+	fi
+
+	# Retrieve test data from all remote systems.
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		# If a database system is specified, rsync all the logs back to the
+		# driver system after creating the sar csv data.  There will only be a
+		# sar output file if the database is on a separate system.
+		if [ $DBAAS -eq 0 ]; then
+			rsync -a -e "$SSH" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
+					"${DB_OUTPUT_DIR}/"
+		fi
+	fi
+
+	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
+		HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
+		rsync -a -e "${SSH}" --delete \
+				"${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
+				"${CLIENT_OUTPUT_DIR}/"
+	fi
+else
+	if [ ! "$DRIVER3" = "1" ]; then
+		CLIENTS="$(toml get "${CONFIGFILE}" . | jq -r '.client | length')"
+
+		for INDEX in $(seq 0 $(( CLIENTS - 1 ))); do
+			CLIENT_HOSTNAME="$(toml get "${CONFIGFILE}" client | \
+					jq -r ".[${INDEX}].client_addr")"
+
+			echo "Killing client(s)..."
+			if [ "${CLIENT_HOSTNAME}" = "localhost" ]; then
+				CLIENT_COMMAND=""
+			else
+				CLIENT_COMMAND="${SSH} ${CLIENT_HOSTNAME}"
+				rsync -a -e "${SSH}" --delete \
+						"${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
+						"${CLIENT_OUTPUT_DIR}/"
+			fi
+			eval "${CLIENT_COMMAND} killall -q dbt2-client > /dev/null 2>&1 &"
+		done
+	fi
+
+	# There shouldn't be any files on the database system to gather unless
+	# system stats or software profiles are collected.
+	if [ ${STATS} -eq 1 ] || [ ${PROFILE} -eq 1 ]; then
+		SYSTEMLIST="$(echo "${DRIVERLIST} ${CLIENTLIST} ${DBLIST}" | \
+				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+	else
+		SYSTEMLIST="$(echo "${DRIVERLIST} ${CLIENTLIST}" | \
+				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+	fi
+	for SYSTEM in ${SYSTEMLIST}; do
+		if [ ! "${SYSTEM}" = "localhost" ]; then
+			rsync -a -e "${SSH}" "${SYSTEM}:${OUTPUT_DIR}/" "${OUTPUT_DIR}/"
+		fi
+	done
 fi
-
-# Make sure all the drivers have exited, so all the mix files have flushed to
-# disk before continuing processing.  Can't count on all of the sleeps to be
-# precise...
-eval "wait ${DRIVER_PIDLIST}"
 
 dbt2 report "${OUTPUT_DIR}" > "${SUMMARY}"
-
-if [ $PRIVILEGED -eq 1 ]; then
-	eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"
-fi
-
-if [ "${PROFILE}" -eq 1 ]; then
-	profile_process
-fi
-
-# Retrieve test data from all remote systems.
-if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-	# If a database system is specified, rsync all the logs back to the driver
-	# system after creating the sar csv data.  There will only be a sar output
-	# file if the database is on a separate system.
-	if [ $DBAAS -eq 0 ]; then
-		rsync -a -e "$SSH" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
-				"${DB_OUTPUT_DIR}/"
-	fi
-fi
-
-if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-	HOSTNAME=$(eval "${CLIENT_COMMAND} hostname")
-	rsync -a -e "${SSH}" --delete "${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
-			"${CLIENT_OUTPUT_DIR}/"
-fi
-
 echo "Test completed."
 echo "Results are in: ${OUTPUT_DIR}"
 echo

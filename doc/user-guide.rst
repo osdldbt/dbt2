@@ -66,6 +66,10 @@ AppImage.
 `gnuplot <https://www.gnuplot.info/>`_ is used when generating charts.  This
 package is also included in the DBT-2 AppImage.
 
+`jq <https://jqlang.github.io/jq/>`_ and `toml-cli
+<https://github.com/gnprice/toml-cli>`_ are required to use TOML configuration
+files for executing tests.
+
 Linux AppImage
 --------------
 
