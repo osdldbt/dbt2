@@ -220,7 +220,6 @@ Client only:
    progress. (This is still in development and won't be mentioned elsewhere
    until it is functionally complete.)
 
-
 Driver (remote terminal emulator) only:
 
 1. `dbt2-driver` - a pthread based multi-threaded program where 1 thread is
@@ -468,3 +467,209 @@ where the percentages are represented as a decimal number:
 
 The percentage for the New Order transaction is the difference after the other
 4 transactions such that the sum adds to 1 (i.e. 100%.)
+
+Complex Test Configurations
+---------------------------
+
+The `run` script can use a TOML formatted configuration file to execute the
+workload in more complex configuration than what the command line arguments can
+provide.  Note that running the binaries by hand still offer the most
+flexibility.  For example:
+
+* Using multiple client programs across multiple systems
+* Using multiple driver programs across multiple systems
+* Specifying the client system and port per driver
+* Specifying the database system to use per client (for distributed database
+  systems)
+* Specifying the warehouse range per driver
+
+See the following subsections for specific scenarios.
+
+Example 1: 1-tier Threaded Driver & Client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This the traditional way to run the workload with three components, the
+database, a client, and a driver.  In this example all three components are run
+on a single system::
+
+    mode = 1
+    database_name = "dbt2"
+    warehouses = 1
+    duration = 120
+
+    [[client]]
+    client_addr = "localhost"
+    database_addr = "localhost"
+    connections = 1
+
+    [[driver]]
+    driver_addr = "localhost"
+    client_addr = "localhost"
+
+Example 2: 1-tier Multiple Threaded Drivers & Clients
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example is similar to Example 1, except it illustrates how to start
+mutiple drivers and clients on the same system::
+
+    mode = 1
+    database_name = "dbt2"
+    warehouses = 2
+    duration = 120
+
+    [[client]]
+    client_addr = "localhost"
+    database_addr = "localhost"
+    connections = 1
+
+    [[client]]
+    client_addr = "localhost"
+    database_addr = "localhost"
+    connections = 1
+    client_port = 30001
+
+    [[driver]]
+    driver_addr = "localhost"
+    client_addr = "localhost"
+    wmin = 1
+    wmax = 1
+
+    [[driver]]
+    driver_addr = "localhost"
+    client_addr = "localhost"
+    wmin = 2
+    wmax = 2
+    client_port = 30001
+
+Example 3: 3-tier Threaded Driver & Client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example is similar to Example 1, except it illustrates how to start
+each component on separate systems, where the `run` script is executed on the
+driver system::
+
+    mode = 1
+    database_name = "dbt2"
+    warehouses = 1
+    duration = 120
+
+    [[client]]
+    client_addr = "sodium"
+    database_addr = "lithium"
+    connections = 1
+
+    [[driver]]
+    driver_addr = "localhost"
+    client_addr = "sodium"
+
+Example 4: 3-tier Threaded Driver & Client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example is similar to Example 3, except it illustrates how to start
+multiple drivers and clients::
+
+    mode = 1
+    database_name = "dbt2"
+    warehouses = 2
+    duration = 120
+
+    [[client]]
+    client_addr = "sodium"
+    database_addr = "lithium"
+    connections = 1
+
+    [[client]]
+    client_addr = "sodium"
+    database_addr = "lithium"
+    connections = 1
+    client_port = 30001
+
+    [[driver]]
+    driver_addr = "localhost"
+    client_addr = "sodium"
+    wmin = 1
+    wmax = 1
+
+    [[driver]]
+    driver_addr = "localhost"
+    client_addr = "sodium"
+    wmin = 2
+    wmax = 2
+    client_port = 30001
+
+Example 5: 1-tier Event-Driven Driver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is a simplified and low resource way to run the workload, where the client
+has been combined with the driver.  This example is single system where the
+event-driven driver and database are on the same system::
+
+    mode = 3
+    database_name = "dbt2"
+    warehouses = 1
+    duration = 120
+
+    [[driver]]
+    driver_addr = "localhost"
+    database_addr = "localhost"
+
+Example 6: 1-tier multiple event-driven drivers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A single system where multiple event-driven drivers and database are on the
+same system.  This example illustrates how to start multiple drivers that use a
+different and distinct warehouse range::
+
+    mode = 3
+    database_name = "dbt2"
+    warehouses = 2
+    duration = 120
+
+    [[driver]]
+    driver_addr = "localhost"
+    database_addr = "localhost"
+    wmin = 1
+    wmax = 1
+
+    [[driver]]
+    driver_addr = "localhost"
+    database_addr = "localhost"
+    wmin = 2
+    wmax = 2
+
+Example 7: 2-tier Event-Driven Driver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is similar to Example 5 except the driver is on a separate system.  The
+`run` script is executed on the driver system::
+
+    mode = 3
+    database_name = "dbt2"
+    warehouses = 1
+    duration = 120
+    [[driver]]
+    driver_addr = "localhost"
+    database_addr = "lithium"
+
+Example 8: 2-tier Multiple Event-Driven Drivers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example expands on Example 7 where there are multiple event-driven drivers
+started on the same system that are configured on distinct warehouse ranges::
+
+    mode = 3
+    database_name = "dbt2"
+    warehouses = 2
+    duration = 120
+
+    [[driver]]
+    driver_addr = "localhost"
+    database_addr = "lithium"
+    wmin = 1
+    wmax = 1
+
+    [[driver]]
+    driver_addr = "localhost"
+    database_addr = "lithium"
+    wmin = 2
+    wmax = 2
