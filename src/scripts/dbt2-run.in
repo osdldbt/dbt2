@@ -196,16 +196,53 @@ stat_collection()
 }
 
 stop_processes() {
-	if [ "$DRIVER3" = "1" ]; then
-		killall dbt2-driver3
-	else
-		killall dbt2-driver
-		if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
-			eval "${CLIENT_COMMAND} killall dbt2-client"
+	if [ "${CONFIGFILE}" = "" ]; then
+		find "${OUTPUT_DIR}" -type f -name dbt2_driver.pid 2> /dev/null |
+				while IFS= read -r PIDFILE; do
+			DRIVERPID=$(cat "${PIDFILE}")
+			kill -9 "${DRIVERPID}"
+		done
+		if [ ! "$DRIVER3" = "1" ]; then
+			if [ "${CLIENT_HOSTNAME}" = "localhost" ]; then
+				CMD=""
+			else
+				CMD="${SSH} ${SYSTEM}"
+			fi
+			PIDFILE=$(eval "${CMD} find ${OUTPUT_DIR} -name dbt2_client.pid" \
+					2> /dev/null)
+			CLIENTPID=$(eval "${CMD} cat ${PIDFILE}")
+			eval "${CMD} kill -9 ${CLIENTPID}"
 		fi
-	fi
 
-	"dbt2 ${DBMS}-stop-db"
+		if [ ${PRIVILEGED} -eq 1 ]; then
+			dbt2 "${DBMS}-stop-db"
+		fi
+	else
+		for SYSTEM in ${CLIENTLIST}; do
+			if [ "${SYSTEM}" = "localhost" ]; then
+				CMD=""
+			else
+				CMD="${SSH} ${SYSTEM}"
+			fi
+			for PIDFILE in $(eval "${CMD} find ${OUTPUT_DIR} \
+					-name dbt2_client.pid" 2> /dev/null); do
+				CLIENTPID=$(eval "${CMD} cat ${PIDFILE}")
+				eval "${CMD} kill -9 ${CLIENTPID}"
+			done
+		done
+		for SYSTEM in ${DRIVERLIST}; do
+			if [ "${SYSTEM}" = "localhost" ]; then
+				CMD=""
+			else
+				CMD="${SSH} ${SYSTEM}"
+			fi
+			for PIDFILE in $(eval "${CMD} find ${OUTPUT_DIR} \
+					-name dbt2_driver.pid" 2> /dev/null); do
+				DRIVERPID=$(eval "${CMD} cat ${PIDFILE}")
+				eval "${CMD} kill -9 ${DRIVERPID}"
+			done
+		done
+	fi
 
 	# Stop stat collection.
 	stat_collection -s
@@ -1199,7 +1236,10 @@ if [ "${CONFIGFILE}" = "" ]; then
 	if [ ! "$DRIVER3" = "1" ]; then
 		# Client doesn't go away by itself like the driver does, so kill it.
 		echo "Killing client..."
-		eval "${CLIENT_COMMAND} killall -q dbt2-client > /dev/null 2>&1 &"
+		PIDFILE=$(eval "${CLIENT_COMMAND} find ${OUTPUT_DIR} \
+				-name dbt2_client.pid" 2> /dev/null)
+		CLIENTPID=$(eval "${CLIENT_COMMAND} cat ${PIDFILE}")
+		eval "${CLIENT_COMMAND} kill -9 ${CLIENTPID}"
 	fi
 
 	# Make sure all the drivers have exited, so all the mix files have flushed
@@ -1234,22 +1274,17 @@ if [ "${CONFIGFILE}" = "" ]; then
 	fi
 else
 	if [ ! "$DRIVER3" = "1" ]; then
-		CLIENTS="$(toml get "${CONFIGFILE}" . | jq -r '.client | length')"
-
-		for INDEX in $(seq 0 $(( CLIENTS - 1 ))); do
-			CLIENT_HOSTNAME="$(toml get "${CONFIGFILE}" client | \
-					jq -r ".[${INDEX}].client_addr")"
-
-			echo "Killing client(s)..."
-			if [ "${CLIENT_HOSTNAME}" = "localhost" ]; then
-				CLIENT_COMMAND=""
+		for SYSTEM in ${CLIENTLIST}; do
+			if [ "${SYSTEM}" = "localhost" ]; then
+				CMD=""
 			else
-				CLIENT_COMMAND="${SSH} ${CLIENT_HOSTNAME}"
-				rsync -a -e "${SSH}" --delete \
-						"${CLIENT_HOSTNAME}:${CLIENT_OUTPUT_DIR}/" \
-						"${CLIENT_OUTPUT_DIR}/"
+				CMD="${SSH} ${SYSTEM}"
 			fi
-			eval "${CLIENT_COMMAND} killall -q dbt2-client > /dev/null 2>&1 &"
+			for PIDFILE in $(eval "${CMD} find ${OUTPUT_DIR} \
+					-name dbt2_client.pid" 2> /dev/null); do
+				CLIENTPID=$(eval "${CMD} cat ${PIDFILE}")
+				eval "${CMD} kill -9 ${CLIENTPID}"
+			done
 		done
 	fi
 
