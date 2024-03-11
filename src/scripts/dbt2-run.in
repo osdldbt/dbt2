@@ -9,7 +9,7 @@
 
 do_sleep()
 {
-	echo "Sleeping $1 seconds"
+	echo "sleeping $1 second(s)."
 	sleep "${1}"
 }
 
@@ -248,8 +248,8 @@ stop_processes() {
 	stat_collection -s
 }
 
-trap 'echo "Test was interrupted by Control-C."; stop_processes' INT
-trap 'echo "Test was interrupted. Got TERM signal."; stop_processes' TERM
+trap 'printf "\n***Interrupted by Control-C.***\n\n"; stop_processes' INT
+trap 'printf "\n***Interrupted by TERM signal.***\n\n"; stop_processes' TERM
 
 usage()
 {
@@ -769,14 +769,16 @@ fi
 #
 # Redisplay the test parameters.
 #
-echo "DBT-2 test for ${DBMS} started at $(date)"
-echo ""
-echo "DATABASE SYSTEM: ${DB_HOSTNAME}"
-if [ "${DBMS}" = "cockroach" ] || [ "${DBMS}" = "pgsql" ] || \
-		[ "${DBMS}" = "mysql" ]; then
-	echo "DATABASE NAME: ${DBNAME}"
+echo "# DBT-2 test for ${DBMS} started at $(date)"
+echo
+echo "Parameters:"
+echo
+echo "* SCALE FACTOR (WAREHOUSES): ${WAREHOUSES}"
+echo "* DURATION OF TEST (seconds): ${DURATION}"
+if [ ! "${DBNAME}" = "" ]; then
+	echo "* DATABASE NAME: ${DBNAME}"
 fi
-echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
+echo "* TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
 
 #
 # Build up the client command line arguments.
@@ -785,23 +787,23 @@ echo "TERMINALS PER WAREHOUSE: ${THREADS_PER_WAREHOUSE}"
 CLIENT_COMMAND_ARGS="-a $DBMS"
 
 if [ -n "${DB_USER}" ]; then
-	echo "DATABASE USER: ${DB_USER}"
+	echo "* DATABASE USER: ${DB_USER}"
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -u ${DB_USER}"
 fi
 
 if [ -n "${DB_PASSWORD}" ]; then
-	echo "DATABASE PASSWORD: *******"
+	echo "* DATABASE PASSWORD: *******"
 	CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -a ${DB_PASSWORD}"
 fi
 
 if [ "${CONFIGFILE}" = "" ]; then
 	if [ -n "${DB_SOCKET}" ]; then
-		echo "DATABASE SOCKET: ${DB_SOCKET}"
+		echo "* DATABASE SOCKET: ${DB_SOCKET}"
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -t ${DB_SOCKET}"
 	fi
 
 	if [ -n "${DB_PORT}" ]; then
-		echo "DATABASE PORT: ${DB_PORT}"
+		echo "* DATABASE PORT: ${DB_PORT}"
 		CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} ${DB_PORT_ARG}"
 	fi
 
@@ -816,29 +818,26 @@ if [ "${CONFIGFILE}" = "" ]; then
 		fi
 	fi
 	if [ "$DRIVER3" = "1" ]; then
-		echo "DATABASE CONNECTIONS: $(nproc)"
-		echo "TERMINAL PROCESSES: $(nproc)"
+		echo "* DATABASE CONNECTIONS: $(nproc)"
+		echo "* TERMINAL PROCESSES: $(nproc)"
 	else
-		echo "DATABASE CONNECTIONS: ${DBCON}"
-		echo "TERMINAL THREADS: ${THREADS}"
+		echo "* DATABASE CONNECTIONS: ${DBCON}"
+		echo "* TERMINAL THREADS: ${THREADS}"
 	fi
 	if [ ! "$DRIVER3" = "1" ]; then
-		echo "TERMINAL CAP: $TERMINALS_LIMIT"
+		echo "* TERMINAL CAP: $TERMINALS_LIMIT"
 	fi
-	echo "WAREHOUSES PER DRIVER/CLIENT PAIR: $W_CHUNK"
-	echo "SCALE FACTOR (WAREHOUSES): ${WAREHOUSES}"
-	echo "DURATION OF TEST (in sec): ${DURATION}"
-	echo ""
+	echo "* WAREHOUSES PER DRIVER/CLIENT PAIR: $W_CHUNK"
 fi
+echo
 
 #
 # Start the client.
 #
-echo "Stage 1. Starting up client..."
+echo "## Stage 1. Starting up client..."
+echo
 if [ "${CONFIGFILE}" = "" ]; then
 	if [ ! "$DRIVER3" = "1" ]; then
-		printf "database connection starting every %s" "${THREAD_STARTUP_DELAY}"
-		echo "milliseconds"
 		if [ "${DBMS}" = "cockroach" ]; then
 			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -d ${DB_HOSTNAME}"
 			CLIENT_COMMAND_ARGS="${CLIENT_COMMAND_ARGS} -b ${DBNAME}"
@@ -892,9 +891,11 @@ if [ "${CONFIGFILE}" = "" ]; then
 		CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME * THREAD_STARTUP_DELAY ))
 		CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME / 1000 ))
 		CLIENT_RAMPUP_TIME=$(( CLIENT_RAMPUP_TIME + 1 ))
+
+		printf "Waiting for clients to ramp up, "
 		do_sleep $CLIENT_RAMPUP_TIME
 	else
-		echo "***skipping***"
+		echo "No clients to start."
 	fi
 
 	# Calculate how many terminals are being emulated.
@@ -929,7 +930,6 @@ if [ "${CONFIGFILE}" = "" ]; then
 				-o ${CLIENT_OUTPUT_DIR}/${HOSTNAME}"
 	fi
 
-	echo "collecting database statistics..."
 	HOSTNAME=$(eval "${DB_COMMAND} hostname")
 	eval "$DB_COMMAND mkdir -p ${DB_OUTPUT_DIR}/${HOSTNAME}"
 	if [ $DBAAS -eq 0 ]; then
@@ -939,6 +939,8 @@ if [ "${CONFIGFILE}" = "" ]; then
 else
 	if [ ! "${DRIVER3}" = "1" ]; then
 		CLIENTS="$(toml get "${CONFIGFILE}" . | jq -r '.client | length')"
+
+		printf "Starting up %d client(s):\n\n" "${CLIENTS}"
 
 		CLIENT_RAMPUP_TIME=0
 		for INDEX in $(seq 0 $(( CLIENTS - 1 ))); do
@@ -961,6 +963,10 @@ else
 			if [ ! "${TMP}" = "null" ]; then
 				PORT="${TMP}"
 			fi
+
+			printf "%d. %s listening on %d with %d connection(s) to %s.\n" \
+					$(( INDEX + 1 )) "${CLIENT_HOSTNAME}" "${PORT}" "${DBCON}" \
+					"${DB_HOSTNAME}"
 
 			CLIENTLIST="${CLIENTLIST} ${CLIENT_HOSTNAME}"
 			DBLIST="${DBLIST} ${DB_HOSTNAME}"
@@ -1017,14 +1023,22 @@ else
 				CLIENT_RAMPUP_TIME=${THIS_RAMPUP_TIME}
 			fi
 		done
-		do_sleep ${CLIENT_RAMPUP_TIME}
+
+		CLIENTLIST="$(echo "${CLIENTLIST}" | \
+				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+
+		echo
+		printf "Client systems: %s\n" "${CLIENTLIST}"
+		echo
+		printf "Waiting for clients to ramp up, "
+		do_sleep $CLIENT_RAMPUP_TIME
 	fi
 fi
+echo
 
 # Start the driver.
-echo ''
-echo "Stage 2. Starting up driver..."
-echo "connection opening every $THREAD_STARTUP_DELAY milliseconds"
+echo "## Stage 2. Starting up driver..."
+echo
 
 if [ "${CONFIGFILE}" = "" ]; then
 	END=0
@@ -1068,6 +1082,8 @@ if [ "${CONFIGFILE}" = "" ]; then
 	done
 else
 	DRIVERS="$(toml get "${CONFIGFILE}" . | jq -r '.driver | length')"
+
+	printf "Starting up %d driver(s):\n\n" "${DRIVERS}"
 
 	DRIVER_RAMPUP_TIME=0
 	START=1
@@ -1138,6 +1154,10 @@ else
 			DB_HOSTNAME="$(toml get "${CONFIGFILE}" driver | \
 					jq -r ".[${INDEX}].database_addr")"
 
+			printf "%d. %s to database on %s, warehouses %d to %d.\n" \
+					$(( INDEX + 1 )) "${DRIVER_HOSTNAME}" "${DB_HOSTNAME}" \
+					"${START}" "${END}"
+
 			eval "${DRIVER_COMMAND} dbt2 driver3 ${DRIVER_CMD_ARGS} \
 					-a ${DBMS} -b ${DBNAME} -d ${DB_HOSTNAME} ${FPP_FLAG} > \
 					${DRIVER_OUTPUT_DIR}/${HOSTNAME}/driver-${INDEX}.txt 2>&1" \
@@ -1153,6 +1173,10 @@ else
 			if [ ! "${TMP}" = "null" ]; then
 				PORT="${TMP}"
 			fi
+
+			printf "%d. %s to client on %s on port %d, warehouses %d to %d.\n" \
+					$(( INDEX + 1)) "${DRIVER_HOSTNAME}" "${CLIENT_HOSTNAME}" \
+					"${PORT}" "${START}" "${END}"
 
 			eval "${DRIVER_COMMAND} dbt2 driver -d ${CLIENT_HOSTNAME} \
 					-p ${PORT} ${DRIVER_CMD_ARGS} > \
@@ -1188,6 +1212,7 @@ else
 			DRIVER_RAMPUP_TIME=${THIS_RAMPUP_TIME}
 		fi
 	done
+
 	DRIVERLIST="$(echo "${DRIVERLIST}" | \
 			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
 	printf "Driver systems: %s\n" "${DRIVERLIST}"
@@ -1210,23 +1235,24 @@ fi
 # Start collecting system statistics while we ramp up the test.
 stat_collection
 
-printf "estimated rampup time: "
+printf "Waiting for driver(s) to ramp up, "
 do_sleep $DRIVER_RAMPUP_TIME
-echo "estimated rampup time has elapsed"
+echo
 
 if [ "${PROFILE}" -eq 1 ]; then
 	profile_collect &
 fi
 
 # Sleep for the duration of the run.
-printf "estimated steady state time: "
+printf "Waiting for test to complete, "
 do_sleep "${DURATION}"
 
 # Stop stats collection.
 stat_collection -s
 
-echo ''
-echo "Stage 3. Processing of results..."
+echo
+echo "## Stage 3. Results"
+echo
 
 if [ "${CONFIGFILE}" = "" ]; then
 	# TODO: Make the tear down of the clients and drivers more graceful than
@@ -1235,7 +1261,6 @@ if [ "${CONFIGFILE}" = "" ]; then
 
 	if [ ! "$DRIVER3" = "1" ]; then
 		# Client doesn't go away by itself like the driver does, so kill it.
-		echo "Killing client..."
 		PIDFILE=$(eval "${CLIENT_COMMAND} find ${OUTPUT_DIR} \
 				-name dbt2_client.pid" 2> /dev/null)
 		CLIENTPID=$(eval "${CLIENT_COMMAND} cat ${PIDFILE}")
@@ -1305,7 +1330,6 @@ else
 fi
 
 dbt2 report "${OUTPUT_DIR}" > "${SUMMARY}"
-echo "Test completed."
 echo "Results are in: ${OUTPUT_DIR}"
 echo
 
