@@ -88,12 +88,9 @@ it hasn't already been done.  Examples in the documentation will assume it has
 been renamed to `dbt2`.
 
 If FUSE is not available, the AppImage is self-extracting and provides a script
-`AppRun` that can be executed as if running the AppImage itself, when the
-**APPDIR** environment variable is set to the absolute path of the extracted
-`squashfs-root` directory.::
+`AppRun` that can be executed as if running the AppImage itself::
 
     dbt2-*.AppImage --extract-appimage
-    export APPDIR="$(pwd)/squashfs-root"
     squashfs-root/AppRun
 
 Alternatively, one could also set `PATH` and `LD_LIBRARTY_PATH` manually to
