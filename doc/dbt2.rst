@@ -23,6 +23,19 @@ others.
 
 .. contents:: Table of Contents
 
+------------
+Introduction
+------------
+
+The OSDL Database Test 2 (DBT-2) workload test kit provides an on-line
+transaction processing (OLTP) workload using an open source database and a set
+of defined transactions.  This document gives an overview of the DBT-2 test
+kit.
+
+The DBT-2 test kit is a derivative of a benchmark specification released by the
+Transaction Processing Performance Council (TPC).  The TPC Benchmark(TM) C
+(TPC-C) is briefly described before the DBT-2 test kit is discussed.
+
 .. include:: tpc.rst
 .. include:: architecture.rst
 .. include:: quick-start.rst

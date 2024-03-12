@@ -2,20 +2,11 @@
 Architecture
 ------------
 
-Introduction
-============
-
-The OSDL Database Test 2 (DBT-2) workload test kit provides an on-line
-transaction processing (OLTP) workload using an open source database and a
-set of defined transactions.  This document gives an overview of the
-DBT-2 test kit.
-
-The DBT-2 test kit is a derivative of a benchmark specification released
-by the Transaction Processing Performance Council (TPC).  The TPC Benchmark C
-(TPC-C) is briefly described before the DBT-2 test kit is discussed.
+This section briefly recaps the TPC-C, and then describes how DBT-2 implements
+the TPC-C specification.
 
 TPC-C
------
+=====
 
 The TPC-C represents the database activities of any industry that manages,
 sells, and distributes a product or service, such as car rental agencies,
@@ -61,7 +52,7 @@ Further information on the TPC-C can be found on the web at:
 http://www.tpc.org/tpcc/.
 
 DBT-2
------
+=====
 
 DBT-2 is a derivative of the TPC-C designed to produce a real-world
 on-line OLTP workload, similar to the TPC-C, to stress the Linux operation
@@ -77,13 +68,13 @@ do not constitute a TPC-C result, and are incomparable with any TPC-C
 benchmark.
 
 The primary metric reported by the DBT-2 workload is the number of New-Order
-transactions executed per second and is expressed as NOTPM (New Order
+transactions executed per minute and is expressed as NOTPM (New Order
 Transactions per Minute).  However, NOTPM's do not and should not be compared
 to tpmC measurements in any way since the DBT-2 workload does not constitute a
 compliant TPC-C benchmark.
 
 Improper Comparisons
---------------------
+====================
 
 If you discover any usage of DBT-2 in drawing conclusions about TPC-C
 performance, this inappropriate usage should be reported to both the TPC and
@@ -107,17 +98,17 @@ single database.  Each component is described in the following sub-sections.
 Database
 --------
 
-The database consists of nine tables with stored procedures, currently only
-for SAP DB, to support five transactions.  While this test kit was developed
-using SAP DB, it can be adapted to any other database.  The data represents a
-company that is a wholesale supplier with a number of distributed sales
-districts and associated warehouses covering a wide geographic range.  The
-database can be scaled to any number of warehouses to simulate businesses of
-varying sizes.  By default, a warehouse covers 10 districts, each district
-serving 3,000 customers, with each warehouse maintaining stock for a complete
-inventory of 100,000 items.  DBT-2 allows the rest of the database to be
-scaled as defined by the user.  The five transactions supported are:
-New-Order, Payment, Order-Status, Delivery, and Stock-Level.
+The database consists of nine tables with supportint five transactions.  While
+this test kit is currently primarily maintained for PostgreSQL, it can be
+adapted to any other database.  The data represents a company that is a
+wholesale supplier with a number of distributed sales districts and associated
+warehouses covering a wide geographic range.  The database can be scaled to any
+number of warehouses to simulate businesses of varying sizes.  By default, a
+warehouse covers 10 districts, each district serving 3,000 customers, with each
+warehouse maintaining stock for a complete inventory of 100,000 items.  DBT-2
+allows the rest of the database to be scaled as defined by the user.  The five
+transactions supported are: New-Order, Payment, Order-Status, Delivery, and
+Stock-Level.
 
 New-Order Transaction
 ~~~~~~~~~~~~~~~~~~~~~

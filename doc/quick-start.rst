@@ -9,8 +9,9 @@ https://github.com/osdldbt/dbt2/releases
 Rename the AppImage file to **dbt2** and make sure it is in your `PATH` and is
 executable.
 
-The rest of this section describes the easiest way to use this test kit.  See
-the rest of the documentation for more advanced uses.
+The rest of this section describes the easiest way to use this test kit per
+database management system.  See the rest of the documentation for more
+advanced uses.
 
 PostgreSQL
 ==========

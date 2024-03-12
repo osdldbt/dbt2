@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Update `run` script to use PID files to stop processes instead of killall
   with program names
 - Refactor `run` script output
+- Reorganize documentation
 
 v0.60.0 (2024-02-29)
 

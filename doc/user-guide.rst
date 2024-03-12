@@ -2,9 +2,6 @@
 User Guide
 ----------
 
-Introduction
-============
-
 This document provides instructions on how to set up and use the Open Source
 Development Lab's Database Test 2 (DBT-2) test kit.  Database management
 systems can be installed from source or packages, or a DBaaS option can
@@ -99,7 +96,7 @@ include the extracted environment.
 DBT-2 Test Kit Source
 ---------------------
 
-The latest stable version of the kit can be found on GitHub at:
+The primary source repository of the kit can be found on GitHub at:
 https://github.com/osdldbt/dbt2
 
 Environment Configuration
@@ -173,7 +170,8 @@ errors if a warehouse referenced does not exist.
 If DBT-2 is used with standard transaction mix ratios, keying, and thinking
 times, etc. then the maximum throughput is limited to `12.86 x the number of
 warehouses`.  Thus if you want more throughput, the database size also needs to
-be increased.
+be increased.  See Clause 4.1 in the TPC-C specification for a complete
+explanation.
 
 If non-standard ratios, times, etc. are used, the database should be resized to
 match the measured throughput.  This could take multiple revisions if database
