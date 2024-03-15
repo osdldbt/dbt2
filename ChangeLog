@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.61.0 (2024-03-14)
 
 - Support TOML configuration files for executing tests with `run` script
 - Update `run` script to use PID files to stop processes instead of killall

@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.5.0)
 project (dbt2 C)
 
 set (PROJECT_VERSION_MAJOR 0)
-set (PROJECT_VERSION_MINOR 60)
+set (PROJECT_VERSION_MINOR 61)
 set (PROJECT_VERSION_PATCH 0)
 set (CMAKE_C_STANDARD 99)
 
