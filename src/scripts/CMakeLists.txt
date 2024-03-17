@@ -19,39 +19,20 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 .eqp on")
 endif ()
 
-configure_file(
-    dbt2.in
-    ${CMAKE_BINARY_DIR}/dbt2
-    @ONLY
-)
-configure_file(
-    dbt2-build.in
-    ${CMAKE_BINARY_DIR}/dbt2-build
-    @ONLY
-)
-configure_file(
-    dbt2-post-process.sqlite3.in
-    ${CMAKE_BINARY_DIR}/dbt2-post-process.sqlite3
-    @ONLY
-)
-configure_file(
-    dbt2-report.in
-    ${CMAKE_BINARY_DIR}/dbt2-report
-    @ONLY
-)
-configure_file(
-    dbt2-run.in
-    ${CMAKE_BINARY_DIR}/dbt2-run
-    @ONLY
-)
+set (PROGRAMFILES "")
+foreach (FILE dbt2
+              dbt2-build
+              dbt2-post-process.sqlite3
+              dbt2-report
+              dbt2-run
+        )
+    configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
+    set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})
+endforeach()
 
 install (
 	PROGRAMS
-    ${CMAKE_BINARY_DIR}/dbt2
-    ${CMAKE_BINARY_DIR}/dbt2-build
-    ${CMAKE_BINARY_DIR}/dbt2-post-process.sqlite3
-    ${CMAKE_BINARY_DIR}/dbt2-report
-    ${CMAKE_BINARY_DIR}/dbt2-run
+    ${PROGRAMFILES}
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-generate-report
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-get-os-info
     ${CMAKE_SOURCE_DIR}/src/scripts/dbt2-post-process.r
