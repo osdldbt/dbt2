@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Fix post-process unit test for sqlite3
+
 v0.61.0 (2024-03-14)
 
 - Support TOML configuration files for executing tests with `run` script

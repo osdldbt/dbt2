@@ -20,7 +20,7 @@ testPostProcessR() {
 testPostProcessSQLite() {
 	# shellcheck disable=SC2086
 	find ${TOPDIR}/src/scripts/test -name "mix-*.log" -print0 | \
-			xargs -0 ${TOPDIR}/builds/debug/dbt2-post-process.sql \
+			xargs -0 ${TOPDIR}/builds/debug/dbt2-post-process.sqlite3 \
 			> "$ACTUALOUTPUT"
 	diff "$ACTUALOUTPUT" "$EXPECTEDOUTPUT"
 	assertEquals "match" 0 $?

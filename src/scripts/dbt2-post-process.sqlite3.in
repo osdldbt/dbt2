@@ -215,7 +215,7 @@ RAMPUP=$(sqlite3 "${DBFILE}" "SELECT (${STARTTIME}.0 - ${TIME0}.0) / 60.0")
 cat << EOF
 ============  ======  =========  =========  ===========  ===========  ======
 
-* Throughput: $(printf "%.2f" "${THROUGHPUT}")  new-order transactions per minute (NOTPM)
+* Throughput: $(printf "%.2f" "${THROUGHPUT}") new-order transactions per minute (NOTPM)
 * Duration: $(printf "%.1f" "${MINUTES}") minute(s)
 * Unknown Errors: $UNKNOWN_ERRORS
 * Ramp Up Time: $(printf "%.1f" "${RAMPUP}") minute(s)
