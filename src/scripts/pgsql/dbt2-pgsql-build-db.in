@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -8,29 +9,29 @@
 
 usage()
 {
-	echo "Usage:"
-	echo "    dbt2-pgsql-build-db [OPTION]... [DBNAME]"
-	echo "    dbt2-pgsql-build-db -h"
-	echo ""
-	echo "Options:"
-	echo "    -i <sharedir>"
-	echo "        Directory with plpgsql stored functions"
-	echo "    -l <port>"
-	echo "        PostgreSQL port"
-	echo "    -p <database_parameters>"
-	echo "        PostgreSQL database parameters."
-	echo "    -r"
-	echo "        Drop existing database before building a new database"
-	echo "    -s <c | plpgsql>"
-	echo "        User defined functions to install, default: plpgsql"
-	echo "    -t"
-	echo "        Use tablespaces."
-	echo "    -u"
-	echo "        Run as a privileged PostgreSQL user."
-	echo "    -w <scale factor>"
-	echo "        Number of warehouses to build, default: 1"
-	echo "    -f"
-	echo "        Perform vacuum operation in FULL mode."
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) PostgreSQL database builder.
+
+Usage:
+  $(basename "${0}") [OPTION] [DBNAME]
+
+Options:
+  -f             perform vacuum operation in FULL mode.
+  -i DIRECTORY   DIRECTORY with plpgsql stored functions
+  -l PORT        PostgreSQL PORT
+  -p PARAMTERS   PostgreSQL database PARAMETERS
+  -r             drop existing database before building a new database
+  -s TYPE        user defined functions TYPE to install 'c' or 'plpgsql',
+                 default: plpgsql
+  -t             use tablespaces
+  -u             run as a privileged PostgreSQL user
+  -w WAREHOUSES  number of WAREHOUSES to build, default: 1
+  -?, --help     show this help, then exit
+
+DBNAME is "${DBNAME}" by default.
+
+@HOMEPAGE@
+EOF
 }
 
 WAREHOUSES=1
@@ -40,40 +41,57 @@ REBUILD_DB=0
 UDF_TYPE="plpgsql"
 VACUUM_FULL=0
 
-while getopts "hi:l:p:rs:tuw:f" OPT; do
-	case ${OPT} in
-	h)
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-f)
+		VACUUM_FULL=1
+		;;
+	(-i)
+		shift
+		SHAREDIRARG="-i ${1}"
+		;;
+	(-l)
+		shift
+		PORT="${1}"
+		;;
+	(-p)
+		shift
+		PARAMETERS="${1}"
+		;;
+	(-r)
+		REBUILD_DB=1
+		;;
+	(-s)
+		shift
+		UDF_TYPE="${1}"
+		;;
+	(-t)
+		TABLESPACES_FLAG="-t"
+		;;
+	(-u)
+		PRIVILEGED=1
+		;;
+	(-w)
+		shift
+		WAREHOUSES=${1}
+		;;
+	(-w?*)
+		WAREHOUSES=${1#*-w}
+		;;
+	(-\? | --help)
 		usage
 		exit 0
 		;;
-	i)
-		SHAREDIRARG="-i ${OPTARG}"
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
 		;;
-	l)
-		PORT=${OPTARG}
-		;;
-	p)
-		PARAMETERS=$OPTARG
-		;;
-	r)
-		REBUILD_DB=1
-		;;
-	s)
-		UDF_TYPE=$OPTARG
-		;;
-	t)
-		TABLESPACES_FLAG="-t"
-		;;
-	u)
-		PRIVILEGED=1
-		;;
-	w)
-		WAREHOUSES=${OPTARG}
-		;;
-	f)
-		VACUUM_FULL=1
+	(*)
+		break
 		;;
 	esac
+	shift
 done
 
 shift "$(( OPTIND - 1 ))"
