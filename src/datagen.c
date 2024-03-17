@@ -38,7 +38,6 @@
 #define STOCK_DATA "stock.data"
 #define WAREHOUSE_DATA "warehouse.data"
 
-#define MODE_SAPDB 0
 #define MODE_PGSQL 1
 #define MODE_MYSQL 2
 
@@ -87,13 +86,6 @@ void metaprintf(FILE *fp, char *fmt, ...) {
 void print_timestamp_pgsql(FILE *ofile, struct tm *date) {
 	metaprintf(
 			ofile, "%04d-%02d-%02d %02d:%02d:%02d", date->tm_year + 1900,
-			date->tm_mon + 1, date->tm_mday, date->tm_hour, date->tm_min,
-			date->tm_sec);
-}
-
-void print_timestamp_sapdb(FILE *ofile, struct tm *date) {
-	metaprintf(
-			ofile, "\"%04d%02d%02d%02d%02d%02d000000\"", date->tm_year + 1900,
 			date->tm_mon + 1, date->tm_mday, date->tm_hour, date->tm_min,
 			date->tm_sec);
 }
@@ -1947,7 +1939,6 @@ int main(int argc, char *argv[]) {
 				{"part", required_argument, 0, 0},
 				{"partitions", required_argument, 0, 0},
 				{"pgsql", no_argument, &mode_string, MODE_PGSQL},
-				{"sapdb", no_argument, &mode_string, MODE_SAPDB},
 				{"mysql", no_argument, &mode_string, MODE_MYSQL},
 				{0, 0, 0, 0}};
 
@@ -2040,9 +2031,6 @@ int main(int argc, char *argv[]) {
 	case MODE_PGSQL:
 		print_timestamp = print_timestamp_pgsql;
 		break;
-	case MODE_SAPDB:
-		print_timestamp = print_timestamp_sapdb;
-		break;
 	default:
 		printf("unknown string mode: %d\n", mode_string);
 		return 5;
@@ -2071,7 +2059,6 @@ int main(int argc, char *argv[]) {
 	/* Verify that datagen supports a direct load for the selected database. */
 	if (mode_load == MODE_DIRECT) {
 		switch (mode_string) {
-		case MODE_SAPDB:
 		case MODE_MYSQL:
 			printf("the rdbms select does not support direct loading\n");
 			return 4;
@@ -2079,12 +2066,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Set the correct delimiter. */
-	if (mode_string == MODE_SAPDB) {
-		delimiter = ',';
-		quoter[0] = '\"';
-		quoter[1] = '\0';
-		strcpy(null_str, "\"NULL\"");
-	} else if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
+	if (mode_string == MODE_PGSQL || mode_string == MODE_MYSQL) {
 		delimiter = '\t';
 		strcpy(null_str, "");
 	}
@@ -2169,7 +2151,6 @@ void usage(char *name) {
 	printf("\nData format options:\n");
 	printf("  --mysql             format data for MySQL\n");
 	printf("  --pgsql             format data for PostgreSQL\n");
-	printf("  --sapdb             format data for SAP DB\n");
 	printf("\nPartitioning options:\n");
 	printf("  --table <table>     table to generate, default all\n");
 	printf("  -P, --partitions <int>\n");

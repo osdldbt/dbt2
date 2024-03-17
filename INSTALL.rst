@@ -20,7 +20,6 @@ libraries that are support are:
 * libpq (CockroachDB, PostgreSQL, YubabyteDB)
 * libmysqlclient (MySQL)
 * sqlite3 (SQLite)
-* unixodbc (SAPDB)
 
 Building
 --------

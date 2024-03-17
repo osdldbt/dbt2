@@ -1,1 +1,0 @@
-select * from TABLESTATISTICS where tablename='HISTORY' 
