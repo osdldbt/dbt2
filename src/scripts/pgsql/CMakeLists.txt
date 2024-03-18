@@ -1,5 +1,6 @@
 set (PROGRAMFILES "")
 foreach (FILE dbt2-pgsql-build-db
+              dbt2-pgsql-load-db
         )
     configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
     set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})
@@ -15,7 +16,6 @@ install (
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-drop-db
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-drop-tables
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-init-db
-    ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-load-db
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-load-stored-procs
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-plans
     ${CMAKE_SOURCE_DIR}/src/scripts/pgsql/dbt2-pgsql-report

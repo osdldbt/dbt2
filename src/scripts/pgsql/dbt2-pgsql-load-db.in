@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -13,46 +14,64 @@ fi
 
 usage()
 {
-	echo "Usage:"
-	echo "    `basename $0` [options]"
-	echo "    `basename $0` -h"
-	echo "Options:"
-	echo "    -l <PORT>"
-	echo "        PostgreSQL port"
-	echo "    -p <PARTITION LIST>"
-	echo "        Specific parts to load e.g. \"1 2\", default: all"
-	echo "    -s <SEED>"
-	echo "        User defined functions to install, default: c"
-	echo "    -t <TOTAL PARTITIONS>"
-	echo "        Total number of data partitions, default: detected processors"
-	echo "    -w <WAREHOUSES>"
-	echo "        Number of warehouses to build. Default 1."
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) PostgreSQL database builder.
+
+Usage:
+  $(basename "${0}") [OPTION]
+
+Options:
+  -l PORT        PostgreSQL PORT
+  -p LIST        Sepecific LIST of parttitions to load, e.g. \"1 2\",
+                 default: all
+  -s INTEGER     set random number generation seed
+  -t PARTITIONS  total number of data PARTITIONS, default: detected number of
+                 processors
+  -w WAREHOUSES  number of WAREHOUSES to build, default: 1
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
 SEED=""
 WAREHOUSES=1
-while getopts "hl:p:s:t:w:" OPT; do
-	case ${OPT} in
-	h)
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-l)
+		shift
+		PORT="${1}"
+		;;
+	(-p)
+		shift
+		PART_CURRENT="${1}"
+		;;
+	(-s)
+		shift
+		SEED="${1}"
+		;;
+	(-t)
+		shift
+		TOTAL_PARTS="${1}"
+		;;
+	(-w)
+		shift
+		WAREHOUSES="${1}"
+		;;
+	(-\? | --help)
 		usage
 		exit 0
 		;;
-	l)
-		PORT=${OPTARG}
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
 		;;
-	p)
-		PART_CURRENT=$OPTARG
-		;;
-	s)
-		SEED=$OPTARG
-		;;
-	t)
-		TOTAL_PARTS=$OPTARG
-		;;
-	w)
-		WAREHOUSES=$OPTARG
+	(*)
+		break
 		;;
 	esac
+	shift
 done
 
 if [ ! "x${PORT}" = "x" ]; then
