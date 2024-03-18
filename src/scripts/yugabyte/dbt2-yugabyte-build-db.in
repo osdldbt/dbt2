@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -8,42 +9,58 @@
 
 usage()
 {
-	echo "Usage:"
-	echo "    dbt2-yugabyte-build-db [options]"
-	echo "    dbt2-yugabyte-build-db -h"
-	echo "Options:"
-	echo "    -l <port>"
-	echo "        YugabyteDB port"
-	echo "    -r"
-	echo "        Drop existing database before building a new database"
-	echo "    -s <plpgsql>"
-	echo "        User defined functions to install, default: plpgsql"
-	echo "    -w <scale factor>"
-	echo "        Number of warehouses to build. Default 1."
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) Yugabyte database builder.
+
+Usage:
+  $(basename "${0}") [OPTION]
+
+Options:
+  -l PORT        YugabyteDB PORT
+  -r             drop existing database before building a new database
+  -s TYPE        user defined functions TYPE to install 'c' or 'plpgsql',
+                 default: plpgsql
+  -w WAREHOUSES  number of WAREHOUSES to build, default: 1
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
 WAREHOUSES=1
 REBUILD_DB=0
 UDF_TYPE="plpgsql"
-while getopts "hl:rs:w:" OPT; do
-	case ${OPT} in
-	h)
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-l)
+		shift
+		PORT="${1}"
+		;;
+	(-r)
+		REBUILD_DB=1
+		;;
+	(-s)
+		shift
+		UDF_TYPE="${1}"
+		;;
+	(-w)
+		shift
+		WAREHOUSES="${1}"
+		;;
+	(-\? | --help)
 		usage
 		exit 0
 		;;
-	l)
-		PORT=${OPTARG}
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
 		;;
-	r)
-		REBUILD_DB=1
-		;;
-	s)
-		UDF_TYPE=$OPTARG
-		;;
-	w)
-		WAREHOUSES=${OPTARG}
+	(*)
+		break
 		;;
 	esac
+	shift
 done
 
 if [ ! "x${PORT}" = "x" ]; then
