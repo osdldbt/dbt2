@@ -1,4 +1,5 @@
 #!/bin/bash
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -7,24 +8,23 @@
 #
 
 usage() {
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) SQLite database builder.
 
-  if [ "$1" != "" ]; then
-    echo ''
-    echo "error: $1"
-  fi
+Usage:
+  $(basename "${0}") [OPTION]
 
-  echo ''
-  echo 'usage: $0 [options]'
-  echo 'options:'
-  echo '       -d <database filename>'
-  echo '       -f <path to dataset files>'
-  echo '       -g (generate data files)'
-  echo '       -m <database scheme [OPTIMIZED|ORIG] (default OPTIMIZED)>'
-  echo '       -v <verbose>'  
-  echo '       -w <scale factor>'  
-  echo ''
-  echo 'Example: $0 -d ~/dbt2 -f /tmp/dbt2-w3'
-  echo ''
+Options:
+  -d FILENAME    database FILENAME
+  -f PATH        PATH to dataset files
+  -g             generate data files
+  -m SCHEME      database SCHEME [OPTIMIZED|ORIG], default OPTIMIZED
+  -v             verbose
+  -w WAREHOUSES  number of WAREHOUSES to build, default: 1
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
 command_exec()
@@ -366,31 +366,44 @@ DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
 WAREHOUSES=1
 
-while getopts "d:f:gm:vw:" opt; do
-	case $opt in
-	d)
-		DB_NAME=${OPTARG}
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d)
+		shift
+		DB_NAME="${1}"
 		;;
-	f)
-		DB_PATH=$OPTARG
+	(-f)
+		shift
+		DB_PATH="${1}"
 		;;
-	g)
+	(-g)
 		GENERATE_DATAFILE=1
 		;;
-	m)
-		DB_SCHEME=$OPTARG
+	(-m)
+		shift
+		DB_SCHEME="${1}"
 		;;
-	v)
+	(-v)
 		VERBOSE=1
 		;;
-	w)
-		WAREHOUSES=${OPTARG}
+	(-w)
+		shift
+		WAREHOUSES="${1}"
 		;;
-	?)
+	(-\? | --help)
 		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
 		exit 1
 		;;
+	(*)
+		break
+		;;
 	esac
+	shift
 done
 
 # Check parameters.
