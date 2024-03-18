@@ -1,4 +1,5 @@
 #!/bin/bash
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -14,31 +15,31 @@ fi
 HOSTNAME=`hostname`
 
 usage() {
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) MySQL database builder.
 
-  if [ "$1" != "" ]; then
-    echo ''
-    echo "error: $1"
-  fi
+Usage:
+  $(basename "${0}") [OPTION]
 
-  echo ''
-  echo 'usage: dbt2-mysql-build-db [options]'
-  echo 'options:'
-  echo '       -p <defaults file>'
-  echo '       -d <database name>'
-  echo '       -f <path to dataset files>'
-  echo '       -g (generate data files)'
-  echo '       -m <database scheme [OPTIMIZED|ORIG] (default OPTIMIZED)>'
-  echo '       -s <database socket>'
-  echo '       -h <database host>'
-  echo '       -u <database user>'
-  echo '       -P <database password>'
-  echo '       -e <storage engine: [MYISAM|INNODB|BDB]. (default INNODB)>'
-  echo '       -l <to use LOCAL keyword while loading dataset>'
-  echo '       -v <verbose>'  
-  echo '       -w <scale factor>'  
-  echo ''
-  echo 'Example: dbt2-mysql-build-db -d dbt2 -f /tmp/dbt2-w3 -s /tmp/mysql.sock'
-  echo ''
+Options:
+  -d NAME        database NAME
+  -e ENGINE      storage ENGINE: [MYISAM|INNODB|BDB], default INNODB
+  -f PATH        PATH to dataset files
+  -g             generate data files
+  -h HOST        database HOST
+  -l             use LOCAL keyboard while loading dataset
+  -m SCHEME      database SCHEME [OPTIMIZED|ORIG], default OPTIMIZED
+  -P PASSWORD    datatbase PASSWORD
+  -p FILE        defaults file
+  -r             drop existing database before building a new database
+  -s SOCKET      database SOCKET
+  -u USER        database USER
+  -v             verbose
+  -w WAREHOUSES  number of WAREHOUSES to build, default: 1
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
 command_exec()
@@ -374,55 +375,74 @@ DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
 WAREHOUSES=1
 
-while getopts "d:h:f:gs:e:lm:u:P:p:vw:" opt; do
-	case $opt in
-	p)
-		DEFAULTS_FILE=${OPTARG}
-		DEFAULTS_FILE_ARG="-p ${DEFAULTS_FILE}"
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d)
+		shift
+		DB_NAME="{$1}"
 		;;
-	d)
-		DB_NAME=${OPTARG}
+	(-e)
+		shift
+		DB_ENGINE="{$1}"
 		;;
-	f)
-		DB_PATH=$OPTARG
+	(-f)
+		shift
+		DB_PATH="{$1}"
 		;;
-	g)
+	(-g)
 		GENERATE_DATAFILE=1
 		;;
-
-	s)
-		DB_SOCKET=$OPTARG
-		DB_SOCKET_ARG="-s ${DB_SOCKET}"
+	(-h)
+		shift
+		DB_HOST="{$1}"
 		;;
-	l)
+	(-l)
 		LOCAL="LOCAL"
 		;;
-	h)
-		DB_HOST=$OPTARG
+	(-m)
+		shift
+		DB_SCHEME="{$1}"
 		;;
-	u)
-		DB_USER=$OPTARG
-		;;
-	P)
-		DB_PASSWORD=$OPTARG
+	(-P)
+		shift
+		DB_PASSWORD="{$1}"
 		;;	
-	e)
-		DB_ENGINE=$OPTARG
+	(-p)
+		shift
+		DEFAULTS_FILE="{$1}"
+		DEFAULTS_FILE_ARG="-p ${DEFAULTS_FILE}"
 		;;
-	m)
-		DB_SCHEME=$OPTARG
+	(-s)
+		shift
+		DB_SOCKET="{$1}"
+		DB_SOCKET_ARG="-s ${DB_SOCKET}"
 		;;
-	v)
+	(-u)
+		shift
+		DB_USER="{$1}"
+		;;
+	(-v)
+		shift
 		VERBOSE=1
 		;;
-	w)
-		WAREHOUSES=${OPTARG}
+	(-w)
+		shift
+		WAREHOUSES="{$1}"
 		;;
-	?)
+	(-\? | --help)
 		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
 		exit 1
 		;;
+	(*)
+		break
+		;;
 	esac
+	shift
 done
 
 # Check parameters.
