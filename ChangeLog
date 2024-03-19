@@ -8,6 +8,7 @@ vX.Y.Z (YYYY-MM-DD)
   environment and dependencies of python packages
 - Fix AppImage use of rst2html5 with manual override of !# in rst2html5 to use
   python in the AppImage environment
+- Build Pango for AppImage with reduced dependencies
 
 v0.61.0 (2024-03-14)
 
