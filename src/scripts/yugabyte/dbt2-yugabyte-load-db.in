@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see # the file LICENSE, included in this package, for details.
@@ -13,39 +14,53 @@ fi
 
 usage()
 {
-	echo "Usage:"
-	echo "    `basename $0` [options]"
-	echo "    `basename $0` -h"
-	echo "Options:"
-	echo "    -l <PORT>"
-	echo "        PostgreSQL port"
-	echo "    -r <RATE>"
-	echo "        How many warehouses to commit at a time, default: $RATE"
-	echo "    -s <SEED>"
-	echo "        User defined functions to install, default: c"
-	echo "    -w <WAREHOUSES>"
-	echo "        Number of warehouses to build. Default 1."
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) YugabyteDB data loader.
+
+Usage:
+  $(basename "${0}") [OPTION]
+
+Options:
+  -l PORT        PostgreSQL PORT
+  -s INTEGER     set random number generation seed
+  -w WAREHOUSES  number of WAREHOUSES to build, default: 1
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
 RATE=100
 SEED=""
 WAREHOUSES=1
-while getopts "hl:r:s:w:" OPT; do
-	case ${OPT} in
-	h)
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-l)
+		shift
+		PORT="${1}"
+		;;
+	(-s)
+		shift
+		SEED="${1}"
+		;;
+	(-w)
+		shift
+		WAREHOUSES="${1}"
+		;;
+	(-\? | --help)
 		usage
 		exit 0
 		;;
-	l)
-		PORT=${OPTARG}
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
 		;;
-	s)
-		SEED=$OPTARG
-		;;
-	w)
-		WAREHOUSES=$OPTARG
+	(*)
+		break
 		;;
 	esac
+	shift
 done
 
 if [ ! "x${PORT}" = "x" ]; then
