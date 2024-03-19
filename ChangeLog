@@ -4,6 +4,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Remove SAPDB support
 - Add --rows-per-commit to `build` script to pass on through to database
   specific scripts to pass to datagen.
+- Install python into the AppImage again for easier management of the
+  environment and dependencies of python packages
 
 v0.61.0 (2024-03-14)
 

@@ -40,16 +40,17 @@ RUN curl -o /usr/local/AppDir/usr/bin/stackcollapse-perf.pl -SsOL \
 	chmod +x /usr/local/AppDir/usr/bin/stackcollapse-perf.pl \
              /usr/local/AppDir/usr/bin/flamegraph.pl
 
-ARG PYTHONVER="3.11.1"
+ARG PYTHONMMVER="3.11"
+ARG PYTHONVER="${PYTHONMMVER}.1"
 RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsOL \
          https://www.python.org/ftp/python/${PYTHONVER}/Python-${PYTHONVER}.tgz && \
     tar -C /usr/local/src -xf /tmp/Python-${PYTHONVER}.tgz
 WORKDIR /usr/local/src/Python-${PYTHONVER}
-RUN ./configure --silent --prefix=/usr && \
+RUN ./configure --silent --prefix=/usr/local/AppDir/usr && \
     make -s -j$(nproc) && \
     make -s install && \
-    sed -i -e 's#/usr#././#g' /usr/bin/python3.11
-RUN /usr/bin/pip3 install --prefix=/usr/local/AppDir/usr docutils
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/python${PYTHONMMVER}
+RUN /usr/local/AppDir/usr/bin/pip3 install docutils
 
 # PostgreSQL 11 is the first release creating the pg_type_d.h include file for
 # CockroachDB binary support.
