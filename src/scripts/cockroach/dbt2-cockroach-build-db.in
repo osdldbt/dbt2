@@ -18,6 +18,9 @@ Usage:
 Options:
   -l PORT        CockroachDB PORT
   -r             drop existing database before building a new database
+  --rows-per-commit ROWS
+                 number of ROWS to load per transaction, default is to load all
+                 data in a single transaction
   -w WAREHOUSES  number of WAREHOUSES to build, default: 1
   -?, --help     show this help, then exit
 
@@ -32,6 +35,13 @@ while [ "${#}" -gt 0 ] ; do
 	(-l)
 		shift
 		PORT="${1}"
+		;;
+	(--rows-per-commit)
+		shift
+		ROWS_PER_COMMIT="${1}"
+		;;
+	(--rows-per-commit=?*)
+		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(-r)
 		REBUILD_DB=1
@@ -67,6 +77,10 @@ if [ $REBUILD_DB -eq 1 ]; then
 	dbt2 pgsql-drop-db "${PORTARG}"
 fi
 
+if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
+	LOADARGS="--rows-per-commit=${ROWS_PER_COMMIT}"
+fi
+
 dbt2 pgsql-create-db "${PORTARG}" || exit 1
 dbt2 cockroach-create-tables "${PORTARG}" || exit 1
 
@@ -77,7 +91,8 @@ SEED=$(dbt2 rand 1 18446744073709551615 0)
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
 
-dbt2 cockroach-load-db "${PORTARG}" -s "${SEED}" -w "${WAREHOUSES}" || exit 1
+eval dbt2 cockroach-load-db "${PORTARG}" -s "${SEED}" -w "${WAREHOUSES}" \
+		"${LOADARGS}" || exit 1
 dbt2 cockroach-create-indexes "${PORTARG}" || exit 1
 
 exit 0

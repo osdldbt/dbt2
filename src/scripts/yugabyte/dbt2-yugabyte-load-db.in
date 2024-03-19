@@ -22,6 +22,9 @@ Usage:
 
 Options:
   -l PORT        PostgreSQL PORT
+  --rows-per-commit ROWS
+                 number of ROWS to load per transaction, default is to load all
+                 data in a single transaction
   -s INTEGER     set random number generation seed
   -w WAREHOUSES  number of WAREHOUSES to build, default: 1
   -?, --help     show this help, then exit
@@ -31,6 +34,7 @@ EOF
 }
 
 RATE=100
+ROWS_PER_COMMIT=0
 SEED=""
 WAREHOUSES=1
 while [ "${#}" -gt 0 ] ; do
@@ -38,6 +42,13 @@ while [ "${#}" -gt 0 ] ; do
 	(-l)
 		shift
 		PORT="${1}"
+		;;
+	(--rows-per-commit)
+		shift
+		ROWS_PER_COMMIT="${1}"
+		;;
+	(--rows-per-commit=?*)
+		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(-s)
 		shift
@@ -65,6 +76,10 @@ done
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
+fi
+
+if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
+	DATAGENARGS="--rows-per-commit=${ROWS_PER_COMMIT}"
 fi
 
 PSQL="psql -X ${PORTARG} -d ${DBT2DBNAME}"
@@ -95,8 +110,8 @@ run_datagen()
 	WAREHOUSES=$4
 	SEED=$5
 
-	dbt2 datagen --direct -w "${WAREHOUSES}" --pgsql --table "${TABLE}" \
-			--seed "${SEED}" -P "${TOTAL}" -p "${PART}"
+	eval dbt2 datagen --direct -w "${WAREHOUSES}" --pgsql --table "${TABLE}" \
+			--seed "${SEED}" -P "${TOTAL}" -p "${PART}" "${DATAGENARGS}"
 	if [ $? -ne 0 ]; then
 		echo "ERROR: datagen couldn't load part $PART of $TOTAL with $TABLE"
 		exit 1

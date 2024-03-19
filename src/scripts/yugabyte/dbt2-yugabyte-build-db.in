@@ -18,6 +18,9 @@ Usage:
 Options:
   -l PORT        YugabyteDB PORT
   -r             drop existing database before building a new database
+  --rows-per-commit ROWS
+                 number of ROWS to load per transaction, default is to load all
+                 data in a single transaction
   -s TYPE        user defined functions TYPE to install 'c' or 'plpgsql',
                  default: plpgsql
   -w WAREHOUSES  number of WAREHOUSES to build, default: 1

@@ -19,6 +19,9 @@ Options:
   -f PATH        PATH to dataset files
   -g             generate data files
   -m SCHEME      database SCHEME [OPTIMIZED|ORIG], default OPTIMIZED
+  --rows-per-commit ROWS
+                 number of ROWS to load per transaction, default is to load all
+                 data in a single transaction
   -v             verbose
   -w WAREHOUSES  number of WAREHOUSES to build, default: 1
   -?, --help     show this help, then exit
@@ -364,6 +367,7 @@ DB_NAME="./dbt2.sqlite"
 DB_PATH=${DBDATA}
 DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
+ROWS_PER_COMMIT=0
 WAREHOUSES=1
 
 while [ "${#}" -gt 0 ] ; do
@@ -382,6 +386,13 @@ while [ "${#}" -gt 0 ] ; do
 	(-m)
 		shift
 		DB_SCHEME="${1}"
+		;;
+	(--rows-per-commit)
+		shift
+		ROWS_PER_COMMIT="${1}"
+		;;
+	(--rows-per-commit=?*)
+		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(-v)
 		VERBOSE=1

@@ -22,6 +22,9 @@ Options:
   --db-user USER
                  database USER
   --privileged   run test as a privileged operating system and database user
+  --rows-per-commit=ROWS
+                 Number of ROWS to load per transactions, default behavior is
+                 to load all data in a single transaction
   --tablespaces DIRECTORY
                  build the database using tablspaces, where DIRECTORY contains
                  mountpoints or symlinks per documentation, default is to not
@@ -50,6 +53,7 @@ EOF
 
 BUILDARGS=""
 DBNAME="dbt2"
+ROWS_PER_COMMIT=0
 WAREHOUSES=1
 
 # Custom argument handling for hopefully most portability.
@@ -85,6 +89,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -u"
+		;;
+	(--rows-per-commit)
+		shift
+		export ROWS_PER_COMMIT="${1}"
+		;;
+	(--rows-per-commit=?*)
+		export ROWS_PER_COMMIT=${1#*--rows-per-commit=}
 		;;
 	(--tablespaces)
 		shift
@@ -160,6 +171,10 @@ fi
 
 if [ ! "${DBT2TSDIR}" = "" ]; then
 	BUILDARGS="${BUILDARGS} -t"
+fi
+
+if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
+	BUILDARGS="${BUILDARGS} --rows-per-commit=${ROWS_PER_COMMIT}"
 fi
 
 eval "dbt2 ${DBMS}-build-db -w ${WAREHOUSES} ${BUILDARGS}"

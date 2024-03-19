@@ -32,6 +32,9 @@ Options:
   -P PASSWORD    datatbase PASSWORD
   -p FILE        defaults file
   -r             drop existing database before building a new database
+  --rows-per-commit ROWS
+                 number of ROWS to load per transaction, default is to load all
+                 data in a single transaction
   -s SOCKET      database SOCKET
   -u USER        database USER
   -v             verbose
@@ -373,6 +376,7 @@ DB_USER="root"
 DB_ENGINE="INNODB"
 DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
+ROWS_PER_COMMIT=0
 WAREHOUSES=1
 
 while [ "${#}" -gt 0 ] ; do
@@ -411,6 +415,13 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		DEFAULTS_FILE="{$1}"
 		DEFAULTS_FILE_ARG="-p ${DEFAULTS_FILE}"
+		;;
+	(--rows-per-commit)
+		shift
+		ROWS_PER_COMMIT="${1}"
+		;;
+	(--rows-per-commit=?*)
+		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(-s)
 		shift

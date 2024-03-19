@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Fix post-process unit test for sqlite3
 - Remove SAPDB support
+- Add --rows-per-commit to `build` script to pass on through to database
+  specific scripts to pass to datagen.
 
 v0.61.0 (2024-03-14)
 
