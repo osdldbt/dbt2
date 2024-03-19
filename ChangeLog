@@ -6,6 +6,8 @@ vX.Y.Z (YYYY-MM-DD)
   specific scripts to pass to datagen.
 - Install python into the AppImage again for easier management of the
   environment and dependencies of python packages
+- Fix AppImage use of rst2html5 with manual override of !# in rst2html5 to use
+  python in the AppImage environment
 
 v0.61.0 (2024-03-14)
 
