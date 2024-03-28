@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-ZZ)
+
+- Actually check it driver processes have exited, instead of sleeping the
+  expected length, before killing client processes
+
 v0.61.1 (2024-03-19)
 
 - Fix post-process unit test for sqlite3

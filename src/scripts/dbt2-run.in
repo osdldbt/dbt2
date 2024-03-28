@@ -1298,6 +1298,28 @@ if [ "${CONFIGFILE}" = "" ]; then
 				"${CLIENT_OUTPUT_DIR}/"
 	fi
 else
+	INDEX=0
+	for SYSTEM in ${DRIVERLIST}; do
+		if [ "${SYSTEM}" = "localhost" ]; then
+			CMD=""
+		else
+			CMD="${SSH} ${SYSTEM}"
+		fi
+	done
+
+	eval "${CMD} find ${OUTPUT_DIR}/driver -name dbt2_driver.pid -print" | \
+			while IFS= read -r PIDFILE; do
+		PID=$(eval "${CMD} cat ${PIDFILE}")
+		INDEX=$(( INDEX + 1 ))
+		printf "${INDEX}. Waiting for driver (PID %d) to stop on %s." \
+				"${PID}" "${SYSTEM}"
+		while eval "${CMD} kill -0 ${PID}" 2> /dev/null; do
+			printf "."
+			sleep 1
+		done
+		echo
+	done
+
 	if [ ! "$DRIVER3" = "1" ]; then
 		for SYSTEM in ${CLIENTLIST}; do
 			if [ "${SYSTEM}" = "localhost" ]; then
