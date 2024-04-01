@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-ZZ)
+v0.61.2 (2024-04-01)
 
 - Actually check it driver processes have exited, instead of sleeping the
   expected length, before killing client processes
