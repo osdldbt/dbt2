@@ -656,34 +656,29 @@ if [ "${CONFIGFILE}" = "" ]; then
 		exit 1
 	fi
 
-	# Check if rsync exists on all systems and stop if not, required for
-	# collecting data from all systems.
+    # Since this code path is running the driver on the current system, we will
+    # have all the data to calculate the primary metric.
 	if ! which rsync > /dev/null 2>&1; then
-		printf "ERROR: rsync required on current system in order to retrieve "
-		echo "results"
-		exit 1
+		printf "WARNING: rsync required on current system in order to "
+        echo "retrieve data from any remote systems"
 	fi
 
 	if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 		CLIENT_COMMAND="$SSH $CLIENT_HOSTNAME"
-		# Check for rsync on the client before continuing.
 		if ! eval "${CLIENT_COMMAND} which rsync" > /dev/null 2>&1; then
-			printf "ERROR: rsync required on client system in order to "
-			echo "retrieve results"
-			exit 1
+			printf "WARNING: rsync required on client system in order to "
+			echo "retrieve client data"
 		fi
 	else
 		CLIENT_COMMAND=""
 	fi
 
-	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ] && \
-			[ $DBAAS -eq 0 ]; then
+	if [ ${STATS} -eq 1 ] && [ ! "${DB_HOSTNAME}" = "localhost" ] \
+            && [ $DBAAS -eq 0 ]; then
 		DB_COMMAND="$SSH ${DB_HOSTNAME}"
-		# Check for rsync on the client before continuing.
 		if ! eval "${DB_COMMAND} which rsync" > /dev/null 2>&1; then
-			printf "ERROR: rsync required on database system in order to "
-			echo "retrieve results"
-			exit 1
+			printf "WARNING: rsync required on database system in order to "
+			echo "retrieve database data"
 		fi
 	else
 		DB_COMMAND=""
@@ -703,7 +698,7 @@ if [ "${CONFIGFILE}" = "" ]; then
 		#
 		# Create direcotires on the database server if remote.
 		#
-		if [ $DBAAS -eq 0 ]; then
+	    if [ ${STATS} -eq 1 ] && if [ $DBAAS -eq 0 ]; then
 			make_directories "${DB_HOSTNAME}"
 			$SSH "$DB_HOSTNAME" -- mkdir -p "$DB_OUTPUT_DIR"
 		fi
@@ -990,12 +985,10 @@ else
 
 			if [ ! "${CLIENT_HOSTNAME}" = "localhost" ]; then
 				CLIENT_COMMAND="${SSH} ${CLIENT_HOSTNAME}"
-				# Check for rsync on the client before continuing.
 				if ! eval "${CLIENT_COMMAND} which rsync" > /dev/null 2>&1;
 				then
-					printf "ERROR: rsync required on client system in order "
-					echo "to retrieve results"
-					exit 1
+					printf "WARNING: rsync required on client system in order "
+					echo "to retrieve data from client ${CLIENT_HOSTNAME}"
 				fi
 			else
 				CLIENT_COMMAND=""
@@ -1127,10 +1120,9 @@ else
 			HOSTNAME="$(hostname)"
 		else
 			DRIVER_COMMAND="${SSH} ${DRIVER_HOSTNAME}"
-			# Check for rsync on the client before continuing.
 			if ! eval "${DRIVER_COMMAND} which rsync" > /dev/null 2>&1; then
 				printf "ERROR: rsync required on driver system in order to "
-				echo "retrieve results"
+				echo "calculate primary metric: ${DRIVER_HOSTNAME}"
 				exit 1
 			fi
 			HOSTNAME="$(eval "${DRIVER_COMMAND} hostname")"

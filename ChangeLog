@@ -1,3 +1,8 @@
+vX.Y.X (YYYY-MM-DD)
+
+- Allow tests to run if rsync is not installed, except in cases where the
+  primary metric would not be calculated correctly
+
 v0.61.2 (2024-04-01)
 
 - Actually check it driver processes have exited, instead of sleeping the
