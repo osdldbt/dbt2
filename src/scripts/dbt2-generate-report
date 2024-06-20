@@ -335,8 +335,8 @@ wait
 
 echo "Generating transaction rate charts..."
 # shellcheck disable=SC2086
-(dbt-plot transaction-rate "District" d tpm "${OUTDIR}/txn" 1 ${MIXFILES} \
-		|| warning "Could not create district transaction rate charts") &
+(dbt-plot transaction-rate "Delivery" d tpm "${OUTDIR}/txn" 1 ${MIXFILES} \
+		|| warning "Could not create delivery transaction rate charts") &
 # shellcheck disable=SC2086
 (dbt-plot transaction-rate "New Order" n tpm "${OUTDIR}/txn" 2 ${MIXFILES} \
 		|| warning "Could not create new order transaction rate charts") &
