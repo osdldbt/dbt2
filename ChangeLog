@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Fix run script but introduced in v0.61.3
+
 v0.61.3 (2024-08-08)
 
 - Allow tests to run if rsync is not installed, except in cases where the

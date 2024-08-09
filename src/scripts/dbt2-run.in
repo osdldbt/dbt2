@@ -698,7 +698,7 @@ if [ "${CONFIGFILE}" = "" ]; then
 		#
 		# Create direcotires on the database server if remote.
 		#
-	    if [ ${STATS} -eq 1 ] && if [ $DBAAS -eq 0 ]; then
+	    if [ ${STATS} -eq 1 ] && [ $DBAAS -eq 0 ]; then
 			make_directories "${DB_HOSTNAME}"
 			$SSH "$DB_HOSTNAME" -- mkdir -p "$DB_OUTPUT_DIR"
 		fi
