@@ -1,4 +1,4 @@
-vX.Y.X (YYYY-MM-DD)
+v0.61.3 (2024-08-08)
 
 - Allow tests to run if rsync is not installed, except in cases where the
   primary metric would not be calculated correctly
