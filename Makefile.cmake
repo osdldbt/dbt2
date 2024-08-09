@@ -7,18 +7,8 @@ default:
 
 appimage:
 	cmake -H. -Bbuilds/appimage -DCMAKE_INSTALL_PREFIX=/usr
-	cd builds/appimage && make -s
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-client
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-client2
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-datagen
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-driver
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-driver2
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-driver3
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-rand
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-transaction-test
-	cd builds/appimage/src && sed -i -e 's#/usr#././#g' dbt2-transaction-test
-	cd builds/appimage && make -s install DESTDIR=AppDir
-	cd builds/appimage && make -s appimage-podman
+	cd builds/appimage && make install DESTDIR=../AppDir
+	cd builds/appimage && make appimage
 
 clean:
 	-rm -rf builds
