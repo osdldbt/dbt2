@@ -12,6 +12,7 @@ vX.Y.X (YYYY-MM-DD)
 - AppImage: bump psql version to v11.22
 - AppImage: fix toml version to 0.2.3
 - AppImage: fix docutils version to 0.21.2
+- clang-format: never sort include directives
 
 v0.61.2 (2024-04-01)
 

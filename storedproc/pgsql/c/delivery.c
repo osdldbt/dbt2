@@ -7,14 +7,15 @@
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.8.2.
  */
 
-#include <catalog/pg_type.h> /* for INT4OID */
-#include <executor/spi.h>	 /* this should include most necessary APIs */
-#include <fmgr.h>
-#include <funcapi.h>
-#include <postgres.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <utils/builtins.h> /* for numeric_in() */
+
+#include <postgres.h>
+#include <fmgr.h>
+#include <funcapi.h>
+#include <catalog/pg_type.h> /* for INT4OID */
+#include <executor/spi.h>	 /* this should include most necessary APIs */
+#include <utils/builtins.h>	 /* for numeric_in() */
 
 #include "dbt2common.h"
 

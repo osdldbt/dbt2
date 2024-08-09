@@ -7,15 +7,16 @@
  * Based on TPC-C Standard Specification Revision 5.11 Clause 2.4.2.
  */
 
-#include <catalog/pg_type.h>   /* for OIDs */
-#include <executor/executor.h> /* for GetAttributeByName() */
-#include <executor/spi.h>	   /* this should include most necessary APIs */
-#include <fmgr.h>
-#include <funcapi.h> /* for returning set of rows in order_status */
-#include <postgres.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <postgres.h>
+#include <fmgr.h>
+#include <catalog/pg_type.h>   /* for OIDs */
+#include <executor/spi.h>	   /* this should include most necessary APIs */
+#include <executor/executor.h> /* for GetAttributeByName() */
 #include <utils/builtins.h>
+#include <funcapi.h> /* for returning set of rows in order_status */
 
 #include "dbt2common.h"
 
