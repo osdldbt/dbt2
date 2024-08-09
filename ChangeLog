@@ -80,6 +80,7 @@ v0.53.10 (2024-02-22)
 v0.53.9 (2024-02-07)
 
 - Fix pgsql-create-db logic for checking if the database already exists
+
 v0.53.8 (2024-01-08)
 
 - Fix test for touchstone tools in "run" script
