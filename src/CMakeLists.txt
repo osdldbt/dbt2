@@ -97,6 +97,7 @@ if (LIBPQ_FOUND)
     execute_process (COMMAND pg_config --includedir-server
             OUTPUT_VARIABLE PG_INCLUDEDIR_SERVER
             OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string (REPLACE ";" " " LIBPQ_CFLAGS "${LIBPQ_CFLAGS}")
     set (DBCFLAGS "${DBCFLAGS} -DHAVE_LIBPQ ${LIBPQ_CFLAGS} -I${PG_INCLUDEDIR_SERVER}")
 endif (LIBPQ_FOUND)
 

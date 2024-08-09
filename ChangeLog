@@ -4,6 +4,8 @@ vX.Y.X (YYYY-MM-DD)
   primary metric would not be calculated correctly
 - Fix district to delivery typos in transaction rate chart
 - pgsql: parallelize index creation
+- replace semicolons (;) returned from pg_config with spaces in the build
+  system, needed with newer pgsql releases
 
 v0.61.2 (2024-04-01)
 
