@@ -338,7 +338,7 @@ EOF
 validate_parameter()
 {
 	if [ "$2" != "$3" ]; then
-		usage "wrong argument '$2' for parameter '-$1'"
+		usage "wrong argument '$2' for parameter '$1'"
 		exit 1
 	fi
 }
