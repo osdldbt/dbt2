@@ -91,9 +91,11 @@ database, remote terminal emulators, and clients.  There can be multiple
 terminals that connect to multiple terminal concentrators, which connect to a
 single database.  Each component is described in the following sub-sections.
 
-.. image:: component.png
-   :width: 600
-   :alt: Component Diagram
+.. figure:: component.png
+   :align: center
+   :width: 100%
+
+   DBT-2 Component Diagram
 
 Database
 --------
