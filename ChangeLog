@@ -1,6 +1,7 @@
 vX.Y.Z (YYYY-MM-DD)
 
 - Fix run script but introduced in v0.61.3
+- AppImage: add missing libraries for dbt2 binaries
 
 v0.61.3 (2024-08-08)
 

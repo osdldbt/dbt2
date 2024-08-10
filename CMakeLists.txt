@@ -100,6 +100,7 @@ else()
     set (APPIMAGETOOL /usr/local/squashfs-root/AppRun)
 endif(APPIMAGE)
 
+set (DRIVER3 ../AppDir/usr/bin/dbt2-driver3)
 set (GNUPLOT ../AppDir/usr/bin/gnuplot)
 set (PSQL ../AppDir/usr/bin/psql)
 
@@ -164,6 +165,8 @@ add_custom_target(appimage
             ../AppDir/usr/bin/flamegraph.pl
     COMMAND mkdir -p ../AppDir/usr/lib/
     COMMAND cp -paL
+               `ldd ${DRIVER3} | grep libev\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${DRIVER3} | grep libnsl\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${GNUPLOT} | grep libcairo\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${GNUPLOT} | grep libfreetype\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${GNUPLOT} | grep libfribidi\\\\\\\\. | cut -d \" \" -f 3`

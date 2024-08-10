@@ -72,6 +72,11 @@ RUN mkdir -p \
        /usr/local/share/licenses/libbsd-$(dpkg-query -W -f='${Version}\n' libbsd0)/
 
 RUN mkdir -p \
+          /usr/local/share/licenses/libev-$(dpkg-query -W -f='${Version}\n' libev-dev) && \
+    cp -p /usr/share/doc/libev-dev/copyright \
+       /usr/local/share/licenses/libev-$(dpkg-query -W -f='${Version}\n' libev-dev)/
+
+RUN mkdir -p \
           /usr/local/share/licenses/libssl1.1-$(dpkg-query -W -f='${Version}\n' libssl1.1) && \
     cp -p /usr/share/doc/libssl1.1/copyright \
        /usr/local/share/licenses/libssl1.1-$(dpkg-query -W -f='${Version}\n' libssl1.1)/
@@ -100,6 +105,19 @@ RUN mkdir -p \
           /usr/local/share/licenses/pixman-$(dpkg-query -W -f='${Version}\n' libpixman-1-0) && \
     cp -p /usr/share/doc/libpixman-1-0/copyright \
        /usr/local/share/licenses/pixman-$(dpkg-query -W -f='${Version}\n' libpixman-1-0)/
+
+ARG LIBNSLVER="1.3.0"
+RUN curl -o /tmp/libnsl-${LIBNSLVER}.tar.xz  -SsOL \
+         https://github.com/thkukuk/libnsl/releases/download/v${LIBNSLVER}/libnsl-${LIBNSLVER}.tar.xz && \
+    tar -C /usr/local/src -xf /tmp/libnsl-${LIBNSLVER}.tar.xz
+WORKDIR /usr/local/src/libnsl-${LIBNSLVER}
+# Intentionally install libsnl next to debian 10's distro glibc version.
+RUN ./configure --silent --prefix=/usr && \
+    make -s -j$(nproc) && \
+    make -s install && \
+    ln -sf /usr/lib/libnsl.so.2 /usr/lib/x86_64-linux-gnu/libnsl.so
+RUN mkdir -p /usr/local/share/licenses/libnsl-${LIBNSLVER} && \
+    cp -p COPYING /usr/local/share/licenses/libnsl-${LIBNSLVER}/
 
 ARG PYTHONMMVER="3.11"
 ARG PYTHONVER="${PYTHONMMVER}.1"
