@@ -40,6 +40,7 @@ Transaction Processing Performance Council (TPC).  The TPC Benchmark(TM) C
 .. include:: architecture.rst
 .. include:: quick-start.rst
 .. include:: user-guide.rst
+.. include:: testing.rst
 
 --------------------------------
 Database Management System Notes

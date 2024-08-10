@@ -25,6 +25,7 @@ foreach (FILE dbt2
               dbt2-post-process.sqlite3
               dbt2-report
               dbt2-run
+              dbt2-test-connection-scaling
         )
     configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
     set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})

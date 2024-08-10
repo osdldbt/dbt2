@@ -8,7 +8,7 @@ clean:
 
 html: $(RST)
 	mkdir -p html
-	cp -pr *.png html
+	cp -pr *.png test-connection-scaling html
 	rst2html5 dbt2.rst html/index.html
 
 pdf: html
