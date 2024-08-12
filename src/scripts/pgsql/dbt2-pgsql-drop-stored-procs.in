@@ -1,0 +1,75 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-2 Authors
+#
+
+# Simple script that might help make sure there aren't overloaded functions.
+
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) PostgreSQL user defined functions dropper
+
+Usage:
+  $(basename "${0}") [OPTIONS]
+
+General options:
+  -d DBNAME      PGDATABASE name"
+  -p PORT        PostgreSQL port
+  -V, --version  Output version information, then exit
+  -?, --help     Output this help, then exit
+
+@HOMEPAGE@
+EOF
+}
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d)
+		shift
+		DBNAMEARG="-d ${1}"
+		;;
+	(-d*)
+		DBNAMEARG="-d ${1#*-d}"
+		;;
+	(-p)
+		shift
+		PORTARG="-p ${1}"
+		;;
+	(-p*)
+		PORTARG="-p ${1#*-p}"
+		;;
+	(-V | --version)
+		echo "dbt2 (Database Test 2) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+eval "psql -X ${PORTARG} -e ${DBNAMEARG}" <<- SQL
+	DROP FUNCTION IF EXISTS delivery;
+	DROP FUNCTION IF EXISTS new_order;
+	DROP FUNCTION IF EXISTS order_status;
+	DROP FUNCTION IF EXISTS payment;
+	DROP FUNCTION IF EXISTS stock_level;
+
+	DROP TYPE IF EXISTS new_order_info;
+SQL

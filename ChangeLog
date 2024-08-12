@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Add test-connection-scaling script for performance testing example
 - AppImage: include PostgreSQL C stored functions, but needs to be manually
   extracted and installed
+- pgsql: add pgsql-drop-stored-procs script to remove stored functions
 
 v0.61.3 (2024-08-08)
 
