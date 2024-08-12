@@ -10,9 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
+
+      - name: build container
+        run: |
           set -x
           sh -eux tools/build-appimage-container
+
+      - name: build appimage
+        run: |
+          set -x
+
+      - name: create release
+        run: |
+          set -x
           ARCH=$(uname -m) sh -eux tools/build-appimage
           assets=()
           for asset in $(find . -name '*.AppImage'); do
