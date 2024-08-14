@@ -55,7 +55,7 @@ int init_dbc(struct db_context_t *dbc) {
 #ifdef HAVE_MYSQL
 	case DBMSMYSQL:
 		db_init_mysql(
-				dbc, sname, dbt2_mysql_host, dbt2_user, dbt2_pass,
+				dbc, dname, dbt2_mysql_host, dbt2_user, dbt2_pass,
 				dbt2_mysql_port, dbt2_mysql_socket);
 		break;
 #endif /* HAVE_MYSQL */

@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
   not doing a streaming load
 - mysql: build-db minimal fixes to work with 8.0
 - mysql: fix payment sp out_w_city size to match table definition
+- driver3: minimal fixes to work with MySQL 8.0 stored procedures
 
 v0.61.4 (2024-08-12)
 

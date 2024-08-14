@@ -161,6 +161,8 @@ int parse_arguments(int argc, char *argv[]) {
 				dbms = DBMSCOCKROACH;
 			} else if (strcmp(argv[i + 1], "odbc") == 0) {
 				dbms = DBMSODBC;
+			} else if (strcmp(argv[i + 1], "mysql") == 0) {
+				dbms = DBMSMYSQL;
 			} else if (strcmp(argv[i + 1], "pgsql") == 0) {
 				dbms = DBMSLIBPQ;
 			} else if (strcmp(argv[i + 1], "sqlite") == 0) {
@@ -191,7 +193,15 @@ int parse_arguments(int argc, char *argv[]) {
 #ifdef HAVE_MYSQL
 			extern char dbt2_mysql_port[32];
 			strcpy(dbt2_mysql_port, argv[i + 1]);
+		} else if (strcmp(flag, "S") == 0) {
+			extern char dbt2_mysql_socket[256];
+			strncpy(dbt2_mysql_socket, argv[i + 1], sizeof(dbt2_mysql_socket));
 #endif /* HAVE_MYSQL */
+#if defined(HAVE_MYSQL) || defined(HAVE_ODBC)
+		} else if (strcmp(flag, "u") == 0) {
+			extern char dbt2_user[128];
+			strncpy(dbt2_user, argv[i + 1], sizeof(dbt2_user));
+#endif /* defined(HAVE_MYSQL) || defined(HAVE_ODBC) */
 #endif /* DRIVER3 */
 		} else if (strcmp(flag, "p") == 0) {
 			set_client_port(atoi(argv[i + 1]));

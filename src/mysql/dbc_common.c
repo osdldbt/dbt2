@@ -71,6 +71,7 @@ int disconnect_from_db_mysql(struct db_context_t *dbc) {
 int db_init_mysql(
 		struct db_context_t *dbc, char *dbname, char *host, char *user,
 		char *pass, char *port, char *socket) {
+	dbc->connect = connect_to_db_mysql;
 	dbc->commit_transaction = commit_transaction_mysql;
 	dbc->disconnect = disconnect_from_db_mysql;
 	dbc->rollback_transaction = rollback_transaction_mysql;
@@ -114,8 +115,7 @@ int db_init_mysql(
 	if (socket != NULL) {
 		strncpy(dbc->library.mysql.socket_t, socket, MYSQL_SOCKET_T_LEN);
 	} else {
-		strncpy(dbc->library.mysql.socket_t, "/tmp/mysql.sock",
-				MYSQL_SOCKET_T_LEN);
+		dbc->library.mysql.socket_t[0] = '\0';
 	}
 	return OK;
 }
