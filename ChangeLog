@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-DD)
 - build: add --data flat to specify where datagen will create flat files when
   not doing a streaming load
 - mysql: build-db minimal fixes to work with 8.0
+- mysql: fix payment sp out_w_city size to match table definition
 
 v0.61.4 (2024-08-12)
 
