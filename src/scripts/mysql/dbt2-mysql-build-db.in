@@ -7,11 +7,6 @@
 # Copyright The DBT-2 Authors
 #
 
-if [ "x" = "x${DBT2DATADIR}" ]; then
-    echo "ERROR: DBT2DATADIR must be set"
-    exit 1
-fi
-
 HOSTNAME=`hostname`
 
 usage() {
@@ -72,6 +67,7 @@ load_tables()
 TABLES="customer district history item new_order order_line orders stock warehouse"
 
 for TABLE in $TABLES ; do
+	EXTRA=""
 
   echo "Loading table $TABLE"
 
@@ -81,8 +77,15 @@ for TABLE in $TABLES ; do
     FN="$TABLE"
   fi
 
+
+  if [ "${TABLE}" == "order_line" ]; then
+    EXTRA="(ol_o_id, ol_d_id, ol_w_id, ol_number, ol_i_id, ol_supply_w_id, @ol_delivery_d, ol_quantity, ol_amount, ol_dist_info) SET ol_delivery_d = nullif(@ol_delivery_d, '')"
+  elif [ "${TABLE}" == "orders" ]; then
+    EXTRA="(o_id, o_d_id, o_w_id, o_c_id, o_entry_d, @o_carrier_id, o_ol_cnt, o_all_local) SET o_carrier_id = nullif(@o_carrier_id, '')"
+  fi
+
   command_exec "$MYSQL $DB_NAME -e \"LOAD DATA $LOCAL INFILE \\\"$DB_PATH/$FN.data\\\" \
-		INTO TABLE $TABLE FIELDS TERMINATED BY '\t'\""
+		INTO TABLE $TABLE FIELDS TERMINATED BY '\t' ${EXTRA}\""
 
 done
 
@@ -171,7 +174,7 @@ ORDER_LINE="CREATE TABLE order_line (
   ol_number int(11) NOT NULL default '0',
   ol_i_id int(11) default NULL,
   ol_supply_w_id int(11) default NULL,
-  ol_delivery_d timestamp NOT NULL,
+  ol_delivery_d timestamp,
   ol_quantity double default NULL,
   ol_amount double default NULL,
   ol_dist_info varchar(24) default NULL,
@@ -367,15 +370,15 @@ LOCAL=""
 VERBOSE=""
 DB_PASSWORD=""
 DB_PATH=""
-DB_NAME=""
+DB_NAME="dbt2"
 
 DB_HOST="localhost"
-DB_NAME=${DBNAME}
 DB_PATH=${DB_PATH}
 DB_USER="root"
 DB_ENGINE="INNODB"
 DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
+PRIVILEGED=0
 ROWS_PER_COMMIT=0
 WAREHOUSES=1
 
@@ -391,29 +394,29 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-f)
 		shift
-		DB_PATH="{$1}"
+		DB_PATH="${1}"
 		;;
 	(-g)
 		GENERATE_DATAFILE=1
 		;;
 	(-h)
 		shift
-		DB_HOST="{$1}"
+		DB_HOST="${1}"
 		;;
 	(-l)
 		LOCAL="LOCAL"
 		;;
 	(-m)
 		shift
-		DB_SCHEME="{$1}"
+		DB_SCHEME="${1}"
 		;;
 	(-P)
 		shift
-		DB_PASSWORD="{$1}"
+		DB_PASSWORD="${1}"
 		;;	
 	(-p)
 		shift
-		DEFAULTS_FILE="{$1}"
+		DEFAULTS_FILE="${1}"
 		DEFAULTS_FILE_ARG="-p ${DEFAULTS_FILE}"
 		;;
 	(--rows-per-commit)
@@ -425,12 +428,12 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-s)
 		shift
-		DB_SOCKET="{$1}"
+		DB_SOCKET="${1}"
 		DB_SOCKET_ARG="-s ${DB_SOCKET}"
 		;;
 	(-u)
 		shift
-		DB_USER="{$1}"
+		DB_USER="${1}"
 		;;
 	(-v)
 		shift
@@ -438,7 +441,7 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-w)
 		shift
-		WAREHOUSES="{$1}"
+		WAREHOUSES="${1}"
 		;;
 	(-\? | --help)
 		usage
@@ -468,11 +471,6 @@ if [ ! -d "$DB_PATH" ]; then
   exit 1
 fi
 
-if [ "$DB_NAME" == "" ]; then
-  usage "specify database name using -d #"
-  exit 1
-fi
-
 if [ "$DB_ENGINE" != "INNODB" -a "$DB_ENGINE" != "MYISAM" -a "$DB_ENGINE" != "BDB" ]; then
   usage "$DB_ENGINE. Please specifey correct storage engine [MYISAM|INNODB|BDB]"
   exit 1
@@ -487,12 +485,14 @@ if [ "${DB_PASSWORD}" != "" ]; then
   MYSQL_ARGS="--password=${DB_PASSWORD}"
 fi
 
-if [ ! -d "${DBT2DATADIR}" ]; then
-  mysql_install_db --datadir=${DBT2DATADIR} || exit 1
-fi
+if [ "${PRIVILEGED}" -eq 1 ]; then
+	if [ ! -d "${DBT2DATADIR}" ]; then
+		mysql_install_db --datadir="${DBT2DATADIR}" || exit 1
+	fi
 
-if [ ! -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
-  eval "${DIR}/dbt2 mysql-start-db ${DEFAULTS_FILE_ARG}" || exit 1
+	if [ ! -f "${DBT2DATADIR}/${HOSTNAME}.pid" ]; then
+		eval "${DIR}/dbt2 mysql-start-db ${DEFAULTS_FILE_ARG}" || exit 1
+	fi
 fi
 
 if [ ${GENERATE_DATAFILE} -eq 1 ]; then
@@ -502,7 +502,7 @@ if [ ${GENERATE_DATAFILE} -eq 1 ]; then
   dbt2 datagen -d "${DB_PATH}" -w "${WAREHOUSES}" --mysql || exit 1
 fi
 
-MYSQL_ARGS="$MYSQL_ARGS -h $DB_HOST -u $DB_USER --socket=$DB_SOCKET"
+MYSQL_ARGS="${MYSQL_ARGS} -h ${DB_HOST} -u ${DB_USER} ${DB_SOCKET_ARG}"
 MYSQL="mysql $MYSQL_ARGS"
 
 echo ""
@@ -517,7 +517,6 @@ echo "DEFAULTS_FILE:  ${DEFAULTS_FILE}"
 
 command_exec "$MYSQL -e \"drop database if exists $DB_NAME\" "
 command_exec "$MYSQL -e \"create database $DB_NAME\" "
-command_exec "$MYSQL -e \"grant all on *.* to ${DB_USER}@'%'\" "
 
 # Create tables
 echo ""

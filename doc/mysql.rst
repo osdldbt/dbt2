@@ -49,7 +49,7 @@ NOTE:
 
 ::
 
-    cmake CMakeLists.txt -DDBMS=mysql
+    cmake CMakeLists.txt
     make
     make install
 
