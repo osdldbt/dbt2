@@ -20,6 +20,7 @@ Options:
   -d NAME        database NAME
   -e ENGINE      storage ENGINE: [MYISAM|INNODB|BDB], default INNODB
   -f PATH        PATH to dataset files
+  -F PATH        stored procedure PATH
   -g             generate data files
   -h HOST        database HOST
   -l             use LOCAL keyboard while loading dataset
@@ -380,6 +381,7 @@ DB_SCHEME="OPTIMIZED"
 GENERATE_DATAFILE=0
 PRIVILEGED=0
 ROWS_PER_COMMIT=0
+SP_PATH=""
 WAREHOUSES=1
 
 while [ "${#}" -gt 0 ] ; do
@@ -391,6 +393,10 @@ while [ "${#}" -gt 0 ] ; do
 	(-e)
 		shift
 		DB_ENGINE="{$1}"
+		;;
+	(-F)
+		shift
+		SP_PATH="${1}"
 		;;
 	(-f)
 		shift
@@ -525,3 +531,12 @@ create_tables
 # Load tables
 echo ""
 load_tables
+
+# Load stored procedures
+if [ -n "${SP_PATH}" ]; then
+echo ""
+eval "dbt2 mysql-load-stored-procs \
+		-d ${DB_NAME} \
+		-f ${SP_PATH} \
+		${DB_SOCKET_ARG}"
+fi
