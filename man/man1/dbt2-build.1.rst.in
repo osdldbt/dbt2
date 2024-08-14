@@ -25,6 +25,8 @@ load data, and create indexes with minimal input from the user.
 OPTIONS
 =======
 
+--data=PATH  Datagen *path* for generating flat files when not loading data
+        directly into the database.
 --db-host=ADDRESS  *address* of database system.
 --db-port=PORT  Database listening *port* number.
 --dbaas  Database server is a service.  Do not attempted to collect system

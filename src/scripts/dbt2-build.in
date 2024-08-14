@@ -15,6 +15,7 @@ Usage:
   $(basename "${0}") [OPTION] DBMS [DBNAME]
 
 Options:
+  --data=PATH    datagen PATH for generating flat files
   --db-host ADDRESS
                  ADDRESS of database system
   --db-port PORT
@@ -59,6 +60,13 @@ WAREHOUSES=1
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
+	(--data)
+		shift
+		BUILDARGS="${BUILDARGS} -f ${1}"
+		;;
+	(--data=?*)
+		BUILDARGS="${BUILDARGS} -f ${1#*--data=}"
+		;;
 	(--db-host)
 		shift
 		DB_HOSTNAME=${1}
@@ -154,7 +162,11 @@ fi
 
 export DBT2DBNAME="${DBNAME}"
 
-if [ "${DBMS}" = "pgsql" ]; then
+if [ "${DBMS}" = "mysql" ]; then
+	if [ ! "${DB_HOSTNAME}" = "" ]; then
+		BUILDARGS="${BUILDARGS} -h ${DB_HOSTNAME}"
+	fi
+elif [ "${DBMS}" = "pgsql" ]; then
 	if [ ! "${DB_HOSTNAME}" = "" ]; then
 		export PGHOST="${DB_HOSTNAME}"
 	fi
