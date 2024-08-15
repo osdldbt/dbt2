@@ -7,48 +7,65 @@
 #
 
 usage() {
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) MySQL database builder.
 
-  if [ "$1" != "" ]; then
-    echo ''
-    echo "error: $1"
-  fi
+Usage:
+  $(basename "${0}") [OPTION]
 
-  echo ''
-  echo 'usage: dbt2-mysql-plans [options]'
-  echo 'options:'
-  echo '       -d <database name>'
-  echo '       -o <output file name>'
-  echo '       -c <path to mysql client binary. (default: /usr/bin/mysql)>'
-  echo '       -s <database socket>'
-  echo '       -h <database host (default: localhost>'
-  echo ''
-  echo 'Example: dbt2-mysql-plans -d dbt2 -o explain.out'
-  echo ''
+Options:
+  -c MYSQL       path to MYSQL client binary, default /usr/bin/mysql
+  -d NAME        database NAME
+  -h HOST        database HOST, default localhost
+  -o FILE        output FILE name
+  -s SOCKET      database SOCKET
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
-
-while getopts "o:d:c:s:h:" opt; do
-	case $opt in
-	o)
-		OUTPUT_FILE=$OPTARG
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d)
+		shift
+		DB_NAME="${1}"
 		;;
-	d)
-		DB_NAME=$OPTARG
+	(-c)
+		shift
+		MYSQL="${1}"
 		;;
-        c)
-                MYSQL=$OPTARG
-                ;;
-        s)
-                DB_SOCKET=$OPTARG
-                ;;
-        h)
-                DB_HOST=$OPTARG
-                ;;
-        ?)
-                usage
-                exit 1
-                ;;
+	(-h)
+		shift
+		DB_HOST="${1}"
+		;;
+	(-o)
+		shift
+		OUTPUT_FILE="${1}"
+		;;
+	(-s)
+		shift
+		DB_SOCKET="${1}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
 	esac
+	shift
 done
 
 if [ "$OUTPUT_FILE" == "" ]; then

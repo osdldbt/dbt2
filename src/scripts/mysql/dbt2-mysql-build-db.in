@@ -33,6 +33,7 @@ Options:
                  data in a single transaction
   -s SOCKET      database SOCKET
   -u USER        database USER
+  -V, --version  output version information, then exit
   -v             verbose
   -w WAREHOUSES  number of WAREHOUSES to build, default: 1
   -?, --help     show this help, then exit
@@ -435,7 +436,7 @@ while [ "${#}" -gt 0 ] ; do
 	(-s)
 		shift
 		DB_SOCKET="${1}"
-		DB_SOCKET_ARG="-s ${DB_SOCKET}"
+		DB_SOCKET_ARG="--socket=${DB_SOCKET}"
 		;;
 	(-u)
 		shift
