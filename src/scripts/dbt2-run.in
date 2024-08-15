@@ -317,6 +317,8 @@ driver-mode 3 (event-driven, process based) specific options:
 MySQL specific options:
   --db-password=PASSWORD
                  database PASSWORD
+  --mysql-socket=FILE
+                 specify socket FILE
 
 PostgreSQL specific options:
   --db-parameters=OPTIONS
@@ -360,6 +362,7 @@ DRIVER3=1
 DRIVERLIST=""
 DURATION=180
 EASYFLAGS="-ktd 0 -ktn 0 -kto 0 -ktp 0 -kts 0 -ttd 0 -ttn 0 -tto 0 -ttp 0 -tts 0"
+EXTRA_DB_ARGS=""
 FPP=1
 PRIVILEGED=0
 PROFILE=0
@@ -527,6 +530,13 @@ while [ "${#}" -gt 0 ] ; do
 		# Number of warehouses per driver.
 		W_CHUNK=${1#*--driver-partition-size=}
 		;;
+	(--mysql-socket)
+		shift
+		EXTRA_DB_ARGS="${EXTRA_DB_ARGS} -S ${1}"
+		;;
+	(--mysql-socket=?*)
+		EXTRA_DB_ARGS="${EXTRA_DB_ARGS} -S ${1#*--mysql-socket=}"
+		;;
 	(--privileged)
 		PRIVILEGED=1
 		;;
@@ -628,6 +638,11 @@ fi
 
 DBSTATARGS=""
 case $DBMS in
+mysql)
+	if [ ! "${DB_USER}" = "" ]; then
+		EXTRA_DB_ARGS="${EXTRA_DB_ARGS} -u ${DB_USER}"
+	fi
+	;;
 pgsql)
 	# Set extra argument variables.
 	DBSTATARGS="-h $DB_HOSTNAME -d $DBNAME"
@@ -1063,7 +1078,7 @@ if [ "${CONFIGFILE}" = "" ]; then
 		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $EASYFLAGS $TERMINALS_LIMIT_ARG"
 		DRIVER_COMMAND_ARGS="$DRIVER_COMMAND_ARGS $ALTERED_ARG $DB_PORT_ARG"
 		if [ "$DRIVER3" = "1" ]; then
-			DHNARG="-b $DBNAME -d $DB_HOSTNAME"
+			DHNARG="-b ${DBNAME} -d ${DB_HOSTNAME} ${EXTRA_DB_ARGS}"
 			eval "dbt2 driver3 $DRIVER_COMMAND_ARGS -a $DBMS $DHNARG $FPP_FLAG \
 					> ${DRIVER_OUTPUT_DIR}/$(hostname)/driver-${SEG}.txt 2>&1" \
 					|| exit 1 &

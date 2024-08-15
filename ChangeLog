@@ -12,6 +12,8 @@ vX.Y.Z (YYYY-MM-DD)
 - mysql: refactor script flags for handling socket path to match MySQL binaries
 - build: add --mysql-stored-procedures to specify location of MySQL stored
   procedures
+- Minimal updates running against MySQL 8.0 in a 1-tier client-server
+  configuration with socket files
 
 v0.61.4 (2024-08-12)
 
