@@ -31,6 +31,8 @@ OPTIONS
         statistics from the database system because scripts rely on being able
         to use **ssh** and **sar**.
 --privileged  Run test as a privileged operating system and database user.
+--rows-per-commit=ROWS  Number of *rows* to load per transactions, default
+        behavior is to load all data in a single transaction
 --tablespaces=DIRECTORY  build the database using tablspaces, where DIRECTORY
         contains mountpoints or symlinks per documentation, default is to not
         use tablespaces
