@@ -78,7 +78,6 @@ WARMUP=60
 
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
-	opt=${1}
 	case "${1}" in
 	(--config)
 		shift
