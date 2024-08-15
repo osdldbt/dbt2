@@ -18,7 +18,8 @@ Options:
   -d NAME        database NAME
   -h HOST        database HOST, default localhost
   -o FILE        output FILE name
-  -s SOCKET      database SOCKET
+  -S SOCKET, --socket=SOCKET
+                 database SOCKET
   -V, --version  output version information, then exit
   -?, --help     show this help, then exit
 
@@ -44,7 +45,14 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		OUTPUT_FILE="${1}"
 		;;
-	(-s)
+	(--socket)
+		shift
+		DB_SOCKET_ARG="--socket=${1}"
+		;;
+	(--socket=?*)
+		DB_SOCKET_ARG="--socket=${1#*--socket=}"
+		;;
+	(-S)
 		shift
 		DB_SOCKET="${1}"
 		;;

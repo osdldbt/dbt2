@@ -36,6 +36,10 @@ Options:
                  number of WAREHOUSES to use in the database, default $WAREHOUSES
   -?, --help     show this help, then exit
 
+MySQL specific options:
+  --mysql-socket=FILE
+                 specify socket FILE
+
 PostgreSQL specific options:
   --db-parameters OPTIONS
                  GUC command line OPTIONS to pass to postgresql, when
@@ -101,6 +105,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -u"
+		;;
+	(--mysql-socket)
+		shift
+		BUILDARGS="${BUILDARGS} --socket=${1}"
+		;;
+	(--mysql-socket=?*)
+		BUILDARGS="${BUILDARGS} --socket=${1#*--mysql-socket=}"
 		;;
 	(--rows-per-commit)
 		shift

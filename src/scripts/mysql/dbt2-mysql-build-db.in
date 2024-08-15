@@ -31,7 +31,8 @@ Options:
   --rows-per-commit ROWS
                  number of ROWS to load per transaction, default is to load all
                  data in a single transaction
-  -s SOCKET      database SOCKET
+  -S SOCKET, --socket=SOCKET
+                 database SOCKET
   -u USER        database USER
   -V, --version  output version information, then exit
   -v             verbose
@@ -433,7 +434,16 @@ while [ "${#}" -gt 0 ] ; do
 	(--rows-per-commit=?*)
 		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
-	(-s)
+	(--socket)
+		shift
+		DB_SOCKET="${1}"
+		DB_SOCKET_ARG="--socket=${DB_SOCKET}"
+		;;
+	(--socket=?*)
+		DB_SOCKET="${1#*--socket=}"
+		DB_SOCKET_ARG="--socket=${DB_SOCKET}"
+		;;
+	(-S)
 		shift
 		DB_SOCKET="${1}"
 		DB_SOCKET_ARG="--socket=${DB_SOCKET}"

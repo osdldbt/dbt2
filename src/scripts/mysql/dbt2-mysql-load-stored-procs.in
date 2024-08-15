@@ -19,7 +19,8 @@ Options:
   -c MYSQL       path to MYSQL client binary. (default: /usr/bin/mysql)
   -f PATH        PATH to SPs
   -h HOST        database HOST, default localhost
-  -S SOCKET      database SOCKET
+  -S SOCKET, --socket=SOCKET
+                 database SOCKET
   -u USER        database USER
   -P PORT        database PORT
   -p PASSWORD    database user PASSWORD
@@ -100,6 +101,13 @@ while [ "${#}" -gt 0 ] ; do
 	(-p)
 		shift
 		DB_PASSWORD="${1}"
+		;;
+	(--socket)
+		shift
+		DB_SOCKET_ARG="--socket=${1}"
+		;;
+	(--socket=?*)
+		DB_SOCKET_ARG="--socket=${1#*--socket=}"
 		;;
 	(-S)
 		shift

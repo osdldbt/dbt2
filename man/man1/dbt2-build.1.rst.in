@@ -45,6 +45,10 @@ OPTIONS
 --help  This usage message.  Or **-?**.
 -V, --version  Output version information, then exit.
 
+MySQL specific options:
+
+--mysql-socket=FILE  Use the socket *file* to connect to the database.
+
 PostgreSQL specific options:
 
 --db-parameters=OPTIONS  GUC command line *options* to pass to **postgres**.

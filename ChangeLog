@@ -9,6 +9,7 @@ vX.Y.Z (YYYY-MM-DD)
   testing
 - Add -g flag to build script to specify whether flat files need to be
   generated for any database loading that is not streaming data
+- mysql: refactor script flags for handling socket path to match MySQL binaries
 
 v0.61.4 (2024-08-12)
 
