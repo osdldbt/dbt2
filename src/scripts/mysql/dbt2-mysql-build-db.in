@@ -441,6 +441,10 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		DB_USER="${1}"
 		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
 	(-v)
 		shift
 		VERBOSE=1
