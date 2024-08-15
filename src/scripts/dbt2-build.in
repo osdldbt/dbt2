@@ -22,6 +22,7 @@ Options:
                  database listening PORT number
   --db-user USER
                  database USER
+  -g             generate flat files
   --privileged   run test as a privileged operating system and database user
   --rows-per-commit=ROWS
                  Number of ROWS to load per transactions, default behavior is
@@ -94,6 +95,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--db-user=?*)
 		DB_USER=${1#*--db-user=}
+		;;
+	(-g)
+		BUILDARGS="${BUILDARGS} -g"
 		;;
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -u"

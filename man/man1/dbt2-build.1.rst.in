@@ -32,6 +32,8 @@ OPTIONS
 --dbaas  Database server is a service.  Do not attempted to collect system
         statistics from the database system because scripts rely on being able
         to use **ssh** and **sar**.
+-g  Generate flat files, for use when loading the database from files as
+        opposed to loading data directly into the database.
 --privileged  Run test as a privileged operating system and database user.
 --rows-per-commit=ROWS  Number of *rows* to load per transactions, default
         behavior is to load all data in a single transaction

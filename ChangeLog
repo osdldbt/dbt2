@@ -7,6 +7,8 @@ vX.Y.Z (YYYY-MM-DD)
 - driver3: minimal fixes to work with MySQL 8.0 stored procedures
 - test-connection-scaling: add --start --stop --step flags to control range or
   testing
+- Add -g flag to build script to specify whether flat files need to be
+  generated for any database loading that is not streaming data
 
 v0.61.4 (2024-08-12)
 
