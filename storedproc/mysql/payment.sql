@@ -7,11 +7,6 @@
  * Based on TPC-C Standard Specification Revision 5.0 Clause 2.5.2.
  * July 10, 2002
  *     Not selecting n/2 for customer search by c_last.
- * July 12, 2002
- *     Not using c_d_id and c_w_id when searching for customers by last name
- *     since there are cases with 1 warehouse where no customers are found.
- * August 13, 2002
- *     Not appending c_data to c_data when credit is bad.
  */
 
 drop procedure if exists payment;
@@ -71,7 +66,8 @@ DECLARE  tmp_h_data VARCHAR(30);
         INTO out_w_name, out_w_street_1, out_w_street_2, out_w_city,
              out_w_state, out_w_zip
         FROM warehouse
-        WHERE w_id = in_w_id;
+        WHERE w_id = in_w_id
+        FOR UPDATE;
 
 
         UPDATE warehouse
@@ -83,7 +79,8 @@ DECLARE  tmp_h_data VARCHAR(30);
              out_d_state, out_d_zip
         FROM district
         WHERE d_id = in_d_id
-          AND d_w_id = in_w_id;
+          AND d_w_id = in_w_id
+        FOR UPDATE;
 
 
         UPDATE district
@@ -138,7 +135,7 @@ DECLARE  tmp_h_data VARCHAR(30);
                 UPDATE customer
                 SET c_balance = out_c_balance - in_h_amount,
                     c_ytd_payment = out_c_ytd_payment + 1,
-                    c_data = out_c_data
+                    c_data = substring(concat(out_c_data, ' ', c_data), 1, 500)
                 WHERE c_id = out_c_id
                   AND c_w_id = in_c_w_id
                   AND c_d_id = in_c_d_id;
