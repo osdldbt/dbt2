@@ -1,0 +1,53 @@
+# vim: set ft=dockerfile :
+
+# Build a development environment for MySQL.
+
+# podman build --isolation=chroot -t dbt2-mysql -f Containerfile.mysql .
+
+FROM ubuntu:22.04
+
+RUN apt-get -qq -y update && \
+    apt-get -qq -y dist-upgrade && \
+    apt-get -qq -y install cmake \
+                           curl \
+                           emacs \
+                           gcc \
+                           gnuplot \
+                           jq \
+                           libev-dev \
+                           libmysqlclient-dev \
+                           locales \
+                           make \
+                           mysql-server \
+                           nano \
+                           neovim \
+                           pkg-config \
+                           sqlite3 \
+                           vim \
+                           && \
+    apt-get -qq -y clean && \
+    apt-get -qq -y autoclean
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+         -o /tmp/sh.rustup.sh && \
+    sh /tmp/sh.rustup.sh -y
+
+RUN ${HOME}/.cargo/bin/cargo install toml-cli
+
+RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
+
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+RUN mysqld --initialize-insecure --datadir=/opt/mysql --log-error=/opt/mysql/error.log
+RUN echo "[mysqld]\nbind-address = 127.0.0.1\nsecure_file_priv = \"\"" \
+    > /opt/mysql/my.cnf
+
+# Extra notes:
+
+# podman run -it --rm -v .:/usr/local/src/dbt2:rw,Z --env PKG_CONFIG_PATH="/usr/lib/pkgconfig" -w /usr/local/src/dbt2 -u root --name dbt2-mysql dbt2-mysql /bin/bash
+# mysqld_safe --defaults-file=/opt/mysql/my.cnf --datadir=/opt/mysql --socket=/opt/mysql/mysql.sock --log-error=/opt/mysql/error.log
+# podman exec -it -u root dbt2-mysql /bin/bash
+# PATH=builds/debug:builds/debug/src:$PATH dbt2 build --db-host=127.0.0.1 --data=/tmp -g --mysql-stored-procedure=storedproc/mysql --mysql-socket=/opt/mysql/mysql.sock mysql
+# PATH=builds/debug:builds/debug/src:$PATH dbt2 run --db-host=127.0.0.1 -w 1 --mysql-socket=/opt/mysql/mysql.sock --db-user=root mysql /tmp/results
+# mysqladmin -u root shutdown --socket=/opt/mysql/mysql.sock
