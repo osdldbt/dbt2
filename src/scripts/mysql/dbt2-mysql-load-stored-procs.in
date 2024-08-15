@@ -1,4 +1,5 @@
 #!/bin/bash
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -7,27 +8,27 @@
 #
 
 usage() {
+	cat << EOF
+$(basename "${0}") is the Database Test 2 (DBT-2) MySQL database builder.
 
-  if [ "$1" != "" ]; then
-    echo ''
-    echo "error: $1"
-  fi
+Usage:
+  $(basename "${0}") [OPTION]
 
-  echo ''
-  echo 'usage: mysql_load_sp.sh [options]'
-  echo 'options:'
-  echo '       -d <database name>'
-  echo '       -c <path to mysql client binary. (default: /usr/bin/mysql)>'
-  echo '       -f <path to SPs>'
-  echo '       -h <database host (default: localhost>'
-  echo '       -s <database socket>'
-  echo '       -u <database user'
-  echo '       -p <database port>'
-  echo '       -t <database port>'
-  echo '       -v <verbose>'
-  echo ''
-  echo 'Example: sh mysql_load_sp.sh -d dbt2'
-  echo ''
+Options:
+  -d NAME        database NAME
+  -c MYSQL       path to MYSQL client binary. (default: /usr/bin/mysql)
+  -f PATH        PATH to SPs
+  -h HOST        database HOST, default localhost
+  -S SOCKET      database SOCKET
+  -u USER        database USER
+  -P PORT        database PORT
+  -p PASSWORD    database user PASSWORD
+  -V, --version  output version information, then exit
+  -v             verbose
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
 command_exec()
@@ -65,48 +66,66 @@ load_sp()
 
 #DEFAULTs
 
-VERBOSE=""
-DB_PASSWORD=""
-PATH_SP=""
-DB_NAME=""
-
-MYSQL="mysql"
 DB_HOST="localhost"
+DB_NAME=""
+DB_PASSWORD=""
 DB_USER="root"
-DB_PORT="3306"
-PATH_SP=../../storedproc/mysql
+MYSQL="mysql"
+MYSQL_ARGS=""
+PATH_SP=""
+VERBOSE=""
 
-while getopts "t:f:d:s:h:u:p:v" opt; do
-        case $opt in
-        p)
-                DB_PORT=$OPTARG
-                ;;
-        d)
-                DB_NAME=$OPTARG
-                ;;
-        s)
-                DB_SOCKET_ARG="--socket=$OPTARG"
-                ;;
-        h)
-                DB_HOST=$OPTARG
-                ;;
-        f)
-                PATH_SP=$OPTARG
-                ;;
-        u)
-                DB_USER=$OPTARG
-                ;;
-        p)
-                DB_PASSWORD=$OPTARG
-                ;;
-        v)
-                VERBOSE=1
-                ;;
-        ?)
-                usage
-                exit 1
-                ;;
-        esac
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d)
+		shift
+		DB_NAME="${1}"
+		;;
+	(-h)
+		shift
+		DB_HOST="${1}"
+		;;
+	(-f)
+		shift
+		PATH_SP="${1}"
+		;;
+	(-u)
+		shift
+		DB_USER="${1}"
+		;;
+	(-P)
+		shift
+		MYSQL_ARGS="${MYSQL_ARGS} ${1}"
+		;;
+	(-p)
+		shift
+		DB_PASSWORD="${1}"
+		;;
+	(-S)
+		shift
+		DB_SOCKET_ARG="--socket=${1}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-v)
+		VERBOSE=1
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
 done
 
 if [ "$DB_NAME" == "" ]; then
@@ -129,7 +148,7 @@ if [ $MYSQL_VER -lt 5 ]; then
 fi
 
 if [ "$DB_PASSWORD" != "" ]; then
-  MYSQL_ARGS="-p $DB_PASSWORD"
+  MYSQL_ARGS="${MYSQL_ARGS} -p ${DB_PASSWORD}"
 fi
 
 MYSQL_ARGS="$MYSQL_ARGS $DB_NAME -h $DB_HOST -u $DB_USER ${DB_SOCKET_ARG}"
