@@ -29,7 +29,9 @@ BEGIN
      SELECT no_o_id
      INTO tmp_o_id
      FROM new_order
-     WHERE no_w_id = in_w_id AND no_d_id = tmp_d_id limit 1;
+     WHERE no_w_id = in_w_id AND no_d_id = tmp_d_id
+     ORDER BY no_o_id ASC
+     limit 1;
 
      IF tmp_o_id > 0 
      THEN
@@ -43,7 +45,8 @@ BEGIN
        FROM orders
        WHERE o_id = tmp_o_id
          AND o_w_id = in_w_id
-         AND o_d_id = tmp_d_id;
+         AND o_d_id = tmp_d_id
+       FOR UPDATE;
  
        UPDATE orders
        SET o_carrier_id = in_o_carrier_id

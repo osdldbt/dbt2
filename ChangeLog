@@ -14,6 +14,7 @@ vX.Y.Z (YYYY-MM-DD)
   procedures
 - Minimal updates running against MySQL 8.0 in a 1-tier client-server
   configuration with socket files
+- mysql delivery stored procedure: add use of FOR UPDATE and missing ORDER BY
 
 v0.61.4 (2024-08-12)
 
