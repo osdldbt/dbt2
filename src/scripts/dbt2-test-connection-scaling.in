@@ -39,6 +39,9 @@ General options:
   -d SECONDS, --duration=SECONDS
                  SECONDS of the test duration, after warmup,
                  default ${DURATION}
+  --start USERS  start with USERS users, default 1
+  --step USERS   increment by USERS users, default 1
+  --stop USERS   stop at USERS users, default detected number of processors
   -V, --version  output version information, then exit
   --warmup SECONDS
                  SECONDS before all database connections have finished opening,
@@ -66,7 +69,10 @@ DB_PORT=""
 DB_USER=""
 DBNAME="dbt2"
 DURATION=300
+FIRST=1
+LAST=0
 RUNARGS=""
+STEP=1
 WAREHOUSES=1
 WARMUP=60
 
@@ -121,6 +127,24 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--duration=?*)
 		DURATION="${1#*--duration=}"
+		;;
+	(--start)
+		shift
+		FIRST="${1}"
+		;;
+	(--start=*)
+		FIRST="${1#*--start=}"
+		;;
+	(--step)
+		shift
+		STEP="${1}"
+		;;
+	(--step=*)
+		STEP="${1#*--step=}"
+		;;
+	(--stop)
+		shift
+		LAST="${1}"
 		;;
 	(-V | --version)
 		echo "$(basename "${0}") v@PROJECT_VERSION@"
@@ -211,7 +235,7 @@ fi
 RUNARGS="${RUNARGS} --duration=${DURATION}"
 RUNARGS="${RUNARGS} --stats"
 RUNARGS="${RUNARGS} --warehouses=${WAREHOUSES}"
-for I in $(seq 1 "${PROCS}"); do
+for I in $(seq "${FIRST}" "${STEP}" "${LAST}"); do
 	DELAY=$(( (WARMUP / I) * 1000 ))
 	PREFIX="${OUTDIR}/${I}"
 
