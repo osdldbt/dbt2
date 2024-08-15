@@ -25,23 +25,23 @@ load data, and create indexes with minimal input from the user.
 OPTIONS
 =======
 
---db-host ADDRESS  *address* of database system.
---db-port PORT  Database listening *port* number.
+--db-host=ADDRESS  *address* of database system.
+--db-port=PORT  Database listening *port* number.
 --dbaas  Database server is a service.  Do not attempted to collect system
         statistics from the database system because scripts rely on being able
         to use **ssh** and **sar**.
 --privileged  Run test as a privileged operating system and database user.
---tablespaces DIRECTORY  build the database using tablspaces, where DIRECTORY
+--tablespaces=DIRECTORY  build the database using tablspaces, where DIRECTORY
         contains mountpoints or symlinks per documentation, default is to not
         use tablespaces
--w WAREHOUSES, --warehouses WAREHOUSES  Number of *warehouses* to use in the
+-w WAREHOUSES, --warehouses=WAREHOUSES  Number of *warehouses* to use in the
         database, default 1.
 --help  This usage message.  Or **-?**.
 -V, --version  Output version information, then exit.
 
 PostgreSQL specific options:
 
---db-parameters OPTIONS  GUC command line *options* to pass to **postgres**.
+--db-parameters=OPTIONS  GUC command line *options* to pass to **postgres**.
         This is intended for privileged users that can start and stop the
         **postgres** backend while passing parameter options directly to
         **postgres**.
