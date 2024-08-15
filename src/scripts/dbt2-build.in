@@ -39,6 +39,8 @@ Options:
 MySQL specific options:
   --mysql-socket=FILE
                  specify socket FILE
+  --mysql-stored-procedures=PATH
+                 load stored procedures found at PATH
 
 PostgreSQL specific options:
   --db-parameters OPTIONS
@@ -112,6 +114,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--mysql-socket=?*)
 		BUILDARGS="${BUILDARGS} --socket=${1#*--mysql-socket=}"
+		;;
+	(--mysql-stored-procedures)
+		shift
+		BUILDARGS="${BUILDARGS} -F ${1}"
+		;;
+	(--mysql-stored-procedures=?*)
+		BUILDARGS="${BUILDARGS} -F ${1#*--mysql-stored-procedures=}"
 		;;
 	(--rows-per-commit)
 		shift

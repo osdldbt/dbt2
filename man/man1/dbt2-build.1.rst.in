@@ -48,6 +48,8 @@ OPTIONS
 MySQL specific options:
 
 --mysql-socket=FILE  Use the socket *file* to connect to the database.
+--mysql-stored-procedures=PATH  Load stored procedures from the directory
+        *path*.
 
 PostgreSQL specific options:
 
