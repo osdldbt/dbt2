@@ -41,23 +41,23 @@ OPTIONS
 
 -A, --advanced  Enable advanced benchmarking execution options.  This resets
         the keying and thinking time to benchmark specification defaults.
---comment COMMENTS  Provide *comments* to save with the test.
---config CONFIG  CONFIG file to use for executing a test.  These settings will
+--comment=COMMENTS  Provide *comments* to save with the test.
+--config=CONFIG  CONFIG file to use for executing a test.  These settings will
         override any conflicting command line arguments.
---connection-delay MILLISECONDS  *millisecond* delay between client and
+--connection-delay=MILLISECONDS  *millisecond* delay between client and
         database connections, default 100.
--d SECONDS, --duration SECONDS  *seconds* of the test duration, after ramp up.
+-d SECONDS, --duration=SECONDS  *seconds* of the test duration, after ramp up.
         The ramp up time is estimated based on the connection delay and the
         number of database connections to open, default 180.
---db-host ADDRESS  *address* of database system, default localhost.
---db-name NAME  *name* of the database, default dbt2.
---db-port PORT  Database listening *port* number.
---db-user USER  Database *user*.
+--db-host=ADDRESS  *address* of database system, default localhost.
+--db-name=NAME  *name* of the database, default dbt2.
+--db-port=PORT  Database listening *port* number.
+--db-user=USER  Database *user*.
 --dbaas  Database server is a service.  Do not attempted to collect system
         statistics from the database system because scripts rely on being able
         to use **ssh** and **sar**.
---districts DISTRICTS  Number of *districts* per warehouse, default 10.
---driver-mode MODE  Set to 1 for threaded or 3 for event-driven process based
+--districts=DISTRICTS  Number of *districts* per warehouse, default 10.
+--driver-mode=MODE  Set to 1 for threaded or 3 for event-driven process based
         *mode*, default 3.  *mode* 3 will start a process per logical processor
         discovered on the system and evenly divide the warehouse range to cover
         between all of the processes started.
@@ -68,35 +68,35 @@ OPTIONS
         have **readprofile**, **oprofile** or **perf** set up.  See
         **ts-profile** for usage notes.
 --privileged  Run test as a privileged operating system and database user.
--w WAREHOUSES, --warehouses WAREHOUSES  Number of *warehouses* to use in the
+-w WAREHOUSES, --warehouses=WAREHOUSES  Number of *warehouses* to use in the
         database, default 1.
 --help  This usage message.  Or **-?**.
 
 driver-mode 1 (threaded) specific options:
 
--c CONNECTIONS, --client-connections CONNECTIONS  Number of database
+-c CONNECTIONS, --client-connections=CONNECTIONS  Number of database
         *connection* to open.
---client-host ADDRESS  *address* of client system, default localhost.
---driver-partition-size NUMBER  *number* of warehouses per process.  The
+--client-host=ADDRESS  *address* of client system, default localhost.
+--driver-partition-size=NUMBER  *number* of warehouses per process.  The
         default is to start 1 process for all of the warehouses.  This will
         start as many processes required in order to drive the specified number
         of warehouses.
---terminal-limit TERMINALS  Limit the number of *terminals* emulated.
+--terminal-limit=TERMINALS  Limit the number of *terminals* emulated.
 
 driver-mode 3 (event-driven, process based) specific options:
 
---connections-per-processor PROCESSES  Number of driver *processes* started per
+--connections-per-processor=PROCESSES  Number of driver *processes* started per
         processor, default 1.
---terminal-limit CONNECTIONS  Limit the number of database *CONNECTIONS*
+--terminal-limit=CONNECTIONS  Limit the number of database *CONNECTIONS*
         opened.
 
 MySQL specific options:
 
---db-password PASSWORD  Database *password*.
+--db-password=PASSWORD  Database *password*.
 
 PostgreSQL specific options:
 
---db-parameters OPTIONS  GUC command line *options* to pass to **postgres**.
+--db-parameters=OPTIONS  GUC command line *options* to pass to **postgres**.
         This is intended for privileged users that can start and stop the
         **postgres** backend while passing parameter options directly to
         **postgres**.
