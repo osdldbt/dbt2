@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
+<meta name="generator" content="Docutils 0.21.2: https://docutils.sourceforge.io/" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Database Test 2 (DBT-2) Documentation</title>
 <style type="text/css">
@@ -10,7 +10,7 @@
 /* Minimal style sheet for the HTML output of Docutils.                    */
 /*                                                                         */
 /* :Author: Günter Milde, based on html4css1.css by David Goodger          */
-/* :Id: $Id: minimal.css 9079 2022-06-19 14:00:56Z milde $                                                               */
+/* :Id: $Id: minimal.css 9545 2024-02-17 10:37:56Z milde $                                                               */
 /* :Copyright: © 2015, 2021 Günter Milde.                                  */
 /* :License: Released under the terms of the `2-Clause BSD license`_,      */
 /*    in short:                                                            */
@@ -59,6 +59,7 @@ a.toc-backref {
 /* Warnings, Errors */
 .system-messages h2,
 .system-message-title,
+pre.problematic,
 span.problematic {
   color: red;
 }
@@ -70,6 +71,9 @@ span.problematic {
 }
 /* do not wrap at hyphens and similar: */
 .literal > span.pre { white-space: nowrap; }
+
+/* keep line-breaks (\n) visible */
+.pre-wrap { white-space: pre-wrap; }
 
 /* Lists */
 
@@ -120,7 +124,7 @@ dl.docinfo > dt {
   float: left;
   margin: 0;
   padding: 0;
-  padding-right: 0.2em;
+  padding-right: 0.25em;
 }
 /* Offset for field content (corresponds to the --field-name-limit option) */
 dl.field-list > dd,
@@ -261,7 +265,7 @@ td, th {
   padding-right: 0.5em /* separate table cells */
 }
 
-table > caption {
+table > caption, figcaption {
   text-align: left;
   margin-top: 0.2em;
   margin-bottom: 0.2em;
@@ -270,19 +274,32 @@ table.captionbelow {
   caption-side: bottom;
 }
 
+/* MathML (see "math.css" for --math-output=HTML) */
+math .boldsymbol { font-weight: bold; }
+math.boxed, math .boxed {padding: 0.25em; border: thin solid; }
+/* style table similar to AMS "align" or "aligned" environment: */
+mtable.cases > mtr > mtd { text-align: left; }
+mtable.ams-align > mtr > mtd { padding-left: 0; padding-right: 0; }
+mtable.ams-align > mtr > mtd:nth-child(2n) { text-align: left; }
+mtable.ams-align > mtr > mtd:nth-child(2n+1) { text-align: right; }
+mtable.ams-align > mtr > mtd:nth-child(2n+3) { padding-left: 2em; }
+.mathscr mi, mi.mathscr {
+  font-family: STIX, XITSMathJax_Script, rsfs10,
+               "Asana Math", Garamond, cursive;
+}
+
 /* Document Header and Footer */
 header { border-bottom: 1px solid black; }
 footer { border-top: 1px solid black; }
 
 /* Images are block-level by default in Docutils */
 /* New HTML5 block elements: set display for older browsers */
-img, header, footer, main, aside, nav, section, figure, video, details {
+img, svg, header, footer, main, aside, nav, section, figure, video, details {
   display: block;
 }
+svg { width: auto; height: auto; }  /* enable scaling of SVG images */
 /* inline images */
-p img, p video, figure img, figure video {
-  display: inline;
-}
+p img, p svg, p video { display: inline; }
 
 </style>
 <style type="text/css">
@@ -291,7 +308,7 @@ p img, p video, figure img, figure video {
 /* Rules for easy reading and pre-defined style variants.                  */
 /*                                                                         */
 /* :Author: Günter Milde, based on html4css1.css by David Goodger          */
-/* :Id: $Id: plain.css 9338 2023-04-08 21:08:47Z milde $                                                               */
+/* :Id: $Id: plain.css 9615 2024-04-06 13:28:15Z milde $                                                               */
 /* :Copyright: © 2015 Günter Milde.                                        */
 /* :License: Released under the terms of the `2-Clause BSD license`_,      */
 /*    in short:                                                            */
@@ -361,7 +378,6 @@ hr.docutils {
 
 /* vertical space (parskip) */
 p, ol, ul, dl, li,
-div.line-block,
 .footnote, .citation,
 div > math,
 table {
@@ -504,7 +520,9 @@ table.numbered > caption:before {
 /* let content flow to the side of aligned images and figures */
 figure.align-left,
 img.align-left,
+svg.align-left,
 video.align-left,
+div.align-left,
 object.align-left {
   clear: left;
   float: left;
@@ -512,7 +530,9 @@ object.align-left {
 }
 figure.align-right,
 img.align-right,
+svg.align-right,
 video.align-right,
+div.align-right,
 object.align-right {
   clear: right;
   float: right;
@@ -564,15 +584,6 @@ pre.code .name.builtin, code .name.builtin { color: #352B84 }
 pre.code .deleted, code .deleted { background-color: #DEB0A1}
 pre.code .inserted, code .inserted { background-color: #A3D289}
 
-/* Math */
-/* for math-output=MathML (for math-output=HTML, see math.css) */
-math .boldsymbol {
-  font-weight: bold;
-}
-mstyle.mathscr, mi.mathscr {
-  font-family: STIX, XITSMathJax_Script, rsfs10,
-               "Asana Math", Garamond, cursive;
-}
 
 /* Epigraph           */
 /* Highlights         */
@@ -622,7 +633,7 @@ explicit permission of the copyright holder.</p>
 <p>Other company, product or service names may be trademarks or service marks of
 others.</p>
 <nav class="contents" id="table-of-contents" role="doc-toc">
-<p class="topic-title">Table of Contents</p>
+<p class="topic-title"><a class="reference internal" href="#top">Table of Contents</a></p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#introduction" id="toc-entry-1">Introduction</a></p></li>
 <li><p><a class="reference internal" href="#differences-from-the-tpc-c" id="toc-entry-2">Differences from the TPC-C</a></p>
@@ -719,68 +730,65 @@ others.</p>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#database-management-system-notes" id="toc-entry-54">Database Management System Notes</a></p>
+<li><p><a class="reference internal" href="#performance-testing" id="toc-entry-54">Performance Testing</a></p>
 <ul>
-<li><p><a class="reference internal" href="#cockroachdb" id="toc-entry-55">CockroachDB</a></p></li>
-<li><p><a class="reference internal" href="#mysql" id="toc-entry-56">MySQL</a></p>
-<ul>
-<li><p><a class="reference internal" href="#comments" id="toc-entry-57">COMMENTS</a></p></li>
-<li><p><a class="reference internal" href="#multi-tier-testing" id="toc-entry-58">MULTI-TIER TESTING</a></p></li>
-<li><p><a class="reference internal" href="#preparation-for-test" id="toc-entry-59">PREPARATION FOR TEST</a></p></li>
-<li><p><a class="reference internal" href="#run-test" id="toc-entry-60">RUN TEST</a></p></li>
-<li><p><a class="reference internal" href="#postrunning-analyses" id="toc-entry-61">POSTRUNNING ANALYSES</a></p></li>
+<li><p><a class="reference internal" href="#database-connection-scaling" id="toc-entry-55">Database Connection Scaling</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#postgresql-2" id="toc-entry-62">PostgreSQL</a></p>
+<li><p><a class="reference internal" href="#database-management-system-notes" id="toc-entry-56">Database Management System Notes</a></p>
 <ul>
-<li><p><a class="reference internal" href="#setup-1" id="toc-entry-63">Setup</a></p>
+<li><p><a class="reference internal" href="#cockroachdb" id="toc-entry-57">CockroachDB</a></p></li>
+<li><p><a class="reference internal" href="#mysql" id="toc-entry-58">MySQL</a></p>
 <ul>
-<li><p><a class="reference internal" href="#v7-3" id="toc-entry-64">v7.3</a></p></li>
-<li><p><a class="reference internal" href="#v7-4" id="toc-entry-65">v7.4</a></p></li>
-<li><p><a class="reference internal" href="#v8-0" id="toc-entry-66">v8.0</a></p></li>
+<li><p><a class="reference internal" href="#comments" id="toc-entry-59">COMMENTS</a></p></li>
+<li><p><a class="reference internal" href="#multi-tier-testing" id="toc-entry-60">MULTI-TIER TESTING</a></p></li>
+<li><p><a class="reference internal" href="#preparation-for-test" id="toc-entry-61">PREPARATION FOR TEST</a></p></li>
+<li><p><a class="reference internal" href="#run-test" id="toc-entry-62">RUN TEST</a></p></li>
+<li><p><a class="reference internal" href="#postrunning-analyses" id="toc-entry-63">POSTRUNNING ANALYSES</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#a-really-quick-howto" id="toc-entry-67">A really quick howto</a></p></li>
-<li><p><a class="reference internal" href="#building-the-database-1" id="toc-entry-68">Building the Database</a></p></li>
-<li><p><a class="reference internal" href="#environment-configuration-1" id="toc-entry-69">Environment Configuration</a></p></li>
-<li><p><a class="reference internal" href="#tablespace-notes" id="toc-entry-70">Tablespace Notes</a></p></li>
-<li><p><a class="reference internal" href="#appimage-notes" id="toc-entry-71">AppImage Notes</a></p>
+<li><p><a class="reference internal" href="#postgresql-2" id="toc-entry-64">PostgreSQL</a></p>
 <ul>
-<li><p><a class="reference internal" href="#limitations" id="toc-entry-72">Limitations</a></p></li>
+<li><p><a class="reference internal" href="#setup-1" id="toc-entry-65">Setup</a></p>
+<ul>
+<li><p><a class="reference internal" href="#v7-3" id="toc-entry-66">v7.3</a></p></li>
+<li><p><a class="reference internal" href="#v7-4" id="toc-entry-67">v7.4</a></p></li>
+<li><p><a class="reference internal" href="#v8-0" id="toc-entry-68">v8.0</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#a-really-quick-howto" id="toc-entry-69">A really quick howto</a></p></li>
+<li><p><a class="reference internal" href="#building-the-database-1" id="toc-entry-70">Building the Database</a></p></li>
+<li><p><a class="reference internal" href="#environment-configuration-1" id="toc-entry-71">Environment Configuration</a></p></li>
+<li><p><a class="reference internal" href="#tablespace-notes" id="toc-entry-72">Tablespace Notes</a></p></li>
+<li><p><a class="reference internal" href="#appimage-notes" id="toc-entry-73">AppImage Notes</a></p>
+<ul>
+<li><p><a class="reference internal" href="#limitations" id="toc-entry-74">Limitations</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#sap-db" id="toc-entry-73">SAP DB</a></p>
-<ul>
-<li><p><a class="reference internal" href="#setup-2" id="toc-entry-74">Setup</a></p></li>
-<li><p><a class="reference internal" href="#odbc" id="toc-entry-75">ODBC</a></p></li>
-<li><p><a class="reference internal" href="#building-the-database-2" id="toc-entry-76">Building the Database</a></p></li>
-<li><p><a class="reference internal" href="#results" id="toc-entry-77">Results</a></p></li>
+<li><p><a class="reference internal" href="#sqlite" id="toc-entry-75">SQLite</a></p></li>
+<li><p><a class="reference internal" href="#yugabytedb" id="toc-entry-76">YugabyteDB</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#sqlite" id="toc-entry-78">SQLite</a></p></li>
-<li><p><a class="reference internal" href="#yugabytedb" id="toc-entry-79">YugabyteDB</a></p></li>
+<li><p><a class="reference internal" href="#operating-system-notes" id="toc-entry-77">Operating System Notes</a></p>
+<ul>
+<li><p><a class="reference internal" href="#linux" id="toc-entry-78">Linux</a></p></li>
+<li><p><a class="reference internal" href="#solaris" id="toc-entry-79">Solaris</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#operating-system-notes" id="toc-entry-80">Operating System Notes</a></p>
+<li><p><a class="reference internal" href="#developer-guide" id="toc-entry-80">Developer Guide</a></p>
 <ul>
-<li><p><a class="reference internal" href="#linux" id="toc-entry-81">Linux</a></p></li>
-<li><p><a class="reference internal" href="#solaris" id="toc-entry-82">Solaris</a></p></li>
+<li><p><a class="reference internal" href="#building-the-kit" id="toc-entry-81">Building the Kit</a></p></li>
+<li><p><a class="reference internal" href="#testing-the-kit" id="toc-entry-82">Testing the Kit</a></p>
+<ul>
+<li><p><a class="reference internal" href="#datagen" id="toc-entry-83">datagen</a></p></li>
+<li><p><a class="reference internal" href="#post-process" id="toc-entry-84">post-process</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#developer-guide" id="toc-entry-83">Developer Guide</a></p>
+<li><p><a class="reference internal" href="#appimage" id="toc-entry-85">AppImage</a></p>
 <ul>
-<li><p><a class="reference internal" href="#building-the-kit" id="toc-entry-84">Building the Kit</a></p></li>
-<li><p><a class="reference internal" href="#testing-the-kit" id="toc-entry-85">Testing the Kit</a></p>
-<ul>
-<li><p><a class="reference internal" href="#datagen" id="toc-entry-86">datagen</a></p></li>
-<li><p><a class="reference internal" href="#post-process" id="toc-entry-87">post-process</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#appimage" id="toc-entry-88">AppImage</a></p>
-<ul>
-<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-89">Building the AppImage</a></p></li>
+<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-86">Building the AppImage</a></p></li>
 </ul>
 </li>
 </ul>
@@ -959,7 +967,12 @@ to the OSDL:</p>
 database, remote terminal emulators, and clients.  There can be multiple
 terminals that connect to multiple terminal concentrators, which connect to a
 single database.  Each component is described in the following sub-sections.</p>
-<img alt="Component Diagram" src="component.png" style="width: 600px;" />
+<figure class="align-center">
+<img alt="component.png" src="component.png" style="width: 100%;" />
+<figcaption>
+<p>DBT-2 Component Diagram</p>
+</figcaption>
+</figure>
 <section id="database">
 <h4><a class="toc-backref" href="#toc-entry-17" role="doc-backlink">Database</a></h4>
 <p>The database consists of nine tables with supportint five transactions.  While
@@ -1636,10 +1649,63 @@ wmax = 2</pre>
 </section>
 </section>
 </section>
+<section id="performance-testing">
+<h2><a class="toc-backref" href="#toc-entry-54" role="doc-backlink">Performance Testing</a></h2>
+<p>There are many additional performance testing scenarios beyond using this
+workload as defined by the TPC specification.  This sections describes some of
+them.</p>
+<section id="database-connection-scaling">
+<h3><a class="toc-backref" href="#toc-entry-55" role="doc-backlink">Database Connection Scaling</a></h3>
+<p>This test is performed by the <em>test-connection-scaling</em> script.</p>
+<p>The purpose of this test is to drive the system as hard as possible.  This is
+accomplished by running the transaction mix as quickly as possibly with no
+keying or thinking time.  The multi-process event-driven driver is used in this
+configuration to also randomly emulate any terminal by setting the home
+warehouse and district is randomly selected before each transaction.</p>
+<p>This script is run a series of tests starting with 1 database connection up to
+the number of detected processors of the driver system, adding 1 database
+connection per step in the series.  The script is primarily intended to be run
+in a 1-tier system configuration, but may be run in a 2-tier configuration and
+may needs some additional intelligence or options for that.</p>
+<p>Each step in the series will spend 1 minute to warm up and establish all
+connections to the database, then run for an additional 5 minutes and stop
+before starting the next test in the series.  The warm up time and test
+duration can be varied.</p>
+<p>At the end of the test, the script will create a bar plot of the reported
+metric of each test vs. the number of database connections used.  The sar data
+from all the tests will be aggregated and plotted.</p>
+<p>Here are some examples plots from a system with 4 logical processors where it
+spend 3 minutes warming up before running another 10 minutes.</p>
+<figure class="align-center">
+<a class="reference external image-reference" href="test-connection-scaling/nopdbc.png">
+<img alt="test-connection-scaling/nopdbc.png" src="test-connection-scaling/nopdbc.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p>Connection Scaling Transaction Rates per Database Connection</p>
+</figcaption>
+</figure>
+<figure class="align-center">
+<a class="reference external image-reference" href="test-connection-scaling/tn-transaction-rate.png">
+<img alt="test-connection-scaling/tn-transaction-rate.png" src="test-connection-scaling/tn-transaction-rate.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p>Connection Scaling Transaction Rates</p>
+</figcaption>
+</figure>
+<figure class="align-center">
+<a class="reference external image-reference" href="test-connection-scaling/sar-cpu-agg-busy.png">
+<img alt="test-connection-scaling/sar-cpu-agg-busy.png" src="test-connection-scaling/sar-cpu-agg-busy.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p>Connection Scaling Processor Utilization</p>
+</figcaption>
+</figure>
+</section>
+</section>
 <section id="database-management-system-notes">
-<h2><a class="toc-backref" href="#toc-entry-54" role="doc-backlink">Database Management System Notes</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-56" role="doc-backlink">Database Management System Notes</a></h2>
 <section id="cockroachdb">
-<h3><a class="toc-backref" href="#toc-entry-55" role="doc-backlink">CockroachDB</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-57" role="doc-backlink">CockroachDB</a></h3>
 <p>A really quick howto.</p>
 <p>The CockroachDB scripts makes use of PostgreSQL's psql client program and libpq
 C client library interface, thus any environment variables that libpq would
@@ -1661,9 +1727,9 @@ database instance.</p>
 <pre class="literal-block">dbt2-run -a cockroach -c 10 -d 120 -w 1 -o /tmp/results</pre>
 </section>
 <section id="mysql">
-<h3><a class="toc-backref" href="#toc-entry-56" role="doc-backlink">MySQL</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-58" role="doc-backlink">MySQL</a></h3>
 <section id="comments">
-<h4><a class="toc-backref" href="#toc-entry-57" role="doc-backlink">COMMENTS</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-59" role="doc-backlink">COMMENTS</a></h4>
 <p>There are two versions of DBT2(TPC-C) test:</p>
 <ul class="simple">
 <li><p>pure C based version of the test(nonSP)</p></li>
@@ -1676,7 +1742,7 @@ from MySQL 5.0 or higher.</p>
 <p>See examples/mysql/mysql-dbt2.cnf for example MySQL defaults file.</p>
 </section>
 <section id="multi-tier-testing">
-<h4><a class="toc-backref" href="#toc-entry-58" role="doc-backlink">MULTI-TIER TESTING</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-60" role="doc-backlink">MULTI-TIER TESTING</a></h4>
 <ul>
 <li><p>Enable 'PermitUserEnvironment' in sshd_config.</p></li>
 <li><p>Set DBT2DATADIR in the database system user's '.ssh/environment' file:</p>
@@ -1694,7 +1760,7 @@ that require access, the grant will have to be done manually:</p>
 </ul>
 </section>
 <section id="preparation-for-test">
-<h4><a class="toc-backref" href="#toc-entry-59" role="doc-backlink">PREPARATION FOR TEST</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-61" role="doc-backlink">PREPARATION FOR TEST</a></h4>
 <ol class="arabic simple" start="0">
 <li><p>Build test binaries</p></li>
 </ol>
@@ -1703,7 +1769,7 @@ that require access, the grant will have to be done manually:</p>
 <p>If you want to compile with MySQL support, you must either make sure
 that path to 'mysql_config' is listed in your PATH environment variable.</p>
 </blockquote>
-<pre class="literal-block">cmake CMakeLists.txt -DDBMS=mysql
+<pre class="literal-block">cmake CMakeLists.txt
 make
 make install</pre>
 <ol class="arabic">
@@ -1755,7 +1821,7 @@ options:</p>
 </ol>
 </section>
 <section id="run-test">
-<h4><a class="toc-backref" href="#toc-entry-60" role="doc-backlink">RUN TEST</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-62" role="doc-backlink">RUN TEST</a></h4>
 <blockquote>
 <p>dbt2-run</p>
 <p>usage: dbt2-run -a mysql -c &lt;number of database connections&gt; -t &lt;duration of test&gt; -w &lt;number of warehouses&gt;
@@ -1789,7 +1855,7 @@ will fail.</p>
 database.</p>
 </section>
 <section id="postrunning-analyses">
-<h4><a class="toc-backref" href="#toc-entry-61" role="doc-backlink">POSTRUNNING ANALYSES</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-63" role="doc-backlink">POSTRUNNING ANALYSES</a></h4>
 <p>Results can be found in bin/output/&lt;number&gt;</p>
 <p>some of the usefull log files:</p>
 <pre class="literal-block">  results/client/${HOSTNAME}.*/error.log - errors from backend C|SP based
@@ -1799,9 +1865,9 @@ r  esults/report.txt - results of the test</pre>
 </section>
 </section>
 <section id="postgresql-2">
-<h3><a class="toc-backref" href="#toc-entry-62" role="doc-backlink">PostgreSQL</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-64" role="doc-backlink">PostgreSQL</a></h3>
 <section id="setup-1">
-<h4><a class="toc-backref" href="#toc-entry-63" role="doc-backlink">Setup</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-65" role="doc-backlink">Setup</a></h4>
 <p>The DBT-2 test kit has been ported to work with PostgreSQL starting with
 version 7.3.  It has be updated to work with later version and backwards
 compatibility may vary.  Source code for PostgreSQL can be obtained from their
@@ -1831,27 +1897,27 @@ connections on all interfaces.</p>
 installing from source, it is located in the <cite>contrib/pg_autovacuum</cite> directory.</p>
 <p>The following subsections have additional PostgreSQL version specific notes.</p>
 <section id="v7-3">
-<h5><a class="toc-backref" href="#toc-entry-64" role="doc-backlink">v7.3</a></h5>
+<h5><a class="toc-backref" href="#toc-entry-66" role="doc-backlink">v7.3</a></h5>
 <p>With PostgreSQL 7.3, it needs to be built with a change in <cite>pg_config.h.in</cite>
 where <cite>INDEX_MAX_KEYS</cite> must be set to 64.  Be sure to make this change before
 running the configure script for PostgreSQL.</p>
 </section>
 <section id="v7-4">
-<h5><a class="toc-backref" href="#toc-entry-65" role="doc-backlink">v7.4</a></h5>
+<h5><a class="toc-backref" href="#toc-entry-67" role="doc-backlink">v7.4</a></h5>
 <p>With PostgreSQL 7.4, it needs to be built with a change in
 <cite>src/include/pg_config_manual.h</cite> where <cite>INDEX_MAX_KEYS</cite> must be set to 64.</p>
 <p>Edit the parameter in <cite>postgresql.conf</cite> that says <cite>tcpip_socket = false</cite>,
 uncomment, set to <cite>true</cite>, and restart the daemon.</p>
 </section>
 <section id="v8-0">
-<h5><a class="toc-backref" href="#toc-entry-66" role="doc-backlink">v8.0</a></h5>
+<h5><a class="toc-backref" href="#toc-entry-68" role="doc-backlink">v8.0</a></h5>
 <p>For PostgreSQL 8.0 and later, run <cite>configure</cite> with the <cite>--enable-thread-safety</cite>
 to avoid <cite>SIGPIPE</cite> handling for the multi-thread DBT-2 client program.  This is
 a significant performance benefit.</p>
 </section>
 </section>
 <section id="a-really-quick-howto">
-<h4><a class="toc-backref" href="#toc-entry-67" role="doc-backlink">A really quick howto</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-69" role="doc-backlink">A really quick howto</a></h4>
 <p>Edit <cite>examples/dbt2_profile</cite> and follow the notes for the <cite>DBT2PGDATA</cite>
 directory.  <cite>DBT2PGDATA</cite> is where the database directory will be created.</p>
 <p>Create a 1 warehouse database by running:</p>
@@ -1860,7 +1926,7 @@ directory.  <cite>DBT2PGDATA</cite> is where the database directory will be crea
 <pre class="literal-block">dbt2 run -d 300 pgsql /tmp/result</pre>
 </section>
 <section id="building-the-database-1">
-<h4><a class="toc-backref" href="#toc-entry-68" role="doc-backlink">Building the Database</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-70" role="doc-backlink">Building the Database</a></h4>
 <p>The <cite>dbt2-pgsql-build-db</cite> script is designed to handle the following steps:</p>
 <ol class="arabic simple">
 <li><p>create the database</p></li>
@@ -1888,7 +1954,7 @@ drop and create a database</p></li>
 <pre class="literal-block">dbt2 build pgsql</pre>
 </section>
 <section id="environment-configuration-1">
-<h4><a class="toc-backref" href="#toc-entry-69" role="doc-backlink">Environment Configuration</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-71" role="doc-backlink">Environment Configuration</a></h4>
 <p>The DBT-2 scripts required environment variables to be set in order to work
 properly (e.g. <cite>examples/dbt2_profile</cite>) in order for the scripts to work
 properly.  For example:</p>
@@ -1910,7 +1976,7 @@ DBT2PGDATA=/tmp/pgdata
 PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin</pre>
 </section>
 <section id="tablespace-notes">
-<h4><a class="toc-backref" href="#toc-entry-70" role="doc-backlink">Tablespace Notes</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-72" role="doc-backlink">Tablespace Notes</a></h4>
 <p>The scripts assumes a specific tablespace layout for keeping the scripts
 simple.</p>
 <p>The <cite>${DBT2TSDIR}</cite> environment variable defines the directory where all
@@ -1941,9 +2007,9 @@ ${DBT2TSDIR}/pk_stock
 ${DBT2TSDIR}/pk_warehouse</pre>
 </section>
 <section id="appimage-notes">
-<h4><a class="toc-backref" href="#toc-entry-71" role="doc-backlink">AppImage Notes</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-73" role="doc-backlink">AppImage Notes</a></h4>
 <section id="limitations">
-<h5><a class="toc-backref" href="#toc-entry-72" role="doc-backlink">Limitations</a></h5>
+<h5><a class="toc-backref" href="#toc-entry-74" role="doc-backlink">Limitations</a></h5>
 <p>Using the AppImage has some limitations with PostgreSQL:</p>
 <ol class="arabic simple">
 <li><p>The AppImage cannot alone be used to build a database with C stored
@@ -1955,112 +2021,8 @@ the pl/pgsql stored functions.</p></li>
 </section>
 </section>
 </section>
-<section id="sap-db">
-<h3><a class="toc-backref" href="#toc-entry-73" role="doc-backlink">SAP DB</a></h3>
-<section id="setup-2">
-<h4><a class="toc-backref" href="#toc-entry-74" role="doc-backlink">Setup</a></h4>
-<p>After installing SAP DB create the user id <em>sapdb</em>, assigning the user to group
-<em>sapdb</em>.</p>
-<p>Create the database stats collection tool, x_cons, by executing the following:</p>
-<pre class="literal-block">cp -p /opt/sapdb/indep_prog/bin/x_server /opt/sapdb/indep_prog/bin/x_cons</pre>
-<p>The test kit requires unixODBC drivers to connect with SAP DB.  The driver can
-be install from the source available at:
-<a class="reference external" href="http://www.unixodbc.org/unixODBC-2.2.3.tar.gz">http://www.unixodbc.org/unixODBC-2.2.3.tar.gz</a></p>
-</section>
-<section id="odbc">
-<h4><a class="toc-backref" href="#toc-entry-75" role="doc-backlink">ODBC</a></h4>
-<p>An <cite>.odbc.ini</cite> file must reside in the home directory of the user
-attempting to run the program.  The format of the file is:</p>
-<pre class="literal-block">[alias]
-ServerDB = database_name
-ServerNode = address
-Driver = /opt/sapdb/interfaces/odbc/lib/libsqlod.so
-Description = any text</pre>
-<p>For example:</p>
-<pre class="literal-block">[dbt2]
-ServerDB = DBT2
-ServerNode = 192.168.0.1
-Driver = /opt/sapdb/interfaces/odbc/lib/libsqlod.so
-Description = OSDL DBT-2</pre>
-<p>is a valid <cite>.odbc.ini</cite> file where dbt2 can be used as the server name to
-connect to the database.  Note that the location of _libsqlod.so_ may vary
-depending on how your database is installed on your system.</p>
-</section>
-<section id="building-the-database-2">
-<h4><a class="toc-backref" href="#toc-entry-76" role="doc-backlink">Building the Database</a></h4>
-<p>The script dbt2/scripts/sapdb/create_db_sample.sh must be edited to configure
-the SAP DB devspaces.  The param_adddevspaces commands need to be changed to
-match your system configuration.  Similarly, the backup_media_put commands also
-need to be changed to match your system configuration.  The script assumes the
-instance name to be <cite>DBT2</cite>.  Change the line <cite>SID=DBT2</cite> if you need to change
-the instance name (in this an all the scripts).  Many other SAP DB parameters
-(e.g. MAXCPU) will need to be adjusted based on your system.</p>
-<p>As user sapdb, execute the following script, in dbt2/scripts/sapdb, to generate
-the database from scratch (which will execute create_db_sample.sh):</p>
-<pre class="literal-block">./db_setup.sh &lt;warehouses&gt; &lt;outputdir&gt;</pre>
-<p>where &lt;warehouses&gt; is the number of warehouses to build for and &lt;outputdir&gt; is
-the directory in which the data files will be generated.  This script will
-create the data files, create the database, the tables, load the database,
-create indexes, update database statistics, load the stored procedures, and
-backup the database.  This script assumes the instance name is <cite>DBT2</cite> so you
-need to edit the line ''SID=DBT2'' if you need to change the instance name.</p>
-<p>Although the create script starts the remote communication server, it is a good
-idea to include the same thing in your system startup scripts /etc/rc.local:</p>
-<pre class="literal-block"># start remote communication server:
-x_server start &gt; /dev/null 2&gt;&amp;1:</pre>
-<p>There is an option for ''migration'' that needs to be documented, or else
-removed from the create_db.sh scripts.</p>
-<p>It is highly recommended for performance that you use raw partitions for the
-LOG and DATA files.  Here is a sample of the adddevices when using 1 LOG (the
-limit is one)  of 1126400 -8k pages and 5 raw DATA devices of 2044800 -8k pages
-each:</p>
-<pre class="literal-block">param_adddevspace 1 LOG  /dev/raw/raw1 R 1126400
-param_adddevspace 1 DATA /dev/raw/raw2 R 204800
-param_adddevspace 2 DATA /dev/raw/raw3 R 204800
-param_adddevspace 3 DATA /dev/raw/raw4 R 204800
-param_adddevspace 4 DATA /dev/raw/raw5 R 204800
-param_adddevspace 5 DATA /dev/raw/raw6 R 204800</pre>
-</section>
-<section id="results">
-<h4><a class="toc-backref" href="#toc-entry-77" role="doc-backlink">Results</a></h4>
-<p>Each output files starting with <cite>m_*.out</cite>, refers to a monitor table in the
-SAP DB database.  For example:</p>
-<table>
-<tbody>
-<tr><td><p>m_cache.out</p></td>
-<td><p>MONITOR_CACHE contains information about the operations performed
-on the different caches.</p></td>
-</tr>
-<tr><td><p>m_lock.out</p></td>
-<td><p>MONITOR_LOCK contains information on the database's lock
-management operations.</p></td>
-</tr>
-<tr><td><p>m_pages.out</p></td>
-<td><p>MONITOR_PAGES contains information on page accesses.</p></td>
-</tr>
-<tr><td><p>m_trans.out</p></td>
-<td><p>MONITOR_TRANS contains information on database transaction.</p></td>
-</tr>
-<tr><td><p>m_load.out</p></td>
-<td><p>MONITOR_LOAD contains information on the executed SQL statements
-and access methods.</p></td>
-</tr>
-<tr><td><p>m_log.out</p></td>
-<td><p>MONITOR_LOG contains information on the database logging
-operations.</p></td>
-</tr>
-<tr><td><p>m_row.out</p></td>
-<td><p>MONITOR_ROW contains information on operations at the row level.</p></td>
-</tr>
-</tbody>
-</table>
-<p>Additional database locking statistics are collected in <cite>lockstats.csv</cite>.  The
-data and log devspaces statistics are collected in <cite>datadev0.txt</cite>,
-<cite>datadev1.txt</cite>, <cite>logdev0.txt</cite>, and <cite>logdev1.txt</cite>, respectively.</p>
-</section>
-</section>
 <section id="sqlite">
-<h3><a class="toc-backref" href="#toc-entry-78" role="doc-backlink">SQLite</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-75" role="doc-backlink">SQLite</a></h3>
 <p>To create a database:</p>
 <pre class="literal-block">dbt2-sqlite-build-db -g -w 1 -d /tmp/dbt2-w1 -f /tmp/dbt2data</pre>
 <p>To run a test:</p>
@@ -2069,7 +2031,7 @@ data and log devspaces statistics are collected in <cite>datadev0.txt</cite>,
 where the SQLite database files are.</p>
 </section>
 <section id="yugabytedb">
-<h3><a class="toc-backref" href="#toc-entry-79" role="doc-backlink">YugabyteDB</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-76" role="doc-backlink">YugabyteDB</a></h3>
 <p>A really quick howto.</p>
 <p>The YugabyteDB scripts makes use of PostgreSQL's psql client program and libpq
 C client library interface, thus any environment variables that libpq would
@@ -2093,9 +2055,9 @@ management system:</p>
 </section>
 </section>
 <section id="operating-system-notes">
-<h2><a class="toc-backref" href="#toc-entry-80" role="doc-backlink">Operating System Notes</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-77" role="doc-backlink">Operating System Notes</a></h2>
 <section id="linux">
-<h3><a class="toc-backref" href="#toc-entry-81" role="doc-backlink">Linux</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-78" role="doc-backlink">Linux</a></h3>
 <p>If you want readprofile data, you need to give the user <strong>sudo</strong> access to run
 <strong>readprofile.  Root privileges are required to clear the counter data.
 Additionally, the Linux kernel needs to be booted with `profile=2` in the
@@ -2128,7 +2090,7 @@ and add:</p>
 <pre class="literal-block">kernel.shmmax = 41943040</pre>
 </section>
 <section id="solaris">
-<h3><a class="toc-backref" href="#toc-entry-82" role="doc-backlink">Solaris</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-79" role="doc-backlink">Solaris</a></h3>
 <p>These notes are from testing with OpenSolaris 10.</p>
 <p>Install the SFWgplot package for gnuplot from the Solaris 20 companion DVD.</p>
 <p>Added the following to your path in order to use gcc (and other development
@@ -2137,10 +2099,10 @@ tools) and to use gnuplot:</p>
 </section>
 </section>
 <section id="developer-guide">
-<h2><a class="toc-backref" href="#toc-entry-83" role="doc-backlink">Developer Guide</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-80" role="doc-backlink">Developer Guide</a></h2>
 <p>This document is for detailing any related to the development of this test kit.</p>
 <section id="building-the-kit">
-<h3><a class="toc-backref" href="#toc-entry-84" role="doc-backlink">Building the Kit</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-81" role="doc-backlink">Building the Kit</a></h3>
 <p>CMake is build system used for this kit.  A <cite>Makefile.cmake</cite> is provided to
 automate some of the tasks.</p>
 <p>Building for debugging:</p>
@@ -2155,23 +2117,23 @@ Alternatively, the kit provides scripts in the <em>tools</em> diretory to create
 container that can create an AppImage.</p>
 </section>
 <section id="testing-the-kit">
-<h3><a class="toc-backref" href="#toc-entry-85" role="doc-backlink">Testing the Kit</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-82" role="doc-backlink">Testing the Kit</a></h3>
 <p>The CMake testing infrastructure is used with shUnit2 to provide some testing.</p>
 <section id="datagen">
-<h4><a class="toc-backref" href="#toc-entry-86" role="doc-backlink">datagen</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-83" role="doc-backlink">datagen</a></h4>
 <p>Tests are provided to verify that partitioning does not generate different data
 than if the data was not partitioned.  There are some data that is generated
 with the time stamp of when the data is created, so those columns are ignored
 when comparing data since they are not likely to be the same time stamps.</p>
 </section>
 <section id="post-process">
-<h4><a class="toc-backref" href="#toc-entry-87" role="doc-backlink">post-process</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-84" role="doc-backlink">post-process</a></h4>
 <p>A test is provided to make sure that the post-process output continues to work
 with multiple mix files as well as with various statistical analysis packages.</p>
 </section>
 </section>
 <section id="appimage">
-<h3><a class="toc-backref" href="#toc-entry-88" role="doc-backlink">AppImage</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-85" role="doc-backlink">AppImage</a></h3>
 <p>AppImages are only for Linux based systems:</p>
 <blockquote>
 <p><a class="reference external" href="https://appimage.org/">https://appimage.org/</a></p>
@@ -2190,7 +2152,7 @@ distributions with the oldest libc version.</p>
 <p>See the <cite>README.rst</cite> in the <cite>tools/</cite> directory for an example of creating
 an AppImage with a Podman container.</p>
 <section id="building-the-appimage">
-<h4><a class="toc-backref" href="#toc-entry-89" role="doc-backlink">Building the AppImage</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-86" role="doc-backlink">Building the AppImage</a></h4>
 <p>The AppImages builds a custom minimally configured PostgreSQL build to reduce
 library dependency requirements.  Part of this reason is to make it easier to
 include libraries with compatible licences.  At least version PostgreSQL 11
