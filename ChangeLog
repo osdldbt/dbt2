@@ -20,6 +20,7 @@ vX.Y.Z (YYYY-MM-DD)
 - AppImage: add missing perl modules for flame graphs
 - AppImage: add, again, python libraries for rst2html5 that were accidentally
   removed v0.61.3.
+- AppImage: bump touchstone-tools to v0.9.1
 
 v0.61.4 (2024-08-12)
 
