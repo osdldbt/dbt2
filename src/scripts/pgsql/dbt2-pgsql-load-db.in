@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 @SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
@@ -122,6 +123,7 @@ load_table() {
 		T=$CPUS
 	else
 		T=$TOTAL_PARTS
+		CPUS=${TOTAL_PARTS}
 	fi
 
 	# When TOTAL_PARTS is 1, data isn't being partitiond so it doesn't need to

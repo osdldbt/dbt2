@@ -23,6 +23,8 @@ Options:
   --db-user USER
                  database USER
   -g             generate flat files
+  --parallelism=COUNT
+                 Limit datagen to COUNT processes for data loading
   --privileged   run test as a privileged operating system and database user
   --rows-per-commit=ROWS
                  Number of ROWS to load per transactions, default behavior is
@@ -121,6 +123,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--mysql-stored-procedures=?*)
 		BUILDARGS="${BUILDARGS} -F ${1#*--mysql-stored-procedures=}"
+		;;
+	(--parallelism)
+		shift
+		BUILDARGS="${BUILDARGS} --parallelism=${1}"
+		;;
+	(--parallelism=?*)
+		BUILDARGS="${BUILDARGS} --parallelism=${1#*--parallelism=}"
 		;;
 	(--rows-per-commit)
 		shift

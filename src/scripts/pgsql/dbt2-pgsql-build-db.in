@@ -19,6 +19,8 @@ Options:
   -f             perform vacuum operation in FULL mode.
   -i DIRECTORY   DIRECTORY with plpgsql stored functions
   -l PORT        PostgreSQL PORT
+  --parallelism=COUNT
+                 Limit datagen to COUNT processes for data loading
   -p PARAMTERS   PostgreSQL database PARAMETERS
   -r             drop existing database before building a new database
   --rows-per-commit ROWS
@@ -40,6 +42,7 @@ EOF
 WAREHOUSES=1
 GENERATE_DATAFILE=0
 LOADARGS=""
+PARALLELISM_ARG=""
 PRIVILEGED=0
 REBUILD_DB=0
 ROWS_PER_COMMIT=0
@@ -62,6 +65,13 @@ while [ "${#}" -gt 0 ] ; do
 	(-p)
 		shift
 		PARAMETERS="${1}"
+		;;
+	(--parallelism)
+		shift
+		PARALLELISM_ARG="-t ${1}"
+		;;
+	(--parallelism=?*)
+		PARALLELISM_ARG="-t ${1#*--parallelism=}"
 		;;
 	(--rows-per-commit)
 		shift
@@ -142,8 +152,8 @@ SEED=$(dbt2 rand 1 18446744073709551615 0)
 export PGPORT="${PORT}"
 export PGDATABASE="${DBT2DBNAME}"
 
-eval "dbt2 pgsql-load-db ${PORTARG} -s ${SEED} -w ${WAREHOUSES} ${LOADARGS}" \
-		|| exit 1
+eval "dbt2 pgsql-load-db ${PORTARG} -s ${SEED} -w ${WAREHOUSES} ${LOADARGS} \
+		${PARALLELISM_ARG}" || exit 1
 eval "dbt2 pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
 eval "dbt2 pgsql-load-stored-procs ${SHAREDIRARG} ${PORTARG} -t ${UDF_TYPE}" \
 		|| exit 1

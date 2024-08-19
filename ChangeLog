@@ -23,6 +23,7 @@ vX.Y.Z (YYYY-MM-DD)
 - AppImage: bump touchstone-tools to v0.9.1
 - generate-report now relies on touchstone-tools v0.9.1 to generate flame
   graphs
+- build: add --parallelism flag to limit processes used for data loading
 
 v0.61.4 (2024-08-12)
 
