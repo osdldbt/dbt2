@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.61.5 (2024-08-19)
 
 - build: add --data flat to specify where datagen will create flat files when
   not doing a streaming load
