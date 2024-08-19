@@ -24,17 +24,11 @@ if [ ! "x${PORT}" = "x" ]; then
 fi
 PSQL="psql -X ${PORTOPT} -At"
 
-# Create database
-echo "Creating database..."
+DBEXISTS=$(${PSQL} -l | cut -d "|" -f 1 | grep -c "\<${DBT2DBNAME}\>")
 
-SQL="SELECT 1 FROM pg_database WHERE lower(datname) = lower('${DBT2DBNAME}');"
-
-RC=$(eval "${PSQL} -c \"${SQL}\" 2> /dev/null")
-
-if [ "${RC}" = "1" ]; then
-	echo "database already exists: ${DBT2DBNAME}"
-else
-	eval "${PSQL}" <<- EOF
+if [ "${DBEXISTS}" -ne 1 ]; then
+	echo "Creating database..."
+	eval "${PSQL} -d template1" <<- EOF
 		CREATE DATABASE ${DBT2DBNAME};
 	EOF
 fi

@@ -16,6 +16,7 @@ vX.Y.Z (YYYY-MM-DD)
   configuration with socket files
 - mysql delivery stored procedure: add use of FOR UPDATE and missing ORDER BY
 - mysql payment stored procedure: use of of FOR UPDATE and missing c_data
+- pgsql: refactor automatic database creation logic to use template1
 
 v0.61.4 (2024-08-12)
 
