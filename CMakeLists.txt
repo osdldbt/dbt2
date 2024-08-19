@@ -107,6 +107,9 @@ set (PSQL ../AppDir/usr/bin/psql)
 add_custom_target(appimage
     COMMAND [ -d "/usr/local/share/licenses" ] &&
             cp -pr /usr/local/share/licenses ../AppDir/usr/share || exit 0
+    COMMAND [ -d "/usr/local/lib/python3.11" ] &&
+            mkdir -p ../AppDir/usr/lib/ &&
+            cp -pr /usr/local/lib/python3.11 ../AppDir/usr/lib/ || exit
     COMMAND mkdir -p ../AppDir/usr/share/licenses/dbt2-${PROJECT_VERSION}
     COMMAND cp -p ../../LICENSE
             ../AppDir/usr/share/licenses/dbt2-${PROJECT_VERSION}/
