@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-YY)
+
+- Fix exit bug when building AppImage outside of the container
+- Update man page make rules to match docutils v0.21.1 set since v0.61.2
+
 v0.61.5 (2024-08-19)
 
 - build: add --data flat to specify where datagen will create flat files when
