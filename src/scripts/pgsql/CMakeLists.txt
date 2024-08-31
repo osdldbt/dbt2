@@ -2,6 +2,7 @@ set (PROGRAMFILES "")
 foreach (FILE dbt2-pgsql-build-db
               dbt2-pgsql-drop-stored-procs
               dbt2-pgsql-load-db
+              dbt2-pgsql-set-param
         )
     configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
     set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})

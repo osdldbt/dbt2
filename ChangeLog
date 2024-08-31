@@ -2,6 +2,7 @@ vX.Y.Z (YYYY-MM-YY)
 
 - Fix exit bug when building AppImage outside of the container
 - Update man page make rules to match docutils v0.21.1 set since v0.61.2
+- Add test-db-param script for database parameter testing example
 
 v0.61.5 (2024-08-19)
 

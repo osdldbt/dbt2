@@ -26,6 +26,7 @@ foreach (FILE dbt2
               dbt2-report
               dbt2-run
               dbt2-test-connection-scaling
+              dbt2-test-db-parameter
         )
     configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
     set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})
