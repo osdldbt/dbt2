@@ -280,7 +280,7 @@ for FILE in sar-blockdev.csv sar-cpu.csv sar-mem.csv sar-net.csv \
 		break
 	done
 
-	# Get the just the data from all of the file.
+	# Get just the data from all of the files.
 	# shellcheck disable=SC2046
 	find $(find "${OUTDIR}" -name db -type d -print0 | xargs -0) -name sar \
 			-type d | sort -V | while IFS= read -r DIR; do
