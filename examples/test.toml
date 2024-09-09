@@ -43,9 +43,6 @@ connections = 1
 # The client listener port
 #client_port = 30001
 
-# Delay in milliseconds between opening database connections, default 100
-#connection_delay = 1000
-
 # Delay in milliseconds to wait between database connection attempts, default
 # 100
 #retry_delay = 100
@@ -56,6 +53,8 @@ database = "db2.int"
 connections = 1
 #database_port = 5432
 #client_port = 30001
+
+# Delay in milliseconds between opening database connections, default 100
 #connection_delay = 1000
 
 # Driver (a.k.a. terminal emulator) configuration: create a [[driver]] (Array
@@ -95,6 +94,10 @@ database_addr = "db1.int"
 # How many processes to start per processor, which also means a connection will
 # be opened per process started, default 1
 #connections_per_processor = 2
+
+# Delay in milliseconds between opening database connections, only takes affect
+# when using driver mode=3, default 100
+#connection_delay = 1000
 
 # Advanced mode, requires intimate knowledge of the TPC-C specification.  Do
 # not turn on if you are not intimately familiar with the TPC-C benchmark.

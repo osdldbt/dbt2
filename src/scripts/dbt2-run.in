@@ -1112,6 +1112,12 @@ else
 		fi
 
 		TMP="$(toml get "${CONFIGFILE}" driver | \
+				jq -r ".[${INDEX}].connection_delay")"
+		if [ ! "${TMP}" = "null" ]; then
+			THREAD_STARTUP_DELAY="${TMP}"
+		fi
+
+		TMP="$(toml get "${CONFIGFILE}" driver | \
 				jq -r ".[${INDEX}].connections_per_processor")"
 		if [ ! "${TMP}" = "null" ]; then
 			FPP="${TMP}"

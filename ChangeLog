@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-YY)
 - Add test-db-param script for database parameter testing example
 - pgsql: remove hard coded set -x in load-db script accidentally committed in
   v0.61.5 release
+- Fix run script configuration so that connection_delay can be set per driver
 
 v0.61.5 (2024-08-19)
 
