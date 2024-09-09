@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-YY)
+v0.61.6 (2024-09-09)
 
 - Fix exit bug when building AppImage outside of the container
 - Update man page make rules to match docutils v0.21.1 set since v0.61.2
