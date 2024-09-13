@@ -16,18 +16,10 @@ fi
 
 podman run \
 		--rm \
+		--user "$(id -u):$(id -u)" \
+		--userns=keep-id \
 		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw,Z" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /usr/local/src/dbt2 \
 		$CONTAINER_TAG \
 		make -f Makefile.cmake appimage
-
-# I wonder if there is a better way to make sure the artifacts are all owned by
-# the user running this.
-podman run \
-		--rm \
-		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt2:rw,Z" \
-		-w /usr/local/src/dbt2 \
-		-u root \
-		$CONTAINER_TAG \
-		chown -R root:root builds/appimage/
