@@ -39,6 +39,7 @@ DBNAME is "${DBNAME}" by default.
 EOF
 }
 
+DBNAME="dbt2"
 WAREHOUSES=1
 GENERATE_DATAFILE=0
 LOADARGS=""
@@ -119,6 +120,8 @@ done
 shift "$(( OPTIND - 1 ))"
 if [ ! "$1" = "" ]; then
 	export DBT2DBNAME="$1"
+else
+	export DBT2DBNAME="${DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then
