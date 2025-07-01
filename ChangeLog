@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-YY)
 - pgsql: fix load-stored-procs script logic for checking for necessary
   parameters when using C stored functions
 - pgsql: fix build-db script to use "dbt2" for the database name by default
+- run: fix logic that prevented a test in privileged mode
 
 v0.61.6 (2024-09-09)
 

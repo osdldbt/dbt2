@@ -766,7 +766,7 @@ if [ "${CONFIGFILE}" = "" ]; then
 	fi
 
 	if [ $PRIVILEGED -eq 1 ]; then
-		if eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"; then
+		if ! eval "${DB_COMMAND} dbt2 ${DBMS}-stop-db ${MISC_ARG}"; then
 			echo "cleaning up results..."
 			rm -rf "${OUTPUT_DIR}"
 			exit 1
