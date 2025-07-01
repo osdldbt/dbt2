@@ -46,11 +46,6 @@ while getopts "i:l:t:" OPT; do
 	esac
 done
 
-if [ "${SHAREDIR}" = "" ]; then
-	echo "ERROR: postgresql share directory not detected or not specified"
-	exit 1
-fi
-
 if [ -z "${TYPE}" ]; then
 	usage
 	exit 1
@@ -63,6 +58,11 @@ fi
 PSQL="psql -v ON_ERROR_STOP=1 -X ${PORTARG} -e -d ${DBT2DBNAME}"
 
 if [ "${TYPE}" = "plpgsql" ]; then
+	if [ "${SHAREDIR}" = "" ]; then
+		echo "ERROR: postgresql share directory not detected or not specified"
+		exit 1
+	fi
+
 	echo "loading pl/pgsql stored functions..."
 	${PSQL} -f ${SHAREDIR}/delivery.sql || exit 1
 	${PSQL} -f ${SHAREDIR}/new_order.sql || exit 1
