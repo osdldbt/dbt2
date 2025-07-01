@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-YY)
+v0.61.7 (2025-07-01)
 
 - pgsql: fix load-stored-procs script logic for checking for necessary
   parameters when using C stored functions
