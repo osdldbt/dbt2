@@ -29,6 +29,7 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTOPT="-p ${PORT}"
 fi
 
-dropdb ${PORTOPT} ${DBT2DBNAME} || exit 1
+eval "psql -d template1 ${PORTOPT} -c \"DROP DATABASE ${DBT2DBNAME};\"" \
+		|| exit 1
 
 exit 0
